@@ -678,6 +678,8 @@ function randPointInBox(poly){
 
 let ocorrencias = [], voluntarios = [], idCounter = 1;
 let activeZone = null; // null = Todos
+let currentRole = null; // controle de acesso simulado; populado logo abaixo, antes do roteamento por hash
+try{ currentRole = JSON.parse(sessionStorage.getItem('maringa_role') || 'null'); }catch(e){ currentRole = null; }
 
 /* ---------- mapa ---------- */
 const map = L.map('map', { zoomControl:true, attributionControl:true }).setView(MARINGA_CENTER, 13);
@@ -1937,6 +1939,7 @@ function applyRoute(){
   document.getElementById('app-view').hidden = isStatus;
   document.getElementById('status-view').hidden = !isStatus;
   if(isStatus) document.getElementById('status-resultado').innerHTML = '';
+  if(!isStatus && !currentRole) document.getElementById('role-overlay').hidden = false;
 }
 window.addEventListener('hashchange', applyRoute);
 applyRoute();
@@ -2024,9 +2027,6 @@ window.addEventListener('online', ()=>{ atualizarBannerOffline(); processarFilaO
 atualizarBannerOffline();
 
 /* ---------- controle de acesso por papel (simulado, nao e seguranca real) ---------- */
-let currentRole = null;
-try{ currentRole = JSON.parse(sessionStorage.getItem('maringa_role') || 'null'); }catch(e){ currentRole = null; }
-
 function canAdmin(){ return !!currentRole && currentRole.tipo==='admin'; }
 function canActZone(zona){ return !!currentRole && (currentRole.tipo==='admin' || (currentRole.tipo==='responsavel' && currentRole.zona===zona)); }
 function isViewOnly(){ return !currentRole || currentRole.tipo==='visualizacao'; }
@@ -2055,7 +2055,7 @@ document.querySelectorAll('#role-modal [data-role]').forEach(btn=>{
     applyRolePermissions();
   };
 });
-if(!currentRole) roleOverlay.hidden = false;
+if(!currentRole && location.hash!=='#status') roleOverlay.hidden = false;
 applyRolePermissions();
 
 document.getElementById('heat-toggle').onclick = (e)=>{
