@@ -34,6 +34,9 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .sidebar-btn:hover{border-color:var(--accent);color:var(--accent)}
 .alerta-btn{border-color:rgba(255,138,59,.4);color:#ff8a3b}
 .alerta-btn:hover{border-color:#ff8a3b;color:#ff8a3b}
+.role-badge{margin-top:10px;font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+.role-badge a{color:var(--accent);text-decoration:none;font-family:var(--mono)}
+.view-only-note{font-size:11px;color:var(--muted);background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin-top:4px}
 .alert-card{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px;background:var(--panel-2)}
 .alert-nivel{display:inline-block;font-family:var(--mono);font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.03em}
 .alert-meta{font-size:10.5px;color:var(--muted);margin-top:4px}
@@ -328,6 +331,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         <button id="open-chat" class="sidebar-btn">💬 Chat interno</button>
         <a href="#status" id="open-status-publico" class="sidebar-btn" style="text-decoration:none;display:block;color:var(--muted)">👁 Ver status público (demo)</a>
       </div>
+      <div class="role-badge" id="role-badge"></div>
     </div>
     <div class="zone-list" id="zone-list"></div>
     <div class="sidebar-footer" id="sidebar-footer"></div>
@@ -383,6 +387,23 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
           <button class="close-btn" id="panel-close">✕</button>
         </div>
         <div class="panel-body" id="panel-body"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="role-overlay" hidden>
+  <div class="modal" id="role-modal" style="max-width:420px">
+    <div class="modal-head"><h2>Quem está acessando?</h2></div>
+    <div class="modal-body">
+      <div style="font-size:11.5px;color:var(--muted);margin-bottom:14px">Isto é uma simulação de controle de acesso para o protótipo — não é autenticação real. Escolha um papel para ver o sistema do ponto de vista dele.</div>
+      <div class="admin-new-form" style="flex-direction:column;align-items:stretch;gap:10px">
+        <button class="admin-btn primary" data-role="admin" style="padding:10px">⚙ Administrador geral (acesso total)</button>
+        <div style="display:flex;gap:8px">
+          <select id="role-zona" style="flex:1"></select>
+          <button class="admin-btn primary" data-role="responsavel" style="padding:10px;white-space:nowrap">👤 Responsável desta zona</button>
+        </div>
+        <button class="admin-btn" data-role="visualizacao" style="padding:10px">👁 Modo visualização (sem edição)</button>
       </div>
     </div>
   </div>
@@ -1084,6 +1105,20 @@ function openOcorrencia(o){
   `;
   panel.classList.add('open');
 
+  if(!canActZone(o.bairro)){
+    ['presence-btn','resolve-btn','acionar-oficial-btn','report-submit'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el){ el.disabled = true; el.style.opacity = '.5'; el.style.cursor = 'not-allowed'; el.onclick = null; }
+    });
+    const note = document.createElement('div');
+    note.className = 'view-only-note';
+    note.textContent = currentRole && currentRole.tipo==='responsavel'
+      ? `Ação restrita ao responsável de ${o.bairro}. Você está logado como responsável de ${currentRole.zona}.`
+      : 'Modo visualização: ações desta ocorrência estão desabilitadas.';
+    body.appendChild(note);
+    return;
+  }
+
   const acionarBtn = document.getElementById('acionar-oficial-btn');
   if(acionarBtn){
     acionarBtn.onclick = ()=>{
@@ -1279,7 +1314,9 @@ function renderAdminFunc(body){
   const grupos = { responsavel:'Responsáveis', substituto:'Substitutos', coordenador:'Coordenadores' };
   let html = '';
   Object.entries(grupos).forEach(([papel,label])=>{
-    const lista = todosFuncionarios().filter(p=>p.papel===papel);
+    let lista = todosFuncionarios().filter(p=>p.papel===papel);
+    if(currentRole && currentRole.tipo==='responsavel') lista = lista.filter(p=>p.zona===currentRole.zona);
+    if(!lista.length) return;
     html += `<div class="admin-section-title">${label}</div>
       <table class="admin-table"><thead><tr><th>Zona</th><th>Nome</th><th>Cargo</th><th>Telefone</th><th></th></tr></thead><tbody>
       ${lista.map(p=>`
@@ -1319,10 +1356,12 @@ function recursosResumo(e){
 function renderAdminEquipes(body){
   const zonasAtivas = {};
   ocorrencias.filter(o=>o.status==='ativa'||o.status==='em_atendimento').forEach(o=>{ zonasAtivas[o.bairro]=(zonasAtivas[o.bairro]||0)+1; });
+  const souResponsavel = currentRole && currentRole.tipo==='responsavel';
+  const equipesVisiveis = souResponsavel ? equipesPrefeitura.filter(e=>e.zona===currentRole.zona) : equipesPrefeitura;
   body.innerHTML = `
     <div class="admin-section-title">Equipes e equipamentos cadastrados</div>
     <table class="admin-table"><thead><tr><th>Equipe</th><th>Zona</th><th>Recursos</th><th>Membros</th><th>Status</th><th>Ocorrências na zona</th><th></th></tr></thead><tbody>
-      ${equipesPrefeitura.map(e=>{
+      ${equipesVisiveis.map(e=>{
         const r = recursosResumo(e);
         const falta = zonasAtivas[e.zona] > 0 && r.disp===0;
         return `<tr data-id="${e.id}">
@@ -1341,11 +1380,12 @@ function renderAdminEquipes(body){
           <td style="text-align:center">${zonasAtivas[e.zona]||0} ${falta?`<div style="color:var(--red);font-size:9.5px">sem equip. livre</div>`:''}</td>
           <td style="display:flex;gap:4px">
             <button class="admin-btn primary" data-action="save-eq">Salvar</button>
-            <button class="admin-btn danger" data-action="del-eq">Remover</button>
+            ${souResponsavel ? '' : '<button class="admin-btn danger" data-action="del-eq">Remover</button>'}
           </td>
         </tr>`;
       }).join('')}
     </tbody></table>
+    ${souResponsavel ? '' : `
     <div class="admin-section-title">Nova equipe</div>
     <div class="admin-new-form" id="new-eq-form">
       <input placeholder="Nome da equipe" id="neq-nome">
@@ -1353,7 +1393,7 @@ function renderAdminEquipes(body){
       <input placeholder="Recursos: ex. Motosserra x2, Caminhão x1" id="neq-recursos">
       <input placeholder="Membros, separados por vírgula" id="neq-membros">
       <button class="admin-btn primary" id="neq-add">+ Adicionar equipe</button>
-    </div>
+    </div>`}
   `;
   body.querySelectorAll('[data-action="save-eq"]').forEach(btn=>{
     btn.onclick = ()=>{
@@ -1864,6 +1904,41 @@ function applyRoute(){
 }
 window.addEventListener('hashchange', applyRoute);
 applyRoute();
+
+/* ---------- controle de acesso por papel (simulado, nao e seguranca real) ---------- */
+let currentRole = null;
+try{ currentRole = JSON.parse(sessionStorage.getItem('maringa_role') || 'null'); }catch(e){ currentRole = null; }
+
+function canAdmin(){ return !!currentRole && currentRole.tipo==='admin'; }
+function canActZone(zona){ return !!currentRole && (currentRole.tipo==='admin' || (currentRole.tipo==='responsavel' && currentRole.zona===zona)); }
+function isViewOnly(){ return !currentRole || currentRole.tipo==='visualizacao'; }
+
+const roleOverlay = document.getElementById('role-overlay');
+document.getElementById('role-zona').innerHTML = bairros.map(b=>`<option value="${escHtml(b.nome)}">${escHtml(b.nome)}</option>`).join('');
+
+function applyRolePermissions(){
+  document.getElementById('open-audit').style.display = canAdmin() ? '' : 'none';
+  document.getElementById('open-admin').style.display = isViewOnly() ? 'none' : '';
+  const badge = document.getElementById('role-badge');
+  const label = !currentRole ? '' : currentRole.tipo==='admin' ? 'Administrador geral'
+    : currentRole.tipo==='responsavel' ? `Responsável · ${currentRole.zona}`
+    : 'Modo visualização';
+  badge.innerHTML = currentRole ? `<span>👤 ${escHtml(label)}</span><a href="#" id="role-trocar">trocar</a>` : '';
+  const trocar = document.getElementById('role-trocar');
+  if(trocar) trocar.onclick = (e)=>{ e.preventDefault(); sessionStorage.removeItem('maringa_role'); currentRole=null; roleOverlay.hidden=false; applyRolePermissions(); };
+}
+
+document.querySelectorAll('#role-modal [data-role]').forEach(btn=>{
+  btn.onclick = ()=>{
+    const tipo = btn.dataset.role;
+    currentRole = tipo==='responsavel' ? { tipo, zona: document.getElementById('role-zona').value } : { tipo };
+    try{ sessionStorage.setItem('maringa_role', JSON.stringify(currentRole)); }catch(e){}
+    roleOverlay.hidden = true;
+    applyRolePermissions();
+  };
+});
+if(!currentRole) roleOverlay.hidden = false;
+applyRolePermissions();
 
 document.getElementById('heat-toggle').onclick = (e)=>{
   heatOn = !heatOn;
