@@ -744,12 +744,14 @@ try{ currentRole = JSON.parse(sessionStorage.getItem('maringa_role') || 'null');
 const MARINGA_BOUNDS = L.latLngBounds([-23.472, -51.998], [-23.330, -51.868]);
 const map = L.map('map', {
   zoomControl:true, attributionControl:true,
-  maxBounds: MARINGA_BOUNDS, maxBoundsViscosity: 1.0, minZoom: 12, maxZoom: 18,
+  maxBounds: MARINGA_BOUNDS.pad(0.3), maxBoundsViscosity: 0.7, maxZoom: 18,
 }).setView(MARINGA_CENTER, 13);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution:'&copy; OpenStreetMap contributors',
   subdomains:'abc', maxZoom:19
 }).addTo(map);
+// calcula o zoom minimo de verdade a partir do tamanho real da tela, em vez de chutar um numero fixo
+map.whenReady(()=>{ map.setMinZoom(map.getBoundsZoom(MARINGA_BOUNDS)); });
 
 // botao "voltar ao mapa todo de Maringa", ao lado do zoom +/-
 const ResetViewControl = L.Control.extend({
