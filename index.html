@@ -48,6 +48,15 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .prontidao-legend i{width:8px;height:8px;border-radius:2px;display:inline-block}
 .prontidao-people{display:flex;flex-wrap:wrap;gap:6px}
 .pp-chip{font-size:10.5px;font-family:var(--mono);padding:3px 8px;border-radius:12px;border:1px solid var(--line)}
+.fila-item{display:flex;align-items:center;gap:12px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.fila-item:hover{border-color:var(--accent)}
+.fila-rank{font-family:var(--mono);font-weight:700;font-size:15px;color:var(--accent);width:22px;flex:none;text-align:center}
+.fila-info{flex:1;min-width:0}
+.fila-info .fi-title{font-size:13px;font-weight:600}
+.fila-info .fi-meta{font-size:10.5px;color:var(--muted);margin-top:2px}
+.fila-score{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:right;flex:none}
+.sla-box{background:rgba(255,59,59,.08);border:1px solid rgba(255,59,59,.4);border-radius:8px;padding:10px;margin-bottom:12px;font-size:11.5px}
+.sla-box a{color:var(--red);font-weight:700;text-decoration:none}
 #alert-banner{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:1300;font-family:var(--mono);font-size:11.5px;padding:9px 18px;border-radius:20px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .4s ease;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
 #alert-banner.show{opacity:1}
 
@@ -294,6 +303,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
       <div class="brand"><span class="dot"></span>MARINGÁ ALERTA</div>
       <div class="sub">Zonas de cobertura · clique para isolar</div>
       <div class="sidebar-actions">
+        <button id="open-fila" class="sidebar-btn">📋 Fila de prioridade</button>
         <button id="open-alertas" class="sidebar-btn alerta-btn">🌦 Alertas &amp; Prontidão</button>
         <button id="open-admin" class="sidebar-btn">⚙ Administração</button>
         <button id="open-chat" class="sidebar-btn">💬 Chat interno</button>
@@ -370,6 +380,16 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
       <button class="mtab" data-tab="colab">Colaboradores</button>
     </div>
     <div class="modal-body" id="admin-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="fila-overlay" hidden>
+  <div class="modal" id="fila-modal">
+    <div class="modal-head">
+      <h2>📋 Fila de atendimento por prioridade</h2>
+      <button class="close-btn" id="fila-close">✕</button>
+    </div>
+    <div class="modal-body" id="fila-body"></div>
   </div>
 </div>
 
@@ -978,6 +998,15 @@ function openOcorrencia(o){
       ${badgeChip('Gravidade: '+GRAV_LABEL[o.gravidade], GRAV_COLOR[o.gravidade])}
       ${badgeChip('Resp.: '+RESP_LABEL[o.responsabilidade], RESP_COLOR[o.responsabilidade])}
     </div>
+    ${o.gravidade===3 && o.status!=='resolvida' ? `
+      <div class="sla-box">
+        ⚠ Gravidade alta: isto pode ser uma emergência com risco à vida. Se for o caso, ligue agora:
+        <a href="tel:192">SAMU 192</a> · <a href="tel:193">Bombeiros 193</a> · <a href="tel:199">Defesa Civil 199</a>
+        ${o.acionamentoOficial
+          ? `<div style="margin-top:6px;color:var(--green)">✓ ${escHtml(o.acionamentoOficial.servico)} acionado há ${minutosDesde(o.acionamentoOficial.quando)}min</div>`
+          : `<button class="admin-btn" id="acionar-oficial-btn" style="margin-top:8px">Marcar que já acionei um serviço oficial</button>`}
+      </div>
+    ` : ''}
     <div class="field"><label>Zona</label><div class="val">${escHtml(o.bairro)}</div></div>
     ${tempoBlocos}
     <div class="resp-card">
@@ -999,6 +1028,15 @@ function openOcorrencia(o){
   `;
   panel.classList.add('open');
 
+  const acionarBtn = document.getElementById('acionar-oficial-btn');
+  if(acionarBtn){
+    acionarBtn.onclick = ()=>{
+      const servico = prompt('Qual serviço foi acionado? (ex.: SAMU 192, Bombeiros 193, Defesa Civil 199)', 'Bombeiros 193');
+      if(!servico) return;
+      o.acionamentoOficial = { servico, quando: Date.now() };
+      openOcorrencia(o);
+    };
+  }
   const presenceBtn = document.getElementById('presence-btn');
   if(presenceBtn){
     presenceBtn.onclick = ()=>{
@@ -1323,6 +1361,66 @@ function renderAdminColab(body){
     };
   });
 }
+
+/* ---------- triagem automatica por prioridade ---------- */
+function calcPrioridade(o){
+  if(o.status!=='ativa' && o.status!=='em_atendimento') return -1;
+  const espera = o.status==='ativa' ? minutosDesde(o.reportadoEm) : 0;
+  let score = o.gravidade*100 + Math.min(espera,60)*2;
+  if(o.responsabilidade==='publica') score += 10;
+  if(o.status==='em_atendimento') score -= 150; // ja tem equipe no local, prioridade cai
+  return Math.round(score);
+}
+
+const filaOverlay = document.getElementById('fila-overlay');
+document.getElementById('open-fila').onclick = ()=>{ filaOverlay.hidden=false; renderFila(); };
+document.getElementById('fila-close').onclick = ()=>{ filaOverlay.hidden=true; };
+filaOverlay.addEventListener('click', e=>{ if(e.target===filaOverlay) filaOverlay.hidden=true; });
+
+function renderFila(){
+  const body = document.getElementById('fila-body');
+  const lista = ocorrencias
+    .filter(o=> o.status==='ativa'||o.status==='em_atendimento')
+    .filter(o=> activeZone===null || o.bairro===activeZone)
+    .map(o=>({o, score:calcPrioridade(o)}))
+    .sort((a,c)=>c.score-a.score);
+  body.innerHTML = `
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Ordenada por gravidade + tempo de espera + responsabilidade pública. Equipe já no local tem prioridade reduzida porque já está sendo atendida. ${activeZone?`Mostrando apenas ${escHtml(activeZone)}.`:'Mostrando todas as zonas.'}</div>
+    ${lista.map(({o,score},i)=>`
+      <div class="fila-item" data-oc="${o.id}">
+        <div class="fila-rank">#${i+1}</div>
+        <div class="fila-info">
+          <div class="fi-title">${o.icone} ${escHtml(o.tipo)} · ${escHtml(o.bairro)}</div>
+          <div class="fi-meta">${GRAV_LABEL[o.gravidade]} gravidade · ${RESP_LABEL[o.responsabilidade]} · ${o.status==='ativa'?`aguardando há ${minutosDesde(o.reportadoEm)}min`:'equipe no local'}</div>
+        </div>
+        <div class="fila-score">score ${score}</div>
+      </div>
+    `).join('') || '<div style="color:var(--muted);font-size:12px">Nenhuma ocorrência em aberto nesta visão.</div>'}
+  `;
+  body.querySelectorAll('.fila-item').forEach(elm=>{
+    elm.onclick = ()=>{ const o = ocorrencias.find(x=>x.id===elm.dataset.oc); if(o){ filaOverlay.hidden=true; openOcorrencia(o); } };
+  });
+}
+
+/* ---------- alerta de SLA / escalonamento ---------- */
+const SLA_LIMITE_MIN = 2; // no relogio simulado do prototipo; num evento real seria configuravel (ex. 20-30min)
+setInterval(()=>{
+  ocorrencias.forEach(o=>{
+    if(o.status==='ativa' && o.gravidade===3 && !o._escalado && minutosDesde(o.reportadoEm) >= SLA_LIMITE_MIN){
+      o._escalado = true;
+      const zona = bairros.find(b=>b.nome===o.bairro);
+      const coord = zona.equipe.coordenador;
+      if(!chatHistorico[coord.id]) chatHistorico[coord.id] = [];
+      chatHistorico[coord.id].push({ de:'eles', texto:`⚠ SLA excedido: "${o.tipo}" em ${o.bairro} sem confirmação de presença há ${minutosDesde(o.reportadoEm)}min. Precisa de apoio?`, ts: Date.now() });
+      renderChatContacts();
+      const b = document.getElementById('alert-banner');
+      b.style.background = 'rgba(255,59,59,.15)'; b.style.border='1px solid var(--red)'; b.style.color='var(--red)';
+      b.textContent = `⏱ SLA excedido: ocorrência de alta gravidade em ${o.bairro} sem confirmação há ${minutosDesde(o.reportadoEm)}min — coordenador notificado`;
+      b.classList.add('show');
+      setTimeout(()=>b.classList.remove('show'), 6500);
+    }
+  });
+}, 15000);
 
 /* ---------- alertas meteorologicos e pre-ativacao ("o cerebro") ----------
    Fonte real para integrar depois: nao existe endpoint publico direto e documentado
