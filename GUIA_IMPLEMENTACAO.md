@@ -170,7 +170,7 @@ No painel de qualquer ocorrência com `gravidade===3` (alta) e ainda não resolv
 
 ### 5bis.9 — Alertas meteorológicos e pré-ativação ("o cérebro") (implementado)
 
-Este foi pedido separadamente pela Alden como a peça central: saber com quem a prefeitura pode contar *antes* da crise, não só depois que a ocorrência chega. Antes de implementar, foi feita uma verificação: **não existe hoje um endpoint público e documentado do INMET para avisos ativos.** O caminho real seria (a) a Google Weather API / Public Alerts, que agrega INMET e CENAD mas exige chave própria do Google e é um intermediário, não uma integração direta; ou (b) um acordo institucional direto com o SIMEPAR (meteorologia do Paraná, o mais relevante para Maringá) ou o CEMADEN (risco geo-hidrológico), que tipicamente é convênio com a prefeitura, não API pública aberta. Nenhuma dessas foi integrada de verdade — ver seção 8 (fontes) antes de tentar.
+Este foi pedido separadamente pela Alden como a peça central: saber com quem a prefeitura pode contar *antes* da crise, não só depois que a ocorrência chega. Antes de implementar, foi feita uma verificação: **não existe hoje um endpoint público e documentado do INMET para avisos ativos.** Nenhuma integração real foi feita — ver seção 6 (fontes reais) antes de tentar conectar isso a um provedor de verdade.
 
 O que foi construído, simulado, seguindo o mesmo padrão usado para o WhatsApp no resto do protótipo:
 - Botão "🌦 Alertas & Prontidão" abre um modal com duas abas. **Alertas ativos**: lista os alertas emitidos (`alertasClimaticos`), cada um com fonte (INMET/SIMEPAR/Defesa Civil PR, sorteada), tipo, nível (amarelo/laranja/vermelho), zonas afetadas e janela de horas; um botão "🔔 Simular novo alerta" gera um novo.
@@ -182,7 +182,19 @@ O que foi construído, simulado, seguindo o mesmo padrão usado para o WhatsApp 
 
 Botão "📊 Relatório do evento" na sidebar (distinto do relatório por ocorrência da seção 4.5, que é operacional). Agrega: total de ocorrências, resolvidas, ainda abertas, tempo médio geral, total de colaboradores cadastrados, e o percentual de prontidão confirmada somando todas as respostas registradas em `prontidao` (seção 5bis.9) — ligando o antes (prontidão) com o depois (desempenho real). Tem uma tabela de desempenho por zona (total/resolvidas/abertas/tempo médio) e um ranking dos colaboradores que mais foram mobilizados em ocorrências resolvidas (conta aparições em `voluntariosProx`), que é a base de dados para o reconhecimento oficial da prefeitura. Botão "🖨 Imprimir / salvar PDF" chama `window.print()` com uma folha `@media print` dedicada que esconde todo o resto da página e imprime só o relatório.
 
-## 6. Como publicar (processo já em uso, manter)
+## 6. Fontes reais para integração futura de alertas meteorológicos (pesquisado nesta sessão, não implementado)
+
+Antes de simular o módulo da seção 5bis.9, foi feita uma busca para não inventar um endpoint que não existe. Resultado: não há documentação oficial de um endpoint público do INMET para avisos ativos. Os caminhos reais identificados, cada um com uma ressalva:
+
+- **Google Weather API / Public Alerts** — endpoint que devolve alertas para uma latitude/longitude, agregando várias fontes incluindo INMET e o CENAD (Centro Nacional de Gerenciamento de Riscos e Desastres). Exige chave de API própria do Google e é um intermediário (não é o INMET direto); ver [documentação em português](https://developers.google.com/maps/documentation/weather/weather-alerts?hl=pt-br).
+- **INMET-API-REST** (projeto de terceiros no GitHub, não oficial) — [repositório](https://github.com/Felipeandradee/INMET-API-REST). A busca não trouxe detalhe se ele cobre avisos/alertas ou só dados de estações; teria que ser inspecionado diretamente antes de confiar nele para algo crítico.
+- **Portal oficial do INMET** (`portal.inmet.gov.br`) — não foi possível confirmar nesta busca se há documentação de API de avisos ali; é o primeiro lugar a checar antes de qualquer integração, em vez de usar um endpoint não documentado encontrado por fora.
+- **SIMEPAR** (Sistema Meteorológico do Paraná) — é a fonte institucional mais relevante para Maringá especificamente, mas historicamente opera por convênio com prefeituras/órgãos públicos, não como API pública aberta para qualquer desenvolvedor. Precisa de contato institucional direto, não só leitura de documentação.
+- **CEMADEN** (Centro Nacional de Monitoramento e Alertas de Desastres Naturais) — cobre risco geo-hidrológico (deslizamento, alagamento), mais focado em monitoramento de risco do que previsão meteorológica; também tende a ser acesso institucional, não API pública simples.
+
+Recomendação: antes de substituir a simulação da seção 5bis.9 por uma integração real, (1) checar a documentação oficial do INMET diretamente no portal, (2) se não houver nada público e direto, avaliar a Google Weather API como ponte (mais rápida de integrar, mas com custo de API key e dependência de terceiro) versus abrir contato institucional com o SIMEPAR (mais lento, mas é a fonte certa para uma prefeitura do Paraná). Essa decisão depende de prazo e de quem na prefeitura consegue abrir esse contato — não é uma decisão só técnica.
+
+## 7. Como publicar (processo já em uso, manter)
 
 ```
 cd ~/maringa-alerta
@@ -195,7 +207,7 @@ O GitHub Pages já está ativo no repositório, branch `main`, raiz `/`. Qualque
 
 Antes de cada push, verificar a sintaxe do JavaScript inline (por exemplo, extraindo o bloco `<script>...</script>` e rodando `node --check` nele, como já foi feito nesta sessão) para não publicar uma página quebrada.
 
-## 7. O que não fazer
+## 8. O que não fazer
 
 - Não trocar o provedor de tiles do mapa por um que exija chave de API sem confirmar antes que a chave está disponível e configurada; isso já quebrou o mapa uma vez (CartoDB `dark_all`).
 - Não fragmentar o projeto em build tools (webpack, bundlers, frameworks de frontend) sem necessidade comprovada; o ponto forte do protótipo atual é não precisar de nada além de um navegador e um `git push`.
