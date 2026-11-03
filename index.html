@@ -57,6 +57,24 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .fila-score{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:right;flex:none}
 .sla-box{background:rgba(255,59,59,.08);border:1px solid rgba(255,59,59,.4);border-radius:8px;padding:10px;margin-bottom:12px;font-size:11.5px}
 .sla-box a{color:var(--red);font-weight:700;text-decoration:none}
+/* ---------- pagina publica de status (visao do morador) ---------- */
+#status-view{min-height:100%;background:var(--bg)}
+.status-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px max(16px,env(safe-area-inset-left,0px))}
+.status-card{max-width:440px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:28px 26px}
+.status-brand{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.06em;margin-bottom:10px}
+.status-card h1{font-size:19px;margin:0 0 8px}
+.status-sub{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:18px}
+.status-search{display:flex;gap:8px;margin-bottom:16px}
+.status-search input{flex:1;background:var(--panel-2);border:1px solid var(--line);color:var(--fg);border-radius:6px;padding:9px 11px;font-size:13px;font-family:var(--mono)}
+.status-search button{background:var(--accent);color:#06121c;border:none;border-radius:6px;padding:9px 16px;font-weight:700;font-size:12.5px;cursor:pointer}
+.status-result-card{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--panel-2)}
+.status-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;font-size:12.5px}
+.status-step .dot2{width:10px;height:10px;border-radius:50%;margin-top:3px;flex:none}
+.status-step.done .dot2{background:var(--green)}
+.status-step.now .dot2{background:var(--accent);box-shadow:0 0 0 4px rgba(255,176,32,.25)}
+.status-step.pending .dot2{background:var(--line)}
+.status-back{display:block;margin-top:18px;font-size:11px;color:var(--muted);text-decoration:none}
+.status-back:hover{color:var(--accent)}
 #alert-banner{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:1300;font-family:var(--mono);font-size:11.5px;padding:9px 18px;border-radius:20px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .4s ease;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
 #alert-banner.show{opacity:1}
 
@@ -296,7 +314,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 </style>
 </head>
 <body>
-<div class="app">
+<div class="app" id="app-view">
 
   <div class="sidebar" id="sidebar">
     <div class="sidebar-head">
@@ -308,6 +326,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         <button id="open-alertas" class="sidebar-btn alerta-btn">🌦 Alertas &amp; Prontidão</button>
         <button id="open-admin" class="sidebar-btn">⚙ Administração</button>
         <button id="open-chat" class="sidebar-btn">💬 Chat interno</button>
+        <a href="#status" id="open-status-publico" class="sidebar-btn" style="text-decoration:none;display:block;color:var(--muted)">👁 Ver status público (demo)</a>
       </div>
     </div>
     <div class="zone-list" id="zone-list"></div>
@@ -365,6 +384,22 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         </div>
         <div class="panel-body" id="panel-body"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div id="status-view" hidden>
+  <div class="status-wrap">
+    <div class="status-card">
+      <div class="status-brand">MARINGÁ ALERTA</div>
+      <h1>Acompanhar minha ocorrência</h1>
+      <p class="status-sub">Esta página é o que o morador vê: só o status, sem dados internos da equipe. Digite o número de protocolo que você recebeu por WhatsApp.</p>
+      <div class="status-search">
+        <input type="text" id="status-protocolo" placeholder="Ex.: MA-10042">
+        <button id="status-buscar">Buscar</button>
+      </div>
+      <div id="status-resultado"></div>
+      <a href="#" id="status-voltar" class="status-back">← Voltar ao painel interno (modo demonstração)</a>
     </div>
   </div>
 </div>
@@ -1778,6 +1813,57 @@ function renderAudit(){
     renderAudit();
   };
 }
+
+/* ---------- pagina publica de status (visao do morador, sem dados internos) ---------- */
+function statusSteps(o){
+  const steps = [
+    { label:'Ocorrência recebida', done:true },
+    { label:'Equipe confirmou presença na área', done: o.status!=='ativa', now: o.status==='ativa' },
+    { label:'Atendimento concluído', done: o.status==='resolvida', now: o.status==='em_atendimento' },
+  ];
+  return steps.map(s=> s.done ? {...s, cls:'done'} : s.now ? {...s, cls:'now'} : {...s, cls:'pending'});
+}
+
+function renderStatusResultado(o){
+  const el = document.getElementById('status-resultado');
+  if(!o){
+    el.innerHTML = '<div style="color:var(--red);font-size:12.5px;margin-top:8px">Protocolo não encontrado. Confira o código recebido no WhatsApp.</div>';
+    return;
+  }
+  const steps = statusSteps(o);
+  el.innerHTML = `
+    <div class="status-result-card">
+      <div style="font-size:13px;font-weight:700;margin-bottom:2px">${o.icone} ${escHtml(o.tipo)}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Zona: ${escHtml(o.bairro)} · Protocolo ${escHtml(o.protocolo)}</div>
+      ${steps.map(s=>`<div class="status-step ${s.cls}"><span class="dot2"></span><span>${s.label}</span></div>`).join('')}
+      ${o.status==='resolvida'
+        ? `<div style="margin-top:12px;font-size:12px;color:var(--green)">✓ Atendida em ${o.tempoChegada+o.tempoAtendimento} minutos.</div>
+           ${o.relatorio && o.relatorio.fotosPublicas ? `
+              <div class="grid2" style="margin-top:10px">
+                <img src="${o.relatorio.fotoAtual}" style="width:100%;border-radius:6px">
+                <img src="${o.relatorio.fotoFinal}" style="width:100%;border-radius:6px">
+              </div>` : `<div style="margin-top:8px;font-size:11px;color:var(--muted)">Fotos do atendimento disponíveis apenas para a equipe interna.</div>`}`
+        : `<div style="margin-top:12px;font-size:12px;color:var(--muted)">Tempo estimado: ${o.tempoEstimado} minutos a partir do recebimento.</div>`}
+    </div>
+  `;
+}
+
+document.getElementById('status-buscar').onclick = ()=>{
+  const codigo = document.getElementById('status-protocolo').value.trim().toUpperCase();
+  const o = ocorrencias.find(x=>x.protocolo===codigo);
+  renderStatusResultado(o);
+};
+document.getElementById('status-protocolo').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('status-buscar').click(); });
+document.getElementById('status-voltar').onclick = (e)=>{ e.preventDefault(); location.hash=''; };
+
+function applyRoute(){
+  const isStatus = location.hash === '#status';
+  document.getElementById('app-view').hidden = isStatus;
+  document.getElementById('status-view').hidden = !isStatus;
+  if(isStatus) document.getElementById('status-resultado').innerHTML = '';
+}
+window.addEventListener('hashchange', applyRoute);
+applyRoute();
 
 document.getElementById('heat-toggle').onclick = (e)=>{
   heatOn = !heatOn;
