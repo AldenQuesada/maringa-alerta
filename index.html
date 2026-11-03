@@ -17,29 +17,55 @@ html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-serif;overflow:hidden}
 ::selection{background:var(--accent);color:#000}
 
-.app{display:flex;flex-direction:column;height:100%}
+.app{display:flex;height:100%}
 
-.topbar{
-  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
-  padding:10px max(16px,env(safe-area-inset-left,0px));
-  background:var(--panel);border-bottom:1px solid var(--line);
-  min-height:56px;position:relative;z-index:1000;
+/* ---------- sidebar de zonas ---------- */
+.sidebar{
+  width:220px;flex:none;background:var(--panel);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;z-index:1100;
+  padding-left:max(0px,env(safe-area-inset-left,0px));
 }
-.brand{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-weight:700;letter-spacing:.02em}
-.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 0 0 rgba(255,59,59,.6);animation:pulse 1.6s infinite}
-.brand .title{font-size:15px}
-.brand .sub{color:var(--muted);font-size:11px;font-weight:400}
-.evento{font-family:var(--mono);font-size:12px;color:var(--yellow);background:rgba(242,194,48,.08);border:1px solid rgba(242,194,48,.3);padding:5px 10px;border-radius:4px;white-space:nowrap}
-.stats-row{display:flex;gap:14px;margin-left:auto;flex-wrap:wrap}
-.stat{text-align:center;min-width:64px}
-.stat b{display:block;font-size:17px;font-family:var(--mono)}
-.stat span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-.stat.red b{color:var(--red)} .stat.green b{color:var(--green)} .stat.blue b{color:var(--blue)}
+.sidebar-head{padding:16px 16px 10px;border-bottom:1px solid var(--line)}
+.sidebar-head .brand{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-weight:700;letter-spacing:.02em;font-size:13.5px}
+.sidebar-head .dot{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 0 0 rgba(255,59,59,.6);animation:pulse 1.6s infinite;flex:none}
+.sidebar-head .sub{color:var(--muted);font-size:10.5px;margin-top:4px}
+.zone-list{flex:1;overflow-y:auto;padding:10px}
+.zone-item{
+  display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:8px;cursor:pointer;
+  margin-bottom:4px;border:1px solid transparent;transition:.12s;
+}
+.zone-item:hover{background:var(--panel-2)}
+.zone-item.active{background:rgba(255,176,32,.12);border-color:rgba(255,176,32,.4)}
+.zone-item .zi-dot{width:8px;height:8px;border-radius:2px;background:var(--yellow);flex:none}
+.zone-item .zi-text{flex:1;min-width:0}
+.zone-item .zi-name{font-size:12.5px;font-weight:600}
+.zone-item .zi-count{font-size:10.5px;color:var(--muted);font-family:var(--mono)}
+.zone-item .zi-badge{font-family:var(--mono);font-size:10px;color:var(--red);font-weight:700}
+.zone-item.todos{border-bottom:1px solid var(--line);border-radius:0;margin-bottom:10px;padding-bottom:14px}
+.zone-item.todos.active{background:transparent;border-color:transparent;border-bottom-color:var(--line)}
+.zone-item.todos .zi-name{color:var(--accent)}
 
-.filters{display:flex;gap:6px;padding:8px max(16px,env(safe-area-inset-left,0px));background:var(--panel-2);border-bottom:1px solid var(--line);overflow-x:auto;flex-wrap:nowrap;position:relative;z-index:900}
-.chip{font-family:var(--mono);font-size:11px;color:var(--muted);background:transparent;border:1px solid var(--line);padding:5px 10px;border-radius:14px;cursor:pointer;white-space:nowrap;user-select:none;transition:.15s}
-.chip.active{color:#000;background:var(--accent);border-color:var(--accent);font-weight:600}
-.chip:hover{border-color:var(--accent)}
+/* ---------- topo ---------- */
+.right{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;min-height:64px;
+  padding:10px max(16px,env(safe-area-inset-right,0px)) 10px 16px;
+  background:var(--panel);border-bottom:1px solid var(--line);position:relative;z-index:1000;
+}
+.evento{font-family:var(--mono);font-size:12px;color:var(--yellow);background:rgba(242,194,48,.08);border:1px solid rgba(242,194,48,.3);padding:5px 10px;border-radius:4px;white-space:nowrap}
+.zone-strip{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.zone-strip .zs-title{font-size:15px;font-weight:700}
+.zone-strip .zs-title span{color:var(--muted);font-weight:400;font-size:11px;display:block;font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em}
+.officials{display:flex;gap:10px;flex-wrap:wrap}
+.o-card{display:flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.o-card .avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none;color:#06121c}
+.o-card .o-role{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.o-card .o-name{font-size:12px;font-weight:600;white-space:nowrap}
+.stats-row{display:flex;gap:14px;margin-left:auto;flex-wrap:wrap}
+.stat{text-align:center;min-width:60px}
+.stat b{display:block;font-size:16px;font-family:var(--mono)}
+.stat span{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.stat.red b{color:var(--red)} .stat.green b{color:var(--green)} .stat.blue b{color:var(--blue)}
 
 .main{flex:1;display:flex;min-height:0;position:relative}
 .mapwrap{flex:1;position:relative;min-width:0;background:#060809}
@@ -59,6 +85,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 }
 .timescale b{color:var(--fg);font-size:13px;display:block}
 
+/* ---------- painel de ocorrência (direita, fixo) ---------- */
 .panel{
   width:380px;max-width:92vw;background:var(--panel);border-left:1px solid var(--line);
   display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease;
@@ -95,12 +122,40 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .status-line{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:14px 0}
 .wa-cta{display:block;text-align:center;font-family:var(--mono);font-size:12px;background:#1b2b1e;color:var(--green);border:1px solid rgba(46,207,120,.4);border-radius:6px;padding:9px;margin-top:4px}
 
-.bairro-head{font-size:20px;font-weight:700;margin-bottom:2px}
-.bairro-sub{font-size:12px;color:var(--muted);margin-bottom:14px}
 .kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
 .kpi{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center}
 .kpi b{display:block;font-family:var(--mono);font-size:18px}
 .kpi span{font-size:9.5px;color:var(--muted);text-transform:uppercase}
+
+/* ---------- janela flutuante de colaboradores (arrastável) ---------- */
+.floatwin{
+  position:absolute;top:70px;right:16px;width:300px;max-height:70vh;
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.5);display:flex;flex-direction:column;z-index:1150;
+  overflow:hidden;
+}
+.floatwin-head{
+  display:flex;align-items:center;justify-content:space-between;padding:10px 12px;
+  background:var(--panel-2);border-bottom:1px solid var(--line);cursor:grab;user-select:none;
+}
+.floatwin-head.dragging{cursor:grabbing}
+.floatwin-head .fw-title{font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:7px}
+.floatwin-head .fw-title .grip{color:var(--muted);font-size:13px;letter-spacing:1px}
+.floatwin-head .fw-count{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.floatwin-min{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:2px 6px;line-height:1}
+.floatwin-min:hover{color:var(--fg)}
+.floatwin-body{overflow-y:auto;padding:10px;flex:1}
+.floatwin.minimized .floatwin-body{display:none}
+.floatwin.minimized{max-height:none}
+.collab-row{display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 9px;margin-bottom:7px}
+.collab-row .c-avatar{width:32px;height:32px;border-radius:50%;background:var(--blue);color:#06121c;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:none}
+.collab-row .c-avatar.inactive{background:rgba(59,130,180,.3);color:#cfe8ff}
+.collab-row .c-info{flex:1;min-width:0}
+.collab-row .c-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.collab-row .c-meta{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.collab-row .c-status{font-family:var(--mono);font-size:9.5px;white-space:nowrap}
+.collab-row .c-status.on{color:var(--green)}
+.collab-row .c-status.off{color:var(--muted)}
 
 .register-fab{
   position:absolute;right:max(12px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));
@@ -120,7 +175,6 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,59,59,.6)}70%{box-shadow:0 0 0 8px rgba(255,59,59,0)}100%{box-shadow:0 0 0 0 rgba(255,59,59,0)}}
 
-/* leaflet overrides para tema escuro */
 .leaflet-container{background:#060809}
 .leaflet-tooltip.oc-tooltip{
   background:rgba(17,22,29,.96);color:var(--fg);border:1px solid var(--red);border-radius:8px;
@@ -138,58 +192,77 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .vol-dot{width:9px;height:9px;border-radius:50%;background:var(--blue);border:1px solid #06121c}
 .vol-dot.active{box-shadow:0 0 0 4px rgba(59,167,255,.35)}
 
-@media (max-width:760px){
+@media (max-width:860px){
+  .sidebar{position:absolute;left:0;top:0;bottom:0;transform:translateX(-100%);transition:transform .2s;box-shadow:0 0 30px rgba(0,0,0,.5)}
+  .sidebar.open{transform:translateX(0)}
   .stats-row{display:none}
+  .officials{display:none}
   .panel{width:100%;max-width:100%}
   .legend{display:none}
+  .floatwin{width:85vw;right:8px}
 }
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="topbar">
-    <div class="brand">
-      <span class="dot"></span>
-      <div>
-        <div class="title">MARINGÁ ALERTA</div>
-        <div class="sub">Painel de Resposta a Emergências · Prefeitura de Maringá</div>
-      </div>
+
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="brand"><span class="dot"></span>MARINGÁ ALERTA</div>
+      <div class="sub">Zonas de cobertura · clique para isolar</div>
     </div>
-    <div class="evento" id="evento-label">CICLONE EXTRATROPICAL · 03/11/2026 · T+4h12min</div>
-    <div class="stats-row">
-      <div class="stat red"><b id="kpi-ativas">0</b><span>Ativas</span></div>
-      <div class="stat green"><b id="kpi-resolvidas">0</b><span>Resolvidas</span></div>
-      <div class="stat blue"><b id="kpi-voluntarios">0</b><span>Voluntários</span></div>
-      <div class="stat"><b id="kpi-tempo">—</b><span>Tempo médio</span></div>
-    </div>
+    <div class="zone-list" id="zone-list"></div>
   </div>
 
-  <div class="filters" id="filters"></div>
-
-  <div class="main">
-    <div class="mapwrap">
-      <div id="map"></div>
-      <div class="timescale">
-        <span>Evento</span>
-        <b>Ciclone de Novembro</b>
-        <span id="clock">03/11/2026 · 14:12</span>
+  <div class="right">
+    <div class="topbar" id="topbar">
+      <div class="evento" id="evento-label">CICLONE EXTRATROPICAL · 03/11/2026 · T+4h12min</div>
+      <div class="zone-strip" id="zone-strip" style="display:none"></div>
+      <div class="stats-row">
+        <div class="stat red"><b id="kpi-ativas">0</b><span>Ativas</span></div>
+        <div class="stat green"><b id="kpi-resolvidas">0</b><span>Resolvidas</span></div>
+        <div class="stat blue"><b id="kpi-voluntarios">0</b><span>Voluntários</span></div>
+        <div class="stat"><b id="kpi-tempo">—</b><span>Tempo médio</span></div>
       </div>
-      <div class="legend">
-        <div><i style="background:var(--red)"></i> Ocorrência ativa</div>
-        <div><i style="background:var(--green)"></i> Resolvida (sai do mapa)</div>
-        <div><i style="background:var(--blue)"></i> Voluntário cadastrado</div>
-        <div><i style="background:var(--yellow);border-radius:2px"></i> Limite de bairro</div>
-      </div>
-      <button class="register-fab" id="fab-cadastro">📲 Simular cadastro via WhatsApp</button>
-      <div class="reco-banner" id="reco-banner"></div>
     </div>
 
-    <div class="panel" id="panel">
-      <div class="panel-head">
-        <h2 id="panel-title">Ocorrência</h2>
-        <button class="close-btn" id="panel-close">✕</button>
+    <div class="main">
+      <div class="mapwrap" id="mapwrap">
+        <div id="map"></div>
+        <div class="timescale">
+          <span>Evento</span>
+          <b>Ciclone de Novembro</b>
+          <span id="clock">03/11/2026 · 14:12</span>
+        </div>
+        <div class="legend">
+          <div><i style="background:var(--red)"></i> Ocorrência ativa</div>
+          <div><i style="background:var(--green)"></i> Resolvida (sai do mapa)</div>
+          <div><i style="background:var(--blue)"></i> Voluntário cadastrado</div>
+          <div><i style="background:var(--yellow);border-radius:2px"></i> Limite de bairro</div>
+        </div>
+
+        <div class="floatwin" id="floatwin" style="top:70px;right:16px">
+          <div class="floatwin-head" id="floatwin-head">
+            <div class="fw-title"><span class="grip">⠿</span> Colaboradores</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="fw-count" id="fw-count">0</span>
+              <button class="floatwin-min" id="floatwin-min" title="Minimizar">–</button>
+            </div>
+          </div>
+          <div class="floatwin-body" id="floatwin-body"></div>
+        </div>
+
+        <button class="register-fab" id="fab-cadastro">📲 Simular cadastro via WhatsApp</button>
+        <div class="reco-banner" id="reco-banner"></div>
       </div>
-      <div class="panel-body" id="panel-body"></div>
+
+      <div class="panel" id="panel">
+        <div class="panel-head">
+          <h2 id="panel-title">Ocorrência</h2>
+          <button class="close-btn" id="panel-close">✕</button>
+        </div>
+        <div class="panel-body" id="panel-body"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -199,7 +272,32 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 (function(){
 "use strict";
 
-/* ---------- bairros reais de Maringá (coordenadas aproximadas) ---------- */
+/* ---------- bairros reais de Maringá + equipe responsável ---------- */
+const equipePool = [
+  {nome:"Marcos Teixeira", cargo:"Vereador"},
+  {nome:"Fernanda Lopes", cargo:"Secretária de Assistência Social"},
+  {nome:"Ricardo Bittencourt", cargo:"Chefe de Defesa Civil"},
+  {nome:"Juliana Prado", cargo:"Subsecretária de Obras"},
+  {nome:"Eduardo Namiki", cargo:"Vereador"},
+  {nome:"Carla Mendonça", cargo:"Coordenadora Regional"},
+  {nome:"Paulo Henrique Camargo", cargo:"Chefe de Departamento"},
+  {nome:"Renata Sakamoto", cargo:"Subsecretária de Assistência Social"},
+  {nome:"Vitor Almeida Rocha", cargo:"Coordenador de Campo"},
+  {nome:"Simone Aparecida Dias", cargo:"Vereadora"},
+  {nome:"André Luiz Ferraz", cargo:"Chefe de Defesa Civil"},
+  {nome:"Patrícia Gonçalves", cargo:"Subsecretária de Obras"},
+  {nome:"Thiago Moraes Vilela", cargo:"Coordenador Regional"},
+  {nome:"Luciana Barreto", cargo:"Secretária de Infraestrutura"},
+  {nome:"Fábio Cardoso Neto", cargo:"Chefe de Departamento"},
+  {nome:"Mariana Esteves", cargo:"Subsecretária de Saúde"},
+  {nome:"Rogério Villela", cargo:"Coordenador de Campo"},
+  {nome:"Daniela Freitas", cargo:"Vereadora"},
+];
+let equipeCursor = 0;
+function nextEquipe(){ return equipePool[(equipeCursor++) % equipePool.length]; }
+
+const equipamentosPool = ["2 motosserras","1 caminhão basculante","1 retroescavadeira","Kit de resgate","Gerador móvel","1 caminhão-pipa","Equipe de eletricistas","Ambulância de apoio"];
+
 const bairros = [
   { nome:"Zona 7", center:[-23.3995,-51.9395],
     poly:[[-23.392,-51.950],[-23.392,-51.930],[-23.408,-51.930],[-23.408,-51.950]] },
@@ -214,18 +312,14 @@ const bairros = [
   { nome:"Centro Cívico", center:[-23.4225,-51.9365],
     poly:[[-23.415,-51.946],[-23.415,-51.927],[-23.430,-51.927],[-23.430,-51.946]] },
 ];
+bairros.forEach(b=>{
+  b.equipamentos = [equipamentosPool[Math.floor(Math.random()*equipamentosPool.length)], equipamentosPool[Math.floor(Math.random()*equipamentosPool.length)]];
+  b.equipe = { responsavel: nextEquipe(), substituto: nextEquipe(), coordenador: nextEquipe() };
+});
 const MARINGA_CENTER = [-23.4205, -51.9333];
 
-const respNomes = [
-  {nome:"Marcos Teixeira", cargo:"Vereador · Zona 7"},
-  {nome:"Fernanda Lopes", cargo:"Secretária de Assistência Social"},
-  {nome:"Ricardo Bittencourt", cargo:"Chefe de Defesa Civil"},
-  {nome:"Juliana Prado", cargo:"Subsecretária de Obras"},
-  {nome:"Eduardo Namiki", cargo:"Vereador · Jardim Universo"},
-  {nome:"Carla Mendonça", cargo:"Coordenadora Regional Sul"},
-];
 const tiposAjuda = ["Motosserra","Caminhão","Mão de obra","Cesta básica","Roupas/cobertores","Gerador","Resgate de animais","Primeiros socorros"];
-const nomesVol = ["Antônio Silva","Beatriz Nunes","Carlos Eduardo","Débora Franco","Elias Martins","Fabiana Rocha","Gustavo Peres","Helena Duarte","Igor Salles","Joana Ribas","Kleber Souza","Larissa Toledo"];
+const nomesVol = ["Antônio Silva","Beatriz Nunes","Carlos Eduardo","Débora Franco","Elias Martins","Fabiana Rocha","Gustavo Peres","Helena Duarte","Igor Salles","Joana Ribas","Kleber Souza","Larissa Toledo","Maurício Teles","Natália Viegas","Otávio Brandão","Priscila Farias"];
 const tiposOcorrencia = [
   {tipo:"Árvore caída sobre via", icone:"🌳"},
   {tipo:"Telhado destruído", icone:"🏠"},
@@ -238,6 +332,7 @@ const tiposOcorrencia = [
 
 function rnd(a,b){return a+Math.random()*(b-a)}
 function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function initials(nome){ return nome.split(' ').map(p=>p[0]).slice(0,2).join(''); }
 function escHtml(s){ return String(s).replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
 function minutosDesde(ts){ return Math.max(0, Math.round((Date.now()-ts)/60000)); }
 function randPointInBox(poly){
@@ -247,6 +342,7 @@ function randPointInBox(poly){
 
 let ocorrencias = [], voluntarios = [], idCounter = 1;
 let resolvidasCount = 6, tempoSomaResolucao = 52*6;
+let activeZone = null; // null = Todos
 
 /* ---------- mapa ---------- */
 const map = L.map('map', { zoomControl:true, attributionControl:true }).setView(MARINGA_CENTER, 13);
@@ -255,15 +351,12 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
   subdomains:'abcd', maxZoom:19
 }).addTo(map);
 
-const bairroLayers = {};
 bairros.forEach(b=>{
-  const poly = L.polygon(b.poly, {
+  b.polyLayer = L.polygon(b.poly, {
     color:'#f2c230', weight:1.4, opacity:.55, dashArray:'6,4', fillOpacity:.03, fillColor:'#f2c230'
   }).addTo(map);
-  poly.bindTooltip(b.nome.toUpperCase(), {permanent:false, direction:'center', className:'bairro-label'});
-  poly.on('click', ()=>openBairro(b));
-  bairroLayers[b.nome] = poly;
-  L.marker(b.center, {opacity:0}).addTo(map);
+  b.polyLayer.bindTooltip(b.nome.toUpperCase(), {permanent:false, direction:'center', className:'bairro-label'});
+  b.polyLayer.on('click', ()=>selectZone(b.nome));
 });
 
 const ocLayer = L.layerGroup().addTo(map);
@@ -287,21 +380,17 @@ function gerarVoluntarios(){
     }
   });
 }
-
-function refreshVolMarker(v){
-  v.marker.setIcon(volIcon(v.ativo));
-}
+function refreshVolMarker(v){ v.marker.setIcon(volIcon(v.ativo)); }
 
 function gerarOcorrencia(){
   const b = pick(bairros);
   const pos = randPointInBox(b.poly);
   const t = pick(tiposOcorrencia);
-  const resp = pick(respNomes);
   const o = {
     id:"oc"+(idCounter++), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos,
     reportadoEm: Date.now() - Math.floor(rnd(0,5))*60000,
     tempoEstimado: Math.floor(rnd(25,110)),
-    status:"ativa", responsavel: resp,
+    status:"ativa", responsavel: b.equipe.responsavel,
     fotoTag: pick(["Foto enviada via WhatsApp","Reportado por morador","Capturado por equipe"]),
     voluntariosProx: [],
   };
@@ -320,13 +409,188 @@ function gerarOcorrencia(){
   marker.on('click', ()=>openOcorrencia(o));
   o.marker = marker;
   ocorrencias.push(o);
+  applyZoneVisibility();
   return o;
 }
 
 gerarVoluntarios();
 for(let i=0;i<9;i++) gerarOcorrencia();
 
-/* ---------- painel lateral ---------- */
+/* ---------- menu de zonas (sidebar) ---------- */
+const zoneListEl = document.getElementById('zone-list');
+
+function renderZoneList(){
+  zoneListEl.innerHTML = '';
+  const todosItem = document.createElement('div');
+  todosItem.className = 'zone-item todos' + (activeZone===null ? ' active':'');
+  todosItem.innerHTML = `<span class="zi-text"><span class="zi-name">Todas as zonas</span><span class="zi-count">${bairros.length} zonas no mapa</span></span>`;
+  todosItem.onclick = ()=>selectZone(null);
+  zoneListEl.appendChild(todosItem);
+
+  bairros.forEach(b=>{
+    const ativas = ocorrencias.filter(o=>o.bairro===b.nome && o.status==='ativa').length;
+    const item = document.createElement('div');
+    item.className = 'zone-item' + (activeZone===b.nome ? ' active':'');
+    item.innerHTML = `
+      <span class="zi-dot"></span>
+      <span class="zi-text">
+        <span class="zi-name">${escHtml(b.nome)}</span>
+        <span class="zi-count">${b.equipe.responsavel.nome.split(' ')[0]} · resp.</span>
+      </span>
+      ${ativas>0 ? `<span class="zi-badge">${ativas}</span>` : ''}
+    `;
+    item.onclick = ()=>selectZone(b.nome);
+    zoneListEl.appendChild(item);
+  });
+}
+
+function selectZone(nome){
+  activeZone = nome;
+  renderZoneList();
+  applyZoneVisibility();
+  updateZoneStrip();
+  if(window.innerWidth<=860) document.getElementById('sidebar').classList.remove('open');
+  if(nome===null){
+    map.setView(MARINGA_CENTER, 13);
+  } else {
+    const b = bairros.find(x=>x.nome===nome);
+    if(b) map.fitBounds(L.latLngBounds(b.poly), {padding:[40,40]});
+  }
+}
+
+function applyZoneVisibility(){
+  bairros.forEach(b=>{
+    const show = activeZone===null || activeZone===b.nome;
+    const has = map.hasLayer(b.polyLayer);
+    if(show && !has) b.polyLayer.addTo(map);
+    if(!show && has) map.removeLayer(b.polyLayer);
+  });
+  ocorrencias.forEach(o=>{
+    const show = activeZone===null || activeZone===o.bairro;
+    const has = ocLayer.hasLayer(o.marker);
+    if(show && o.status==='ativa' && !has) o.marker.addTo(ocLayer);
+    if((!show || o.status!=='ativa') && has) ocLayer.removeLayer(o.marker);
+  });
+  voluntarios.forEach(v=>{
+    const show = activeZone===null || activeZone===v.bairro;
+    const has = volLayer.hasLayer(v.marker);
+    if(show && !has) v.marker.addTo(volLayer);
+    if(!show && has) volLayer.removeLayer(v.marker);
+  });
+  renderCollaborators();
+}
+
+function updateZoneStrip(){
+  const stripEl = document.getElementById('zone-strip');
+  const eventoEl = document.getElementById('evento-label');
+  if(activeZone===null){
+    stripEl.style.display = 'none';
+    eventoEl.style.display = '';
+    return;
+  }
+  eventoEl.style.display = 'none';
+  const b = bairros.find(x=>x.nome===activeZone);
+  stripEl.style.display = 'flex';
+  const eq = b.equipe;
+  function card(role, person, color){
+    return `<div class="o-card">
+      <div class="avatar" style="background:${color}">${initials(person.nome)}</div>
+      <div><div class="o-role">${role}</div><div class="o-name">${escHtml(person.nome)}</div></div>
+    </div>`;
+  }
+  stripEl.innerHTML = `
+    <div class="zs-title">${escHtml(b.nome)}<span>ZONA ISOLADA · ${b.equipamentos.join(' · ')}</span></div>
+    <div class="officials">
+      ${card('Responsável', eq.responsavel, 'var(--accent)')}
+      ${card('Substituto', eq.substituto, 'var(--blue)')}
+      ${card('Coordenador', eq.coordenador, 'var(--green)')}
+    </div>
+  `;
+}
+
+/* ---------- lista de colaboradores (janela flutuante) ---------- */
+function renderCollaborators(){
+  const body = document.getElementById('floatwin-body');
+  const countEl = document.getElementById('fw-count');
+  const lista = voluntarios.filter(v=> activeZone===null || v.bairro===activeZone);
+  countEl.textContent = lista.length;
+  body.innerHTML = lista.map(v=>`
+    <div class="collab-row">
+      <div class="c-avatar${v.ativo?'':' inactive'}">${initials(v.nome)}</div>
+      <div class="c-info">
+        <div class="c-name">${escHtml(v.nome)}</div>
+        <div class="c-meta">${escHtml(v.ajuda)} · ${escHtml(v.bairro)}</div>
+      </div>
+      <div class="c-status ${v.ativo?'on':'off'}">${v.ativo?'em ação':'disponível'}</div>
+    </div>
+  `).join('') || '<div style="color:var(--muted);font-size:12px;padding:6px 2px">Nenhum colaborador nesta zona.</div>';
+}
+
+/* ---------- janela flutuante: arrastar ---------- */
+(function makeDraggable(){
+  const win = document.getElementById('floatwin');
+  const head = document.getElementById('floatwin-head');
+  const container = document.getElementById('mapwrap');
+  let dragging=false, startX=0, startY=0, startLeft=0, startTop=0;
+
+  function toLeftTop(){
+    const cRect = container.getBoundingClientRect();
+    const wRect = win.getBoundingClientRect();
+    return { left: wRect.left - cRect.left, top: wRect.top - cRect.top };
+  }
+
+  head.addEventListener('mousedown', (e)=>{
+    if(e.target.closest('.floatwin-min')) return;
+    dragging = true;
+    head.classList.add('dragging');
+    const pos = toLeftTop();
+    win.style.right = 'auto';
+    win.style.left = pos.left+'px';
+    win.style.top = pos.top+'px';
+    startX = e.clientX; startY = e.clientY;
+    startLeft = pos.left; startTop = pos.top;
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', (e)=>{
+    if(!dragging) return;
+    const cRect = container.getBoundingClientRect();
+    let nl = startLeft + (e.clientX-startX);
+    let nt = startTop + (e.clientY-startY);
+    nl = Math.max(0, Math.min(nl, cRect.width - win.offsetWidth));
+    nt = Math.max(0, Math.min(nt, cRect.height - win.offsetHeight));
+    win.style.left = nl+'px';
+    win.style.top = nt+'px';
+  });
+  window.addEventListener('mouseup', ()=>{ dragging=false; head.classList.remove('dragging'); });
+
+  // touch support
+  head.addEventListener('touchstart', (e)=>{
+    if(e.target.closest('.floatwin-min')) return;
+    const t = e.touches[0];
+    dragging = true;
+    const pos = toLeftTop();
+    win.style.right='auto'; win.style.left=pos.left+'px'; win.style.top=pos.top+'px';
+    startX=t.clientX; startY=t.clientY; startLeft=pos.left; startTop=pos.top;
+  }, {passive:true});
+  window.addEventListener('touchmove', (e)=>{
+    if(!dragging) return;
+    const t = e.touches[0];
+    const cRect = container.getBoundingClientRect();
+    let nl = startLeft + (t.clientX-startX);
+    let nt = startTop + (t.clientY-startY);
+    nl = Math.max(0, Math.min(nl, cRect.width - win.offsetWidth));
+    nt = Math.max(0, Math.min(nt, cRect.height - win.offsetHeight));
+    win.style.left = nl+'px';
+    win.style.top = nt+'px';
+  }, {passive:true});
+  window.addEventListener('touchend', ()=>{ dragging=false; });
+
+  document.getElementById('floatwin-min').onclick = ()=>{
+    win.classList.toggle('minimized');
+  };
+})();
+
+/* ---------- painel de ocorrência (direita) ---------- */
 function openOcorrencia(o){
   const panel = document.getElementById('panel');
   const title = document.getElementById('panel-title');
@@ -347,10 +611,10 @@ function openOcorrencia(o){
       <div class="field"><label>Tempo estimado</label><div class="val mono">${o.tempoEstimado} min</div></div>
     </div>
     <div class="resp-card">
-      <div class="avatar">${o.responsavel.nome.split(' ').map(p=>p[0]).slice(0,2).join('')}</div>
+      <div class="avatar">${initials(o.responsavel.nome)}</div>
       <div>
         <div class="name">${escHtml(o.responsavel.nome)}</div>
-        <div class="role">${escHtml(o.responsavel.cargo)}</div>
+        <div class="role">${escHtml(o.responsavel.cargo)} · responsável da zona</div>
       </div>
     </div>
     <div class="status-line"><span style="color:var(--red)">●</span> Deslocamento da equipe em andamento</div>
@@ -358,7 +622,7 @@ function openOcorrencia(o){
     <div class="people-list">
       ${vols.map(v=>`
         <div class="person">
-          <div class="avatar small">${v.nome.split(' ').map(p=>p[0]).slice(0,2).join('')}</div>
+          <div class="avatar small">${initials(v.nome)}</div>
           <div><div class="p-name">${escHtml(v.nome)}</div><div class="p-help">${escHtml(v.ajuda)}</div></div>
           <div class="p-dist">~${Math.floor(rnd(150,900))}m</div>
         </div>`).join('') || '<div style="color:var(--muted);font-size:12px">Nenhum voluntário cadastrado nesta área ainda.</div>'}
@@ -378,42 +642,11 @@ function openOcorrencia(o){
       ocLayer.removeLayer(o.marker);
       showReco(o);
       updateKpis();
+      renderZoneList();
+      renderCollaborators();
       closePanel();
     };
   }
-}
-
-function openBairro(b){
-  const panel = document.getElementById('panel');
-  const title = document.getElementById('panel-title');
-  const body = document.getElementById('panel-body');
-  title.textContent = "Bairro";
-
-  const ativasAqui = ocorrencias.filter(o=>o.bairro===b.nome && o.status==='ativa').length;
-  const resolvidasAqui = ocorrencias.filter(o=>o.bairro===b.nome && o.status==='resolvida').length;
-  const volsAqui = voluntarios.filter(v=>v.bairro===b.nome);
-  const ativosAqui = volsAqui.filter(v=>v.ativo).length;
-
-  body.innerHTML = `
-    <div class="bairro-head">${escHtml(b.nome)}</div>
-    <div class="bairro-sub">Zona de cobertura · Maringá-PR</div>
-    <div class="kpi-row">
-      <div class="kpi"><b style="color:var(--red)">${ativasAqui}</b><span>Ocorr. ativas</span></div>
-      <div class="kpi"><b style="color:var(--green)">${resolvidasAqui}</b><span>Resolvidas</span></div>
-      <div class="kpi"><b style="color:var(--blue)">${volsAqui.length}</b><span>Voluntários</span></div>
-    </div>
-    <div class="field"><label>Voluntários mobilizados agora</label><div class="val mono">${ativosAqui} de ${volsAqui.length}</div></div>
-    <label style="display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 8px">Cadastrados no bairro</label>
-    <div class="people-list">
-      ${volsAqui.slice(0,8).map(v=>`
-        <div class="person">
-          <div class="avatar small" style="background:${v.ativo?'var(--blue)':'rgba(59,130,180,0.35)'}">${v.nome.split(' ').map(p=>p[0]).slice(0,2).join('')}</div>
-          <div><div class="p-name">${escHtml(v.nome)}</div><div class="p-help">${escHtml(v.ajuda)}</div></div>
-          <div class="p-dist" style="color:${v.ativo?'var(--green)':'var(--muted)'}">${v.ativo?'em ação':'disponível'}</div>
-        </div>`).join('')}
-    </div>
-  `;
-  panel.classList.add('open');
 }
 
 function closePanel(){ document.getElementById('panel').classList.remove('open'); }
@@ -426,22 +659,6 @@ function showReco(o){
   setTimeout(()=>banner.classList.remove('show'), 5200);
 }
 
-/* ---------- filtros ---------- */
-const filterDefs = ["Todos", ...bairros.map(b=>b.nome)];
-const filtersEl = document.getElementById('filters');
-filterDefs.forEach(f=>{
-  const chip = document.createElement('div');
-  chip.className = 'chip' + (f==="Todos" ? ' active' : '');
-  chip.textContent = f;
-  chip.onclick = ()=>{
-    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
-    chip.classList.add('active');
-    if(f==="Todos"){ map.setView(MARINGA_CENTER, 13); }
-    else { const b = bairros.find(x=>x.nome===f); if(b) map.setView(b.center, 15); }
-  };
-  filtersEl.appendChild(chip);
-});
-
 /* ---------- cadastro simulado via whatsapp ---------- */
 document.getElementById('fab-cadastro').onclick = ()=>{
   const b = pick(bairros);
@@ -451,11 +668,13 @@ document.getElementById('fab-cadastro').onclick = ()=>{
   const v = { id:"v"+(idCounter++), nome, ajuda, bairro:b.nome, pos, ativo:false };
   v.marker = L.marker(pos, { icon: volIcon(false) }).addTo(volLayer);
   voluntarios.push(v);
+  applyZoneVisibility();
   const banner = document.getElementById('reco-banner');
   banner.textContent = `📲 WhatsApp (44) 99XXX-XXXX: "${nome}" cadastrado em ${b.nome} — pode ajudar com ${ajuda}`;
   banner.classList.add('show');
   setTimeout(()=>banner.classList.remove('show'), 4800);
   updateKpis();
+  renderZoneList();
 };
 
 /* ---------- geração periódica de novas ocorrências ---------- */
@@ -463,6 +682,7 @@ setInterval(()=>{
   if(ocorrencias.filter(o=>o.status==='ativa').length < 14 && Math.random()<0.6){
     gerarOcorrencia();
     updateKpis();
+    renderZoneList();
   }
 }, 7000);
 
@@ -486,8 +706,10 @@ function tickClock(){
 }
 setInterval(tickClock, 30000);
 
+renderZoneList();
 updateKpis();
 tickClock();
+renderCollaborators();
 
 })();
 </script>
