@@ -176,6 +176,8 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,59,59,.6)}70%{box-shadow:0 0 0 8px rgba(255,59,59,0)}100%{box-shadow:0 0 0 0 rgba(255,59,59,0)}}
 
 .leaflet-container{background:#060809}
+.leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.92) saturate(.9)}
+.leaflet-marker-pane,.leaflet-tooltip-pane,.leaflet-overlay-pane,.leaflet-popup-pane{filter:none}
 .leaflet-tooltip.oc-tooltip{
   background:rgba(17,22,29,.96);color:var(--fg);border:1px solid var(--red);border-radius:8px;
   font-family:'Inter',sans-serif;font-size:12px;padding:8px 10px;box-shadow:0 6px 18px rgba(0,0,0,.5);
@@ -183,6 +185,11 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .leaflet-tooltip.oc-tooltip .tt-title{font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:6px}
 .leaflet-tooltip.oc-tooltip .tt-row{color:var(--muted);font-size:11px}
 .leaflet-tooltip.oc-tooltip::before{border-top-color:var(--red)!important}
+.leaflet-tooltip.bairro-label{
+  background:rgba(10,13,18,.55);color:var(--yellow);border:none;box-shadow:none;
+  font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:3px 7px;border-radius:4px;
+}
+.leaflet-tooltip.bairro-label::before{display:none}
 .leaflet-control-attribution{background:rgba(10,13,18,.7)!important;color:var(--muted)!important}
 .leaflet-control-attribution a{color:var(--muted)!important}
 .oc-pulse{position:relative}
@@ -346,16 +353,16 @@ let activeZone = null; // null = Todos
 
 /* ---------- mapa ---------- */
 const map = L.map('map', { zoomControl:true, attributionControl:true }).setView(MARINGA_CENTER, 13);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution:'&copy; OpenStreetMap &copy; CARTO',
-  subdomains:'abcd', maxZoom:19
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution:'&copy; OpenStreetMap contributors',
+  subdomains:'abc', maxZoom:19
 }).addTo(map);
 
 bairros.forEach(b=>{
   b.polyLayer = L.polygon(b.poly, {
-    color:'#f2c230', weight:1.4, opacity:.55, dashArray:'6,4', fillOpacity:.03, fillColor:'#f2c230'
+    color:'#f2c230', weight:2.2, opacity:.85, dashArray:'7,5', fillOpacity:.06, fillColor:'#f2c230'
   }).addTo(map);
-  b.polyLayer.bindTooltip(b.nome.toUpperCase(), {permanent:false, direction:'center', className:'bairro-label'});
+  b.polyLayer.bindTooltip(b.nome.toUpperCase(), {permanent:true, direction:'center', className:'bairro-label', opacity:.9});
   b.polyLayer.on('click', ()=>selectZone(b.nome));
 });
 
