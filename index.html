@@ -294,6 +294,11 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 }
 .leaflet-tooltip.bairro-label::before{display:none}
 .leaflet-control-attribution{background:rgba(10,13,18,.7)!important;color:var(--muted)!important}
+.reset-view-control a{
+  background:rgba(17,22,29,.92)!important;color:var(--fg)!important;font-size:16px!important;
+  width:30px!important;height:30px!important;line-height:30px!important;text-align:center;
+}
+.reset-view-control a:hover{background:var(--panel-2)!important;color:var(--accent)!important}
 .leaflet-control-attribution a{color:var(--muted)!important}
 .oc-pulse{position:relative;--oc:var(--red)}
 .oc-pulse .core{width:14px;height:14px;background:var(--oc);border:2px solid #1a0505;border-radius:50%;position:absolute;left:3px;top:3px}
@@ -735,11 +740,29 @@ let currentRole = null; // controle de acesso simulado; populado logo abaixo, an
 try{ currentRole = JSON.parse(sessionStorage.getItem('maringa_role') || 'null'); }catch(e){ currentRole = null; }
 
 /* ---------- mapa ---------- */
-const map = L.map('map', { zoomControl:true, attributionControl:true }).setView(MARINGA_CENTER, 13);
+// trava o mapa na regiao de Maringa: nao deixa arrastar nem dar zoom-out para fora dela
+const MARINGA_BOUNDS = L.latLngBounds([-23.472, -51.998], [-23.330, -51.868]);
+const map = L.map('map', {
+  zoomControl:true, attributionControl:true,
+  maxBounds: MARINGA_BOUNDS, maxBoundsViscosity: 1.0, minZoom: 12, maxZoom: 18,
+}).setView(MARINGA_CENTER, 13);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution:'&copy; OpenStreetMap contributors',
   subdomains:'abc', maxZoom:19
 }).addTo(map);
+
+// botao "voltar ao mapa todo de Maringa", ao lado do zoom +/-
+const ResetViewControl = L.Control.extend({
+  options: { position: 'topleft' },
+  onAdd: function(){
+    const div = L.DomUtil.create('div', 'leaflet-bar reset-view-control');
+    const a = L.DomUtil.create('a', '', div);
+    a.href = '#'; a.title = 'Ver Maringá toda'; a.innerHTML = '⤾';
+    L.DomEvent.on(a, 'click', (e)=>{ L.DomEvent.preventDefault(e); map.fitBounds(MARINGA_BOUNDS); });
+    return div;
+  }
+});
+map.addControl(new ResetViewControl());
 
 bairros.forEach(b=>{
   b.polyLayer = L.polygon(b.poly, {
@@ -902,7 +925,7 @@ function selectZone(nome){
   rebuildHeat();
   if(window.innerWidth<=860) document.getElementById('sidebar').classList.remove('open');
   if(nome===null){
-    map.setView(MARINGA_CENTER, 13);
+    map.fitBounds(MARINGA_BOUNDS);
   } else {
     const b = bairros.find(x=>x.nome===nome);
     if(b) map.fitBounds(L.latLngBounds(b.poly), {padding:[40,40]});
