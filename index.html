@@ -29,6 +29,50 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .sidebar-head .brand{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-weight:700;letter-spacing:.02em;font-size:13.5px}
 .sidebar-head .dot{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 0 0 rgba(255,59,59,.6);animation:pulse 1.6s infinite;flex:none}
 .sidebar-head .sub{color:var(--muted);font-size:10.5px;margin-top:4px}
+.sidebar-actions{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.sidebar-btn{font-family:var(--mono);font-size:11px;background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;cursor:pointer;text-align:left}
+.sidebar-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ---------- modal generico (administracao) ---------- */
+.modal-overlay{position:fixed;inset:0;background:rgba(5,7,10,.72);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-overlay[hidden]{display:none}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:12px;width:100%;max-width:880px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
+.modal-head h2{margin:0;font-size:15px}
+.modal-tabs{display:flex;gap:4px;padding:10px 14px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.mtab{font-family:var(--mono);font-size:11px;background:transparent;color:var(--muted);border:1px solid transparent;border-bottom:2px solid transparent;padding:8px 10px;cursor:pointer}
+.mtab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.modal-body{flex:1;overflow-y:auto;padding:16px 18px}
+.admin-table{width:100%;border-collapse:collapse;font-size:12px}
+.admin-table th{text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--line)}
+.admin-table td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.admin-table input,.admin-table select{background:var(--panel-2);border:1px solid var(--line);color:var(--fg);border-radius:4px;padding:4px 6px;font-size:11.5px;width:100%;font-family:'Inter',sans-serif}
+.admin-btn{font-family:var(--mono);font-size:10.5px;background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:5px;padding:5px 9px;cursor:pointer;white-space:nowrap}
+.admin-btn:hover{border-color:var(--accent);color:var(--accent)}
+.admin-btn.danger:hover{border-color:var(--red);color:var(--red)}
+.admin-btn.primary{background:rgba(255,176,32,.12);border-color:rgba(255,176,32,.4);color:var(--accent)}
+.admin-section-title{font-size:13px;font-weight:700;margin:16px 0 8px}
+.admin-section-title:first-child{margin-top:0}
+.admin-new-form{display:flex;gap:8px;flex-wrap:wrap;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:10px}
+.admin-new-form input,.admin-new-form select{background:var(--bg);border:1px solid var(--line);color:var(--fg);border-radius:5px;padding:6px 8px;font-size:11.5px;font-family:'Inter',sans-serif;flex:1;min-width:110px}
+
+/* ---------- chat interno (whatsapp simulado) ---------- */
+.chat-modal .modal-body{display:flex;padding:0;min-height:420px}
+.chat-contacts{width:220px;flex:none;border-right:1px solid var(--line);overflow-y:auto}
+.chat-contact{padding:10px 14px;border-bottom:1px solid var(--line);cursor:pointer;font-size:12px}
+.chat-contact:hover{background:var(--panel-2)}
+.chat-contact.active{background:rgba(255,176,32,.1)}
+.chat-contact .cc-role{font-size:10px;color:var(--muted)}
+.chat-thread{flex:1;display:flex;flex-direction:column;min-width:0}
+.chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#060809}
+.chat-bubble{max-width:75%;padding:8px 11px;border-radius:10px;font-size:12.5px;line-height:1.4}
+.chat-bubble.them{background:var(--panel-2);align-self:flex-start;border:1px solid var(--line)}
+.chat-bubble.me{background:#1b2b1e;color:var(--green);align-self:flex-end;border:1px solid rgba(46,207,120,.4)}
+.chat-bubble .cb-time{display:block;font-size:9px;color:var(--muted);margin-top:3px;font-family:var(--mono)}
+.chat-input-row{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line)}
+.chat-input-row input{flex:1;background:var(--panel-2);border:1px solid var(--line);color:var(--fg);border-radius:20px;padding:8px 14px;font-size:12.5px}
+.chat-input-row button{background:var(--green);color:#06130b;border:none;border-radius:20px;padding:8px 16px;font-weight:700;font-size:12px;cursor:pointer}
+.chat-empty{display:flex;align-items:center;justify-content:center;flex:1;color:var(--muted);font-size:12px}
 .zone-list{flex:1;overflow-y:auto;padding:10px}
 .zone-item{
   display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:8px;cursor:pointer;
@@ -48,6 +92,9 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .sidebar-footer .sf-label{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
 .sidebar-footer .sf-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px}
 .sidebar-footer .sf-row b{font-family:var(--mono)}
+.sf-resolvida{font-size:10.5px;color:var(--fg);cursor:pointer;padding:4px 0;border-bottom:1px solid var(--line)}
+.sf-resolvida:hover{color:var(--accent)}
+.sf-resolvida span{color:var(--green);font-size:9.5px}
 
 /* ---------- topo ---------- */
 .right{flex:1;display:flex;flex-direction:column;min-width:0}
@@ -125,6 +172,9 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .person .p-dist{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--accent)}
 .status-line{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:14px 0}
 .wa-cta{display:block;text-align:center;font-family:var(--mono);font-size:12px;background:#1b2b1e;color:var(--green);border:1px solid rgba(46,207,120,.4);border-radius:6px;padding:9px;margin-top:4px}
+.report-form{margin-top:10px}
+.file-in{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--fg);border-radius:6px;padding:7px 9px;font-size:12.5px;font-family:'Inter',sans-serif}
+.file-in::-webkit-file-upload-button{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:4px;padding:4px 8px;margin-right:8px;cursor:pointer;font-size:11px}
 
 .kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
 .kpi{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center}
@@ -225,6 +275,10 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
     <div class="sidebar-head">
       <div class="brand"><span class="dot"></span>MARINGÁ ALERTA</div>
       <div class="sub">Zonas de cobertura · clique para isolar</div>
+      <div class="sidebar-actions">
+        <button id="open-admin" class="sidebar-btn">⚙ Administração</button>
+        <button id="open-chat" class="sidebar-btn">💬 Chat interno</button>
+      </div>
     </div>
     <div class="zone-list" id="zone-list"></div>
     <div class="sidebar-footer" id="sidebar-footer"></div>
@@ -284,6 +338,36 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   </div>
 </div>
 
+<div class="modal-overlay" id="admin-overlay" hidden>
+  <div class="modal" id="admin-modal">
+    <div class="modal-head">
+      <h2>⚙ Administração interna</h2>
+      <button class="close-btn" id="admin-close">✕</button>
+    </div>
+    <div class="modal-tabs" id="admin-tabs">
+      <button class="mtab active" data-tab="func">Responsáveis &amp; coordenadores</button>
+      <button class="mtab" data-tab="equipes">Equipes da prefeitura</button>
+      <button class="mtab" data-tab="colab">Colaboradores</button>
+    </div>
+    <div class="modal-body" id="admin-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="chat-overlay" hidden>
+  <div class="modal chat-modal" id="chat-modal">
+    <div class="modal-head">
+      <h2>💬 Chat interno (simulação de WhatsApp)</h2>
+      <button class="close-btn" id="chat-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="chat-contacts" id="chat-contacts"></div>
+      <div class="chat-thread" id="chat-thread">
+        <div class="chat-empty">Selecione um contato para abrir a conversa.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <script>
@@ -330,17 +414,83 @@ const bairros = [
   { nome:"Centro Cívico", center:[-23.4225,-51.9365],
     poly:[[-23.415,-51.946],[-23.415,-51.927],[-23.430,-51.927],[-23.430,-51.946]] },
 ];
+let funcIdCursor = 1;
+const PAPEL_LABEL = { responsavel:"Responsável", substituto:"Substituto", coordenador:"Coordenador" };
 bairros.forEach(b=>{
   b.equipamentos = [equipamentosPool[Math.floor(Math.random()*equipamentosPool.length)], equipamentosPool[Math.floor(Math.random()*equipamentosPool.length)]];
   b.equipe = { responsavel: nextEquipe(), substituto: nextEquipe(), coordenador: nextEquipe() };
   // monitoramento em tempo real via localizacao compartilhada no whatsapp
-  Object.values(b.equipe).forEach(p=>{
+  Object.entries(b.equipe).forEach(([papel,p])=>{
+    p.id = "f"+(funcIdCursor++);
+    p.papel = papel;
+    p.zona = b.nome;
     p.pos = randPointInBox(b.poly);
     p.ultimoPing = Date.now() - Math.floor(Math.random()*6)*60000;
     p.tel = "(44) 9" + Math.floor(1000+Math.random()*8999) + "-" + Math.floor(1000+Math.random()*8999);
   });
 });
 const MARINGA_CENTER = [-23.4205, -51.9333];
+
+// roster plano de todos os funcionarios internos (mesmos objetos referenciados em bairros[].equipe)
+function todosFuncionarios(){
+  return bairros.flatMap(b=> Object.values(b.equipe));
+}
+
+/* ---------- persistencia local das edicoes da administracao ---------- */
+const ADMIN_KEY = "maringa_admin_v1";
+function loadAdminState(){
+  try{ return JSON.parse(localStorage.getItem(ADMIN_KEY) || "null"); }catch(e){ return null; }
+}
+function saveAdminState(){
+  try{
+    localStorage.setItem(ADMIN_KEY, JSON.stringify({
+      funcionarios: todosFuncionarios().map(p=>({id:p.id, nome:p.nome, cargo:p.cargo, tel:p.tel})),
+      equipes: equipesPrefeitura.map(e=>({id:e.id, nome:e.nome, zona:e.zona, recursos:e.recursos, membros:e.membros, status:e.status})),
+    }));
+  }catch(e){ /* storage pode estar bloqueado; prototipo continua funcionando sem persistir */ }
+}
+const adminSaved = loadAdminState();
+if(adminSaved && adminSaved.funcionarios){
+  adminSaved.funcionarios.forEach(saved=>{
+    const p = todosFuncionarios().find(x=>x.id===saved.id);
+    if(p){ p.nome=saved.nome; p.cargo=saved.cargo; p.tel=saved.tel; }
+  });
+}
+
+/* ---------- equipes da prefeitura (recursos/equipamentos) ---------- */
+const recursoTipos = ["Motosserra","Caminhão basculante","Retroescavadeira","Kit de resgate","Gerador móvel","Caminhão-pipa","Eletricistas","Ambulância"];
+let equipePrefIdCursor = 1;
+const equipesPrefeitura = [];
+function nomesVolEquipe(){ return ["Juliano Mesquita","Camila Dutra","Osvaldo Reis","Tainá Borges","Wesley Cunha","Aline Pacheco","Diego Farah","Yasmin Rezende"]; }
+
+if(adminSaved && adminSaved.equipes && adminSaved.equipes.length){
+  adminSaved.equipes.forEach(e=> equipesPrefeitura.push(e));
+  equipePrefIdCursor = Math.max(...adminSaved.equipes.map(e=>parseInt(e.id.replace('eq',''))||0)) + 1;
+} else {
+  bairros.forEach(b=>{
+    const n = Math.floor(rnd(1,3));
+    for(let i=0;i<n;i++){
+      const recursos = [];
+      const nRec = Math.floor(rnd(2,4));
+      const usados = new Set();
+      for(let j=0;j<nRec;j++){
+        let tipo = pick(recursoTipos);
+        if(usados.has(tipo)) continue;
+        usados.add(tipo);
+        const qtd = Math.floor(rnd(1,4));
+        recursos.push({ tipo, qtd, emUso: Math.floor(rnd(0, qtd+1)) });
+      }
+      equipesPrefeitura.push({
+        id:"eq"+(equipePrefIdCursor++),
+        nome:`Equipe ${b.nome} ${i+1}`,
+        zona: b.nome,
+        recursos,
+        membros: [pick(nomesVolEquipe()), pick(nomesVolEquipe())],
+        status: Math.random()<0.6 ? "disponível" : "em campo",
+      });
+    }
+  });
+}
 
 const tiposAjuda = ["Motosserra","Caminhão","Mão de obra","Cesta básica","Roupas/cobertores","Gerador","Resgate de animais","Primeiros socorros"];
 const nomesVol = ["Antônio Silva","Beatriz Nunes","Carlos Eduardo","Débora Franco","Elias Martins","Fabiana Rocha","Gustavo Peres","Helena Duarte","Igor Salles","Joana Ribas","Kleber Souza","Larissa Toledo","Maurício Teles","Natália Viegas","Otávio Brandão","Priscila Farias"];
@@ -369,6 +519,7 @@ function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
 function initials(nome){ return nome.split(' ').map(p=>p[0]).slice(0,2).join(''); }
 function escHtml(s){ return String(s).replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
 function minutosDesde(ts){ return Math.max(0, Math.round((Date.now()-ts)/60000)); }
+function fmtDist(m){ return m<1000 ? Math.round(m)+"m" : (m/1000).toFixed(1)+"km"; }
 function randPointInBox(poly){
   const lats = poly.map(p=>p[0]), lngs = poly.map(p=>p[1]);
   return [ rnd(Math.min(...lats),Math.max(...lats)), rnd(Math.min(...lngs),Math.max(...lngs)) ];
@@ -739,21 +890,47 @@ function openOcorrencia(o){
     `;
   } else if(o.status==='em_atendimento'){
     const tChegada = minutosDesde(o.reportadoEm) - minutosDesde(o.confirmadoEm);
+    const zonaEquipe = bairros.find(x=>x.nome===o.bairro).equipe;
     tempoBlocos = `
       <div class="grid2">
         <div class="field"><label>Tempo até chegada</label><div class="val mono">${tChegada} min</div></div>
         <div class="field"><label>Em atendimento há</label><div class="val mono" id="live-atendimento">${minutosDesde(o.confirmadoEm)} min</div></div>
       </div>
       <div class="status-line"><span style="color:${STATUS_COLOR.em_atendimento}">●</span> Equipe confirmada no local, atendimento em andamento</div>
-      <button class="wa-cta" id="resolve-btn" style="cursor:pointer;width:100%;border:1px solid rgba(46,207,120,.4)">✓ Marcar ocorrência como resolvida</button>
+      <button class="wa-cta" id="resolve-btn" style="cursor:pointer;width:100%;border:1px solid rgba(46,207,120,.4)">✓ Preencher relatório final e concluir</button>
+      <div class="report-form" id="report-form" hidden>
+        <label style="display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px">Relatório final — obrigatório para concluir</label>
+        <div class="field"><label>Foto da situação atual</label><input type="file" accept="image/*" id="foto-atual" class="file-in"></div>
+        <div class="field"><label>Foto da situação final</label><input type="file" accept="image/*" id="foto-final" class="file-in"></div>
+        <div class="field"><label>O que ficou pendente</label><textarea id="pendencias" rows="2" placeholder="Ex.: poda completa, mas limpeza dos galhos fica para amanhã" class="file-in" style="resize:vertical;font-family:inherit"></textarea></div>
+        <div class="field"><label>Preenchido por</label>
+          <select id="preenchido-por" class="file-in">
+            <option value="${escHtml(zonaEquipe.responsavel.nome)}">${escHtml(zonaEquipe.responsavel.nome)} (responsável)</option>
+            <option value="${escHtml(zonaEquipe.substituto.nome)}">${escHtml(zonaEquipe.substituto.nome)} (substituto)</option>
+            <option value="${escHtml(zonaEquipe.coordenador.nome)}">${escHtml(zonaEquipe.coordenador.nome)} (coordenador)</option>
+          </select>
+        </div>
+        <div id="report-err" hidden style="color:var(--red);font-size:11px;margin-bottom:8px"></div>
+        <button class="wa-cta" id="report-submit" style="cursor:pointer;width:100%;border:1px solid rgba(46,207,120,.4)">Enviar relatório e concluir ocorrência</button>
+      </div>
     `;
   } else {
+    const rel = o.relatorio;
     tempoBlocos = `
       <div class="grid2">
         <div class="field"><label>Tempo até chegada</label><div class="val mono">${o.tempoChegada} min</div></div>
         <div class="field"><label>Tempo em atendimento</label><div class="val mono">${o.tempoAtendimento} min</div></div>
       </div>
       <div class="wa-cta">✓ Resolvida em ${o.tempoChegada+o.tempoAtendimento} min — equipe reconhecida pela Prefeitura</div>
+      ${rel ? `
+        <label style="display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px">Relatório final</label>
+        <div class="grid2" style="margin-bottom:10px">
+          <div><div class="field" style="margin-bottom:4px"><label>Situação atual</label></div><img src="${rel.fotoAtual}" style="width:100%;border-radius:6px;border:1px solid var(--line)"></div>
+          <div><div class="field" style="margin-bottom:4px"><label>Situação final</label></div><img src="${rel.fotoFinal}" style="width:100%;border-radius:6px;border:1px solid var(--line)"></div>
+        </div>
+        <div class="field"><label>Pendências</label><div class="val">${escHtml(rel.pendencias)}</div></div>
+        <div class="field"><label>Preenchido por</label><div class="val">${escHtml(rel.preenchidoPor)}</div></div>
+      ` : ''}
     `;
   }
 
@@ -772,7 +949,7 @@ function openOcorrencia(o){
       <div class="avatar">${initials(o.responsavel.nome)}</div>
       <div>
         <div class="name">${escHtml(o.responsavel.nome)}</div>
-        <div class="role">${escHtml(o.responsavel.cargo)} · responsável da zona</div>
+        <div class="role">${escHtml(o.responsavel.cargo)} · responsável da zona · 📍 ${fmtDist(map.distance(o.responsavel.pos, o.pos))} de distância</div>
       </div>
     </div>
     <label style="display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Voluntários mobilizados nas proximidades</label>
@@ -781,7 +958,7 @@ function openOcorrencia(o){
         <div class="person">
           <div class="avatar small">${initials(v.nome)}</div>
           <div><div class="p-name">${escHtml(v.nome)}</div><div class="p-help">${escHtml(v.ajuda)}</div></div>
-          <div class="p-dist">~${Math.floor(rnd(150,900))}m</div>
+          <div class="p-dist">${fmtDist(map.distance(v.pos, o.pos))}</div>
         </div>`).join('') || '<div style="color:var(--muted);font-size:12px">Nenhum voluntário cadastrado nesta área ainda.</div>'}
     </div>
   `;
@@ -801,19 +978,44 @@ function openOcorrencia(o){
   const resolveBtn = document.getElementById('resolve-btn');
   if(resolveBtn){
     resolveBtn.onclick = ()=>{
-      o.status='resolvida';
-      o.resolvidoEm = Date.now();
-      o.tempoChegada = minutosDesde(o.reportadoEm) - minutosDesde(o.confirmadoEm);
-      o.tempoAtendimento = minutosDesde(o.confirmadoEm);
-      o.tempoReal = o.tempoChegada + o.tempoAtendimento;
-      o.voluntariosProx.forEach(id=>{ const v=voluntarios.find(x=>x.id===id); if(v){ v.ativo=false; refreshVolMarker(v); } });
-      ocLayer.removeLayer(o.marker);
-      showReco(o);
-      updateKpis();
-      renderZoneList();
-      renderCollaborators();
-      rebuildHeat();
-      closePanel();
+      resolveBtn.hidden = true;
+      document.getElementById('report-form').hidden = false;
+    };
+  }
+  const reportSubmit = document.getElementById('report-submit');
+  if(reportSubmit){
+    reportSubmit.onclick = ()=>{
+      const fAtual = document.getElementById('foto-atual').files[0];
+      const fFinal = document.getElementById('foto-final').files[0];
+      const errEl = document.getElementById('report-err');
+      if(!fAtual || !fFinal){
+        errEl.textContent = 'Envie as duas fotos (situação atual e situação final) para concluir.';
+        errEl.hidden = false;
+        return;
+      }
+      errEl.hidden = true;
+      const readAsDataURL = file => new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(file); });
+      Promise.all([readAsDataURL(fAtual), readAsDataURL(fFinal)]).then(([atualUrl, finalUrl])=>{
+        o.relatorio = {
+          fotoAtual: atualUrl, fotoFinal: finalUrl,
+          pendencias: document.getElementById('pendencias').value.trim() || 'Nenhuma',
+          preenchidoPor: document.getElementById('preenchido-por').value,
+          enviadoEm: Date.now(),
+        };
+        o.status='resolvida';
+        o.resolvidoEm = Date.now();
+        o.tempoChegada = minutosDesde(o.reportadoEm) - minutosDesde(o.confirmadoEm);
+        o.tempoAtendimento = minutosDesde(o.confirmadoEm);
+        o.tempoReal = o.tempoChegada + o.tempoAtendimento;
+        o.voluntariosProx.forEach(id=>{ const v=voluntarios.find(x=>x.id===id); if(v){ v.ativo=false; refreshVolMarker(v); } });
+        ocLayer.removeLayer(o.marker);
+        showReco(o);
+        updateKpis();
+        renderZoneList();
+        renderCollaborators();
+        rebuildHeat();
+        closePanel();
+      });
     };
   }
 }
@@ -883,6 +1085,12 @@ function renderResumo(abertas){
   const porGrav = {1:0,2:0,3:0};
   const porResp = {publica:0, privada:0, mista:0};
   abertas.forEach(o=>{ porGrav[o.gravidade]++; porResp[o.responsabilidade]++; });
+
+  const resolvidas = ocorrencias
+    .filter(o=> o.status==='resolvida' && (activeZone===null || o.bairro===activeZone))
+    .sort((a,c)=> (c.resolvidoEm||0) - (a.resolvidoEm||0))
+    .slice(0,5);
+
   el.innerHTML = `
     <div class="sf-label">Gravidade (${activeZone || 'todas as zonas'})</div>
     <div class="sf-row"><span style="color:${GRAV_COLOR[3]}">Alta</span><b>${porGrav[3]}</b></div>
@@ -892,7 +1100,12 @@ function renderResumo(abertas){
     <div class="sf-row"><span style="color:${RESP_COLOR.publica}">Pública</span><b>${porResp.publica}</b></div>
     <div class="sf-row"><span style="color:${RESP_COLOR.privada}">Privada</span><b>${porResp.privada}</b></div>
     <div class="sf-row"><span style="color:${RESP_COLOR.mista}">Mista</span><b>${porResp.mista}</b></div>
+    <div class="sf-label" style="margin-top:10px">Resolvidas recentes</div>
+    ${resolvidas.map(o=>`<div class="sf-resolvida" data-oc="${o.id}">${o.icone} ${escHtml(o.tipo)} <span>${o.relatorio?'· relatório ✓':'· sem relatório'}</span></div>`).join('') || '<div style="color:var(--muted);font-size:10.5px">Nenhuma ainda.</div>'}
   `;
+  el.querySelectorAll('.sf-resolvida').forEach(elm=>{
+    elm.onclick = ()=>{ const o = ocorrencias.find(x=>x.id===elm.dataset.oc); if(o) openOcorrencia(o); };
+  });
 }
 
 const eventStart = Date.now() - (4*60+12)*60000;
@@ -906,6 +1119,256 @@ function tickClock(){
   document.getElementById('evento-label').textContent = `CICLONE EXTRATROPICAL · 03/11/2026 · T+${hh}h${String(mm).padStart(2,'0')}min`;
 }
 setInterval(tickClock, 30000);
+
+/* ---------- administracao interna ---------- */
+let adminTab = 'func';
+const adminOverlay = document.getElementById('admin-overlay');
+document.getElementById('open-admin').onclick = ()=>{ adminOverlay.hidden=false; renderAdminBody(); };
+document.getElementById('admin-close').onclick = ()=>{ adminOverlay.hidden=true; };
+adminOverlay.addEventListener('click', e=>{ if(e.target===adminOverlay) adminOverlay.hidden=true; });
+document.getElementById('admin-tabs').querySelectorAll('.mtab').forEach(btn=>{
+  btn.onclick = ()=>{
+    adminTab = btn.dataset.tab;
+    document.getElementById('admin-tabs').querySelectorAll('.mtab').forEach(b=>b.classList.toggle('active', b===btn));
+    renderAdminBody();
+  };
+});
+
+function renderAdminBody(){
+  const body = document.getElementById('admin-body');
+  if(adminTab==='func') return renderAdminFunc(body);
+  if(adminTab==='equipes') return renderAdminEquipes(body);
+  renderAdminColab(body);
+}
+
+function renderAdminFunc(body){
+  const grupos = { responsavel:'Responsáveis', substituto:'Substitutos', coordenador:'Coordenadores' };
+  let html = '';
+  Object.entries(grupos).forEach(([papel,label])=>{
+    const lista = todosFuncionarios().filter(p=>p.papel===papel);
+    html += `<div class="admin-section-title">${label}</div>
+      <table class="admin-table"><thead><tr><th>Zona</th><th>Nome</th><th>Cargo</th><th>Telefone</th><th></th></tr></thead><tbody>
+      ${lista.map(p=>`
+        <tr data-id="${p.id}">
+          <td>${escHtml(p.zona)}</td>
+          <td><input value="${escHtml(p.nome)}" data-field="nome"></td>
+          <td><input value="${escHtml(p.cargo)}" data-field="cargo"></td>
+          <td><input value="${escHtml(p.tel)}" data-field="tel"></td>
+          <td><button class="admin-btn primary" data-action="save-func">Salvar</button></td>
+        </tr>
+      `).join('')}
+      </tbody></table>`;
+  });
+  body.innerHTML = html;
+  body.querySelectorAll('[data-action="save-func"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const tr = btn.closest('tr');
+      const p = todosFuncionarios().find(x=>x.id===tr.dataset.id);
+      if(!p) return;
+      p.nome = tr.querySelector('[data-field="nome"]').value.trim() || p.nome;
+      p.cargo = tr.querySelector('[data-field="cargo"]').value.trim() || p.cargo;
+      p.tel = tr.querySelector('[data-field="tel"]').value.trim() || p.tel;
+      saveAdminState();
+      updateZoneStrip(); renderZoneList(); renderOfficialMarkers(); renderChatContacts();
+      btn.textContent = 'Salvo ✓'; setTimeout(()=>btn.textContent='Salvar', 1400);
+    };
+  });
+}
+
+function recursosResumo(e){
+  const disp = e.recursos.reduce((s,r)=>s+(r.qtd-r.emUso),0);
+  const uso = e.recursos.reduce((s,r)=>s+r.emUso,0);
+  return {disp, uso, texto: e.recursos.map(r=>`${r.tipo} ${r.qtd-r.emUso}/${r.qtd} livre`).join(', ')};
+}
+
+function renderAdminEquipes(body){
+  const zonasAtivas = {};
+  ocorrencias.filter(o=>o.status==='ativa'||o.status==='em_atendimento').forEach(o=>{ zonasAtivas[o.bairro]=(zonasAtivas[o.bairro]||0)+1; });
+  body.innerHTML = `
+    <div class="admin-section-title">Equipes e equipamentos cadastrados</div>
+    <table class="admin-table"><thead><tr><th>Equipe</th><th>Zona</th><th>Recursos</th><th>Membros</th><th>Status</th><th>Ocorrências na zona</th><th></th></tr></thead><tbody>
+      ${equipesPrefeitura.map(e=>{
+        const r = recursosResumo(e);
+        const falta = zonasAtivas[e.zona] > 0 && r.disp===0;
+        return `<tr data-id="${e.id}">
+          <td><input value="${escHtml(e.nome)}" data-field="nome"></td>
+          <td>
+            <select data-field="zona">${bairros.map(b=>`<option value="${escHtml(b.nome)}" ${b.nome===e.zona?'selected':''}>${escHtml(b.nome)}</option>`).join('')}</select>
+          </td>
+          <td style="font-size:10.5px;color:var(--muted)">${escHtml(r.texto)}</td>
+          <td><input value="${escHtml(e.membros.join(', '))}" data-field="membros"></td>
+          <td>
+            <select data-field="status">
+              <option ${e.status==='disponível'?'selected':''}>disponível</option>
+              <option ${e.status==='em campo'?'selected':''}>em campo</option>
+            </select>
+          </td>
+          <td style="text-align:center">${zonasAtivas[e.zona]||0} ${falta?`<div style="color:var(--red);font-size:9.5px">sem equip. livre</div>`:''}</td>
+          <td style="display:flex;gap:4px">
+            <button class="admin-btn primary" data-action="save-eq">Salvar</button>
+            <button class="admin-btn danger" data-action="del-eq">Remover</button>
+          </td>
+        </tr>`;
+      }).join('')}
+    </tbody></table>
+    <div class="admin-section-title">Nova equipe</div>
+    <div class="admin-new-form" id="new-eq-form">
+      <input placeholder="Nome da equipe" id="neq-nome">
+      <select id="neq-zona">${bairros.map(b=>`<option value="${escHtml(b.nome)}">${escHtml(b.nome)}</option>`).join('')}</select>
+      <input placeholder="Recursos: ex. Motosserra x2, Caminhão x1" id="neq-recursos">
+      <input placeholder="Membros, separados por vírgula" id="neq-membros">
+      <button class="admin-btn primary" id="neq-add">+ Adicionar equipe</button>
+    </div>
+  `;
+  body.querySelectorAll('[data-action="save-eq"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const tr = btn.closest('tr');
+      const e = equipesPrefeitura.find(x=>x.id===tr.dataset.id);
+      if(!e) return;
+      e.nome = tr.querySelector('[data-field="nome"]').value.trim() || e.nome;
+      e.zona = tr.querySelector('[data-field="zona"]').value;
+      e.membros = tr.querySelector('[data-field="membros"]').value.split(',').map(s=>s.trim()).filter(Boolean);
+      e.status = tr.querySelector('[data-field="status"]').value;
+      saveAdminState();
+      btn.textContent = 'Salvo ✓'; setTimeout(()=>renderAdminEquipes(body), 900);
+    };
+  });
+  body.querySelectorAll('[data-action="del-eq"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const tr = btn.closest('tr');
+      const idx = equipesPrefeitura.findIndex(x=>x.id===tr.dataset.id);
+      if(idx>-1) equipesPrefeitura.splice(idx,1);
+      saveAdminState();
+      renderAdminEquipes(body);
+    };
+  });
+  const addBtn = document.getElementById('neq-add');
+  if(addBtn) addBtn.onclick = ()=>{
+    const nome = document.getElementById('neq-nome').value.trim();
+    const zona = document.getElementById('neq-zona').value;
+    const recTxt = document.getElementById('neq-recursos').value.trim();
+    const membros = document.getElementById('neq-membros').value.split(',').map(s=>s.trim()).filter(Boolean);
+    if(!nome){ return; }
+    const recursos = recTxt.split(',').map(s=>s.trim()).filter(Boolean).map(s=>{
+      const m = s.match(/^(.*?)\s*x\s*(\d+)$/i);
+      return m ? {tipo:m[1].trim(), qtd:parseInt(m[2]), emUso:0} : {tipo:s, qtd:1, emUso:0};
+    });
+    equipesPrefeitura.push({ id:"eq"+(equipePrefIdCursor++), nome, zona, recursos: recursos.length?recursos:[{tipo:'Mão de obra',qtd:1,emUso:0}], membros: membros.length?membros:['A definir'], status:'disponível' });
+    saveAdminState();
+    renderAdminEquipes(body);
+  };
+}
+
+function renderAdminColab(body){
+  body.innerHTML = `
+    <div class="admin-section-title">Colaboradores cadastrados via WhatsApp</div>
+    <table class="admin-table"><thead><tr><th>Nome</th><th>Zona</th><th>Pode ajudar com</th><th>Status</th><th></th></tr></thead><tbody>
+      ${voluntarios.map(v=>`
+        <tr data-id="${v.id}">
+          <td>${escHtml(v.nome)}</td>
+          <td>${escHtml(v.bairro)}</td>
+          <td>${escHtml(v.ajuda)}</td>
+          <td>${v.ativo?'<span style="color:var(--green)">em ação</span>':'<span style="color:var(--muted)">disponível</span>'}</td>
+          <td><button class="admin-btn danger" data-action="rm-vol">Remover cadastro</button></td>
+        </tr>
+      `).join('') || '<tr><td colspan="5" style="color:var(--muted)">Nenhum colaborador cadastrado ainda.</td></tr>'}
+    </tbody></table>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted)">Novos colaboradores entram automaticamente quando se cadastram pelo número de WhatsApp da prefeitura (simulado aqui pelo botão "Simular cadastro via WhatsApp" no mapa).</div>
+  `;
+  body.querySelectorAll('[data-action="rm-vol"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const tr = btn.closest('tr');
+      const idx = voluntarios.findIndex(x=>x.id===tr.dataset.id);
+      if(idx>-1){
+        volLayer.removeLayer(voluntarios[idx].marker);
+        voluntarios.splice(idx,1);
+      }
+      updateKpis(); renderCollaborators(); renderChatContacts();
+      renderAdminColab(body);
+    };
+  });
+}
+
+/* ---------- chat interno (simulacao de whatsapp) ---------- */
+const chatOverlay = document.getElementById('chat-overlay');
+const chatHistorico = {}; // id -> [{de:'eu'|'eles', texto, ts}]
+const respostasAuto = [
+  "Recebido, chegando em breve.",
+  "Estou a caminho, deve levar uns 10 minutos.",
+  "Confirmado, equipe já está no local.",
+  "Vou enviar a foto da situação em seguida.",
+  "Precisamos de mais um caminhão aqui, pode verificar disponibilidade?",
+  "Tudo sob controle por aqui.",
+];
+let chatContatoAtivo = null;
+
+document.getElementById('open-chat').onclick = ()=>{ chatOverlay.hidden=false; renderChatContacts(); };
+document.getElementById('chat-close').onclick = ()=>{ chatOverlay.hidden=true; };
+chatOverlay.addEventListener('click', e=>{ if(e.target===chatOverlay) chatOverlay.hidden=true; });
+
+function chatContatos(){
+  return [
+    ...todosFuncionarios().map(p=>({id:p.id, nome:p.nome, sub:`${PAPEL_LABEL[p.papel]} · ${p.zona}`})),
+    ...voluntarios.map(v=>({id:v.id, nome:v.nome, sub:`Colaborador · ${v.bairro}`})),
+  ];
+}
+
+function renderChatContacts(){
+  const el = document.getElementById('chat-contacts');
+  if(!el) return;
+  el.innerHTML = chatContatos().map(c=>`
+    <div class="chat-contact${chatContatoAtivo===c.id?' active':''}" data-id="${c.id}">
+      <div>${escHtml(c.nome)}</div>
+      <div class="cc-role">${escHtml(c.sub)}</div>
+    </div>
+  `).join('');
+  el.querySelectorAll('.chat-contact').forEach(elm=>{
+    elm.onclick = ()=>{ chatContatoAtivo = elm.dataset.id; renderChatContacts(); openChatThread(elm.dataset.id); };
+  });
+}
+
+function openChatThread(id){
+  const contato = chatContatos().find(c=>c.id===id);
+  if(!contato) return;
+  if(!chatHistorico[id]){
+    chatHistorico[id] = [
+      { de:'eles', texto:`Oi, aqui é ${contato.nome.split(' ')[0]}. Pode me passar instruções?`, ts: Date.now()-9*60000 },
+    ];
+  }
+  const thread = document.getElementById('chat-thread');
+  thread.innerHTML = `
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Mensagem para ${escHtml(contato.nome.split(' ')[0])}...">
+      <button id="chat-send">Enviar</button>
+    </div>
+  `;
+  renderChatMessages(id);
+  document.getElementById('chat-send').onclick = ()=>sendChatMsg(id);
+  document.getElementById('chat-input').addEventListener('keydown', e=>{ if(e.key==='Enter') sendChatMsg(id); });
+}
+
+function renderChatMessages(id){
+  const box = document.getElementById('chat-messages');
+  if(!box) return;
+  box.innerHTML = chatHistorico[id].map(m=>`
+    <div class="chat-bubble ${m.de==='eu'?'me':'them'}">${escHtml(m.texto)}<span class="cb-time">${new Date(m.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span></div>
+  `).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+function sendChatMsg(id){
+  const input = document.getElementById('chat-input');
+  const texto = input.value.trim();
+  if(!texto) return;
+  chatHistorico[id].push({ de:'eu', texto, ts:Date.now() });
+  input.value = '';
+  renderChatMessages(id);
+  setTimeout(()=>{
+    chatHistorico[id].push({ de:'eles', texto: pick(respostasAuto), ts:Date.now() });
+    renderChatMessages(id);
+  }, 1400 + Math.random()*1600);
+}
 
 document.getElementById('heat-toggle').onclick = (e)=>{
   heatOn = !heatOn;
