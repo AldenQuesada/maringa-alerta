@@ -304,6 +304,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
       <div class="sub">Zonas de cobertura · clique para isolar</div>
       <div class="sidebar-actions">
         <button id="open-fila" class="sidebar-btn">📋 Fila de prioridade</button>
+        <button id="open-audit" class="sidebar-btn">🔒 Log de auditoria</button>
         <button id="open-alertas" class="sidebar-btn alerta-btn">🌦 Alertas &amp; Prontidão</button>
         <button id="open-admin" class="sidebar-btn">⚙ Administração</button>
         <button id="open-chat" class="sidebar-btn">💬 Chat interno</button>
@@ -380,6 +381,16 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
       <button class="mtab" data-tab="colab">Colaboradores</button>
     </div>
     <div class="modal-body" id="admin-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="audit-overlay" hidden>
+  <div class="modal" id="audit-modal">
+    <div class="modal-head">
+      <h2>🔒 Log de auditoria (cadeia de hash)</h2>
+      <button class="close-btn" id="audit-close">✕</button>
+    </div>
+    <div class="modal-body" id="audit-body"></div>
   </div>
 </div>
 
@@ -638,8 +649,9 @@ function gerarOcorrencia(){
   const b = pick(bairros);
   const pos = randPointInBox(b.poly);
   const t = pick(tiposOcorrencia);
+  const numId = idCounter++;
   const o = {
-    id:"oc"+(idCounter++), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos,
+    id:"oc"+numId, protocolo:"MA-"+String(10000+numId).slice(-5), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos,
     gravidade: sortGravidade(t.gravBase), responsabilidade: pick(t.resp),
     reportadoEm: Date.now() - Math.floor(rnd(0,5))*60000,
     confirmadoEm:null, resolvidoEm:null,
@@ -685,8 +697,9 @@ bairros.forEach(b=>{
     const t = pick(tiposOcorrencia);
     const tChegada = Math.floor(rnd(10,35)), tAtend = Math.floor(rnd(20,70));
     const reportado = Date.now()-Math.floor(rnd(60,230))*60000;
+    const numIdHist = idCounter++;
     ocorrencias.push({
-      id:"oc"+(idCounter++), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos: randPointInBox(b.poly),
+      id:"oc"+numIdHist, protocolo:"MA-"+String(10000+numIdHist).slice(-5), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos: randPointInBox(b.poly),
       gravidade: sortGravidade(t.gravBase), responsabilidade: pick(t.resp),
       reportadoEm: reportado, confirmadoEm: reportado+tChegada*60000, resolvidoEm: reportado+(tChegada+tAtend)*60000,
       status:"resolvida", tempoChegada:tChegada, tempoAtendimento:tAtend, tempoReal: tChegada+tAtend,
@@ -933,6 +946,7 @@ function openOcorrencia(o){
   const body = document.getElementById('panel-body');
   const [badgeClass, badgeLabel] = STATUS_BADGE[o.status];
   title.innerHTML = `${o.icone} ${escHtml(o.tipo)} <span class="badge ${badgeClass}">${badgeLabel}</span>`;
+  title.innerHTML += `<div style="font-family:var(--mono);font-size:10px;color:var(--muted);width:100%;margin-top:3px">Protocolo ${escHtml(o.protocolo||'—')}</div>`;
 
   const vols = o.voluntariosProx.map(id=>voluntarios.find(v=>v.id===id)).filter(Boolean);
 
@@ -964,6 +978,13 @@ function openOcorrencia(o){
             <option value="${escHtml(zonaEquipe.substituto.nome)}">${escHtml(zonaEquipe.substituto.nome)} (substituto)</option>
             <option value="${escHtml(zonaEquipe.coordenador.nome)}">${escHtml(zonaEquipe.coordenador.nome)} (coordenador)</option>
           </select>
+        </div>
+        <div class="field" style="font-size:11px;color:var(--muted)">
+          <label style="display:flex;align-items:flex-start;gap:7px;cursor:pointer;color:var(--fg);font-size:12px">
+            <input type="checkbox" id="fotos-publicas" style="margin-top:2px">
+            Permitir que o morador veja estas fotos na página pública de status
+          </label>
+          <div style="margin-top:4px">Política: fotos ficam arquivadas por 90 dias, usadas só para atendimento e prestação de contas. Em ocorrência privada ou mista, pense duas vezes antes de marcar — é propriedade de outra pessoa.</div>
         </div>
         <div id="report-err" hidden style="color:var(--red);font-size:11px;margin-bottom:8px"></div>
         <button class="wa-cta" id="report-submit" style="cursor:pointer;width:100%;border:1px solid rgba(46,207,120,.4)">Enviar relatório e concluir ocorrência</button>
@@ -1034,6 +1055,7 @@ function openOcorrencia(o){
       const servico = prompt('Qual serviço foi acionado? (ex.: SAMU 192, Bombeiros 193, Defesa Civil 199)', 'Bombeiros 193');
       if(!servico) return;
       o.acionamentoOficial = { servico, quando: Date.now() };
+      auditPush(o.responsavel.nome, 'Acionou serviço oficial', `${servico} para ${o.tipo} em ${o.bairro} (protocolo ${o.protocolo})`);
       openOcorrencia(o);
     };
   }
@@ -1044,6 +1066,7 @@ function openOcorrencia(o){
       o.confirmadoEm = Date.now();
       refreshOcTooltip(o);
       o.marker.setIcon(ocIcon(o.status));
+      auditPush(o.responsavel.nome, 'Confirmou presença', `${o.tipo} em ${o.bairro} (protocolo ${o.protocolo})`);
       openOcorrencia(o);
       renderZoneList();
     };
@@ -1069,10 +1092,12 @@ function openOcorrencia(o){
       errEl.hidden = true;
       const readAsDataURL = file => new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(file); });
       Promise.all([readAsDataURL(fAtual), readAsDataURL(fFinal)]).then(([atualUrl, finalUrl])=>{
+        const preenchidoPor = document.getElementById('preenchido-por').value;
         o.relatorio = {
           fotoAtual: atualUrl, fotoFinal: finalUrl,
           pendencias: document.getElementById('pendencias').value.trim() || 'Nenhuma',
-          preenchidoPor: document.getElementById('preenchido-por').value,
+          preenchidoPor,
+          fotosPublicas: document.getElementById('fotos-publicas').checked,
           enviadoEm: Date.now(),
         };
         o.status='resolvida';
@@ -1082,6 +1107,7 @@ function openOcorrencia(o){
         o.tempoReal = o.tempoChegada + o.tempoAtendimento;
         o.voluntariosProx.forEach(id=>{ const v=voluntarios.find(x=>x.id===id); if(v){ v.ativo=false; refreshVolMarker(v); } });
         ocLayer.removeLayer(o.marker);
+        auditPush(preenchidoPor, 'Resolveu ocorrência', `${o.tipo} em ${o.bairro} (protocolo ${o.protocolo})`);
         showReco(o);
         updateKpis();
         renderZoneList();
@@ -1242,6 +1268,7 @@ function renderAdminFunc(body){
       p.cargo = tr.querySelector('[data-field="cargo"]').value.trim() || p.cargo;
       p.tel = tr.querySelector('[data-field="tel"]').value.trim() || p.tel;
       saveAdminState();
+      auditPush('Administração', 'Editou funcionário', `${p.nome} (${PAPEL_LABEL[p.papel]}, ${p.zona})`);
       updateZoneStrip(); renderZoneList(); renderOfficialMarkers(); renderChatContacts();
       btn.textContent = 'Salvo ✓'; setTimeout(()=>btn.textContent='Salvar', 1400);
     };
@@ -1303,6 +1330,7 @@ function renderAdminEquipes(body){
       e.membros = tr.querySelector('[data-field="membros"]').value.split(',').map(s=>s.trim()).filter(Boolean);
       e.status = tr.querySelector('[data-field="status"]').value;
       saveAdminState();
+      auditPush('Administração', 'Editou equipe', `${e.nome} (${e.zona})`);
       btn.textContent = 'Salvo ✓'; setTimeout(()=>renderAdminEquipes(body), 900);
     };
   });
@@ -1310,7 +1338,7 @@ function renderAdminEquipes(body){
     btn.onclick = ()=>{
       const tr = btn.closest('tr');
       const idx = equipesPrefeitura.findIndex(x=>x.id===tr.dataset.id);
-      if(idx>-1) equipesPrefeitura.splice(idx,1);
+      if(idx>-1){ auditPush('Administração', 'Removeu equipe', equipesPrefeitura[idx].nome); equipesPrefeitura.splice(idx,1); }
       saveAdminState();
       renderAdminEquipes(body);
     };
@@ -1328,6 +1356,7 @@ function renderAdminEquipes(body){
     });
     equipesPrefeitura.push({ id:"eq"+(equipePrefIdCursor++), nome, zona, recursos: recursos.length?recursos:[{tipo:'Mão de obra',qtd:1,emUso:0}], membros: membros.length?membros:['A definir'], status:'disponível' });
     saveAdminState();
+    auditPush('Administração', 'Criou equipe', `${nome} (${zona})`);
     renderAdminEquipes(body);
   };
 }
@@ -1353,6 +1382,7 @@ function renderAdminColab(body){
       const tr = btn.closest('tr');
       const idx = voluntarios.findIndex(x=>x.id===tr.dataset.id);
       if(idx>-1){
+        auditPush('Administração', 'Removeu cadastro de colaborador', voluntarios[idx].nome);
         volLayer.removeLayer(voluntarios[idx].marker);
         voluntarios.splice(idx,1);
       }
@@ -1459,6 +1489,7 @@ function gerarAlerta(){
     emitidoEm: Date.now(), janelaHoras: Math.floor(rnd(3,18)),
   };
   alertasClimaticos.unshift(alerta);
+  auditPush(alerta.fonte, 'Emitiu alerta meteorológico', `${alerta.tipo} (${NIVEL_LABEL[alerta.nivel]}) em ${zonasAfetadas.join(', ')}`);
   dispararPreAtivacao(alerta);
   return alerta;
 }
@@ -1682,6 +1713,70 @@ function sendChatMsg(id){
     chatHistorico[id].push({ de:'eles', texto: pick(respostasAuto), ts:Date.now() });
     renderChatMessages(id);
   }, 1400 + Math.random()*1600);
+}
+
+/* ---------- log de auditoria imutavel (cadeia de hash) ---------- */
+const AUDIT_KEY = "maringa_audit_v1";
+let auditLog = [];
+try{ auditLog = JSON.parse(localStorage.getItem(AUDIT_KEY) || "[]"); }catch(e){ auditLog = []; }
+
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function auditPush(ator, acao, detalhe){
+  const prev = auditLog.length ? auditLog[auditLog.length-1].hash : '0';
+  const ts = Date.now();
+  const payload = JSON.stringify({ts, ator, acao, detalhe, prev});
+  const hash = await sha256(payload);
+  auditLog.push({ts, ator, acao, detalhe, prev, hash});
+  try{ localStorage.setItem(AUDIT_KEY, JSON.stringify(auditLog)); }catch(e){}
+  renderAuditIfOpen();
+}
+async function verificarIntegridadeAudit(){
+  for(let i=0;i<auditLog.length;i++){
+    const e = auditLog[i];
+    const prevEsperado = i===0 ? '0' : auditLog[i-1].hash;
+    const payload = JSON.stringify({ts:e.ts, ator:e.ator, acao:e.acao, detalhe:e.detalhe, prev:prevEsperado});
+    const recalculado = await sha256(payload);
+    if(recalculado !== e.hash || e.prev !== prevEsperado) return {ok:false, indice:i};
+  }
+  return {ok:true};
+}
+
+const auditOverlay = document.getElementById('audit-overlay');
+document.getElementById('open-audit').onclick = ()=>{ auditOverlay.hidden=false; renderAudit(); };
+document.getElementById('audit-close').onclick = ()=>{ auditOverlay.hidden=true; };
+auditOverlay.addEventListener('click', e=>{ if(e.target===auditOverlay) auditOverlay.hidden=true; });
+function renderAuditIfOpen(){ if(!auditOverlay.hidden) renderAudit(); }
+
+function renderAudit(){
+  const body = document.getElementById('audit-body');
+  body.innerHTML = `
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Cada ação fica registrada com o hash da entrada anterior, formando uma cadeia. Editar ou apagar uma entrada no meio quebra a cadeia a partir dali — é isso que "Verificar integridade" detecta.</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="admin-btn primary" id="audit-verify">🔒 Verificar integridade</button>
+      <button class="admin-btn danger" id="audit-tamper">⚠ Simular adulteração (demo)</button>
+    </div>
+    <div id="audit-result" style="margin-bottom:12px;font-size:12px"></div>
+    <table class="admin-table"><thead><tr><th>Quando</th><th>Ator</th><th>Ação</th><th>Detalhe</th><th>Hash</th></tr></thead><tbody>
+      ${auditLog.slice().reverse().map(e=>`
+        <tr><td style="white-space:nowrap">${new Date(e.ts).toLocaleTimeString('pt-BR')}</td><td>${escHtml(e.ator)}</td><td>${escHtml(e.acao)}</td><td>${escHtml(e.detalhe)}</td><td style="font-family:var(--mono);font-size:9.5px;color:var(--muted)">${e.hash.slice(0,10)}…</td></tr>
+      `).join('') || '<tr><td colspan="5" style="color:var(--muted)">Nenhuma ação registrada ainda.</td></tr>'}
+    </tbody></table>
+  `;
+  document.getElementById('audit-verify').onclick = async ()=>{
+    const r = await verificarIntegridadeAudit();
+    document.getElementById('audit-result').innerHTML = r.ok
+      ? `<span style="color:var(--green)">✓ Cadeia íntegra: ${auditLog.length} entradas, nenhuma adulteração detectada.</span>`
+      : `<span style="color:var(--red)">✗ Adulteração detectada na entrada #${r.indice+1} — o hash não corresponde ao conteúdo.</span>`;
+  };
+  document.getElementById('audit-tamper').onclick = ()=>{
+    if(!auditLog.length){ document.getElementById('audit-result').textContent = 'Não há entradas para adulterar ainda.'; return; }
+    auditLog[0].detalhe = auditLog[0].detalhe + ' (editado depois, sem recalcular o hash)';
+    try{ localStorage.setItem(AUDIT_KEY, JSON.stringify(auditLog)); }catch(e){}
+    renderAudit();
+  };
 }
 
 document.getElementById('heat-toggle').onclick = (e)=>{
