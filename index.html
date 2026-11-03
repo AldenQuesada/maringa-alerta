@@ -80,6 +80,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .status-back:hover{color:var(--accent)}
 #alert-banner{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:1300;font-family:var(--mono);font-size:11.5px;padding:9px 18px;border-radius:20px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .4s ease;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
 #alert-banner.show{opacity:1}
+#offline-banner{position:absolute;left:0;right:0;bottom:0;z-index:1400;background:#2a1a0a;color:#ff8a3b;border-top:1px solid #ff8a3b;font-family:var(--mono);font-size:11.5px;padding:9px 16px;text-align:center}
 
 /* ---------- modal generico (administracao) ---------- */
 .modal-overlay{position:fixed;inset:0;background:rgba(5,7,10,.72);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -305,6 +306,20 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .official-pulse .ring{width:18px;height:18px;border:2px solid var(--oc);border-radius:50%;position:absolute;left:0;top:0;animation:ocpulse 2.2s infinite}
 .o-ping{font-family:var(--mono);font-size:9px;color:var(--green);margin-top:1px;white-space:nowrap}
 
+.rel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.rel-tile{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center}
+.rel-tile b{display:block;font-size:20px;font-family:var(--mono)}
+.rel-tile span{font-size:10px;color:var(--muted);text-transform:uppercase}
+.rel-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px}
+.rel-table th{text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--line)}
+.rel-table td{padding:6px 8px;border-bottom:1px solid var(--line)}
+@media print{
+  body > *:not(#relatorio-overlay){display:none!important}
+  #relatorio-overlay{position:static!important;background:#fff!important;padding:0!important}
+  #relatorio-overlay .modal{max-width:none!important;max-height:none!important;box-shadow:none!important;border:none!important;background:#fff!important;color:#000!important}
+  #relatorio-overlay .modal-head button{display:none!important}
+  #relatorio-overlay .rel-tile,#relatorio-overlay table{background:#fff!important;color:#000!important;border-color:#999!important}
+}
 @media (max-width:860px){
   .sidebar{position:absolute;left:0;top:0;bottom:0;transform:translateX(-100%);transition:transform .2s;box-shadow:0 0 30px rgba(0,0,0,.5)}
   .sidebar.open{transform:translateX(0)}
@@ -324,6 +339,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
       <div class="brand"><span class="dot"></span>MARINGÁ ALERTA</div>
       <div class="sub">Zonas de cobertura · clique para isolar</div>
       <div class="sidebar-actions">
+        <button id="open-relatorio-evento" class="sidebar-btn">📊 Relatório do evento</button>
         <button id="open-fila" class="sidebar-btn">📋 Fila de prioridade</button>
         <button id="open-audit" class="sidebar-btn">🔒 Log de auditoria</button>
         <button id="open-alertas" class="sidebar-btn alerta-btn">🌦 Alertas &amp; Prontidão</button>
@@ -379,6 +395,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         <button class="register-fab" id="fab-cadastro">📲 Simular cadastro via WhatsApp</button>
         <div class="reco-banner" id="reco-banner"></div>
         <div id="alert-banner"></div>
+        <div id="offline-banner" hidden>📡 Sem conexão — o que você enviar fica guardado neste aparelho e sai sozinho quando a internet voltar</div>
       </div>
 
       <div class="panel" id="panel">
@@ -447,6 +464,19 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
       <button class="close-btn" id="audit-close">✕</button>
     </div>
     <div class="modal-body" id="audit-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="relatorio-overlay" hidden>
+  <div class="modal" id="relatorio-modal" style="max-width:720px">
+    <div class="modal-head">
+      <h2>📊 Relatório analítico do evento</h2>
+      <div style="display:flex;gap:8px">
+        <button class="admin-btn primary" id="relatorio-print">🖨 Imprimir / salvar PDF</button>
+        <button class="close-btn" id="relatorio-close">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="relatorio-body"></div>
   </div>
 </div>
 
@@ -1781,8 +1811,14 @@ function sendChatMsg(id){
   const input = document.getElementById('chat-input');
   const texto = input.value.trim();
   if(!texto) return;
-  chatHistorico[id].push({ de:'eu', texto, ts:Date.now() });
   input.value = '';
+  if(!navigator.onLine){
+    enfileirarOffline('chat', { contatoId:id, texto });
+    chatHistorico[id].push({ de:'eu', texto: texto+' ⏳ (sem conexão, será enviado ao reconectar)', ts:Date.now() });
+    renderChatMessages(id);
+    return;
+  }
+  chatHistorico[id].push({ de:'eu', texto, ts:Date.now() });
   renderChatMessages(id);
   setTimeout(()=>{
     chatHistorico[id].push({ de:'eles', texto: pick(respostasAuto), ts:Date.now() });
@@ -1904,6 +1940,88 @@ function applyRoute(){
 }
 window.addEventListener('hashchange', applyRoute);
 applyRoute();
+
+/* ---------- relatorio pos-evento analitico ---------- */
+const relatorioOverlay = document.getElementById('relatorio-overlay');
+document.getElementById('open-relatorio-evento').onclick = ()=>{ relatorioOverlay.hidden=false; renderRelatorioEvento(); };
+document.getElementById('relatorio-close').onclick = ()=>{ relatorioOverlay.hidden=true; };
+document.getElementById('relatorio-print').onclick = ()=>{ window.print(); };
+relatorioOverlay.addEventListener('click', e=>{ if(e.target===relatorioOverlay) relatorioOverlay.hidden=true; });
+
+function renderRelatorioEvento(){
+  const body = document.getElementById('relatorio-body');
+  const resolvidas = ocorrencias.filter(o=>o.status==='resolvida');
+  const ativas = ocorrencias.filter(o=>o.status==='ativa'||o.status==='em_atendimento');
+  const tempoMedioGeral = resolvidas.length ? Math.round(resolvidas.reduce((s,o)=>s+o.tempoReal,0)/resolvidas.length) : 0;
+
+  const porZona = bairros.map(b=>{
+    const ocz = ocorrencias.filter(o=>o.bairro===b.nome);
+    const resz = ocz.filter(o=>o.status==='resolvida');
+    const tempo = resz.length ? Math.round(resz.reduce((s,o)=>s+o.tempoReal,0)/resz.length) : null;
+    return { zona:b.nome, total:ocz.length, resolvidas:resz.length, ativas:ocz.length-resz.length, tempo };
+  });
+
+  const rankingColab = {};
+  resolvidas.forEach(o=> o.voluntariosProx.forEach(id=>{ rankingColab[id] = (rankingColab[id]||0)+1; }));
+  const topColab = Object.entries(rankingColab).sort((a,c)=>c[1]-a[1]).slice(0,5).map(([id,n])=>({nome:pessoaNome(id), n}));
+
+  let totalProntos=0, totalConf=0;
+  Object.values(prontidao).forEach(mapa=>{
+    Object.values(mapa).forEach(st=>{ totalProntos++; if(st.status==='confirmado') totalConf++; });
+  });
+  const pctProntidao = totalProntos ? Math.round(totalConf/totalProntos*100) : null;
+
+  body.innerHTML = `
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Gerado em ${new Date().toLocaleString('pt-BR')} · Ciclone extratropical, 03/11/2026. Este é o relatório analítico do evento (consolidado), diferente do relatório individual de cada ocorrência.</div>
+    <div class="rel-grid">
+      <div class="rel-tile"><b>${ocorrencias.length}</b><span>Ocorrências totais</span></div>
+      <div class="rel-tile"><b>${resolvidas.length}</b><span>Resolvidas</span></div>
+      <div class="rel-tile"><b>${ativas.length}</b><span>Ainda abertas</span></div>
+      <div class="rel-tile"><b>${tempoMedioGeral||'—'}min</b><span>Tempo médio de resposta</span></div>
+      <div class="rel-tile"><b>${voluntarios.length}</b><span>Colaboradores cadastrados</span></div>
+      <div class="rel-tile"><b>${pctProntidao!==null?pctProntidao+'%':'—'}</b><span>Prontidão confirmada pré-evento</span></div>
+    </div>
+    <h3 style="font-size:13px;margin-bottom:8px">Desempenho por zona</h3>
+    <table class="rel-table"><thead><tr><th>Zona</th><th>Total</th><th>Resolvidas</th><th>Ainda abertas</th><th>Tempo médio</th></tr></thead><tbody>
+      ${porZona.map(z=>`<tr><td>${escHtml(z.zona)}</td><td>${z.total}</td><td>${z.resolvidas}</td><td>${z.ativas}</td><td>${z.tempo!==null?z.tempo+'min':'—'}</td></tr>`).join('')}
+    </tbody></table>
+    <h3 style="font-size:13px;margin-bottom:8px">Colaboradores que mais ajudaram</h3>
+    <table class="rel-table"><thead><tr><th>Nome</th><th>Vezes mobilizado</th></tr></thead><tbody>
+      ${topColab.map(c=>`<tr><td>${escHtml(c.nome)}</td><td>${c.n}</td></tr>`).join('') || '<tr><td colspan="2" style="color:var(--muted)">Ainda sem ocorrências resolvidas com voluntários mobilizados.</td></tr>'}
+    </tbody></table>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px">Este ranking é insumo para o reconhecimento oficial da Prefeitura aos colaboradores (ato público ou outra forma de reconhecimento).</div>
+  `;
+}
+
+/* ---------- modo offline: cache do shell + fila de mensagens ---------- */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{ /* alguns navegadores/visualizacoes bloqueiam; segue sem offline */ });
+}
+const OFFLINE_QUEUE_KEY = 'maringa_fila_offline_v1';
+let filaOffline = [];
+try{ filaOffline = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]'); }catch(e){ filaOffline = []; }
+
+function atualizarBannerOffline(){
+  document.getElementById('offline-banner').hidden = navigator.onLine;
+}
+function enfileirarOffline(tipo, dados){
+  filaOffline.push({ tipo, dados, ts: Date.now() });
+  try{ localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(filaOffline)); }catch(e){}
+}
+function processarFilaOffline(){
+  if(!filaOffline.length) return;
+  filaOffline.forEach(item=>{
+    if(item.tipo==='chat' && chatHistorico[item.dados.contatoId]){
+      chatHistorico[item.dados.contatoId].push({ de:'eu', texto:item.dados.texto+' (enviado ao reconectar)', ts:item.ts });
+    }
+  });
+  filaOffline = [];
+  try{ localStorage.removeItem(OFFLINE_QUEUE_KEY); }catch(e){}
+  renderChatContacts();
+}
+window.addEventListener('offline', atualizarBannerOffline);
+window.addEventListener('online', ()=>{ atualizarBannerOffline(); processarFilaOffline(); });
+atualizarBannerOffline();
 
 /* ---------- controle de acesso por papel (simulado, nao e seguranca real) ---------- */
 let currentRole = null;
