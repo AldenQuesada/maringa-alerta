@@ -40,55 +40,44 @@ Tudo vive em `index.html`:
 
 Antes de editar qualquer função, use Ctrl+F / grep para achar todos os lugares onde ela é chamada. O arquivo é longo (quase 800 linhas) mas é um único arquivo; não fragmente em múltiplos arquivos sem necessidade real, a menos que vá crescer muito mais.
 
-## 4. Funcionalidades aprovadas para implementar agora
+## 4. Funcionalidades já implementadas (não refazer, só evoluir)
 
-### 4.1 Confirmação de presença na área + contador de tempo até resolução
+Os três itens abaixo foram implementados nesta sessão, direto no protótipo, e já estão no `index.html` publicado. A descrição detalhada de cada um continua nas subseções 4.1 a 4.3 porque explica o raciocínio e os nomes de campo usados; não é mais um pedido pendente, é a documentação do que existe.
 
-Hoje, uma ocorrência tem `reportadoEm` (quando foi reportada) e, ao resolver, calcula `tempoReal` como minutos desde `reportadoEm`. Isso mistura dois tempos diferentes: tempo até a equipe chegar, e tempo até resolver depois de chegar. Precisamos separar os dois.
+### 4.1 Confirmação de presença na área + contador de tempo até resolução (implementado)
 
-Adicionar ao objeto de ocorrência:
-- `confirmadoEm`: timestamp (ou `null` se ainda não confirmado). Marca o momento em que o responsável (ou substituto/coordenador) confirma presença física no local.
-- Um novo status intermediário: `"ativa"` (aguardando confirmação de presença) → `"em_atendimento"` (presença confirmada, equipe no local) → `"resolvida"`.
+Cada ocorrência agora tem três timestamps: `reportadoEm`, `confirmadoEm` (null até a presença ser confirmada) e `resolvidoEm` (null até resolver). O `status` evoluiu de um booleano implícito para três estados: `"ativa"` (aguardando equipe) → `"em_atendimento"` (presença confirmada, equipe no local) → `"resolvida"`.
 
-Mudanças de UI no painel de ocorrência (`openOcorrencia`):
-- Enquanto `status === "ativa"`: mostrar botão "Confirmar presença na área" além do botão de resolver (ou no lugar dele até a presença ser confirmada; decisão de fluxo: resolver só deve ficar disponível depois da presença confirmada, para refletir a realidade operacional).
-- Ao clicar em "Confirmar presença": setar `confirmadoEm = Date.now()`, mudar `status` para `"em_atendimento"`, atualizar o badge (nova cor, por exemplo amarelo/laranja para "EM ATENDIMENTO"), e a partir daí mostrar dois contadores separados e ao vivo (atualizando a cada poucos segundos, não só ao abrir o painel):
-  - "Tempo até a equipe chegar": `confirmadoEm - reportadoEm`, fixo depois de confirmado.
-  - "Tempo em atendimento": `agora - confirmadoEm`, correndo em tempo real enquanto `status === "em_atendimento"`.
-- Ao clicar em "Marcar como resolvida" (só disponível depois da presença confirmada): setar `resolvidoEm = Date.now()`, `status = "resolvida"`, e guardar os dois tempos finais: `tempoChegada = confirmadoEm - reportadoEm` (em minutos) e `tempoAtendimento = resolvidoEm - confirmadoEm` (em minutos). O `tempoReal` que já existe pode ser a soma dos dois, ou ser substituído por esses dois campos; ajustar os lugares que leem `tempoReal` (cálculo do tempo médio nos KPIs, texto final do card).
-- No marcador do mapa (`ocIcon()`), diferenciar visualmente ocorrência "ativa" (vermelho pulsante, como já é) de "em atendimento" (sugiro laranja/âmbar pulsante, pulso mais lento, para comunicar "equipe já está lá, aguardando resolução").
-- No tooltip de hover da ocorrência, incluir a nova informação de status e, se já confirmada, há quanto tempo a equipe está no local.
+No painel de ocorrência (`openOcorrencia`, por volta da linha 700 do `index.html`):
+- Em `"ativa"`: mostra só o botão "Confirmar presença na área" (`#presence-btn`). Não há botão de resolver ainda; isso é deliberado, para refletir que a equipe precisa chegar antes de poder encerrar.
+- Ao confirmar presença: seta `confirmadoEm = Date.now()`, muda `status` para `"em_atendimento"`, atualiza o ícone do marcador no mapa (cor âmbar, `STATUS_COLOR.em_atendimento`) e re-renderiza o painel.
+- Em `"em_atendimento"`: mostra dois campos, "Tempo até chegada" (fixo, calculado como `confirmadoEm - reportadoEm`) e "Em atendimento há" (`#live-atendimento`, atualizado a cada 5 segundos por um `setInterval` global que verifica `currentPanelOcId`), além do botão "Marcar como resolvida" (`#resolve-btn`).
+- Ao resolver: seta `resolvidoEm`, `tempoChegada`, `tempoAtendimento` e `tempoReal` (soma dos dois), libera os voluntários mobilizados, remove o marcador do mapa, dispara o banner de reconhecimento e atualiza KPIs, lista de zonas, colaboradores e heatmap.
+- O ícone do marcador (`ocIcon(status)`) e o tooltip (`refreshOcTooltip(o)`) mudam de cor e texto conforme o status, usando a variável CSS `--oc` no elemento `.oc-pulse`.
 
-Critério de aceite: abrir uma ocorrência ativa, confirmar presença, ver o relógio de atendimento correndo, esperar alguns segundos, resolver, e ver no histórico os dois tempos (chegada e atendimento) salvos corretamente, sem quebrar o cálculo de tempo médio dos KPIs por zona.
+Isso já está feito. Se for evoluir: considerar permitir que mais de uma pessoa da equipe (substituto, coordenador) confirme presença separadamente, em vez de um único campo `confirmadoEm` para a ocorrência toda; hoje o modelo assume que a confirmação é da ocorrência, não de uma pessoa específica.
 
-### 4.2 Mapa de gravidade de ocorrências (quantidade e gravidade)
+### 4.2 Mapa de gravidade de ocorrências (implementado)
 
-Hoje todas as ocorrências têm o mesmo peso visual. Precisamos de uma camada de gravidade, combinando dois fatores: quantidade de ocorrências por área e gravidade de cada uma.
+Cada tipo em `tiposOcorrencia` tem um `gravBase` (1 a 3) e uma lista `resp` de responsabilidades possíveis (ver 4.3). Ao gerar uma ocorrência, `sortGravidade(gravBase)` sorteia a gravidade final com 15% de chance de cair um nível e 15% de subir um nível, para não ficar sempre igual ao tipo.
 
-Passo 1, classificar gravidade por tipo de ocorrência. Adicionar um campo `gravidade` (1 a 3, ou "baixa"/"média"/"alta") a cada tipo em `tiposOcorrencia`. Sugestão de classificação, mas revisar com a Alden antes de fechar: "Família ilhada" e "Rede elétrica exposta" são altas; "Telhado destruído", "Deslizamento de barranco" e "Poste de energia caído" são médias; "Árvore caída sobre via" e "Alagamento residencial" variam (podem ser médias ou altas dependendo do caso, então considerar sortear a gravidade dentro de uma faixa para esses tipos, em vez de fixar).
+A camada de calor usa a biblioteca `leaflet.heat` (carregada via cdnjs, `leaflet-heat.js` versão 0.2.0, depois do script principal do Leaflet). A função `rebuildHeat()` reconstrói os pontos do heatmap a partir de todas as ocorrências `"ativa"` ou `"em_atendimento"` dentro do escopo atual (zona selecionada ou todas), com peso `gravidade/3`. É chamada sempre que uma ocorrência é criada, resolvida, ou a zona selecionada muda.
 
-Passo 2, adicionar uma camada de heatmap. Usar a biblioteca `Leaflet.heat` (pacote `leaflet.heat`, disponível no cdnjs, versão fixa, carregada como script adicional depois do Leaflet principal). Cada ocorrência ativa entra no heatmap com uma intensidade proporcional à gravidade (por exemplo: baixa = 0.4, média = 0.7, alta = 1.0). O heatmap deve recalcular sempre que uma ocorrência é criada ou resolvida (ocorrência resolvida sai do heatmap, assim como já sai do mapa de pontos).
+O heatmap começa desligado por padrão (variável `heatOn`). Há um botão na legenda (`#heat-toggle`, texto "🔥 Mapa de gravidade: desligado/ligado") que adiciona ou remove `heatLayer` do mapa.
 
-Passo 3, adicionar um toggle na UI (um botão ou chip, por exemplo no canto da legenda ou ao lado dos filtros) para ligar/desligar a camada de calor, para não competir visualmente com os pontos individuais por padrão. Sugestão: começar com o heatmap desligado por padrão, e os pontos vermelhos/âmbar continuam sendo a visão principal; o heatmap é uma lente adicional para visão geral de "onde está mais grave agora".
+O resumo por gravidade (alta/média/baixa) e por responsabilidade (pública/privada/mista) das ocorrências abertas no escopo atual aparece no rodapé da sidebar esquerda (`#sidebar-footer`, função `renderResumo`), atualizado junto com `updateKpis()`.
 
-Passo 4, no card de cada zona na sidebar e no resumo de zona no painel lateral, mostrar um indicador agregado de gravidade da zona (por exemplo: soma ponderada das gravidades das ocorrências ativas daquela zona, exibida como rótulo "Gravidade: baixa/média/alta" com uma cor correspondente, não apenas a contagem numérica que já existe).
+Isso já está feito. Se for evoluir: a sugestão de heatmap por janela de horário (ver item 3 do backlog, seção 5) ainda não foi implementada.
 
-Critério de aceite: gerar várias ocorrências de tipos diferentes, ligar o heatmap e ver áreas com ocorrências de alta gravidade mais "quentes" visualmente que áreas com só ocorrências de baixa gravidade, mesmo que a segunda tenha mais pontos. Resolver uma ocorrência deve fazer o heatmap atualizar na hora.
+### 4.3 Classificação de responsabilidade: pública, privada, mista (implementado)
 
-### 4.3 Classificação de responsabilidade: pública, privada, mista
+Cada tipo em `tiposOcorrencia` tem uma lista `resp` com os valores possíveis, repetidos para pesar a distribuição (por exemplo `["publica","publica","mista"]` faz "pública" sair duas vezes mais que "mista" nesse tipo). Ao gerar a ocorrência, `pick(t.resp)` sorteia o valor final e grava em `o.responsabilidade`.
 
-Cada ocorrência (ou cada zona, decidir qual nível faz mais sentido operacionalmente, provavelmente ocorrência é o nível certo porque a responsabilidade pode variar mesmo dentro da mesma zona) precisa de um campo `responsabilidade` com um destes três valores:
-- `"publica"`: a solução é 100% responsabilidade da prefeitura (por exemplo, poste de energia caído em via pública, árvore caída em rua).
-- `"privada"`: a solução é responsabilidade do proprietário/morador (por exemplo, telhado destruído de uma casa particular, sem risco à via pública).
-- `"mista"`: envolve tanto a prefeitura quanto o particular (por exemplo, árvore de propriedade privada que caiu sobre a rua, exigindo remoção da prefeitura mas reparo do terreno pelo proprietário).
+As cores e rótulos vêm de `RESP_LABEL` e `RESP_COLOR` (pública = azul, privada = roxo, mista = verde; não usar essas cores para outra coisa no resto da UI, para não confundir com gravidade ou status). O badge aparece no painel de detalhe da ocorrência, lado a lado com o badge de gravidade, via a função `badgeChip(label, color)`. O tooltip do marcador também mostra a responsabilidade.
 
-Implementação:
-- Adicionar `responsabilidade` ao objeto de cada tipo em `tiposOcorrencia`, com um valor padrão sugerido por tipo (mas isso pode variar caso a caso, então ao gerar uma ocorrência, sortear com uma distribuição plausível em vez de fixar sempre o mesmo valor por tipo; por exemplo, "Árvore caída sobre via" é majoritariamente pública mas pode ser mista).
-- Mostrar a classificação no painel de detalhe da ocorrência, como um badge adicional ao lado do badge de status (ativa/em atendimento/resolvida), com cores distintas (sugestão: azul para pública, roxo para privada, um gradiente ou padrão listado azul/roxo para mista; escolher cores que não colidam com as já usadas para status e gravidade).
-- Adicionar um filtro por responsabilidade na sidebar ou na barra de filtros (pode ser um conjunto de chips como "Pública", "Privada", "Mista", combináveis com a seleção de zona), para a prefeitura conseguir ver rapidamente "o que é problema nosso agora" versus "o que é problema do morador mas estamos ajudando".
-- Nos KPIs (tanto gerais quanto por zona), adicionar uma contagem por responsabilidade (quantas ativas são públicas, privadas, mistas), já que isso afeta diretamente o planejamento de recursos da prefeitura.
+A contagem por responsabilidade das ocorrências abertas (no escopo atual) está no resumo da sidebar, junto com a gravidade (ver 4.2).
 
-Critério de aceite: cada ocorrência nova nasce com uma classificação de responsabilidade visível no painel e no tooltip; filtrar por "pública" esconde ocorrências privadas e mistas do mapa e da lista; os KPIs por zona mostram a quebra por responsabilidade.
+Isso já está feito. Ainda não implementado: filtro clicável por responsabilidade (chips do tipo "mostrar só públicas") — listado como melhoria futura, não foi pedido explicitamente ainda.
 
 ## 5. Backlog aprovado (ordem sugerida, mas a Alden decide prioridade final)
 
