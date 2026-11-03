@@ -32,6 +32,24 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .sidebar-actions{display:flex;flex-direction:column;gap:6px;margin-top:10px}
 .sidebar-btn{font-family:var(--mono);font-size:11px;background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;cursor:pointer;text-align:left}
 .sidebar-btn:hover{border-color:var(--accent);color:var(--accent)}
+.alerta-btn{border-color:rgba(255,138,59,.4);color:#ff8a3b}
+.alerta-btn:hover{border-color:#ff8a3b;color:#ff8a3b}
+.alert-card{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px;background:var(--panel-2)}
+.alert-nivel{display:inline-block;font-family:var(--mono);font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.03em}
+.alert-meta{font-size:10.5px;color:var(--muted);margin-top:4px}
+.alert-zonas{font-size:11px;margin-top:6px}
+.alert-zonas span{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin-right:4px;font-family:var(--mono);font-size:10px}
+.prontidao-zone{margin-bottom:16px}
+.prontidao-zone h4{margin:0 0 8px;font-size:13px}
+.prontidao-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:6px;background:var(--bg)}
+.prontidao-bar div{height:100%}
+.prontidao-legend{display:flex;gap:14px;font-size:10.5px;color:var(--muted);margin-bottom:10px}
+.prontidao-legend span{display:inline-flex;align-items:center;gap:4px}
+.prontidao-legend i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.prontidao-people{display:flex;flex-wrap:wrap;gap:6px}
+.pp-chip{font-size:10.5px;font-family:var(--mono);padding:3px 8px;border-radius:12px;border:1px solid var(--line)}
+#alert-banner{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:1300;font-family:var(--mono);font-size:11.5px;padding:9px 18px;border-radius:20px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .4s ease;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+#alert-banner.show{opacity:1}
 
 /* ---------- modal generico (administracao) ---------- */
 .modal-overlay{position:fixed;inset:0;background:rgba(5,7,10,.72);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -276,6 +294,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
       <div class="brand"><span class="dot"></span>MARINGÁ ALERTA</div>
       <div class="sub">Zonas de cobertura · clique para isolar</div>
       <div class="sidebar-actions">
+        <button id="open-alertas" class="sidebar-btn alerta-btn">🌦 Alertas &amp; Prontidão</button>
         <button id="open-admin" class="sidebar-btn">⚙ Administração</button>
         <button id="open-chat" class="sidebar-btn">💬 Chat interno</button>
       </div>
@@ -325,6 +344,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 
         <button class="register-fab" id="fab-cadastro">📲 Simular cadastro via WhatsApp</button>
         <div class="reco-banner" id="reco-banner"></div>
+        <div id="alert-banner"></div>
       </div>
 
       <div class="panel" id="panel">
@@ -350,6 +370,20 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
       <button class="mtab" data-tab="colab">Colaboradores</button>
     </div>
     <div class="modal-body" id="admin-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="alertas-overlay" hidden>
+  <div class="modal" id="alertas-modal">
+    <div class="modal-head">
+      <h2>🌦 Alertas meteorológicos &amp; prontidão da equipe</h2>
+      <button class="close-btn" id="alertas-close">✕</button>
+    </div>
+    <div class="modal-tabs" id="alertas-tabs">
+      <button class="mtab active" data-tab="alertas">Alertas ativos</button>
+      <button class="mtab" data-tab="prontidao">Prontidão por zona</button>
+    </div>
+    <div class="modal-body" id="alertas-body"></div>
   </div>
 </div>
 
@@ -652,6 +686,7 @@ function renderZoneList(){
   todosItem.onclick = ()=>selectZone(null);
   zoneListEl.appendChild(todosItem);
 
+  const zonasAlerta = zonasComAlertaAtivo();
   bairros.forEach(b=>{
     const ativas = ocorrencias.filter(o=>o.bairro===b.nome && o.status==='ativa').length;
     const item = document.createElement('div');
@@ -659,7 +694,7 @@ function renderZoneList(){
     item.innerHTML = `
       <span class="zi-dot"></span>
       <span class="zi-text">
-        <span class="zi-name">${escHtml(b.nome)}</span>
+        <span class="zi-name">${zonasAlerta.has(b.nome)?'🌦 ':''}${escHtml(b.nome)}</span>
         <span class="zi-count">${b.equipe.responsavel.nome.split(' ')[0]} · resp.</span>
       </span>
       ${ativas>0 ? `<span class="zi-badge">${ativas}</span>` : ''}
@@ -1287,6 +1322,187 @@ function renderAdminColab(body){
       renderAdminColab(body);
     };
   });
+}
+
+/* ---------- alertas meteorologicos e pre-ativacao ("o cerebro") ----------
+   Fonte real para integrar depois: nao existe endpoint publico direto e documentado
+   do INMET para avisos ativos. Caminhos reais: (1) Google Weather API / Public Alerts,
+   que agrega INMET + CENAD mas exige chave propria do Google; (2) acordo institucional
+   com SIMEPAR (meteorologia do Parana) ou CEMADEN (risco geo-hidrologico), tipicamente
+   via convenio com a prefeitura, nao API publica aberta. Aqui fica simulado. */
+const alertaTipos = [
+  {tipo:"Chuva intensa", nivel:"laranja"},
+  {tipo:"Vendaval / rajadas de vento", nivel:"laranja"},
+  {tipo:"Risco de alagamento", nivel:"amarelo"},
+  {tipo:"Queda de granizo", nivel:"amarelo"},
+  {tipo:"Ciclone extratropical", nivel:"vermelho"},
+];
+const NIVEL_COLOR = {amarelo:"#f2c230", laranja:"#ff8a3b", vermelho:"#ff3b3b"};
+const NIVEL_LABEL = {amarelo:"Atenção", laranja:"Perigo", vermelho:"Grande perigo"};
+const fontesAlerta = ["INMET","SIMEPAR","Defesa Civil PR"];
+
+let alertaIdCursor = 1;
+const alertasClimaticos = [];
+const prontidao = {}; // alertaId -> { pessoaId: {status:'pendente'|'confirmado'|'indisponivel', respondidoEm} }
+
+function pessoaNome(id){
+  const f = todosFuncionarios().find(p=>p.id===id); if(f) return f.nome;
+  const v = voluntarios.find(x=>x.id===id); if(v) return v.nome;
+  return id;
+}
+
+function gerarAlerta(){
+  const t = pick(alertaTipos);
+  const nZonas = Math.floor(rnd(1,4));
+  const zonasAfetadas = [...bairros].sort(()=>Math.random()-0.5).slice(0,nZonas).map(b=>b.nome);
+  const alerta = {
+    id:"al"+(alertaIdCursor++), fonte: pick(fontesAlerta),
+    nivel: t.nivel, tipo: t.tipo, zonasAfetadas,
+    emitidoEm: Date.now(), janelaHoras: Math.floor(rnd(3,18)),
+  };
+  alertasClimaticos.unshift(alerta);
+  dispararPreAtivacao(alerta);
+  return alerta;
+}
+
+function dispararPreAtivacao(alerta){
+  prontidao[alerta.id] = {};
+  const pessoas = [
+    ...todosFuncionarios().filter(p=> alerta.zonasAfetadas.includes(p.zona)),
+    ...voluntarios.filter(v=> alerta.zonasAfetadas.includes(v.bairro)),
+  ];
+  pessoas.forEach(p=>{
+    prontidao[alerta.id][p.id] = { status:'pendente', respondidoEm:null };
+    if(!chatHistorico[p.id]) chatHistorico[p.id] = [];
+    chatHistorico[p.id].push({
+      de:'eu',
+      texto:`[Alerta ${NIVEL_LABEL[alerta.nivel]} · ${alerta.fonte}] ${alerta.tipo} previsto para sua zona nas próximas ${alerta.janelaHoras}h. Você está disponível para ajudar se a situação piorar?`,
+      ts: Date.now(),
+    });
+    setTimeout(()=>{
+      const r = Math.random();
+      const status = r<0.55 ? 'confirmado' : r<0.82 ? 'indisponivel' : 'pendente';
+      prontidao[alerta.id][p.id] = { status, respondidoEm: status==='pendente'?null:Date.now() };
+      if(status!=='pendente'){
+        chatHistorico[p.id].push({ de:'eles', texto: status==='confirmado' ? 'Confirmado, estou disponível se precisar.' : 'Não vou conseguir dessa vez, desculpa.', ts: Date.now() });
+      }
+      renderProntidaoIfOpen();
+      renderChatContacts();
+    }, 3000 + Math.random()*9000);
+  });
+  renderAlertasIfOpen();
+  renderProntidaoIfOpen();
+  showAlertBanner(alerta);
+  marcarZonasEmAlerta();
+}
+
+function showAlertBanner(alerta){
+  const b = document.getElementById('alert-banner');
+  b.style.background = NIVEL_COLOR[alerta.nivel]+'22';
+  b.style.border = '1px solid '+NIVEL_COLOR[alerta.nivel];
+  b.style.color = NIVEL_COLOR[alerta.nivel];
+  b.textContent = `🌦 Alerta ${NIVEL_LABEL[alerta.nivel]} (${alerta.fonte}): ${alerta.tipo} em ${alerta.zonasAfetadas.join(', ')} — pré-ativação de equipe disparada`;
+  b.classList.add('show');
+  setTimeout(()=>b.classList.remove('show'), 6500);
+}
+
+function zonasComAlertaAtivo(){
+  const agora = Date.now();
+  const ativas = new Set();
+  alertasClimaticos.forEach(a=>{
+    if(agora - a.emitidoEm < a.janelaHoras*3600000) a.zonasAfetadas.forEach(z=>ativas.add(z));
+  });
+  return ativas;
+}
+
+function marcarZonasEmAlerta(){
+  const ativas = zonasComAlertaAtivo();
+  bairros.forEach(b=>{
+    const emAlerta = ativas.has(b.nome);
+    b.polyLayer.setStyle(emAlerta
+      ? { color:'#ff8a3b', weight:2.8, opacity:.95, dashArray:'3,5', fillOpacity:.1, fillColor:'#ff8a3b' }
+      : { color:'#f2c230', weight:2.2, opacity:.85, dashArray:'7,5', fillOpacity:.06, fillColor:'#f2c230' });
+  });
+  renderZoneList();
+}
+
+const alertasOverlay = document.getElementById('alertas-overlay');
+let alertasTab = 'alertas';
+document.getElementById('open-alertas').onclick = ()=>{ alertasOverlay.hidden=false; renderAlertasBody(); };
+document.getElementById('alertas-close').onclick = ()=>{ alertasOverlay.hidden=true; };
+alertasOverlay.addEventListener('click', e=>{ if(e.target===alertasOverlay) alertasOverlay.hidden=true; });
+document.getElementById('alertas-tabs').querySelectorAll('.mtab').forEach(btn=>{
+  btn.onclick = ()=>{
+    alertasTab = btn.dataset.tab;
+    document.getElementById('alertas-tabs').querySelectorAll('.mtab').forEach(b=>b.classList.toggle('active', b===btn));
+    renderAlertasBody();
+  };
+});
+function renderAlertasIfOpen(){ if(!alertasOverlay.hidden && alertasTab==='alertas') renderAlertasBody(); }
+function renderProntidaoIfOpen(){ if(!alertasOverlay.hidden && alertasTab==='prontidao') renderAlertasBody(); }
+
+function renderAlertasBody(){
+  const body = document.getElementById('alertas-body');
+  if(alertasTab==='alertas') return renderAlertasTab(body);
+  renderProntidaoTab(body);
+}
+
+function renderAlertasTab(body){
+  body.innerHTML = `
+    <button class="admin-btn primary" id="gerar-alerta-btn" style="margin-bottom:14px">🔔 Simular novo alerta meteorológico</button>
+    ${alertasClimaticos.map(a=>{
+      const minutos = minutosDesde(a.emitidoEm);
+      const ativo = minutos < a.janelaHoras*60;
+      return `<div class="alert-card">
+        <span class="alert-nivel" style="background:${NIVEL_COLOR[a.nivel]}22;color:${NIVEL_COLOR[a.nivel]}">${NIVEL_LABEL[a.nivel]}</span>
+        <strong style="margin-left:8px">${escHtml(a.tipo)}</strong>
+        <div class="alert-meta">Fonte: ${escHtml(a.fonte)} · emitido há ${minutos} min · janela de ${a.janelaHoras}h · ${ativo?'<span style="color:var(--green)">em vigor</span>':'<span style="color:var(--muted)">expirado</span>'}</div>
+        <div class="alert-zonas">${a.zonasAfetadas.map(z=>`<span>${escHtml(z)}</span>`).join('')}</div>
+      </div>`;
+    }).join('') || '<div style="color:var(--muted);font-size:12px">Nenhum alerta emitido ainda. Clique no botão acima para simular um.</div>'}
+  `;
+  document.getElementById('gerar-alerta-btn').onclick = ()=>{ gerarAlerta(); renderAlertasTab(body); };
+}
+
+function renderProntidaoTab(body){
+  const zonasRelevantes = bairros.filter(b=> alertasClimaticos.some(a=>a.zonasAfetadas.includes(b.nome)));
+  if(!zonasRelevantes.length){
+    body.innerHTML = '<div style="color:var(--muted);font-size:12px">Nenhuma zona em alerta ainda. A prontidão aparece aqui depois que um alerta for emitido.</div>';
+    return;
+  }
+  body.innerHTML = zonasRelevantes.map(b=>{
+    const alertasDaZona = alertasClimaticos.filter(a=>a.zonasAfetadas.includes(b.nome));
+    const ultimoAlerta = alertasDaZona[0];
+    const mapa = prontidao[ultimoAlerta.id] || {};
+    const pessoas = [
+      ...todosFuncionarios().filter(p=>p.zona===b.nome).map(p=>({id:p.id, nome:p.nome, tipo:PAPEL_LABEL[p.papel]})),
+      ...voluntarios.filter(v=>v.bairro===b.nome).map(v=>({id:v.id, nome:v.nome, tipo:'Colaborador'})),
+    ];
+    const conf = pessoas.filter(p=> mapa[p.id]?.status==='confirmado').length;
+    const indisp = pessoas.filter(p=> mapa[p.id]?.status==='indisponivel').length;
+    const pend = pessoas.length - conf - indisp;
+    const pct = n => pessoas.length ? (n/pessoas.length*100) : 0;
+    return `<div class="prontidao-zone">
+      <h4>${escHtml(b.nome)} <span style="font-size:10.5px;color:var(--muted);font-family:var(--mono)">· alerta ${NIVEL_LABEL[ultimoAlerta.nivel].toLowerCase()} (${escHtml(ultimoAlerta.tipo)})</span></h4>
+      <div class="prontidao-bar">
+        <div style="width:${pct(conf)}%;background:var(--green)"></div>
+        <div style="width:${pct(indisp)}%;background:var(--red)"></div>
+        <div style="width:${pct(pend)}%;background:var(--muted)"></div>
+      </div>
+      <div class="prontidao-legend">
+        <span><i style="background:var(--green)"></i>Confirmados: ${conf}</span>
+        <span><i style="background:var(--red)"></i>Indisponíveis: ${indisp}</span>
+        <span><i style="background:var(--muted)"></i>Sem resposta: ${pend}</span>
+      </div>
+      <div class="prontidao-people">
+        ${pessoas.map(p=>{
+          const st = mapa[p.id]?.status || 'pendente';
+          const cor = st==='confirmado'?'var(--green)':st==='indisponivel'?'var(--red)':'var(--muted)';
+          return `<span class="pp-chip" style="color:${cor};border-color:${cor}66">${escHtml(p.nome.split(' ')[0])} · ${escHtml(p.tipo)}</span>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 /* ---------- chat interno (simulacao de whatsapp) ---------- */
