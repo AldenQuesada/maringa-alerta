@@ -44,6 +44,10 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .zone-item.todos{border-bottom:1px solid var(--line);border-radius:0;margin-bottom:10px;padding-bottom:14px}
 .zone-item.todos.active{background:transparent;border-color:transparent;border-bottom-color:var(--line)}
 .zone-item.todos .zi-name{color:var(--accent)}
+.sidebar-footer{border-top:1px solid var(--line);padding:12px 14px;font-family:var(--mono)}
+.sidebar-footer .sf-label{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.sidebar-footer .sf-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px}
+.sidebar-footer .sf-row b{font-family:var(--mono)}
 
 /* ---------- topo ---------- */
 .right{flex:1;display:flex;flex-direction:column;min-width:0}
@@ -192,9 +196,9 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .leaflet-tooltip.bairro-label::before{display:none}
 .leaflet-control-attribution{background:rgba(10,13,18,.7)!important;color:var(--muted)!important}
 .leaflet-control-attribution a{color:var(--muted)!important}
-.oc-pulse{position:relative}
-.oc-pulse .core{width:14px;height:14px;background:var(--red);border:2px solid #1a0505;border-radius:50%;position:absolute;left:3px;top:3px}
-.oc-pulse .ring{width:20px;height:20px;border:2px solid var(--red);border-radius:50%;position:absolute;left:0;top:0;animation:ocpulse 1.6s infinite}
+.oc-pulse{position:relative;--oc:var(--red)}
+.oc-pulse .core{width:14px;height:14px;background:var(--oc);border:2px solid #1a0505;border-radius:50%;position:absolute;left:3px;top:3px}
+.oc-pulse .ring{width:20px;height:20px;border:2px solid var(--oc);border-radius:50%;position:absolute;left:0;top:0;animation:ocpulse 1.6s infinite}
 @keyframes ocpulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.1);opacity:0}}
 .vol-dot{width:9px;height:9px;border-radius:50%;background:var(--blue);border:1px solid #06121c}
 .vol-dot.active{box-shadow:0 0 0 4px rgba(59,167,255,.35)}
@@ -223,6 +227,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
       <div class="sub">Zonas de cobertura · clique para isolar</div>
     </div>
     <div class="zone-list" id="zone-list"></div>
+    <div class="sidebar-footer" id="sidebar-footer"></div>
   </div>
 
   <div class="right">
@@ -247,9 +252,10 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         </div>
         <div class="legend">
           <div><i style="background:var(--red)"></i> Ocorrência ativa</div>
-          <div><i style="background:var(--green)"></i> Resolvida (sai do mapa)</div>
+          <div><i style="background:var(--accent)"></i> Equipe no local (em atendimento)</div>
           <div><i style="background:var(--blue)"></i> Voluntário cadastrado</div>
-          <div><i style="background:var(--yellow);border-radius:2px"></i> Limite de bairro</div>
+          <div><i style="background:var(--yellow);border-radius:2px"></i> Limite de zona</div>
+          <button id="heat-toggle" style="margin-top:7px;width:100%;font-family:var(--mono);font-size:10.5px;background:var(--panel-2);color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:5px;cursor:pointer">🔥 Mapa de gravidade: desligado</button>
         </div>
 
         <div class="floatwin" id="floatwin" style="top:70px;right:16px">
@@ -279,6 +285,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <script>
 (function(){
 "use strict";
@@ -338,14 +345,24 @@ const MARINGA_CENTER = [-23.4205, -51.9333];
 const tiposAjuda = ["Motosserra","Caminhão","Mão de obra","Cesta básica","Roupas/cobertores","Gerador","Resgate de animais","Primeiros socorros"];
 const nomesVol = ["Antônio Silva","Beatriz Nunes","Carlos Eduardo","Débora Franco","Elias Martins","Fabiana Rocha","Gustavo Peres","Helena Duarte","Igor Salles","Joana Ribas","Kleber Souza","Larissa Toledo","Maurício Teles","Natália Viegas","Otávio Brandão","Priscila Farias"];
 const tiposOcorrencia = [
-  {tipo:"Árvore caída sobre via", icone:"🌳"},
-  {tipo:"Telhado destruído", icone:"🏠"},
-  {tipo:"Alagamento residencial", icone:"🌊"},
-  {tipo:"Poste de energia caído", icone:"⚡"},
-  {tipo:"Deslizamento de barranco", icone:"⛰️"},
-  {tipo:"Família ilhada", icone:"🚨"},
-  {tipo:"Rede elétrica exposta", icone:"⚠️"},
+  {tipo:"Árvore caída sobre via", icone:"🌳", gravBase:2, resp:["publica","publica","mista"]},
+  {tipo:"Telhado destruído", icone:"🏠", gravBase:2, resp:["privada","privada","mista"]},
+  {tipo:"Alagamento residencial", icone:"🌊", gravBase:2, resp:["mista","privada","publica"]},
+  {tipo:"Poste de energia caído", icone:"⚡", gravBase:2, resp:["publica"]},
+  {tipo:"Deslizamento de barranco", icone:"⛰️", gravBase:3, resp:["publica","mista"]},
+  {tipo:"Família ilhada", icone:"🚨", gravBase:3, resp:["publica"]},
+  {tipo:"Rede elétrica exposta", icone:"⚠️", gravBase:3, resp:["publica"]},
 ];
+const GRAV_LABEL = {1:"Baixa", 2:"Média", 3:"Alta"};
+const GRAV_COLOR = {1:"#8b9aad", 2:"#f2c230", 3:"#ff3b3b"};
+const RESP_LABEL = {publica:"Pública", privada:"Privada", mista:"Mista"};
+const RESP_COLOR = {publica:"#3ba7ff", privada:"#b06bff", mista:"#2ecf78"};
+const STATUS_COLOR = {ativa:"#ff3b3b", em_atendimento:"#ffb020"};
+function sortGravidade(base){
+  const r = Math.random();
+  const g = base + (r<0.15?-1:r>0.85?1:0);
+  return Math.max(1, Math.min(3, g));
+}
 
 function rnd(a,b){return a+Math.random()*(b-a)}
 function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
@@ -378,12 +395,25 @@ bairros.forEach(b=>{
 const ocLayer = L.layerGroup().addTo(map);
 const volLayer = L.layerGroup().addTo(map);
 const officialLayer = L.layerGroup().addTo(map);
+let heatLayer = L.heatLayer([], { radius:34, blur:28, maxZoom:17, gradient:{0.2:'#2ecf78',0.5:'#f2c230',0.8:'#ff8a3b',1.0:'#ff3b3b'} });
+let heatOn = false;
+
+function rebuildHeat(){
+  const pontos = ocorrencias
+    .filter(o=> (o.status==='ativa'||o.status==='em_atendimento') && (activeZone===null || o.bairro===activeZone))
+    .map(o=> [o.pos[0], o.pos[1], o.gravidade/3]);
+  heatLayer.setLatLngs(pontos);
+}
 
 function volIcon(active){
   return L.divIcon({ className:'', html:`<div class="vol-dot${active?' active':''}"></div>`, iconSize:[9,9] });
 }
-function ocIcon(){
-  return L.divIcon({ className:'', html:`<div class="oc-pulse"><div class="ring"></div><div class="core"></div></div>`, iconSize:[20,20], iconAnchor:[10,10] });
+function ocIcon(status){
+  const color = STATUS_COLOR[status] || STATUS_COLOR.ativa;
+  return L.divIcon({
+    className:'', iconSize:[20,20], iconAnchor:[10,10],
+    html:`<div class="oc-pulse" style="--oc:${color}"><div class="ring"></div><div class="core"></div></div>`
+  });
 }
 
 function gerarVoluntarios(){
@@ -405,7 +435,9 @@ function gerarOcorrencia(){
   const t = pick(tiposOcorrencia);
   const o = {
     id:"oc"+(idCounter++), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos,
+    gravidade: sortGravidade(t.gravBase), responsabilidade: pick(t.resp),
     reportadoEm: Date.now() - Math.floor(rnd(0,5))*60000,
+    confirmadoEm:null, resolvidoEm:null,
     tempoEstimado: Math.floor(rnd(25,110)),
     status:"ativa", responsavel: b.equipe.responsavel,
     fotoTag: pick(["Foto enviada via WhatsApp","Reportado por morador","Capturado por equipe"]),
@@ -416,18 +448,26 @@ function gerarOcorrencia(){
   o.voluntariosProx = candidatos.slice(0, Math.min(4, candidatos.length)).map(v=>v.id);
   o.voluntariosProx.forEach(vid=>{ const v=voluntarios.find(x=>x.id===vid); if(v){ v.ativo=true; refreshVolMarker(v); } });
 
-  const marker = L.marker(pos, { icon: ocIcon() }).addTo(ocLayer);
-  marker.bindTooltip(
+  const marker = L.marker(pos, { icon: ocIcon(o.status) }).addTo(ocLayer);
+  marker.on('click', ()=>openOcorrencia(o));
+  o.marker = marker;
+  refreshOcTooltip(o);
+  ocorrencias.push(o);
+  applyZoneVisibility();
+  rebuildHeat();
+  return o;
+}
+
+function refreshOcTooltip(o){
+  const statusLabel = o.status==='ativa' ? 'AGUARDANDO EQUIPE' : o.status==='em_atendimento' ? 'EQUIPE NO LOCAL' : 'RESOLVIDA';
+  o.marker.unbindTooltip();
+  o.marker.bindTooltip(
     `<div class="tt-title">${o.icone} ${escHtml(o.tipo)}</div>
-     <div class="tt-row">${escHtml(o.bairro)} · reportado há ${minutosDesde(o.reportadoEm)} min</div>
+     <div class="tt-row">${escHtml(o.bairro)} · ${statusLabel}</div>
+     <div class="tt-row">Gravidade: <b style="color:${GRAV_COLOR[o.gravidade]}">${GRAV_LABEL[o.gravidade]}</b> · Resp.: <b style="color:${RESP_COLOR[o.responsabilidade]}">${RESP_LABEL[o.responsabilidade]}</b></div>
      <div class="tt-row">Responsável: ${escHtml(o.responsavel.nome)}</div>`,
     { className:'oc-tooltip', direction:'top', offset:[0,-10] }
   );
-  marker.on('click', ()=>openOcorrencia(o));
-  o.marker = marker;
-  ocorrencias.push(o);
-  applyZoneVisibility();
-  return o;
 }
 
 gerarVoluntarios();
@@ -438,10 +478,13 @@ bairros.forEach(b=>{
   const n = Math.floor(rnd(1,3));
   for(let i=0;i<n;i++){
     const t = pick(tiposOcorrencia);
+    const tChegada = Math.floor(rnd(10,35)), tAtend = Math.floor(rnd(20,70));
+    const reportado = Date.now()-Math.floor(rnd(60,230))*60000;
     ocorrencias.push({
       id:"oc"+(idCounter++), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos: randPointInBox(b.poly),
-      reportadoEm: Date.now()-Math.floor(rnd(60,230))*60000,
-      status:"resolvida", tempoReal: Math.floor(rnd(30,95)),
+      gravidade: sortGravidade(t.gravBase), responsabilidade: pick(t.resp),
+      reportadoEm: reportado, confirmadoEm: reportado+tChegada*60000, resolvidoEm: reportado+(tChegada+tAtend)*60000,
+      status:"resolvida", tempoChegada:tChegada, tempoAtendimento:tAtend, tempoReal: tChegada+tAtend,
       responsavel: b.equipe.responsavel, voluntariosProx: [], marker:null,
     });
   }
@@ -482,6 +525,7 @@ function selectZone(nome){
   updateZoneStrip();
   updateKpis();
   renderOfficialMarkers();
+  rebuildHeat();
   if(window.innerWidth<=860) document.getElementById('sidebar').classList.remove('open');
   if(nome===null){
     map.setView(MARINGA_CENTER, 13);
@@ -668,25 +712,62 @@ function renderCollaborators(){
 })();
 
 /* ---------- painel de ocorrência (direita) ---------- */
+let currentPanelOcId = null;
+
+const STATUS_BADGE = { ativa:['ativa','AGUARDANDO EQUIPE'], em_atendimento:['ativa','EQUIPE NO LOCAL'], resolvida:['resolvida','RESOLVIDA'] };
+
+function badgeChip(label, color){
+  return `<span class="badge" style="background:${color}22;color:${color};border:1px solid ${color}66">${label}</span>`;
+}
+
 function openOcorrencia(o){
+  currentPanelOcId = o.id;
   const panel = document.getElementById('panel');
   const title = document.getElementById('panel-title');
   const body = document.getElementById('panel-body');
-  title.innerHTML = `${o.icone} ${escHtml(o.tipo)} <span class="badge ${o.status==='ativa'?'ativa':'resolvida'}">${o.status==='ativa'?'ATIVA':'RESOLVIDA'}</span>`;
+  const [badgeClass, badgeLabel] = STATUS_BADGE[o.status];
+  title.innerHTML = `${o.icone} ${escHtml(o.tipo)} <span class="badge ${badgeClass}">${badgeLabel}</span>`;
 
   const vols = o.voluntariosProx.map(id=>voluntarios.find(v=>v.id===id)).filter(Boolean);
-  const decorridos = minutosDesde(o.reportadoEm);
+
+  let tempoBlocos = '';
+  if(o.status==='ativa'){
+    tempoBlocos = `
+      <div class="field"><label>Reportado há</label><div class="val mono">${minutosDesde(o.reportadoEm)} min</div></div>
+      <div class="status-line"><span style="color:${STATUS_COLOR.ativa}">●</span> Aguardando confirmação de presença da equipe</div>
+      <button class="wa-cta" id="presence-btn" style="cursor:pointer;width:100%;border:1px solid rgba(255,176,32,.5);color:var(--accent)">📍 Confirmar presença na área</button>
+    `;
+  } else if(o.status==='em_atendimento'){
+    const tChegada = minutosDesde(o.reportadoEm) - minutosDesde(o.confirmadoEm);
+    tempoBlocos = `
+      <div class="grid2">
+        <div class="field"><label>Tempo até chegada</label><div class="val mono">${tChegada} min</div></div>
+        <div class="field"><label>Em atendimento há</label><div class="val mono" id="live-atendimento">${minutosDesde(o.confirmadoEm)} min</div></div>
+      </div>
+      <div class="status-line"><span style="color:${STATUS_COLOR.em_atendimento}">●</span> Equipe confirmada no local, atendimento em andamento</div>
+      <button class="wa-cta" id="resolve-btn" style="cursor:pointer;width:100%;border:1px solid rgba(46,207,120,.4)">✓ Marcar ocorrência como resolvida</button>
+    `;
+  } else {
+    tempoBlocos = `
+      <div class="grid2">
+        <div class="field"><label>Tempo até chegada</label><div class="val mono">${o.tempoChegada} min</div></div>
+        <div class="field"><label>Tempo em atendimento</label><div class="val mono">${o.tempoAtendimento} min</div></div>
+      </div>
+      <div class="wa-cta">✓ Resolvida em ${o.tempoChegada+o.tempoAtendimento} min — equipe reconhecida pela Prefeitura</div>
+    `;
+  }
 
   body.innerHTML = `
     <div class="photo">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 7h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13" r="3.4"/></svg>
       <div class="tag">${escHtml(o.fotoTag)}</div>
     </div>
-    <div class="field"><label>Bairro</label><div class="val">${escHtml(o.bairro)}</div></div>
-    <div class="grid2">
-      <div class="field"><label>Reportado há</label><div class="val mono">${decorridos} min</div></div>
-      <div class="field"><label>Tempo estimado</label><div class="val mono">${o.tempoEstimado} min</div></div>
+    <div class="grid2" style="margin-bottom:12px">
+      ${badgeChip('Gravidade: '+GRAV_LABEL[o.gravidade], GRAV_COLOR[o.gravidade])}
+      ${badgeChip('Resp.: '+RESP_LABEL[o.responsabilidade], RESP_COLOR[o.responsabilidade])}
     </div>
+    <div class="field"><label>Zona</label><div class="val">${escHtml(o.bairro)}</div></div>
+    ${tempoBlocos}
     <div class="resp-card">
       <div class="avatar">${initials(o.responsavel.nome)}</div>
       <div>
@@ -694,7 +775,6 @@ function openOcorrencia(o){
         <div class="role">${escHtml(o.responsavel.cargo)} · responsável da zona</div>
       </div>
     </div>
-    <div class="status-line"><span style="color:var(--red)">●</span> Deslocamento da equipe em andamento</div>
     <label style="display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Voluntários mobilizados nas proximidades</label>
     <div class="people-list">
       ${vols.map(v=>`
@@ -704,27 +784,51 @@ function openOcorrencia(o){
           <div class="p-dist">~${Math.floor(rnd(150,900))}m</div>
         </div>`).join('') || '<div style="color:var(--muted);font-size:12px">Nenhum voluntário cadastrado nesta área ainda.</div>'}
     </div>
-    ${o.status==='ativa' ? `<button class="wa-cta" id="resolve-btn" style="cursor:pointer;width:100%;border:1px solid rgba(46,207,120,.4)">✓ Marcar ocorrência como resolvida (WhatsApp confirmado pela equipe)</button>` :
-      `<div class="wa-cta">✓ Resolvida em ${o.tempoReal} min — equipe reconhecida pela Prefeitura</div>`}
   `;
   panel.classList.add('open');
 
-  if(o.status==='ativa'){
-    document.getElementById('resolve-btn').onclick = ()=>{
+  const presenceBtn = document.getElementById('presence-btn');
+  if(presenceBtn){
+    presenceBtn.onclick = ()=>{
+      o.status = 'em_atendimento';
+      o.confirmadoEm = Date.now();
+      refreshOcTooltip(o);
+      o.marker.setIcon(ocIcon(o.status));
+      openOcorrencia(o);
+      renderZoneList();
+    };
+  }
+  const resolveBtn = document.getElementById('resolve-btn');
+  if(resolveBtn){
+    resolveBtn.onclick = ()=>{
       o.status='resolvida';
-      o.tempoReal = minutosDesde(o.reportadoEm);
+      o.resolvidoEm = Date.now();
+      o.tempoChegada = minutosDesde(o.reportadoEm) - minutosDesde(o.confirmadoEm);
+      o.tempoAtendimento = minutosDesde(o.confirmadoEm);
+      o.tempoReal = o.tempoChegada + o.tempoAtendimento;
       o.voluntariosProx.forEach(id=>{ const v=voluntarios.find(x=>x.id===id); if(v){ v.ativo=false; refreshVolMarker(v); } });
       ocLayer.removeLayer(o.marker);
       showReco(o);
       updateKpis();
       renderZoneList();
       renderCollaborators();
+      rebuildHeat();
       closePanel();
     };
   }
 }
 
-function closePanel(){ document.getElementById('panel').classList.remove('open'); }
+// mantem o cronometro de atendimento correndo enquanto o painel estiver aberto
+setInterval(()=>{
+  if(!currentPanelOcId) return;
+  const o = ocorrencias.find(x=>x.id===currentPanelOcId);
+  if(o && o.status==='em_atendimento'){
+    const el = document.getElementById('live-atendimento');
+    if(el) el.textContent = minutosDesde(o.confirmadoEm)+' min';
+  }
+}, 5000);
+
+function closePanel(){ document.getElementById('panel').classList.remove('open'); currentPanelOcId = null; }
 document.getElementById('panel-close').onclick = closePanel;
 
 function showReco(o){
@@ -764,13 +868,31 @@ setInterval(()=>{
 function updateKpis(){
   const ocList = ocorrencias.filter(o=> activeZone===null || o.bairro===activeZone);
   const volList = voluntarios.filter(v=> activeZone===null || v.bairro===activeZone);
-  const ativas = ocList.filter(o=>o.status==='ativa').length;
+  const abertas = ocList.filter(o=>o.status==='ativa'||o.status==='em_atendimento');
   const resolvidas = ocList.filter(o=>o.status==='resolvida');
-  document.getElementById('kpi-ativas').textContent = ativas;
+  document.getElementById('kpi-ativas').textContent = abertas.length;
   document.getElementById('kpi-resolvidas').textContent = resolvidas.length;
   document.getElementById('kpi-voluntarios').textContent = volList.length;
   document.getElementById('kpi-tempo').textContent = resolvidas.length>0
     ? Math.round(resolvidas.reduce((s,o)=>s+o.tempoReal,0)/resolvidas.length)+"min" : "—";
+  renderResumo(abertas);
+}
+
+function renderResumo(abertas){
+  const el = document.getElementById('sidebar-footer');
+  const porGrav = {1:0,2:0,3:0};
+  const porResp = {publica:0, privada:0, mista:0};
+  abertas.forEach(o=>{ porGrav[o.gravidade]++; porResp[o.responsabilidade]++; });
+  el.innerHTML = `
+    <div class="sf-label">Gravidade (${activeZone || 'todas as zonas'})</div>
+    <div class="sf-row"><span style="color:${GRAV_COLOR[3]}">Alta</span><b>${porGrav[3]}</b></div>
+    <div class="sf-row"><span style="color:${GRAV_COLOR[2]}">Média</span><b>${porGrav[2]}</b></div>
+    <div class="sf-row"><span style="color:${GRAV_COLOR[1]}">Baixa</span><b>${porGrav[1]}</b></div>
+    <div class="sf-label" style="margin-top:10px">Responsabilidade</div>
+    <div class="sf-row"><span style="color:${RESP_COLOR.publica}">Pública</span><b>${porResp.publica}</b></div>
+    <div class="sf-row"><span style="color:${RESP_COLOR.privada}">Privada</span><b>${porResp.privada}</b></div>
+    <div class="sf-row"><span style="color:${RESP_COLOR.mista}">Mista</span><b>${porResp.mista}</b></div>
+  `;
 }
 
 const eventStart = Date.now() - (4*60+12)*60000;
@@ -785,11 +907,18 @@ function tickClock(){
 }
 setInterval(tickClock, 30000);
 
+document.getElementById('heat-toggle').onclick = (e)=>{
+  heatOn = !heatOn;
+  if(heatOn){ rebuildHeat(); heatLayer.addTo(map); e.target.textContent = '🔥 Mapa de gravidade: ligado'; }
+  else { map.removeLayer(heatLayer); e.target.textContent = '🔥 Mapa de gravidade: desligado'; }
+};
+
 renderZoneList();
 updateKpis();
 tickClock();
 renderCollaborators();
 renderOfficialMarkers();
+rebuildHeat();
 
 })();
 </script>
