@@ -114,7 +114,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .chat-contact .cc-role{font-size:10px;color:var(--muted)}
 .chat-thread{flex:1;display:flex;flex-direction:column;min-width:0}
 .chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#060809}
-.chat-bubble{max-width:75%;padding:8px 11px;border-radius:10px;font-size:12.5px;line-height:1.4}
+.chat-bubble{max-width:75%;padding:8px 11px;border-radius:10px;font-size:12.5px;line-height:1.4;white-space:pre-line}
 .chat-bubble.them{background:var(--panel-2);align-self:flex-start;border:1px solid var(--line)}
 .chat-bubble.me{background:#1b2b1e;color:var(--green);align-self:flex-end;border:1px solid rgba(46,207,120,.4)}
 .chat-bubble .cb-time{display:block;font-size:9px;color:var(--muted);margin-top:3px;font-family:var(--mono)}
@@ -393,6 +393,21 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         </div>
 
         <button class="register-fab" id="fab-cadastro">📲 Simular cadastro via WhatsApp</button>
+        <div class="modal-overlay" id="cadastro-overlay" hidden>
+          <div class="modal chat-modal" id="cadastro-modal" style="max-width:420px">
+            <div class="modal-head">
+              <h2>📲 (44) 99XXX-XXXX · Cadastro de voluntário</h2>
+              <button class="close-btn" id="cadastro-close">✕</button>
+            </div>
+            <div class="modal-body" style="padding:0;display:flex;flex-direction:column;min-height:460px">
+              <div class="chat-messages" id="cadastro-messages" style="background:#060809"></div>
+              <div class="chat-input-row">
+                <input type="text" id="cadastro-input" placeholder="Digite sua resposta...">
+                <button id="cadastro-send">Enviar</button>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="reco-banner" id="reco-banner"></div>
         <div id="alert-banner"></div>
         <div id="offline-banner" hidden>📡 Sem conexão — o que você enviar fica guardado neste aparelho e sai sozinho quando a internet voltar</div>
@@ -643,7 +658,45 @@ if(adminSaved && adminSaved.equipes && adminSaved.equipes.length){
   });
 }
 
-const tiposAjuda = ["Motosserra","Caminhão","Mão de obra","Cesta básica","Roupas/cobertores","Gerador","Resgate de animais","Primeiros socorros"];
+/* opcoes de contribuicao: numeradas de proposito, para o morador poder digitar so o numero no whatsapp.
+   o rotulo e o "tipo" canonico sao separados porque o tipo e o que entra na conta de itensEssenciaisZona. */
+const tiposContribuicao = [
+  {num:1, label:"Motosserra", tipo:"Motosserra"},
+  {num:2, label:"Caminhão / transporte de carga", tipo:"Caminhão"},
+  {num:3, label:"Transporte de pessoas (carro/van)", tipo:"Transporte de pessoas"},
+  {num:4, label:"Mão de obra (braço)", tipo:"Mão de obra"},
+  {num:5, label:"Doação de comida", tipo:"Comida"},
+  {num:6, label:"Doação de roupas/cobertores", tipo:"Roupas/cobertores"},
+  {num:7, label:"Gerador", tipo:"Gerador"},
+  {num:8, label:"Resgate de animais", tipo:"Resgate de animais"},
+  {num:9, label:"Primeiros socorros / saúde", tipo:"Primeiros socorros"},
+  {num:10, label:"Abrigo temporário", tipo:"Abrigo temporário"},
+];
+const tiposAjuda = tiposContribuicao.map(t=>t.tipo);
+// quanto desse tipo uma zona precisa ter, somando os colaboradores cadastrados que oferecem aquele tipo
+const itensEssenciaisZona = [
+  {tipo:"Motosserra", minimo:2}, {tipo:"Caminhão", minimo:1}, {tipo:"Transporte de pessoas", minimo:1},
+  {tipo:"Mão de obra", minimo:5}, {tipo:"Comida", minimo:2}, {tipo:"Roupas/cobertores", minimo:2}, {tipo:"Gerador", minimo:1},
+];
+function itensQueFaltamNaZona(zona){
+  return itensEssenciaisZona.map(it=>{
+    const tem = voluntarios.filter(v=>v.bairro===zona && (v.contribuicoes||[]).includes(it.tipo)).length;
+    return { tipo:it.tipo, tem, minimo:it.minimo, falta: Math.max(0, it.minimo-tem) };
+  }).filter(r=>r.falta>0);
+}
+const PREF_ALERTA = { antes:"Antes do evento (alertas preventivos)", durante:"Durante o evento (convocação ativa)", depois:"Só depois (para ajudar na reconstrução)", todos:"Em todas as fases" };
+function validaCPF(cpf){
+  cpf = (cpf||'').replace(/\D/g,'');
+  if(cpf.length!==11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  let soma=0; for(let i=0;i<9;i++) soma += parseInt(cpf[i])*(10-i);
+  let resto = (soma*10)%11; if(resto===10) resto=0;
+  if(resto!==parseInt(cpf[9])) return false;
+  soma=0; for(let i=0;i<10;i++) soma += parseInt(cpf[i])*(11-i);
+  resto = (soma*10)%11; if(resto===10) resto=0;
+  return resto===parseInt(cpf[10]);
+}
+function fmtCPF(cpf){ cpf=(cpf||'').replace(/\D/g,''); return cpf.length===11 ? cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4') : cpf; }
+function maskCPF(cpf){ if(!cpf) return '—'; const d=cpf.replace(/\D/g,''); return d.length===11 ? `***.***.${d.slice(6,9)}-${d.slice(9)}` : '—'; }
 const nomesVol = ["Antônio Silva","Beatriz Nunes","Carlos Eduardo","Débora Franco","Elias Martins","Fabiana Rocha","Gustavo Peres","Helena Duarte","Igor Salles","Joana Ribas","Kleber Souza","Larissa Toledo","Maurício Teles","Natália Viegas","Otávio Brandão","Priscila Farias"];
 const tiposOcorrencia = [
   {tipo:"Árvore caída sobre via", icone:"🌳", gravBase:2, resp:["publica","publica","mista"]},
@@ -721,11 +774,20 @@ function ocIcon(status){
 }
 
 function gerarVoluntarios(){
+  // voluntarios de "antes desta funcionalidade existir": sem CPF/endereco reais, so os campos minimos
+  // para o resto do sistema (fila de contribuicoes, mobilizacao) funcionar igual para todo mundo.
   bairros.forEach(b=>{
     const n = Math.floor(rnd(5,9));
     for(let i=0;i<n;i++){
       const pos = randPointInBox(b.poly);
-      const v = { id:"v"+(idCounter++), nome:pick(nomesVol), ajuda:pick(tiposAjuda), bairro:b.nome, pos, ativo:false };
+      const ajuda = pick(tiposAjuda);
+      const v = {
+        id:"v"+(idCounter++), nome:pick(nomesVol), ajuda, contribuicoes:[ajuda], bairro:b.nome, pos, ativo:false,
+        cpf:null, endereco:null, alertaPreferencia:'todos',
+        disponibilidadeZona: Math.random()<0.5 ? 'qualquer_zona' : 'somente_minha',
+        temVeiculo:false, tipoVeiculo:null, aceitaReembolso:null, consentimentoLGPD:true,
+        cadastradoEm: Date.now() - Math.floor(rnd(60,600))*60000,
+      };
       v.marker = L.marker(pos, { icon: volIcon(false) }).addTo(volLayer);
       voluntarios.push(v);
     }
@@ -748,7 +810,12 @@ function gerarOcorrencia(){
     fotoTag: pick(["Foto enviada via WhatsApp","Reportado por morador","Capturado por equipe"]),
     voluntariosProx: [],
   };
-  const candidatos = voluntarios.filter(v=>v.bairro===b.nome);
+  let candidatos = voluntarios.filter(v=>v.bairro===b.nome);
+  if(candidatos.length < 4){
+    // zona local tem pouco colaborador cadastrado: busca quem topou ajudar em qualquer zona de Maringa
+    const extras = voluntarios.filter(v=>v.bairro!==b.nome && v.disponibilidadeZona==='qualquer_zona');
+    candidatos = candidatos.concat(extras);
+  }
   candidatos.sort((a,c)=> map.distance(a.pos,pos) - map.distance(c.pos,pos));
   o.voluntariosProx = candidatos.slice(0, Math.min(4, candidatos.length)).map(v=>v.id);
   o.voluntariosProx.forEach(vid=>{ const v=voluntarios.find(x=>x.id===vid); if(v){ v.ativo=true; refreshVolMarker(v); } });
@@ -887,8 +954,9 @@ function updateZoneStrip(){
       </div>
     </div>`;
   }
+  const faltando = itensQueFaltamNaZona(b.nome);
   stripEl.innerHTML = `
-    <div class="zs-title">${escHtml(b.nome)}<span>ZONA ISOLADA · ${b.equipamentos.join(' · ')}</span></div>
+    <div class="zs-title">${escHtml(b.nome)}<span>ZONA ISOLADA · ${b.equipamentos.join(' · ')}${faltando.length ? ` · 🙋 comunidade precisa de: ${faltando.map(f=>f.tipo).join(', ')}` : ''}</span></div>
     <div class="officials">
       ${card('Responsável', eq.responsavel, 'var(--accent)')}
       ${card('Substituto', eq.substituto, 'var(--blue)')}
@@ -947,7 +1015,7 @@ function renderCollaborators(){
       <div class="c-avatar${v.ativo?'':' inactive'}">${initials(v.nome)}</div>
       <div class="c-info">
         <div class="c-name">${escHtml(v.nome)}</div>
-        <div class="c-meta">${escHtml(v.ajuda)} · ${escHtml(v.bairro)}</div>
+        <div class="c-meta">${escHtml((v.contribuicoes||[v.ajuda]).join(', '))} · ${escHtml(v.bairro)}${v.disponibilidadeZona==='qualquer_zona'?' · 🌍 qualquer zona':''}</div>
       </div>
       <div class="c-status ${v.ativo?'on':'off'}">${v.ativo?'em ação':'disponível'}</div>
     </div>
@@ -1242,22 +1310,148 @@ function showReco(o){
 }
 
 /* ---------- cadastro simulado via whatsapp ---------- */
-document.getElementById('fab-cadastro').onclick = ()=>{
-  const b = pick(bairros);
+/* ---------- cadastro conversacional de voluntario, simulando o fluxo real de whatsapp ---------- */
+const cadastroOverlay = document.getElementById('cadastro-overlay');
+const cadastroMsgsEl = document.getElementById('cadastro-messages');
+let cadastroState = null;
+
+function cadastroBubble(texto, de){
+  const b = document.createElement('div');
+  b.className = 'chat-bubble ' + (de==='eu' ? 'me' : 'them');
+  b.textContent = texto;
+  cadastroMsgsEl.appendChild(b);
+  cadastroMsgsEl.scrollTop = cadastroMsgsEl.scrollHeight;
+}
+
+const cadastroPassos = [
+  { campo:'nome', pergunta:'Oi! Bem-vindo ao cadastro de voluntários da Prefeitura de Maringá. Qual seu nome e sobrenome?' },
+  { campo:'cpf', pergunta:'Qual seu CPF? Usamos só para confirmar identidade em caso de reembolso ou resgate de equipamento — só números.' },
+  { campo:'endereco', pergunta:'Qual seu endereço (rua e bairro)?' },
+  { campo:'zonaEscolha', pergunta:null }, // montado dinamicamente com a lista de zonas
+  { campo:'contribuicoes', pergunta:'Como você pode contribuir? Pode escolher mais de uma opção — me manda os números separados por vírgula:\n'+tiposContribuicao.map(t=>`${t.num}. ${t.label}`).join('\n') },
+  { campo:'alertaPreferencia', pergunta:'Como você prefere ser alertado?\n1. Antes do evento (alertas preventivos)\n2. Durante o evento (convocação ativa)\n3. Só depois (ajudar na reconstrução)\n4. Em todas as fases' },
+  { campo:'disponibilidadeZona', pergunta:'Você topa ajudar só na sua área ou em qualquer zona de Maringá se for preciso?\n1. Só na minha zona\n2. Qualquer zona de Maringá' },
+  { campo:'veiculo', pergunta:'Você tem veículo que pode ser usado (caminhão, carro, moto)? Se sim, qual tipo — se não, responda "não".' },
+  { campo:'reembolso', pergunta:null }, // só aparece se tiver veiculo
+  { campo:'lgpd', pergunta:'Para concluir: você concorda que seus dados (nome, CPF, endereço) sejam usados só para resposta a emergências da Prefeitura de Maringá, podendo ser apagados a qualquer momento se você pedir?\n1. Concordo\n2. Não concordo' },
+];
+
+function cadastroIniciar(){
+  cadastroMsgsEl.innerHTML = '';
+  cadastroState = { passoIdx:0, dados:{} };
+  cadastroOverlay.hidden = false;
+  cadastroPerguntarAtual();
+}
+document.getElementById('fab-cadastro').onclick = cadastroIniciar;
+document.getElementById('cadastro-close').onclick = ()=>{ cadastroOverlay.hidden = true; };
+cadastroOverlay.addEventListener('click', e=>{ if(e.target===cadastroOverlay) cadastroOverlay.hidden = true; });
+
+function cadastroPassoAtual(){ return cadastroPassos[cadastroState.passoIdx]; }
+
+function cadastroPerguntarAtual(){
+  const passo = cadastroPassoAtual();
+  if(passo.campo==='zonaEscolha'){
+    cadastroBubble('Em qual zona você está?\n'+bairros.map((b,i)=>`${i+1}. ${b.nome}`).join('\n'), 'eles');
+    return;
+  }
+  if(passo.campo==='reembolso'){
+    if(!cadastroState.dados.temVeiculo){ cadastroState.passoIdx++; cadastroPerguntarAtual(); return; }
+    cadastroBubble('Se seu veículo for usado e gastar combustível, você quer que a prefeitura reembolse?\n1. Sim, quero reembolso\n2. Não, é doação', 'eles');
+    return;
+  }
+  cadastroBubble(passo.pergunta, 'eles');
+}
+
+document.getElementById('cadastro-send').onclick = cadastroResponder;
+document.getElementById('cadastro-input').addEventListener('keydown', e=>{ if(e.key==='Enter') cadastroResponder(); });
+
+function cadastroResponder(){
+  const input = document.getElementById('cadastro-input');
+  const texto = input.value.trim();
+  if(!texto || !cadastroState) return;
+  cadastroBubble(texto, 'eu');
+  input.value = '';
+  const passo = cadastroPassoAtual();
+  const d = cadastroState.dados;
+
+  if(passo.campo==='nome'){
+    d.nome = texto;
+  } else if(passo.campo==='cpf'){
+    if(!validaCPF(texto)){ cadastroBubble('Esse CPF não parece válido. Pode digitar de novo? (só números, 11 dígitos)', 'eles'); return; }
+    d.cpf = texto.replace(/\D/g,'');
+  } else if(passo.campo==='endereco'){
+    d.endereco = texto;
+  } else if(passo.campo==='zonaEscolha'){
+    const n = parseInt(texto);
+    if(!n || n<1 || n>bairros.length){ cadastroBubble('Não entendi. Digite o número da sua zona na lista.', 'eles'); return; }
+    d.bairro = bairros[n-1].nome;
+  } else if(passo.campo==='contribuicoes'){
+    const nums = texto.split(',').map(s=>parseInt(s.trim())).filter(n=>n>=1 && n<=tiposContribuicao.length);
+    if(!nums.length){ cadastroBubble('Não entendi nenhum número. Digite os números das opções separados por vírgula, ex.: 1,4', 'eles'); return; }
+    d.contribuicoes = [...new Set(nums)].map(n=>tiposContribuicao.find(t=>t.num===n).tipo);
+  } else if(passo.campo==='alertaPreferencia'){
+    const map = {1:'antes',2:'durante',3:'depois',4:'todos'};
+    const n = parseInt(texto);
+    if(!map[n]){ cadastroBubble('Digite 1, 2, 3 ou 4.', 'eles'); return; }
+    d.alertaPreferencia = map[n];
+  } else if(passo.campo==='disponibilidadeZona'){
+    const map = {1:'somente_minha',2:'qualquer_zona'};
+    const n = parseInt(texto);
+    if(!map[n]){ cadastroBubble('Digite 1 ou 2.', 'eles'); return; }
+    d.disponibilidadeZona = map[n];
+  } else if(passo.campo==='veiculo'){
+    const naotem = /^n[aã]o$/i.test(texto.trim());
+    d.temVeiculo = !naotem;
+    d.tipoVeiculo = naotem ? null : texto;
+  } else if(passo.campo==='reembolso'){
+    const n = parseInt(texto);
+    if(n!==1 && n!==2){ cadastroBubble('Digite 1 ou 2.', 'eles'); return; }
+    d.aceitaReembolso = n===1;
+  } else if(passo.campo==='lgpd'){
+    const n = parseInt(texto);
+    if(n!==1 && n!==2){ cadastroBubble('Digite 1 ou 2.', 'eles'); return; }
+    if(n===2){
+      cadastroBubble('Entendido — sem o aceite não conseguimos guardar seu cadastro. Se mudar de ideia, é só mandar mensagem de novo. Obrigado!', 'eles');
+      cadastroState = null;
+      return;
+    }
+    d.consentimentoLGPD = true;
+    cadastroFinalizar();
+    return;
+  }
+
+  cadastroState.passoIdx++;
+  cadastroPerguntarAtual();
+}
+
+function cadastroFinalizar(){
+  const d = cadastroState.dados;
+  const b = bairros.find(x=>x.nome===d.bairro);
   const pos = randPointInBox(b.poly);
-  const nome = pick(nomesVol);
-  const ajuda = pick(tiposAjuda);
-  const v = { id:"v"+(idCounter++), nome, ajuda, bairro:b.nome, pos, ativo:false };
+  const v = {
+    id:"v"+(idCounter++), nome:d.nome, cpf:d.cpf, endereco:d.endereco, bairro:d.bairro, pos,
+    ajuda: d.contribuicoes[0], contribuicoes:d.contribuicoes,
+    alertaPreferencia:d.alertaPreferencia, disponibilidadeZona:d.disponibilidadeZona,
+    temVeiculo:d.temVeiculo, tipoVeiculo:d.tipoVeiculo, aceitaReembolso:d.aceitaReembolso,
+    consentimentoLGPD:true, cadastradoEm:Date.now(), ativo:false,
+  };
   v.marker = L.marker(pos, { icon: volIcon(false) }).addTo(volLayer);
   voluntarios.push(v);
   applyZoneVisibility();
-  const banner = document.getElementById('reco-banner');
-  banner.textContent = `📲 WhatsApp (44) 99XXX-XXXX: "${nome}" cadastrado em ${b.nome} — pode ajudar com ${ajuda}`;
-  banner.classList.add('show');
-  setTimeout(()=>banner.classList.remove('show'), 4800);
   updateKpis();
   renderZoneList();
-};
+  renderCollaborators();
+  auditPush('Sistema de cadastro', 'Novo colaborador registrado via WhatsApp', `${d.nome} em ${d.bairro}`);
+
+  const faltando = itensQueFaltamNaZona(d.bairro);
+  const eq = b.equipe;
+  let msg = `Cadastro concluído! ✅\n\nVocê está vinculado à ${d.bairro}.\nResponsável: ${eq.responsavel.nome} (${eq.responsavel.tel})\nCoordenador: ${eq.coordenador.nome} (${eq.coordenador.tel})\n`;
+  msg += faltando.length
+    ? `\nSua zona ainda precisa de: ${faltando.map(f=>f.tipo).join(', ')}.\nSe você conhece alguém que possa ajudar com isso, encaminhe este número para essa pessoa! 📲`
+    : `\nSua zona está com a equipe de colaboradores completa por enquanto — mas toda ajuda extra conta.`;
+  cadastroBubble(msg, 'eles');
+  cadastroState = null;
+}
 
 /* ---------- geração periódica de novas ocorrências ---------- */
 setInterval(()=>{
@@ -1469,20 +1663,37 @@ function renderAdminEquipes(body){
 }
 
 function renderAdminColab(body){
+  const faltandoPorZona = {};
+  bairros.forEach(b=> faltandoPorZona[b.nome] = itensQueFaltamNaZona(b.nome));
   body.innerHTML = `
+    <div class="admin-section-title">O que cada zona ainda precisa (comunidade)</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Comparando quem já se cadastrou contra o mínimo desejável por zona (${itensEssenciaisZona.map(i=>`${escHtml(i.tipo)}: ${i.minimo}`).join(', ')}).</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+      ${bairros.map(b=>{
+        const f = faltandoPorZona[b.nome];
+        return `<div class="alert-card" style="flex:1;min-width:150px;margin-bottom:0">
+          <strong style="font-size:12px">${escHtml(b.nome)}</strong>
+          <div style="font-size:11px;margin-top:4px">${f.length ? `<span style="color:var(--red)">falta: ${f.map(x=>x.tipo).join(', ')}</span>` : '<span style="color:var(--green)">completo</span>'}</div>
+        </div>`;
+      }).join('')}
+    </div>
     <div class="admin-section-title">Colaboradores cadastrados via WhatsApp</div>
-    <table class="admin-table"><thead><tr><th>Nome</th><th>Zona</th><th>Pode ajudar com</th><th>Status</th><th></th></tr></thead><tbody>
+    <table class="admin-table"><thead><tr><th>Nome</th><th>CPF</th><th>Zona</th><th>Pode ajudar com</th><th>Alerta</th><th>Outra zona?</th><th>Veículo</th><th>Status</th><th></th></tr></thead><tbody>
       ${voluntarios.map(v=>`
         <tr data-id="${v.id}">
           <td>${escHtml(v.nome)}</td>
+          <td style="font-family:var(--mono);font-size:10.5px">${escHtml(maskCPF(v.cpf))}</td>
           <td>${escHtml(v.bairro)}</td>
-          <td>${escHtml(v.ajuda)}</td>
+          <td style="font-size:10.5px">${escHtml((v.contribuicoes||[v.ajuda]).join(', '))}</td>
+          <td style="font-size:10.5px">${escHtml(PREF_ALERTA[v.alertaPreferencia]||'—')}</td>
+          <td>${v.disponibilidadeZona==='qualquer_zona'?'🌍 sim':'só a sua'}</td>
+          <td style="font-size:10.5px">${v.temVeiculo ? escHtml(v.tipoVeiculo||'sim')+(v.aceitaReembolso?' · reembolso':v.aceitaReembolso===false?' · doação':'') : '—'}</td>
           <td>${v.ativo?'<span style="color:var(--green)">em ação</span>':'<span style="color:var(--muted)">disponível</span>'}</td>
-          <td><button class="admin-btn danger" data-action="rm-vol">Remover cadastro</button></td>
+          <td><button class="admin-btn danger" data-action="rm-vol">Remover</button></td>
         </tr>
-      `).join('') || '<tr><td colspan="5" style="color:var(--muted)">Nenhum colaborador cadastrado ainda.</td></tr>'}
+      `).join('') || '<tr><td colspan="9" style="color:var(--muted)">Nenhum colaborador cadastrado ainda.</td></tr>'}
     </tbody></table>
-    <div style="margin-top:10px;font-size:11px;color:var(--muted)">Novos colaboradores entram automaticamente quando se cadastram pelo número de WhatsApp da prefeitura (simulado aqui pelo botão "Simular cadastro via WhatsApp" no mapa).</div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted)">Novos colaboradores entram automaticamente quando se cadastram pelo número de WhatsApp da prefeitura (simulado aqui pelo botão "Simular cadastro via WhatsApp" no mapa). CPF aparece mascarado por padrão.</div>
   `;
   body.querySelectorAll('[data-action="rm-vol"]').forEach(btn=>{
     btn.onclick = ()=>{
