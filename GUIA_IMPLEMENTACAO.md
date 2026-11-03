@@ -79,6 +79,38 @@ A contagem por responsabilidade das ocorrências abertas (no escopo atual) está
 
 Isso já está feito. Ainda não implementado: filtro clicável por responsabilidade (chips do tipo "mostrar só públicas") — listado como melhoria futura, não foi pedido explicitamente ainda.
 
+## 4.4 Administração interna: responsáveis, coordenadores, equipes da prefeitura e colaboradores (implementado)
+
+Adicionado um modal de administração (botão "⚙ Administração" na sidebar esquerda) com três abas:
+
+- **Responsáveis & coordenadores**: edita os campos `nome`, `cargo`, `telefone` de cada responsável, substituto e coordenador (a lista vem de `todosFuncionarios()`, que achata `bairros[].equipe` em um array único). Como esses objetos são os mesmos referenciados em `o.responsavel`, nos marcadores do mapa e no chat interno, editar aqui propaga para todo o sistema sem recarregar a página.
+- **Equipes da prefeitura**: um cadastro novo, independente dos responsáveis, representando equipes de campo com recursos físicos (`equipesPrefeitura`, cada item com `nome`, `zona`, `recursos` — lista de `{tipo, qtd, emUso}` —, `membros`, `status`). Dá para editar, remover e adicionar equipes (campo de recursos aceita texto livre tipo "Motosserra x2, Caminhão x1", convertido para a estrutura). A tabela mostra quanto cada equipe tem disponível vs. em uso, e sinaliza em vermelho quando a zona tem ocorrência ativa mas a equipe não tem recurso livre ("sem equip. livre") — essa é a resposta operacional a "estatísticas do que cada equipe tem, o que falta".
+- **Colaboradores**: lista somente leitura dos voluntários cadastrados via WhatsApp (não dá para cadastrar colaborador aqui de propósito, porque a entrada real é pelo número de WhatsApp; o botão "Simular cadastro via WhatsApp" no mapa continua sendo a porta de entrada). Dá para remover um cadastro.
+
+Persistência: tudo que é editado no modal de administração é salvo em `localStorage` (chave `maringa_admin_v1`, funções `saveAdminState()` / `loadAdminState()`), então sobrevive a um F5 na mesma máquina/navegador. Isso não é um banco de dados real nem sincroniza entre dispositivos; é um atalho de protótipo. Quando a integração com backend acontecer, essa camada de `localStorage` deve ser substituída por chamadas de API, mantendo as mesmas funções de leitura/escrita como ponto único de troca.
+
+## 4.5 Relatório final obrigatório antes de resolver uma ocorrência (implementado)
+
+O fluxo de uma ocorrência em `"em_atendimento"` mudou: clicar em "Marcar como resolvida" não resolve mais direto, abre um formulário (`#report-form`) que exige:
+- foto da situação atual (`input type="file"`, lida com `FileReader` e guardada como data URL em `o.relatorio.fotoAtual`);
+- foto da situação final (mesma mecânica, `o.relatorio.fotoFinal`);
+- o que ficou pendente (textarea, `o.relatorio.pendencias`, com "Nenhuma" como padrão se vazio);
+- quem preencheu (select com responsável/substituto/coordenador da zona, `o.relatorio.preenchidoPor`).
+
+Só depois de enviar as duas fotos (validação simples, sem elas o formulário mostra erro e não resolve) a ocorrência vira `"resolvida"`. O relatório preenchido fica visível depois, ao reabrir a ocorrência resolvida (as fotos aparecem como miniaturas). Como o marcador sai do mapa ao resolver, o acesso de volta às ocorrências resolvidas é pela lista "Resolvidas recentes" no rodapé da sidebar (`renderResumo`, até 5 mais recentes do escopo atual), que abre o painel de detalhe normalmente.
+
+As ocorrências de histórico (seedadas no carregamento da página, que representam eventos de antes da sessão atual) não têm relatório, de propósito — não faria sentido inventar fotos para elas — e aparecem como "sem relatório" na lista.
+
+## 4.6 Chat interno simulando WhatsApp (implementado)
+
+Botão "💬 Chat interno" na sidebar abre um modal com lista de contatos (todos os funcionários internos + todos os colaboradores cadastrados, função `chatContatos()`) e uma conversa por contato. É puramente front-end: `chatHistorico` é um objeto em memória (`{idDoContato: [mensagens]}`), não persiste entre reloads e não envia nada de verdade. Ao enviar uma mensagem, o sistema simula uma resposta automática do contato depois de 1,4 a 3 segundos, sorteada de uma lista de frases plausíveis (`respostasAuto`). Serve para demonstrar a experiência de coordenação, não é uma integração real com a API do WhatsApp — isso seria um projeto de backend separado (ver seção 1).
+
+## 4.7 Distâncias reais entre pontos (implementado)
+
+As distâncias que antes eram números aleatórios (`Math.floor(rnd(150,900))+"m"`) agora são calculadas de verdade com `map.distance(latlngA, latlngB)` do Leaflet (distância geodésica em metros). Isso está em dois lugares: cada voluntário mobilizado no painel de ocorrência mostra a distância real até o ponto da ocorrência, e o cartão do responsável no mesmo painel mostra a distância real entre a posição atual dele (que já era simulada via ping de WhatsApp) e a ocorrência. Função auxiliar: `fmtDist(metros)`, que mostra em metros até 999m e em km com uma decimal a partir de 1000m.
+
+Ainda não implementado: distância equipe-da-prefeitura ↔ ocorrência (as equipes de recursos, seção 4.4, não têm posição própria no mapa ainda, só a zona; adicionar um campo `pos` a cada equipe seria o próximo passo natural se isso for necessário).
+
 ## 5. Backlog aprovado (ordem sugerida, mas a Alden decide prioridade final)
 
 Estas foram propostas e aprovadas em conversa anterior. Implementar depois dos itens da seção 4, ou intercalado se fizer sentido técnico.
@@ -90,6 +122,23 @@ Estas foram propostas e aprovadas em conversa anterior. Implementar depois dos i
 5. **Modo replay do evento**: acelerar o tempo para assistir como as ocorrências surgiram e foram resolvidas ao longo do evento todo, útil para apresentações e para pós-mortem. Requer guardar um log de eventos (criação, confirmação, resolução) com timestamp e reproduzir em escala de tempo acelerada.
 6. **Alerta quando ocorrência nova surge perto de um responsável**: quando uma nova ocorrência é gerada dentro de um raio pequeno da posição atual de um responsável/coordenador que está em campo, disparar um destaque visual ou som (respeitando que autoplay de som só funciona depois de interação do usuário na página).
 7. **Ranking de colaboradores**: pontuação por tempo de resposta, quantidade de ajudas prestadas, para alimentar o reconhecimento público ("ato oficial da prefeitura"). Fonte de dados: quantas vezes um voluntário apareceu em `voluntariosProx` de ocorrências resolvidas, e com que rapidez.
+
+## 5bis. O que falta pensando como gestão de desastres, não só como tela
+
+Os itens 4.1 a 4.7 e o backlog da seção 5 resolvem fluxo de ocorrência e coordenação de equipe. Mas um sistema de resposta a desastres de verdade precisa de mais camadas, que ainda não existem nem no protótipo nem no backlog anterior. Listando por ordem de impacto, não de facilidade:
+
+1. **Triagem e priorização automática**: hoje todas as ocorrências ativas aparecem com o mesmo peso na lista; quem decide o que atender primeiro é o olho humano olhando o mapa. Um sistema de verdade precisa de uma fila ordenada por gravidade + tempo de espera + proximidade de equipe disponível, não só o mapa visual. Sem isso, a "gravidade" da seção 4.2 é só decorativa.
+2. **Controle de acesso por papel**: qualquer pessoa que abra o link hoje consegue abrir a Administração e editar qualquer coisa, inclusive dados de outros funcionários. Antes de qualquer uso real (mesmo um teste piloto com a prefeitura), isso precisa de login e permissão (responsável só edita a própria zona; só um admin geral vê tudo).
+3. **Modo offline / baixa conectividade**: depois de um ciclone, é comum faltar internet móvel justamente nas áreas mais afetadas. O sistema real precisa degradar graciosamente (SMS como alternativa ao WhatsApp, fila de mensagens que envia quando a rede voltar) em vez de assumir que todo mundo está sempre online.
+4. **Alerta de SLA / escalonamento**: se uma ocorrência de gravidade alta fica "aguardando equipe" por mais de X minutos sem ninguém confirmar presença, alguém acima (coordenador regional, secretário) precisa ser avisado automaticamente. Hoje nada escala sozinho; alguém precisa notar olhando o painel.
+5. **Log de auditoria imutável**: para o "ato de reconhecimento oficial" e para qualquer prestação de contas pública depois do evento, cada mudança de status, cada relatório enviado e cada mensagem trocada deveria ficar num registro que não pode ser editado depois (hoje, editar o `nome` de um responsável na Administração reescreve o histórico sem deixar rastro de quem mudou o quê e quando).
+6. **Privacidade dos dados de moradores**: fotos de "situação atual/final" de uma propriedade privada, e a localização de quem pediu ajuda, são dados sensíveis. Antes de ir a produção, isso precisa de uma política clara de quem pode ver o quê e por quanto tempo essas fotos ficam guardadas.
+7. **Página pública de status**: os moradores que reportaram uma ocorrência não têm hoje como saber se alguém já viu o pedido deles, só esperam. Uma página pública simples (sem exigir login, talvez acessada por um link enviado no próprio WhatsApp) mostrando "sua ocorrência foi recebida, equipe a caminho, tempo estimado X" reduz ligação duplicada e ansiedade.
+8. **Ponte com os serviços oficiais de emergência (193 Corpo de Bombeiros, 199 Defesa Civil estadual, 192 SAMU)**: casos de risco à vida reportados no sistema (por exemplo "família ilhada") precisam de um caminho claro para acionar esses serviços, não só a equipe da prefeitura; hoje o sistema não distingue "a prefeitura resolve isso" de "isso é uma emergência que precisa de socorro agora".
+9. **Previsão e pré-posicionamento**: hoje as equipes só reagem depois que a ocorrência é reportada. Cruzar o sistema com previsão meteorológica (INMET/Simepar) permitiria pré-posicionar equipamento nas zonas de maior risco antes do evento piorar.
+10. **Relatório pós-evento consolidado**: depois que o evento acaba, a prefeitura precisa de um documento único (não só a lista de ocorrências) com o que funcionou, o que não funcionou, tempo médio de resposta por zona, e isso é insumo tanto para prestação de contas quanto para o próximo evento. É diferente do "exportar relatório do evento" do item 4 do backlog, que é mais operacional; este é analítico/estratégico.
+
+Nenhum destes foi implementado. Listar aqui é uma recomendação de arquitetura, não uma tarefa fechada; antes de qualquer um deles entrar em desenvolvimento, vale decidir com a Alden quais fazem sentido para a fase atual (protótipo de demonstração) versus quais só importam se isso for usado de verdade por uma prefeitura.
 
 ## 6. Como publicar (processo já em uso, manter)
 
