@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maringá Alerta</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --bg:#0a0d12; --panel:#11161d; --panel-2:#161d26; --line:#242e3a;
+  --fg:#e8edf3; --muted:#8b9aad; --accent:#ffb020;
+  --red:#ff3b3b; --blue:#3ba7ff; --green:#2ecf78; --yellow:#f2c230;
+  --mono:'JetBrains Mono', ui-monospace, monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-serif;overflow:hidden}
+::selection{background:var(--accent);color:#000}
+
+.app{display:flex;flex-direction:column;height:100%}
+
+.topbar{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:10px max(16px,env(safe-area-inset-left,0px));
+  background:var(--panel);border-bottom:1px solid var(--line);
+  min-height:56px;position:relative;z-index:1000;
+}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-weight:700;letter-spacing:.02em}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 0 0 rgba(255,59,59,.6);animation:pulse 1.6s infinite}
+.brand .title{font-size:15px}
+.brand .sub{color:var(--muted);font-size:11px;font-weight:400}
+.evento{font-family:var(--mono);font-size:12px;color:var(--yellow);background:rgba(242,194,48,.08);border:1px solid rgba(242,194,48,.3);padding:5px 10px;border-radius:4px;white-space:nowrap}
+.stats-row{display:flex;gap:14px;margin-left:auto;flex-wrap:wrap}
+.stat{text-align:center;min-width:64px}
+.stat b{display:block;font-size:17px;font-family:var(--mono)}
+.stat span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.stat.red b{color:var(--red)} .stat.green b{color:var(--green)} .stat.blue b{color:var(--blue)}
+
+.filters{display:flex;gap:6px;padding:8px max(16px,env(safe-area-inset-left,0px));background:var(--panel-2);border-bottom:1px solid var(--line);overflow-x:auto;flex-wrap:nowrap;position:relative;z-index:900}
+.chip{font-family:var(--mono);font-size:11px;color:var(--muted);background:transparent;border:1px solid var(--line);padding:5px 10px;border-radius:14px;cursor:pointer;white-space:nowrap;user-select:none;transition:.15s}
+.chip.active{color:#000;background:var(--accent);border-color:var(--accent);font-weight:600}
+.chip:hover{border-color:var(--accent)}
+
+.main{flex:1;display:flex;min-height:0;position:relative}
+.mapwrap{flex:1;position:relative;min-width:0;background:#060809}
+#map{width:100%;height:100%;background:#060809}
+
+.legend{
+  position:absolute;left:12px;bottom:max(12px,env(safe-area-inset-bottom,0px));
+  background:rgba(17,22,29,.9);border:1px solid var(--line);border-radius:8px;padding:10px 12px;
+  font-size:11px;color:var(--muted);font-family:var(--mono);backdrop-filter:blur(4px);z-index:650
+}
+.legend div{display:flex;align-items:center;gap:6px;margin:3px 0}
+.legend i{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+
+.timescale{
+  position:absolute;right:12px;top:12px;background:rgba(17,22,29,.9);border:1px solid var(--line);
+  border-radius:8px;padding:8px 12px;font-family:var(--mono);font-size:11px;color:var(--muted);z-index:650;text-align:right
+}
+.timescale b{color:var(--fg);font-size:13px;display:block}
+
+.panel{
+  width:380px;max-width:92vw;background:var(--panel);border-left:1px solid var(--line);
+  display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease;
+  position:absolute;right:0;top:0;bottom:0;z-index:1200;
+  padding-right:max(0px,env(safe-area-inset-right,0px));
+}
+.panel.open{transform:translateX(0)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)}
+.panel-head h2{margin:0;font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;font-weight:700;letter-spacing:.03em}
+.badge.ativa{background:rgba(255,59,59,.15);color:var(--red);border:1px solid rgba(255,59,59,.4)}
+.badge.resolvida{background:rgba(46,207,120,.15);color:var(--green);border:1px solid rgba(46,207,120,.4)}
+.close-btn{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px}
+.close-btn:hover{color:var(--fg)}
+.panel-body{flex:1;overflow-y:auto;padding:16px}
+.photo{width:100%;aspect-ratio:16/10;border-radius:8px;background:linear-gradient(135deg,#2a2015,#1a1a1a);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;margin-bottom:14px;border:1px solid var(--line);overflow:hidden;position:relative}
+.photo svg{width:46%;opacity:.5}
+.photo .tag{position:absolute;bottom:6px;left:6px;font-family:var(--mono);font-size:10px;background:rgba(0,0,0,.6);padding:2px 6px;border-radius:3px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.field .val{font-size:14px}
+.field .val.mono{font-family:var(--mono)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.resp-card{display:flex;gap:10px;align-items:center;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:12px}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--blue);color:#06121c;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex:none}
+.resp-card .name{font-weight:600;font-size:13px}
+.resp-card .role{font-size:11px;color:var(--muted)}
+.people-list{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.person{display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.person .avatar.small{width:28px;height:28px;font-size:11px;background:var(--blue)}
+.person .p-name{font-size:12.5px;font-weight:600}
+.person .p-help{font-size:11px;color:var(--muted)}
+.person .p-dist{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--accent)}
+.status-line{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:14px 0}
+.wa-cta{display:block;text-align:center;font-family:var(--mono);font-size:12px;background:#1b2b1e;color:var(--green);border:1px solid rgba(46,207,120,.4);border-radius:6px;padding:9px;margin-top:4px}
+
+.bairro-head{font-size:20px;font-weight:700;margin-bottom:2px}
+.bairro-sub{font-size:12px;color:var(--muted);margin-bottom:14px}
+.kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.kpi{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center}
+.kpi b{display:block;font-family:var(--mono);font-size:18px}
+.kpi span{font-size:9.5px;color:var(--muted);text-transform:uppercase}
+
+.register-fab{
+  position:absolute;right:max(12px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));
+  z-index:650;background:var(--green);color:#06130b;font-family:var(--mono);font-weight:700;font-size:12px;
+  border:none;border-radius:24px;padding:11px 16px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4);
+  display:flex;align-items:center;gap:8px
+}
+.register-fab:hover{filter:brightness(1.08)}
+
+.reco-banner{
+  position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:1300;
+  background:linear-gradient(90deg,#1c1506,#241a08);border:1px solid var(--accent);color:var(--accent);
+  font-family:var(--mono);font-size:11.5px;padding:8px 16px;border-radius:20px;white-space:nowrap;
+  opacity:0;pointer-events:none;transition:opacity .4s ease;
+}
+.reco-banner.show{opacity:1}
+
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,59,59,.6)}70%{box-shadow:0 0 0 8px rgba(255,59,59,0)}100%{box-shadow:0 0 0 0 rgba(255,59,59,0)}}
+
+/* leaflet overrides para tema escuro */
+.leaflet-container{background:#060809}
+.leaflet-tooltip.oc-tooltip{
+  background:rgba(17,22,29,.96);color:var(--fg);border:1px solid var(--red);border-radius:8px;
+  font-family:'Inter',sans-serif;font-size:12px;padding:8px 10px;box-shadow:0 6px 18px rgba(0,0,0,.5);
+}
+.leaflet-tooltip.oc-tooltip .tt-title{font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.leaflet-tooltip.oc-tooltip .tt-row{color:var(--muted);font-size:11px}
+.leaflet-tooltip.oc-tooltip::before{border-top-color:var(--red)!important}
+.leaflet-control-attribution{background:rgba(10,13,18,.7)!important;color:var(--muted)!important}
+.leaflet-control-attribution a{color:var(--muted)!important}
+.oc-pulse{position:relative}
+.oc-pulse .core{width:14px;height:14px;background:var(--red);border:2px solid #1a0505;border-radius:50%;position:absolute;left:3px;top:3px}
+.oc-pulse .ring{width:20px;height:20px;border:2px solid var(--red);border-radius:50%;position:absolute;left:0;top:0;animation:ocpulse 1.6s infinite}
+@keyframes ocpulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.1);opacity:0}}
+.vol-dot{width:9px;height:9px;border-radius:50%;background:var(--blue);border:1px solid #06121c}
+.vol-dot.active{box-shadow:0 0 0 4px rgba(59,167,255,.35)}
+
+@media (max-width:760px){
+  .stats-row{display:none}
+  .panel{width:100%;max-width:100%}
+  .legend{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <div>
+        <div class="title">MARINGÁ ALERTA</div>
+        <div class="sub">Painel de Resposta a Emergências · Prefeitura de Maringá</div>
+      </div>
+    </div>
+    <div class="evento" id="evento-label">CICLONE EXTRATROPICAL · 03/11/2026 · T+4h12min</div>
+    <div class="stats-row">
+      <div class="stat red"><b id="kpi-ativas">0</b><span>Ativas</span></div>
+      <div class="stat green"><b id="kpi-resolvidas">0</b><span>Resolvidas</span></div>
+      <div class="stat blue"><b id="kpi-voluntarios">0</b><span>Voluntários</span></div>
+      <div class="stat"><b id="kpi-tempo">—</b><span>Tempo médio</span></div>
+    </div>
+  </div>
+
+  <div class="filters" id="filters"></div>
+
+  <div class="main">
+    <div class="mapwrap">
+      <div id="map"></div>
+      <div class="timescale">
+        <span>Evento</span>
+        <b>Ciclone de Novembro</b>
+        <span id="clock">03/11/2026 · 14:12</span>
+      </div>
+      <div class="legend">
+        <div><i style="background:var(--red)"></i> Ocorrência ativa</div>
+        <div><i style="background:var(--green)"></i> Resolvida (sai do mapa)</div>
+        <div><i style="background:var(--blue)"></i> Voluntário cadastrado</div>
+        <div><i style="background:var(--yellow);border-radius:2px"></i> Limite de bairro</div>
+      </div>
+      <button class="register-fab" id="fab-cadastro">📲 Simular cadastro via WhatsApp</button>
+      <div class="reco-banner" id="reco-banner"></div>
+    </div>
+
+    <div class="panel" id="panel">
+      <div class="panel-head">
+        <h2 id="panel-title">Ocorrência</h2>
+        <button class="close-btn" id="panel-close">✕</button>
+      </div>
+      <div class="panel-body" id="panel-body"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ---------- bairros reais de Maringá (coordenadas aproximadas) ---------- */
+const bairros = [
+  { nome:"Zona 7", center:[-23.3995,-51.9395],
+    poly:[[-23.392,-51.950],[-23.392,-51.930],[-23.408,-51.930],[-23.408,-51.950]] },
+  { nome:"Jardim Alvorada", center:[-23.3870,-51.9120],
+    poly:[[-23.380,-51.922],[-23.380,-51.902],[-23.396,-51.902],[-23.396,-51.922]] },
+  { nome:"Conjunto Requião", center:[-23.4360,-51.9560],
+    poly:[[-23.428,-51.966],[-23.428,-51.946],[-23.446,-51.946],[-23.446,-51.966]] },
+  { nome:"Jardim Universo", center:[-23.4430,-51.9230],
+    poly:[[-23.435,-51.933],[-23.435,-51.913],[-23.452,-51.913],[-23.452,-51.933]] },
+  { nome:"Vila Esperança", center:[-23.3820,-51.9510],
+    poly:[[-23.374,-51.962],[-23.374,-51.941],[-23.392,-51.941],[-23.392,-51.962]] },
+  { nome:"Centro Cívico", center:[-23.4225,-51.9365],
+    poly:[[-23.415,-51.946],[-23.415,-51.927],[-23.430,-51.927],[-23.430,-51.946]] },
+];
+const MARINGA_CENTER = [-23.4205, -51.9333];
+
+const respNomes = [
+  {nome:"Marcos Teixeira", cargo:"Vereador · Zona 7"},
+  {nome:"Fernanda Lopes", cargo:"Secretária de Assistência Social"},
+  {nome:"Ricardo Bittencourt", cargo:"Chefe de Defesa Civil"},
+  {nome:"Juliana Prado", cargo:"Subsecretária de Obras"},
+  {nome:"Eduardo Namiki", cargo:"Vereador · Jardim Universo"},
+  {nome:"Carla Mendonça", cargo:"Coordenadora Regional Sul"},
+];
+const tiposAjuda = ["Motosserra","Caminhão","Mão de obra","Cesta básica","Roupas/cobertores","Gerador","Resgate de animais","Primeiros socorros"];
+const nomesVol = ["Antônio Silva","Beatriz Nunes","Carlos Eduardo","Débora Franco","Elias Martins","Fabiana Rocha","Gustavo Peres","Helena Duarte","Igor Salles","Joana Ribas","Kleber Souza","Larissa Toledo"];
+const tiposOcorrencia = [
+  {tipo:"Árvore caída sobre via", icone:"🌳"},
+  {tipo:"Telhado destruído", icone:"🏠"},
+  {tipo:"Alagamento residencial", icone:"🌊"},
+  {tipo:"Poste de energia caído", icone:"⚡"},
+  {tipo:"Deslizamento de barranco", icone:"⛰️"},
+  {tipo:"Família ilhada", icone:"🚨"},
+  {tipo:"Rede elétrica exposta", icone:"⚠️"},
+];
+
+function rnd(a,b){return a+Math.random()*(b-a)}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function escHtml(s){ return String(s).replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+function minutosDesde(ts){ return Math.max(0, Math.round((Date.now()-ts)/60000)); }
+function randPointInBox(poly){
+  const lats = poly.map(p=>p[0]), lngs = poly.map(p=>p[1]);
+  return [ rnd(Math.min(...lats),Math.max(...lats)), rnd(Math.min(...lngs),Math.max(...lngs)) ];
+}
+
+let ocorrencias = [], voluntarios = [], idCounter = 1;
+let resolvidasCount = 6, tempoSomaResolucao = 52*6;
+
+/* ---------- mapa ---------- */
+const map = L.map('map', { zoomControl:true, attributionControl:true }).setView(MARINGA_CENTER, 13);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution:'&copy; OpenStreetMap &copy; CARTO',
+  subdomains:'abcd', maxZoom:19
+}).addTo(map);
+
+const bairroLayers = {};
+bairros.forEach(b=>{
+  const poly = L.polygon(b.poly, {
+    color:'#f2c230', weight:1.4, opacity:.55, dashArray:'6,4', fillOpacity:.03, fillColor:'#f2c230'
+  }).addTo(map);
+  poly.bindTooltip(b.nome.toUpperCase(), {permanent:false, direction:'center', className:'bairro-label'});
+  poly.on('click', ()=>openBairro(b));
+  bairroLayers[b.nome] = poly;
+  L.marker(b.center, {opacity:0}).addTo(map);
+});
+
+const ocLayer = L.layerGroup().addTo(map);
+const volLayer = L.layerGroup().addTo(map);
+
+function volIcon(active){
+  return L.divIcon({ className:'', html:`<div class="vol-dot${active?' active':''}"></div>`, iconSize:[9,9] });
+}
+function ocIcon(){
+  return L.divIcon({ className:'', html:`<div class="oc-pulse"><div class="ring"></div><div class="core"></div></div>`, iconSize:[20,20], iconAnchor:[10,10] });
+}
+
+function gerarVoluntarios(){
+  bairros.forEach(b=>{
+    const n = Math.floor(rnd(5,9));
+    for(let i=0;i<n;i++){
+      const pos = randPointInBox(b.poly);
+      const v = { id:"v"+(idCounter++), nome:pick(nomesVol), ajuda:pick(tiposAjuda), bairro:b.nome, pos, ativo:false };
+      v.marker = L.marker(pos, { icon: volIcon(false) }).addTo(volLayer);
+      voluntarios.push(v);
+    }
+  });
+}
+
+function refreshVolMarker(v){
+  v.marker.setIcon(volIcon(v.ativo));
+}
+
+function gerarOcorrencia(){
+  const b = pick(bairros);
+  const pos = randPointInBox(b.poly);
+  const t = pick(tiposOcorrencia);
+  const resp = pick(respNomes);
+  const o = {
+    id:"oc"+(idCounter++), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos,
+    reportadoEm: Date.now() - Math.floor(rnd(0,5))*60000,
+    tempoEstimado: Math.floor(rnd(25,110)),
+    status:"ativa", responsavel: resp,
+    fotoTag: pick(["Foto enviada via WhatsApp","Reportado por morador","Capturado por equipe"]),
+    voluntariosProx: [],
+  };
+  const candidatos = voluntarios.filter(v=>v.bairro===b.nome);
+  candidatos.sort((a,c)=> map.distance(a.pos,pos) - map.distance(c.pos,pos));
+  o.voluntariosProx = candidatos.slice(0, Math.min(4, candidatos.length)).map(v=>v.id);
+  o.voluntariosProx.forEach(vid=>{ const v=voluntarios.find(x=>x.id===vid); if(v){ v.ativo=true; refreshVolMarker(v); } });
+
+  const marker = L.marker(pos, { icon: ocIcon() }).addTo(ocLayer);
+  marker.bindTooltip(
+    `<div class="tt-title">${o.icone} ${escHtml(o.tipo)}</div>
+     <div class="tt-row">${escHtml(o.bairro)} · reportado há ${minutosDesde(o.reportadoEm)} min</div>
+     <div class="tt-row">Responsável: ${escHtml(o.responsavel.nome)}</div>`,
+    { className:'oc-tooltip', direction:'top', offset:[0,-10] }
+  );
+  marker.on('click', ()=>openOcorrencia(o));
+  o.marker = marker;
+  ocorrencias.push(o);
+  return o;
+}
+
+gerarVoluntarios();
+for(let i=0;i<9;i++) gerarOcorrencia();
+
+/* ---------- painel lateral ---------- */
+function openOcorrencia(o){
+  const panel = document.getElementById('panel');
+  const title = document.getElementById('panel-title');
+  const body = document.getElementById('panel-body');
+  title.innerHTML = `${o.icone} ${escHtml(o.tipo)} <span class="badge ${o.status==='ativa'?'ativa':'resolvida'}">${o.status==='ativa'?'ATIVA':'RESOLVIDA'}</span>`;
+
+  const vols = o.voluntariosProx.map(id=>voluntarios.find(v=>v.id===id)).filter(Boolean);
+  const decorridos = minutosDesde(o.reportadoEm);
+
+  body.innerHTML = `
+    <div class="photo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 7h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13" r="3.4"/></svg>
+      <div class="tag">${escHtml(o.fotoTag)}</div>
+    </div>
+    <div class="field"><label>Bairro</label><div class="val">${escHtml(o.bairro)}</div></div>
+    <div class="grid2">
+      <div class="field"><label>Reportado há</label><div class="val mono">${decorridos} min</div></div>
+      <div class="field"><label>Tempo estimado</label><div class="val mono">${o.tempoEstimado} min</div></div>
+    </div>
+    <div class="resp-card">
+      <div class="avatar">${o.responsavel.nome.split(' ').map(p=>p[0]).slice(0,2).join('')}</div>
+      <div>
+        <div class="name">${escHtml(o.responsavel.nome)}</div>
+        <div class="role">${escHtml(o.responsavel.cargo)}</div>
+      </div>
+    </div>
+    <div class="status-line"><span style="color:var(--red)">●</span> Deslocamento da equipe em andamento</div>
+    <label style="display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Voluntários mobilizados nas proximidades</label>
+    <div class="people-list">
+      ${vols.map(v=>`
+        <div class="person">
+          <div class="avatar small">${v.nome.split(' ').map(p=>p[0]).slice(0,2).join('')}</div>
+          <div><div class="p-name">${escHtml(v.nome)}</div><div class="p-help">${escHtml(v.ajuda)}</div></div>
+          <div class="p-dist">~${Math.floor(rnd(150,900))}m</div>
+        </div>`).join('') || '<div style="color:var(--muted);font-size:12px">Nenhum voluntário cadastrado nesta área ainda.</div>'}
+    </div>
+    ${o.status==='ativa' ? `<button class="wa-cta" id="resolve-btn" style="cursor:pointer;width:100%;border:1px solid rgba(46,207,120,.4)">✓ Marcar ocorrência como resolvida (WhatsApp confirmado pela equipe)</button>` :
+      `<div class="wa-cta">✓ Resolvida em ${o.tempoReal} min — equipe reconhecida pela Prefeitura</div>`}
+  `;
+  panel.classList.add('open');
+
+  if(o.status==='ativa'){
+    document.getElementById('resolve-btn').onclick = ()=>{
+      o.status='resolvida';
+      o.tempoReal = minutosDesde(o.reportadoEm);
+      resolvidasCount++;
+      tempoSomaResolucao += o.tempoReal;
+      o.voluntariosProx.forEach(id=>{ const v=voluntarios.find(x=>x.id===id); if(v){ v.ativo=false; refreshVolMarker(v); } });
+      ocLayer.removeLayer(o.marker);
+      showReco(o);
+      updateKpis();
+      closePanel();
+    };
+  }
+}
+
+function openBairro(b){
+  const panel = document.getElementById('panel');
+  const title = document.getElementById('panel-title');
+  const body = document.getElementById('panel-body');
+  title.textContent = "Bairro";
+
+  const ativasAqui = ocorrencias.filter(o=>o.bairro===b.nome && o.status==='ativa').length;
+  const resolvidasAqui = ocorrencias.filter(o=>o.bairro===b.nome && o.status==='resolvida').length;
+  const volsAqui = voluntarios.filter(v=>v.bairro===b.nome);
+  const ativosAqui = volsAqui.filter(v=>v.ativo).length;
+
+  body.innerHTML = `
+    <div class="bairro-head">${escHtml(b.nome)}</div>
+    <div class="bairro-sub">Zona de cobertura · Maringá-PR</div>
+    <div class="kpi-row">
+      <div class="kpi"><b style="color:var(--red)">${ativasAqui}</b><span>Ocorr. ativas</span></div>
+      <div class="kpi"><b style="color:var(--green)">${resolvidasAqui}</b><span>Resolvidas</span></div>
+      <div class="kpi"><b style="color:var(--blue)">${volsAqui.length}</b><span>Voluntários</span></div>
+    </div>
+    <div class="field"><label>Voluntários mobilizados agora</label><div class="val mono">${ativosAqui} de ${volsAqui.length}</div></div>
+    <label style="display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 8px">Cadastrados no bairro</label>
+    <div class="people-list">
+      ${volsAqui.slice(0,8).map(v=>`
+        <div class="person">
+          <div class="avatar small" style="background:${v.ativo?'var(--blue)':'rgba(59,130,180,0.35)'}">${v.nome.split(' ').map(p=>p[0]).slice(0,2).join('')}</div>
+          <div><div class="p-name">${escHtml(v.nome)}</div><div class="p-help">${escHtml(v.ajuda)}</div></div>
+          <div class="p-dist" style="color:${v.ativo?'var(--green)':'var(--muted)'}">${v.ativo?'em ação':'disponível'}</div>
+        </div>`).join('')}
+    </div>
+  `;
+  panel.classList.add('open');
+}
+
+function closePanel(){ document.getElementById('panel').classList.remove('open'); }
+document.getElementById('panel-close').onclick = closePanel;
+
+function showReco(o){
+  const banner = document.getElementById('reco-banner');
+  banner.textContent = `🏅 Reconhecimento oficial: equipe de ${o.bairro} resolveu em ${o.tempoReal} min — ato da Prefeitura em preparação`;
+  banner.classList.add('show');
+  setTimeout(()=>banner.classList.remove('show'), 5200);
+}
+
+/* ---------- filtros ---------- */
+const filterDefs = ["Todos", ...bairros.map(b=>b.nome)];
+const filtersEl = document.getElementById('filters');
+filterDefs.forEach(f=>{
+  const chip = document.createElement('div');
+  chip.className = 'chip' + (f==="Todos" ? ' active' : '');
+  chip.textContent = f;
+  chip.onclick = ()=>{
+    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    if(f==="Todos"){ map.setView(MARINGA_CENTER, 13); }
+    else { const b = bairros.find(x=>x.nome===f); if(b) map.setView(b.center, 15); }
+  };
+  filtersEl.appendChild(chip);
+});
+
+/* ---------- cadastro simulado via whatsapp ---------- */
+document.getElementById('fab-cadastro').onclick = ()=>{
+  const b = pick(bairros);
+  const pos = randPointInBox(b.poly);
+  const nome = pick(nomesVol);
+  const ajuda = pick(tiposAjuda);
+  const v = { id:"v"+(idCounter++), nome, ajuda, bairro:b.nome, pos, ativo:false };
+  v.marker = L.marker(pos, { icon: volIcon(false) }).addTo(volLayer);
+  voluntarios.push(v);
+  const banner = document.getElementById('reco-banner');
+  banner.textContent = `📲 WhatsApp (44) 99XXX-XXXX: "${nome}" cadastrado em ${b.nome} — pode ajudar com ${ajuda}`;
+  banner.classList.add('show');
+  setTimeout(()=>banner.classList.remove('show'), 4800);
+  updateKpis();
+};
+
+/* ---------- geração periódica de novas ocorrências ---------- */
+setInterval(()=>{
+  if(ocorrencias.filter(o=>o.status==='ativa').length < 14 && Math.random()<0.6){
+    gerarOcorrencia();
+    updateKpis();
+  }
+}, 7000);
+
+function updateKpis(){
+  const ativas = ocorrencias.filter(o=>o.status==='ativa').length;
+  document.getElementById('kpi-ativas').textContent = ativas;
+  document.getElementById('kpi-resolvidas').textContent = resolvidasCount;
+  document.getElementById('kpi-voluntarios').textContent = voluntarios.length;
+  document.getElementById('kpi-tempo').textContent = resolvidasCount>0 ? Math.round(tempoSomaResolucao/resolvidasCount)+"min" : "—";
+}
+
+const eventStart = Date.now() - (4*60+12)*60000;
+function tickClock(){
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('clock').textContent = `03/11/2026 · ${h}:${m}`;
+  const diffMin = Math.floor((Date.now()-eventStart)/60000);
+  const hh = Math.floor(diffMin/60), mm = diffMin%60;
+  document.getElementById('evento-label').textContent = `CICLONE EXTRATROPICAL · 03/11/2026 · T+${hh}h${String(mm).padStart(2,'0')}min`;
+}
+setInterval(tickClock, 30000);
+
+updateKpis();
+tickClock();
+
+})();
+</script>
+</body>
+</html>
