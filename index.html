@@ -329,7 +329,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   .floatwin{width:85vw;right:8px}
 }
 </style>
-<link rel="stylesheet" href="prototipo.css?v=evento-4">
+<link rel="stylesheet" href="prototipo.css?v=evento-5">
 <link rel="stylesheet" href="sessao.css?v=sessoes-2">
 <link rel="stylesheet" href="mapa-navegacao.css?v=mapa-2">
 <link rel="stylesheet" href="gestao/acoes-cabecalho.css?v=acoes-2">
@@ -407,7 +407,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
             <div class="fw-title"><span class="grip" aria-hidden="true">⠿</span> Colaboradores</div>
             <div style="display:flex;align-items:center;gap:8px">
               <span class="fw-count" id="fw-count">0</span>
-              <button class="floatwin-min" id="floatwin-min" aria-controls="floatwin-body" aria-expanded="true">Recolher</button>
+              <button class="floatwin-min" id="floatwin-min" aria-controls="floatwin-body" aria-expanded="true" aria-label="Recolher colaboradores" title="Recolher colaboradores">_</button>
             </div>
           </div>
           <div class="floatwin-body" id="floatwin-body"></div>
@@ -545,7 +545,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
       <label class="wa-person" for="wa-demo-pessoa">Testar a conversa como<select id="wa-demo-pessoa"></select></label>
       <div class="wa-demo-messages" id="wa-demo-messages" aria-live="polite"></div>
       <div class="wa-demo-footer">
-        <div class="flow-actions"><button class="admin-btn primary" id="wa-cheguei">📍 Cheguei</button><button class="admin-btn primary" id="wa-terminei">✓ Terminei</button></div>
+        <div class="flow-actions"><button class="admin-btn" id="wa-localizacao" type="button">Ativar localização</button><button class="admin-btn primary" id="wa-cheguei">📍 Cheguei</button><button class="admin-btn primary" id="wa-terminei">✓ Terminei</button></div>
         <div class="wa-demo-status" id="wa-demo-status" role="status"></div>
         <div class="wa-demo-input"><input id="wa-demo-input" aria-label="Mensagem de demonstração" autocomplete="off" placeholder="Escreva Cheguei ou Terminei"><button class="admin-btn" id="wa-demo-send">Enviar</button></div>
         <button class="admin-btn wa-demo-next" id="wa-demo-next" hidden>Ver outro convite</button>
@@ -844,8 +844,8 @@ function rebuildHeat(){
   heatLayer.setLatLngs(pontos);
 }
 
-function volIcon(){
-  return L.divIcon({className:'',html:'<div class="vol-dot"></div>',iconSize:[9,9]});
+function volIcon(aoVivo=false){
+  return L.divIcon({className:'',html:`<div class="vol-dot${aoVivo?' vol-live':''}"></div>`,iconSize:[9,9]});
 }
 function ocIcon(status){
   const color = STATUS_COLOR[status] || STATUS_COLOR.ativa;
@@ -1055,6 +1055,38 @@ function renderOfficialMarkers(){
   });
 }
 
+const localizacoes=new Map();
+const VALIDADE_GPS_MS=90000;
+const RAIO_CHECK_IN_M=150;
+function posicaoAtual(id){
+  const atual=localizacoes.get(id);
+  return atual?.pos && Date.now()-atual.ts<=VALIDADE_GPS_MS ? atual : null;
+}
+function atualizarPontoAoVivo(id){
+  const voluntario=voluntarios.find(v=>v.id===id);
+  if(!voluntario?.marker)return;
+  const atual=posicaoAtual(id);
+  voluntario.marker.setLatLng(atual?.pos||voluntario.pos);
+  voluntario.marker.setIcon(volIcon(!!atual));
+}
+function pararLocalizacao(id){
+  const atual=localizacoes.get(id);
+  if(!atual)return;
+  navigator.geolocation.clearWatch(atual.watch);
+  clearTimeout(atual.expiracao);
+  localizacoes.delete(id);
+  atualizarPontoAoVivo(id);
+}
+function checkInValido(o,id){
+  const atual=posicaoAtual(id);
+  return atual?.ocorrenciaId===o.id && Number.isFinite(atual.precisao)
+    && map.distance(atual.pos,o.pos)+atual.precisao<=RAIO_CHECK_IN_M;
+}
+function colaboradorAtivo(id){
+  const atual=posicaoAtual(id);
+  const ocorrencia=atual&&ocorrencias.find(o=>o.id===atual.ocorrenciaId);
+  return !!ocorrencia?.participacoes?.some(p=>p.voluntarioId===id&&p.status==='no_local'&&p.checkInGPS);
+}
 function renderCollaborators(){
   const body=document.getElementById('floatwin-body');
   const pessoas=pessoasPainel();
@@ -1072,7 +1104,7 @@ function renderCollaborators(){
       </button>
       ${aberto?`<div class="person-details">
         <div>${escHtml([p.cargo,p.orgao,p.sub,p.bairroOrigem].filter(Boolean).join(' · '))}</div>
-        <div>${p.pos?'Ponto de demonstração · posição fixa':'Localização indisponível'}</div>
+        <div>${posicaoAtual(p.id)?'Localização ao vivo · '+new Date(posicaoAtual(p.id).ts).toLocaleTimeString('pt-BR'):p.pos?'Ponto de demonstração · posição fixa':'Localização indisponível'}</div>
         <div class="person-actions">
           <button type="button" class="admin-btn" data-chat="${escHtml(p.id)}"${isViewOnly()?' disabled':''}>Chat</button>
           ${contato&&!isViewOnly()?`<a class="admin-btn" href="${escHtml(contato)}">Contatar</a>`:'<button class="admin-btn" disabled>Contatar</button>'}
@@ -1102,8 +1134,10 @@ function renderCollaborators(){
   body.innerHTML=[...grupos.values()].map(grupo=>{
     const oficiais=grupo.pessoas.filter(p=>p.oficial).sort((a,b)=>ordem(a)-ordem(b));
     const colaboradores=grupo.pessoas.filter(p=>!p.oficial);
+    const ativos=colaboradores.filter(p=>colaboradorAtivo(p.id)).length;
+    const percentual=colaboradores.length?Math.round(100*ativos/colaboradores.length):0;
     return `<section class="person-territory">
-      <h4>${escHtml(grupo.nome)}</h4>
+      <h4>${escHtml(grupo.nome)} <span class="equipe-kpis">Colab: ${colaboradores.length} · Act: ${ativos} · ${percentual}%</span></h4>
       <h3 class="person-section">Responsáveis da equipe</h3>
       ${oficiais.map(item).join('')||'<p>Nenhum responsável cadastrado.</p>'}
       <h3 class="person-section">Colaboradores · ${colaboradores.length}</h3>
@@ -1159,7 +1193,11 @@ barraColaboradores.addEventListener('lostpointercapture',()=>{
 new ResizeObserver(ajustarJanelaColaboradores).observe(areaMapa);
 document.getElementById('floatwin-min').onclick=e=>{
   const recolhido=janelaColaboradores.classList.toggle('minimized');
-  e.currentTarget.textContent=recolhido?'Abrir colaboradores':'Recolher';
+  document.getElementById('floatwin-body').hidden=recolhido;
+  e.currentTarget.textContent=recolhido?'+':'_';
+  const rotulo=recolhido?'Abrir colaboradores':'Recolher colaboradores';
+  e.currentTarget.title=rotulo;
+  e.currentTarget.setAttribute('aria-label',rotulo);
   e.currentTarget.setAttribute('aria-expanded',String(!recolhido));
   ajustarJanelaColaboradores();
 };
@@ -2353,11 +2391,62 @@ function renderWhatsapp(){
   document.getElementById('wa-cheguei').disabled=chegou||terminou||pessoa.status==='recusada'||o.status==='resolvida';
   document.getElementById('wa-terminei').disabled=!chegou;
   document.getElementById('wa-demo-status').textContent=terminou?'Obrigado! Sua participação terminou.':chegou?'Presença registrada. Quando terminar, avise por aqui.':'Confirme ao chegar. O responsável da região já foi avisado.';
+  const gps=document.getElementById('wa-localizacao');
+  const individual=voluntarios.some(v=>v.id===pessoa.id);
+  const compartilhando=localizacoes.get(pessoa.id)?.ocorrenciaId===o.id;
+  gps.hidden=!individual||terminou||pessoa.status==='recusada'||o.status==='resolvida';
+  gps.textContent=compartilhando?'Parar localização':'Ativar localização';
+  gps.setAttribute('aria-pressed',String(compartilhando));
+  gps.onclick=()=>{
+    if(compartilhando){
+      pararLocalizacao(pessoa.id);
+      renderCollaborators();renderWhatsapp();
+    }else iniciarLocalizacao(o,pessoa.id);
+  };
+  if(individual&&!chegou&&!terminou&&pessoa.status!=='recusada'&&o.status!=='resolvida'){
+    document.getElementById('wa-cheguei').disabled=!checkInValido(o,pessoa.id);
+    const atual=posicaoAtual(pessoa.id);
+    document.getElementById('wa-demo-status').textContent=checkInValido(o,pessoa.id)
+      ? 'Localização confirmada no local. Toque em Cheguei.'
+      : !compartilhando?'Ative a localização deste dispositivo para fazer o check-in.'
+      : !atual?'Aguardando um sinal de localização recente.'
+      : `Check-in indisponível. Distância aproximada: ${Math.round(map.distance(atual.pos,o.pos))} m. Aproxime-se do ponto da ocorrência e aguarde uma posição precisa.`;
+  }
   const proxima=ocorrencias.find(x=>x.id!==o.id && (x.participacoes||[]).some(p=>p.voluntarioId===pessoa.id&&p.status==='convidado'));
   const proximoBtn=document.getElementById('wa-demo-next');
   proximoBtn.hidden=!terminou||!proxima;
   if(proxima){proximoBtn.textContent=`Ver outro convite · ${proxima.bairro}`;proximoBtn.onclick=()=>abrirWhatsapp(proxima,pessoa.id);}
   document.getElementById('wa-demo-input').placeholder='Escreva Cheguei ou Terminei';
+}
+
+function iniciarLocalizacao(o,id){
+  if(!navigator.geolocation){
+    document.getElementById('wa-demo-status').textContent='Localização indisponível neste dispositivo.';
+    return;
+  }
+  localizacoes.forEach((_,pessoaId)=>pararLocalizacao(pessoaId));
+  const sessao={ocorrenciaId:o.id};
+  localizacoes.set(id,sessao);
+  const atualizar=()=>{
+    atualizarPontoAoVivo(id);
+    renderCollaborators();
+    if(whatsappContexto?.pessoaId===id && whatsappContexto.ocorrenciaId===o.id) renderWhatsapp();
+  };
+  sessao.watch=navigator.geolocation.watchPosition(({coords,timestamp})=>{
+    if(localizacoes.get(id)!==sessao)return;
+    Object.assign(sessao,{pos:[coords.latitude,coords.longitude],precisao:coords.accuracy,ts:timestamp});
+    clearTimeout(sessao.expiracao);
+    sessao.expiracao=setTimeout(atualizar,Math.max(1,timestamp+VALIDADE_GPS_MS-Date.now()+1));
+    atualizar();
+  },erro=>{
+    if(localizacoes.get(id)!==sessao)return;
+    pararLocalizacao(id);
+    atualizar();
+    if(whatsappContexto?.pessoaId===id && whatsappContexto.ocorrenciaId===o.id){
+      document.getElementById('wa-demo-status').textContent=erro.code===1?'Permissão de localização negada.':'Sinal de localização indisponível. Tente novamente.';
+    }
+  },{enableHighAccuracy:true,maximumAge:0,timeout:20000});
+  renderWhatsapp();
 }
 
 function confirmarWhatsApp(acao){
@@ -2385,10 +2474,18 @@ function confirmarWhatsApp(acao){
   }else{
     const antes=(o.participacoes||[]).find(p=>p.voluntarioId===id)?.status;
     if(acao==='cheguei'&&antes!=='convidado')return;
+    if(acao==='cheguei'&&!checkInValido(o,id)){
+      document.getElementById('wa-demo-status').textContent='O check-in exige localização ativa e posição confirmada no local.';
+      return;
+    }
     if(acao==='terminei'&&antes!=='no_local')return;
     resultado=acao==='cheguei'?AlertaFluxo.chegar(o,id,Date.now()):AlertaFluxo.terminar(o,id,Date.now());
   }
   if(!resultado.ok){document.getElementById('wa-demo-status').textContent=resultado.motivo||'Esta confirmação já foi registrada.';return;}
+  if(!equipe){
+    if(acao==='cheguei') o.participacoes.find(p=>p.voluntarioId===id).checkInGPS=true;
+    else pararLocalizacao(id);
+  }
   enviarMensagemDemo(id,acao==='cheguei'?'Cheguei':'Terminei',o,acao,true);
   enviarMensagemDemo(id,acao==='cheguei'?'Chegada registrada. Obrigado por ajudar.':'Obrigado pela ajuda! Sua participação foi encerrada.',o,'resposta');
   registrarEtapa(o,acao,`${pessoa.nome}: ${acao==='cheguei'?'chegada confirmada':'ajuda concluída'}`);
@@ -2534,6 +2631,7 @@ function iniciarControlesDemo(){
   });
   atualizarControlesDemo();
   window.addEventListener('beforeunload',salvarPrototipo);
+  window.addEventListener('pagehide',()=>localizacoes.forEach((_,id)=>pararLocalizacao(id)));
   setInterval(salvarPrototipo,5000);
 }
 
