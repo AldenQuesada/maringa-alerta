@@ -13,44 +13,47 @@ function linkMapa(nome,tipo){
 function linkEvento(nome){return "../index.html?bairro="+encodeURIComponent(nome);}
 function bairrosUI(){
  const panel=document.querySelector("#geo-content")||document.querySelector("#page .pref-tab-body")||$("page");
- panel?.querySelector("#catalogo-oficial-bairros")?.remove();
- if(DB().municipioAtivo()?.id!=="maringa"){
-  if(panel)panel.insertAdjacentHTML("beforeend",'<section class="mi-official-catalog"><div class="mi-official-head"><div><h2>Bairros municipais</h2><p>O catálogo local de 113 bairros IBGE pertence exclusivamente a Maringá. Os bairros deste município devem ser implantados pelo Admin Geral a partir da cartografia correspondente.</p></div><span class="mi-official-badge">Ainda não importados</span></div></section>');
-  return;
- }
- if(!panel||!globalThis.MaringaBairros)return;
+ if(panel)panel.innerHTML="";
+ if(!panel)return;
+ const isMaringa=DB().municipioAtivo()?.id==="maringa";
  const id=++token;
  const div=document.createElement("section");div.id="catalogo-oficial-bairros";div.className="mi-official-catalog";
- div.innerHTML='<div class="mi-official-head"><div><h2>Bairros cartografados · fonte pública</h2><p>Inventário exibido diretamente da malha territorial, sem necessidade de cadastro manual. Bairros não são zonas operacionais da Defesa Civil.</p></div><span class="mi-official-badge">Consultando base...</span></div><div class="mi-official-body" role="status">Carregando geometrias...</div>';
+ div.innerHTML='<div class="mi-official-head"><div><h2>Bairros e zonas</h2><p>Cadastros do município e, quando disponível, bairros da base territorial pública.</p></div><span class="mi-official-badge">Consultando base...</span></div><div class="mi-official-body" role="status">Carregando geometrias...</div>';
  panel.appendChild(div);
- MaringaBairros.carregar().then(data=>{
+ const localOnly={bairros:{features:[],count:0,kind:"local",source:"Cadastro local"}};
+ const carregamento=isMaringa&&globalThis.MaringaBairros?MaringaBairros.carregar().catch(()=>localOnly):Promise.resolve(localOnly);
+ carregamento.then(data=>{
   if(id!==token||!div.isConnected)return;
-  const layer=data.bairros,normal=x=>String(x||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().trim();
+  const layer=data.bairros,normal=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
   const registros=DB().lista("bairros"),cadastrados=new Map(registros.map(x=>[normal(x.nome),x]));
   const inventario=new Map();
   layer.features.forEach(f=>{const p=f.properties||{},key=normal(p.nome);if(key)inventario.set(key,{...p,...(cadastrados.get(key)||{})});});
   registros.forEach(x=>{const key=normal(x.nome);if(key&&!inventario.has(key))inventario.set(key,{...x});});
-  const sorted=[...inventario.values()].sort((a,b)=>String(a.nome).localeCompare(String(b.nome),"pt-BR"));
+  const sorted=[...inventario.values()].map(x=>({...x,territorioTipo:"bairros"}));
+  DB().lista("zonas").forEach(x=>sorted.push({...x,territorioTipo:"zonas"}));
+  sorted.sort((a,b)=>String(a.nome).localeCompare(String(b.nome),"pt-BR"));
   const status=div.querySelector(".mi-official-badge");
-  status.textContent=layer.count+" polígonos · "+(layer.kind==="municipal"?"GeoMaringá":layer.kind==="ibge2022"?"IBGE 2022":"Paraná Interativo");
+  status.textContent=layer.kind==="local"?"Cadastro local":layer.count+" polígonos · "+(layer.kind==="municipal"?"GeoMaringá":layer.kind==="ibge2022"?"IBGE 2022":"Paraná Interativo");
   div.querySelector(".mi-official-body").innerHTML=
-   '<div class="mi-official-actions"><input id="mi-official-search" type="search" placeholder="Buscar bairro por nome ou código" aria-label="Buscar bairros oficiais">'+
+   '<div class="mi-official-actions"><input id="mi-official-search" type="search" placeholder="Buscar bairro ou zona por nome ou código" aria-label="Buscar bairros ou zonas">'+
    '<button id="mi-official-save" type="button">Importar base territorial oficial</button></div>'+
-   '<div class="mi-official-scroll"><table><thead><tr><th>Bairro</th><th>Código</th><th>Zona operacional</th><th>Verificação</th><th>Mapa de Evento</th><th>Colaboradores</th><th>Ajuda</th><th>Ações</th></tr></thead>'+
+   '<div class="mi-official-scroll"><table><thead><tr><th>Nome</th><th>Tipo</th><th>Código</th><th>Zona operacional</th><th>Verificação</th><th>Mapa de Evento</th><th>Colaboradores</th><th>Ajuda</th><th>Ações</th></tr></thead>'+
    '<tbody id="mi-official-rows"></tbody></table></div>'+
-   '<p class="mi-official-foot">Fonte: '+esc(layer.source)+'. '+sorted.length+' bairros no inventário. Os dados podem não cobrir alterações territoriais posteriores à fonte. Nenhuma área foi homologada aqui como zona de acionamento.</p>';
+   '<p class="mi-official-foot">Fonte: '+esc(layer.source)+'. '+sorted.filter(x=>x.territorioTipo==="bairros").length+' bairros no inventário. Os dados podem não cobrir alterações territoriais posteriores à fonte. Nenhuma área foi homologada aqui como zona de acionamento.</p>';
   const render=()=>{
    const needle=$("mi-official-search")?.value?.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR")||"";
-   const rows=sorted.filter(p=>(String(p.nome)+" "+String(p.codigo_bairro||p.codigo||"")).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR").includes(needle));
-   $("mi-official-rows").innerHTML=rows.map(p=>'<tr><td><strong>'+esc(p.nome)+'</strong></td><td>'+esc(p.codigo_bairro||p.codigo||"—")+'</td>'+
+   const tipo=$("geo-type")?.value||"todos";
+   const rows=sorted.filter(p=>(tipo==="todos"||tipo===p.territorioTipo)&&(String(p.nome)+" "+String(p.codigo_bairro||p.codigo||"")).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR").includes(needle));
+   $("mi-official-rows").innerHTML=rows.map(p=>'<tr><td><strong>'+esc(p.nome)+'</strong></td><td>'+ (p.territorioTipo==='zonas'?'Zona':'Bairro') +'</td><td>'+esc(p.codigo_bairro||p.codigo||"—")+'</td>'+
     '<td>'+esc(p.zona||"Não vinculada")+'</td><td>'+esc(p.verificacao||"Fonte pública · não validado")+'</td>'+
-    '<td><a href="'+esc(linkEvento(p.nome))+'" target="_blank" rel="noopener">Localizar ↗</a></td>'+
-    '<td><a href="'+esc(linkMapa(p.nome,"colaboradores"))+'" target="_blank" rel="noopener">Localizar ↗</a></td>'+
-    '<td><a href="'+esc(linkMapa(p.nome,"ajuda"))+'" target="_blank" rel="noopener">Localizar ↗</a></td>'+
-    '<td>'+(p.id?'<button type="button" data-edit="'+esc(p.id)+'">Editar</button>':'<span>Não importado</span>')+'</td></tr>').join("")||
-    '<tr><td colspan="8">Nenhum bairro corresponde à busca.</td></tr>';
+    '<td><a href="'+esc(linkEvento(p.nome))+'" target="_blank" rel="noopener">Localizar</a></td>'+
+    '<td><a href="'+esc(linkMapa(p.nome,"colaboradores"))+'" target="_blank" rel="noopener">Localizar</a></td>'+
+    '<td><a href="'+esc(linkMapa(p.nome,"ajuda"))+'" target="_blank" rel="noopener">Localizar</a></td>'+
+    '<td>'+(p.id?'<button type="button" data-geo-edit="'+esc(p.id)+'" data-geo-module="'+esc(p.territorioTipo)+'">Editar</button>':'<span>Não importado</span>')+'</td></tr>').join("")||
+    '<tr><td colspan="9">Nenhum território corresponde à busca.</td></tr>';
   };
   render();$("mi-official-search").oninput=render;
+  $("mi-official-save").hidden=layer.kind==="local";
   $("mi-official-save").onclick=()=>{
    const db=DB();
    if(db.municipioAtivo()?.id!=="maringa"){alert("Selecione Maringá.");return;}
@@ -87,8 +90,8 @@ function zonasUI(){
 }
 function run(){
  const hash=decodeURIComponent(location.hash.slice(1)||"");
- if(hash==="bairros"||(hash==="geoterritorialidade"&&$("geo-type")?.value==="bairros"))bairrosUI();
- else if(hash==="zonas")zonasUI();
+ if(hash==="bairros"||hash==="zonas"||hash==="geoterritorialidade")bairrosUI();
+
  else token++;
 }
 globalThis.addEventListener("hashchange",()=>setTimeout(run,0));

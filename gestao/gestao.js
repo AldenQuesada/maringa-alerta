@@ -36,7 +36,7 @@ const ICONS={
 };
 const icon=(id,css="")=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="'+css+'" aria-hidden="true">'+(ICONS[id]||ICONS.list)+'</svg>';
 const icons={territorio:"layers",implantacao:"pin",bairros:"layers",pessoas:"users",solicitacoes:"list",mobilizacoes:"bell",apoios:"building",inicio:"dashboard",prefeituras:"building",zonas:"layers",bases:"pin",riscos:"shield",administradores:"shield",responsaveis:"user",substitutos:"user",coordenadores:"users",operadores:"user",equipes:"wrench",integrantes:"users",voluntarios:"users",saude:"hospital",emergencias:"siren",parceiros:"building",veiculos:"truck",equipamentos:"wrench",estoques:"box",abrigos:"hospital",pontos:"pin",ocorrencias:"list",canais:"bell",regras:"shield"};
-let atual="inicio",pesquisa="",edicao=null,ultimoFoco=null,toastTimer=null,geoTipo="bairros",drawerModulo=null;
+let atual="inicio",pesquisa="",edicao=null,ultimoFoco=null,toastTimer=null,geoTipo="todos",drawerModulo=null;
 const cidadesPorUf=new Map();
 const municipio=db.municipioAtivo();
 function renderMunicipios(){
@@ -150,23 +150,15 @@ function renderEstruturas(){
  }).join("");
 }
 function renderGeoterritorialidade(){
- const tipo=geoTipo;
- PAGE.innerHTML=topo("Geoterritorialidade","Cadastro territorial único. Escolha Bairro ou Zona Operacional e gerencie os registros na mesma área.")+
+ PAGE.innerHTML=topo("Geoterritorialidade","Bairros e zonas reunidos em uma única tabela territorial.")+
  '<section class="section-card geo-workspace"><div class="section-card-body">'+
- '<div class="geo-controls"><label for="geo-type">Tipo de território<select id="geo-type"><option value="bairros"'+(tipo==="bairros"?" selected":"")+'>Bairro</option><option value="zonas"'+(tipo==="zonas"?" selected":"")+'>Zona operacional</option></select></label>'+
- '<button type="button" class="btn btn-primary" data-geo-new>+ Novo cadastro</button></div>'+
+ '<div class="geo-controls"><label for="geo-type">Exibir<select id="geo-type"><option value="todos">Todos</option><option value="bairros">Bairros</option><option value="zonas">Zonas</option></select></label><div class="geo-new-actions">'+
+ '<button type="button" class="btn btn-primary" data-geo-new="bairros">+ Novo bairro</button> '+
+ '<button type="button" class="btn btn-primary" data-geo-new="zonas">+ Nova zona</button></div></div>'+
  '<div id="geo-content" class="geo-content"></div></div></section>';
- $("geo-type").onchange=e=>{geoTipo=e.target.value;renderGeoterritorialidade();renderPrefTabs();};
- if(tipo==="bairros"){
-  const target=$("geo-content");
-  target.innerHTML='<p class="pref-note">Carregando inventário territorial...</p>';
-  window.dispatchEvent(new Event("gestao:geo-render"));
- }else{
-  const records=db.lista("zonas"),target=$("geo-content");
-  target.innerHTML='<div class="geo-list"><table><thead><tr><th>Zona operacional</th><th>Tipo</th><th>Responsável</th><th>Verificação</th><th>Ações</th></tr></thead><tbody>'+
-   (records.length?records.map(x=>'<tr><td><strong>'+esc(x.nome)+'</strong></td><td>'+esc(x.tipo||"—")+'</td><td>'+esc(x.responsavel||"Não atribuído")+'</td><td>'+esc(x.verificacao||"Pendente")+'</td><td><button class="row-action" data-geo-edit="'+esc(x.id)+'">Editar</button> <button class="row-action danger" data-geo-delete="'+esc(x.id)+'">Excluir</button></td></tr>').join(""):'<tr><td colspan="5">Nenhuma zona operacional cadastrada.</td></tr>')+
-   '</tbody></table></div>';
- }
+ $("geo-type").value=geoTipo;
+ $("geo-type").onchange=e=>{geoTipo=e.target.value;window.dispatchEvent(new Event("gestao:geo-render"));};
+ window.dispatchEvent(new Event("gestao:geo-render"));
 }
 function renderModulo(){
  const d=D.ESQUEMAS[atual];
@@ -337,8 +329,8 @@ PAGE.addEventListener("click",e=>{
  const novo=e.target.closest("[data-new]"),edit=e.target.closest("[data-edit]"),del=e.target.closest("[data-delete]");
  if(atual==="geoterritorialidade"){
   const add=e.target.closest("[data-geo-new]"),geoEdit=e.target.closest("[data-geo-edit]"),geoDel=e.target.closest("[data-geo-delete]");
-  if(add){abrirDrawer(null,geoTipo);return;}
-  if(geoEdit){abrirDrawer(geoEdit.dataset.geoEdit,geoTipo);return;}
+  if(add){abrirDrawer(null,add.dataset.geoNew);return;}
+  if(geoEdit){abrirDrawer(geoEdit.dataset.geoEdit,geoEdit.dataset.geoModule||geoTipo);return;}
   if(geoDel){
    const id=geoDel.dataset.geoDelete;
    const record=db.registro(geoTipo,id);
@@ -347,7 +339,7 @@ PAGE.addEventListener("click",e=>{
    }
    return;
   }
-  if(edit&&geoTipo==="bairros"){abrirDrawer(edit.dataset.edit,"bairros");return;}
+  if(edit){abrirDrawer(edit.dataset.edit,"bairros");return;}
  }
  if(novo){e.preventDefault();if(atual==="inicio")location.hash="#"+novo.dataset.new;else abrirDrawer();return;}
  if(edit){abrirDrawer(edit.dataset.edit);return;}
