@@ -142,7 +142,7 @@ function identificar(){
  form.onsubmit=e=>{
   e.preventDefault();
   const number=input.value.trim();
-  const pessoa=app.encontrarPessoa(number)||app.pedidos().find(x=>MaringaCrise.mesmoTelefone(x.telefone,number));
+  const pessoa=app.encontrarIdentidade(number);
   if(!pessoa){bot("Não encontrei um cadastro com esse número neste navegador. Você pode fazer um novo registro.");identity=null;startMenu();return;}
   identity={nome:pessoa.nome,tipo_pessoa:pessoa.tipo_pessoa,endereco:pessoa.endereco,telefone:pessoa.telefone,zona:pessoa.zona};
   bot("Encontrei o cadastro de "+identity.nome+". Você pode iniciar outro fluxo sem repetir seus dados básicos.");
