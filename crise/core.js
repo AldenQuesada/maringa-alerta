@@ -108,9 +108,9 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
  function registrarColaborador(dados){
   validarBase(dados);
   const existente=encontrarPessoa(dados.telefone);
-  const campos={nome:String(dados.nome).trim(),tipo_pessoa:dados.tipo_pessoa,
+  const campos={...(existente||{}),nome:String(dados.nome).trim(),tipo_pessoa:dados.tipo_pessoa,
     endereco:String(dados.endereco).trim(),telefone:String(dados.telefone).trim(),
-    zona:String(dados.zona||"").trim(),
+    zona:String(dados.zona||existente?.zona||"").trim(),bairro:String(dados.bairro||existente?.bairro||"").trim(),
     ajudas:array(dados.ajudas),maquinas:array(dados.maquinas),empreendedores:array(dados.empreendedores),
     materiais:array(dados.materiais),outros:String(dados.outros||"").trim(),
     contribuicao:String(dados.contribuicao||"").trim(),disponibilidade:dados.disponibilidade||"Disponível"};
