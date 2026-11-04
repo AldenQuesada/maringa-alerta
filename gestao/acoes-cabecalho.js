@@ -7,6 +7,7 @@
 const $=id=>document.getElementById(id);
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const D=global.AlertaGestaoDados;
+const scopedDB=()=>D.criar(undefined,{municipioId:sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa"});
 if(!D||!$("header-actions"))return;
 const TKEY="maringa_alerta_tarefas_gestao_v1_";
 const LKEY="maringa_alerta_alertas_lidos_v1_";
@@ -30,7 +31,7 @@ overlay.className="ma-overlay";overlay.hidden=true;
 overlay.innerHTML='<section class="ma-dialog" role="dialog" aria-modal="true" aria-labelledby="ma-dialog-title"><header class="ma-dialog-head"><div><span class="ma-eyebrow" id="ma-eyebrow">MARINGÁ ALERTA</span><h2 id="ma-dialog-title">Ações</h2></div><button class="ma-close" type="button" aria-label="Fechar painel" id="ma-dialog-close">×</button></header><div class="ma-dialog-body" id="ma-dialog-body"></div></section>';
 document.body.appendChild(overlay);
 let active=null,lastFocus=null,lastMsg="";
-const getPref=()=>D.criar().municipioAtivo();
+const getPref=()=>scopedDB().municipioAtivo();
 const getId=()=>getPref()?.id||"maringa";
 const read=(key,def)=>{try{const x=JSON.parse(global.localStorage.getItem(key)||"null");return x??def;}catch(_){return def;}};
 const put=(key,x)=>{try{global.localStorage.setItem(key,JSON.stringify(x));return true;}catch(_){return false;}};
@@ -38,7 +39,7 @@ const tasks=()=>{const x=read(TKEY+getId(),[]);return Array.isArray(x)?x:[];};
 const taskSave=x=>put(TKEY+getId(),x);
 const safeDate=iso=>{if(!iso)return "";const d=new Date(iso);return Number.isNaN(d.valueOf())?String(iso):d.toLocaleDateString("pt-BR")};
 function alerts(){
- const db=D.criar(),id=db.municipioAtivo()?.id;
+ const db=scopedDB(),id=db.municipioAtivo()?.id;
  const state=db.estado();
  const list=[];
  for(const x of state.solicitacoes||[]){
