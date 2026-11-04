@@ -1,7 +1,7 @@
 /* Conta e sessão no canto superior direito, sem modificar modais da operação. */
 .session-anchor{position:relative;margin-left:auto;order:99;flex:none;font-family:Inter,system-ui,sans-serif;z-index:5}
 .topbar .stats-row{margin-left:0}
-.session-trigger{display:flex;align-items:center;gap:9px;max-width:220px;min-height:40px;padding:5px 10px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);border-radius:10px;cursor:pointer;font:500 12px/1.2 inherit}
+.session-trigger{display:flex;align-items:center;gap:9px;max-width:220px;min-height:40px;padding:5px 10px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);border-radius:10px;cursor:pointer;font:500 12px/1.2 system-ui,sans-serif}
 .session-trigger:hover,.session-trigger[aria-expanded="true"]{border-color:var(--accent)}
 .session-avatar{display:inline-flex;align-items:center;justify-content:center;flex:none;width:30px;height:30px;border-radius:50%;background:#253a52;color:#f4f7fb;font:700 11px system-ui,sans-serif;letter-spacing:.03em}
 .session-trigger-label{display:block;max-width:124px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -42,3 +42,5 @@
 .session-dialog-footer{font-size:11px;line-height:1.5;color:var(--muted);padding:12px 22px;border-top:1px solid var(--line)}
 @media(max-width:860px){.session-anchor{order:2;margin-left:auto}.topbar .evento{order:3;width:100%}.session-trigger{max-width:160px}.session-trigger-label{max-width:80px}.session-menu{right:0}}
 @media(max-width:440px){.session-dialog-body{padding:16px}.session-dialog-head{padding:15px 16px}.session-dialog-footer{padding:12px 16px}.session-trigger{min-height:40px;padding:4px 7px;max-width:150px}.session-avatar{width:29px;height:29px}}
+
+.tenant-label{display:block;margin:12px 0 5px;color:var(--muted);font:600 11px system-ui,sans-serif}
