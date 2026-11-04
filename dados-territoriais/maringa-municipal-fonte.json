@@ -1,0 +1,16 @@
+{
+  "consulta_em_utc": "2026-11-04T14:55:31.152304+00:00",
+  "camadas": {
+    "bairros-municipais": {
+      "status": "indisponivel",
+      "erro": "<urlopen error timed out>",
+      "source": "https://geoproc.maringa.pr.gov.br/arcgis/rest/services/SIGMARINGA/MAPA_BASE/MapServer/7"
+    },
+    "zonas-cartograficas": {
+      "status": "indisponivel",
+      "erro": "<urlopen error timed out>",
+      "source": "https://geoproc.maringa.pr.gov.br/arcgis/rest/services/SIGMARINGA/MAPA_BASE/MapServer/10"
+    }
+  },
+  "nota": "Zonas de uso/censo/cartografia não são zonas operacionais homologadas pela Defesa Civil."
+}

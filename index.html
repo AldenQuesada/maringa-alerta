@@ -333,6 +333,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <link rel="stylesheet" href="prototipo.css?v=sessoes-1">
 <link rel="stylesheet" href="sessao.css?v=sessoes-2">
 <link rel="stylesheet" href="mapa-navegacao.css?v=mapa-2">
+<link rel="stylesheet" href="dados-territoriais/camadas-mapas.css?v=territorio-1">
 </head>
 <body>
 <button id="menu-backdrop" class="menu-backdrop" aria-label="Fechar zonas e menus"></button>
@@ -550,6 +551,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <script src="sessao.js?v=sessoes-1"></script>
 <script src="sessao-ui.js?v=sessoes-2"></script>
 <script src="mapa-navegacao.js?v=mapa-4"></script>
+<script src="dados-territoriais/camadas-mapas.js?v=territorio-1"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <script>
@@ -787,6 +789,12 @@ bairros.forEach(b=>{
   b.polyLayer.bindTooltip(b.nome.toUpperCase(), {permanent:true, direction:'center', className:'bairro-label', opacity:.9});
   b.polyLayer.on('click', ()=>selectZone(b.nome));
 });
+
+// Camada pública de bairros administrativos em paralelo ao mapa operacional.
+// Não altera zonas táticas, roteamento, ocorrências ou despacho do protótipo.
+const camadaBairrosMaringa = tenantId==='maringa'&&window.MaringaBairros
+  ? window.MaringaBairros.iniciar({map,L,simulatedLayers:bairros.map(b=>b.polyLayer)})
+  : null;
 
 const ocLayer = L.layerGroup().addTo(map);
 const volLayer = L.layerGroup().addTo(map);
