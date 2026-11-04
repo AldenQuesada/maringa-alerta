@@ -7,7 +7,7 @@
 const $=id=>document.getElementById(id);
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const D=global.AlertaGestaoDados;
-const scopedDB=()=>D.criar(undefined,{municipioId:sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa"});
+const scopedDB=()=>D.criar(undefined,{municipioId:global.sessionStorage?.getItem("alerta_contexto_municipal_demo_v1")||"maringa"});
 if(!D||!$("header-actions"))return;
 const TKEY="maringa_alerta_tarefas_gestao_v1_";
 const LKEY="maringa_alerta_alertas_lidos_v1_";
