@@ -12,7 +12,8 @@ function linkMapa(nome,tipo){
 }
 function linkEvento(nome){return "../index.html?bairro="+encodeURIComponent(nome);}
 function bairrosUI(){
- const panel=document.querySelector("#page .pref-tab-body")||$("page");
+ const panel=document.querySelector("#geo-content")||document.querySelector("#page .pref-tab-body")||$("page");
+ panel?.querySelector("#catalogo-oficial-bairros")?.remove();
  if(DB().municipioAtivo()?.id!=="maringa"){
   if(panel)panel.insertAdjacentHTML("beforeend",'<section class="mi-official-catalog"><div class="mi-official-head"><div><h2>Bairros municipais</h2><p>O catálogo local de 113 bairros IBGE pertence exclusivamente a Maringá. Os bairros deste município devem ser implantados pelo Admin Geral a partir da cartografia correspondente.</p></div><span class="mi-official-badge">Ainda não importados</span></div></section>');
   return;
@@ -86,11 +87,12 @@ function zonasUI(){
 }
 function run(){
  const hash=decodeURIComponent(location.hash.slice(1)||"");
- if(hash==="bairros")bairrosUI();
+ if(hash==="bairros"||(hash==="geoterritorialidade"&&$("geo-type")?.value==="bairros"))bairrosUI();
  else if(hash==="zonas")zonasUI();
  else token++;
 }
 globalThis.addEventListener("hashchange",()=>setTimeout(run,0));
 globalThis.addEventListener("gestao:bairros-atualizados",()=>setTimeout(run,0));
+globalThis.addEventListener("gestao:geo-render",run);
 run();
 })();
