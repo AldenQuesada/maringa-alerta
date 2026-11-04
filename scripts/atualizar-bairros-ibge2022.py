@@ -26,7 +26,7 @@ def main():
     dbf=next(x for x in files if x.lower()==stem.lower()+".dbf")
     shx=next((x for x in files if x.lower()==stem.lower()+".shx"),None)
     reader=shapefile.Reader(shp=io.BytesIO(archive.read(shp)),
-        dbf=io.BytesIO(archive.read(dbf)),shx=io.BytesIO(archive.read(shx)) if shx else None,encoding="latin1")
+        dbf=io.BytesIO(archive.read(dbf)),shx=io.BytesIO(archive.read(shx)) if shx else None,encoding="utf-8",encodingErrors="replace")
     print("Campos:",[f[0] for f in reader.fields[1:]],flush=True)
     out=[]
     for rec in reader.iterShapeRecords():
