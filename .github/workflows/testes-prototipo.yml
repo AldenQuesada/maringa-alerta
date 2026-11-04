@@ -29,5 +29,7 @@ jobs:
           node --check atendimento/chat.js
           node --check dados-territoriais/camadas-mapas.js
           node --check gestao/catalogo-bairros.js
+          node --check plataforma/modelo.js
+          node --check plataforma/app.js
       - name: Executar testes funcionais
-        run: node --test tests/*.test.cjs gestao/tests/*.test.cjs crise/tests/*.test.cjs
+        run: node --test tests/*.test.cjs gestao/tests/*.test.cjs crise/tests/*.test.cjs plataforma/tests/*.test.cjs
