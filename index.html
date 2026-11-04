@@ -320,6 +320,13 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   #relatorio-overlay .modal-head button{display:none!important}
   #relatorio-overlay .rel-tile,#relatorio-overlay table{background:#fff!important;color:#000!important;border-color:#999!important}
 }
+.acesso-direto{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);font:12px system-ui,sans-serif}
+.acesso-direto label{font-weight:650;color:var(--accent)}
+.acesso-direto select,.acesso-direto button{min-height:34px;max-width:175px;border:1px solid #46566c;border-radius:6px;background:var(--bg);color:var(--fg);font:12px system-ui,sans-serif;padding:6px;cursor:pointer}
+.acesso-direto button{background:var(--accent);color:#101318;border-color:var(--accent);font-weight:700;padding:6px 12px}
+.acesso-direto [hidden]{display:none!important}
+.acesso-direto :is(select,button):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:860px){.topbar .acesso-direto{width:100%;order:3;justify-content:flex-start}.topbar .acesso-direto select{flex:1;min-width:100px;max-width:220px}}
 @media (max-width:860px){
   .sidebar{position:absolute;left:0;top:0;bottom:0;transform:translateX(-100%);transition:transform .2s;box-shadow:0 0 30px rgba(0,0,0,.5)}
   .sidebar.open{transform:translateX(0)}
@@ -330,8 +337,8 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   .floatwin{width:85vw;right:8px}
 }
 </style>
-<link rel="stylesheet" href="prototipo.css">
-<link rel="stylesheet" href="entrada-perfil.css">
+<link rel="stylesheet" href="prototipo.css?v=acesso-direto-1">
+<link rel="stylesheet" href="entrada-perfil.css?v=acesso-direto-1">
 </head>
 <body>
 <button id="menu-backdrop" class="menu-backdrop" aria-label="Fechar zonas e menus"></button>
@@ -369,6 +376,12 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   <div class="right">
     <div class="topbar" id="topbar">
       <button class="menu-mobile" id="mobile-menu" aria-label="Abrir zonas e menus" aria-controls="sidebar" aria-expanded="false">☰</button>
+      <div class="acesso-direto" aria-label="Entrada rápida de demonstração">
+        <label for="perfil-direto">Acesso</label>
+        <select id="perfil-direto" aria-label="Escolher perfil de entrada"><option value="visualizacao">Visualização</option><option value="admin">Administrador</option><option value="responsavel">Responsável regional</option></select>
+        <select id="zona-direta" aria-label="Escolher zona do responsável" hidden></select>
+        <button id="entrar-direto" type="button">Entrar</button>
+      </div>
       <div class="evento" id="evento-label">CICLONE EXTRATROPICAL · 03/11/2026 · T+4h12min</div>
       <div class="zone-strip" id="zone-strip" style="display:none"></div>
       <div class="stats-row">
@@ -572,8 +585,8 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
     </div>
   </section>
 </div>
-<script src="fluxo-ajuda.js"></script>
-<script src="entrada-perfil.js"></script>
+<script src="fluxo-ajuda.js?v=acesso-direto-1"></script>
+<script src="entrada-perfil.js?v=acesso-direto-1"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <script>
@@ -782,7 +795,7 @@ let ocorrencias = [], voluntarios = [], idCounter = 1;
 let activeZone = null; // null = Todos
 let currentRole = null; // controle de acesso simulado; populado logo abaixo, antes do roteamento por hash
 try{ currentRole = JSON.parse(sessionStorage.getItem(storageKey('role')) || 'null'); }catch(e){ currentRole = null; }
-if(!currentRole || !['admin','responsavel','visualizacao'].includes(currentRole.tipo) || (currentRole.tipo==='responsavel'&&!bairros.some(b=>b.nome===currentRole.zona))) currentRole=null;
+if(!currentRole || !['admin','responsavel','visualizacao'].includes(currentRole.tipo) || (currentRole.tipo==='responsavel'&&!bairros.some(b=>b.nome===currentRole.zona))) currentRole={tipo:"visualizacao"};
 let entradaPerfil=null;
 
 /* ---------- mapa ---------- */
@@ -2028,10 +2041,7 @@ function applyRoute(){
   document.getElementById('app-view').hidden = isStatus;
   document.getElementById('status-view').hidden = !isStatus;
   if(isStatus) document.getElementById('status-resultado').innerHTML = '';
-  if(entradaPerfil){
-    if(isStatus)entradaPerfil.fechar();
-    else if(!currentRole)entradaPerfil.abrir(null);
-  }
+  if(entradaPerfil && isStatus) entradaPerfil.fechar();
 }
 window.addEventListener('hashchange', applyRoute);
 applyRoute();
@@ -2137,7 +2147,14 @@ function applyRolePermissions(){
     : 'Modo visualização';
   badge.innerHTML = currentRole ? `<span>👤 ${escHtml(label)}</span><a href="#" id="role-trocar">Trocar perfil</a>` : '';
   const trocar = document.getElementById('role-trocar');
-  if(trocar) trocar.onclick = (e)=>{ e.preventDefault(); entradaPerfil.abrir(currentRole); };
+  if(trocar) trocar.onclick = (e)=>{ e.preventDefault(); if(entradaPerfil) entradaPerfil.abrir(currentRole); else document.getElementById('perfil-direto').focus(); };
+  const rapido=document.getElementById('perfil-direto');
+  if(rapido){
+    rapido.value=currentRole?.tipo || 'visualizacao';
+    const zona=document.getElementById('zona-direta');
+    zona.hidden=rapido.value!=='responsavel';
+    if(currentRole?.zona && [...zona.options].some(o=>o.value===currentRole.zona))zona.value=currentRole.zona;
+  }
 }
 
 function selecionarPerfilDemo(perfil){
@@ -2158,12 +2175,25 @@ function selecionarPerfilDemo(perfil){
 }
 
 document.getElementById('entrada-municipio').textContent=tenantConfig.marca;
-entradaPerfil=AlertaEntrada.criar({
-  overlay:document.getElementById('role-overlay'),
-  zonas:bairros.map(b=>b.nome),
-  onEscolher:selecionarPerfilDemo,
-  onFechar:()=>{if(!currentRole)selecionarPerfilDemo({tipo:'visualizacao'});}
-});
+const zonaDireta=document.getElementById('zona-direta');
+zonaDireta.innerHTML=bairros.map(b=>`<option value="${escHtml(b.nome)}">${escHtml(b.nome)}</option>`).join('');
+const perfilDireto=document.getElementById('perfil-direto');
+perfilDireto.onchange=()=>{zonaDireta.hidden=perfilDireto.value!=='responsavel';};
+document.getElementById('entrar-direto').onclick=()=>{
+  const tipo=perfilDireto.value;
+  if(!['admin','responsavel','visualizacao'].includes(tipo))return;
+  if(tipo==='responsavel'&&!bairros.some(b=>b.nome===zonaDireta.value))return;
+  selecionarPerfilDemo(tipo==='responsavel'?{tipo,zona:zonaDireta.value}:{tipo});
+  entradaPerfil?.fechar();
+};
+if(window.AlertaEntrada){
+  entradaPerfil=AlertaEntrada.criar({
+    overlay:document.getElementById('role-overlay'),
+    zonas:bairros.map(b=>b.nome),
+    onEscolher:selecionarPerfilDemo,
+    onFechar:()=>{}
+  });
+}else document.getElementById('role-overlay').hidden=true;
 applyRolePermissions();
 applyRoute();
 
