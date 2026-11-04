@@ -87,7 +87,7 @@ function tabelaLinhas(){
   tbody.innerHTML='<tr><td colspan="'+(def.columns.length+1)+'"><div class="empty-state">'+icon(icons[atual])+'<h3>'+(pesquisa?"Nenhum resultado":"Nenhum cadastro ainda")+'</h3><p>'+(pesquisa?"Altere os termos da busca.":"Adicione o primeiro registro para começar.")+'</p>'+(pesquisa?"":'<button type="button" class="btn btn-primary" data-new="'+esc(atual)+'">'+icon("plus")+'Novo cadastro</button>')+'</div></td></tr>';
   return;
  }
- tbody.innerHTML=list.map(item=>'<tr>'+def.columns.map(c=>'<td>'+esc(item[c]||"—")+'</td>').join("")+
+ tbody.innerHTML=list.map(item=>'<tr>'+def.columns.map(c=>'<td>'+esc(item[c]===0?0:item[c]||"—")+'</td>').join("")+
  '<td><div class="row-actions"><button class="row-action" type="button" data-edit="'+esc(item.id)+'" title="Editar">Editar</button><button class="row-action danger" type="button" data-delete="'+esc(item.id)+'" title="Excluir">Excluir</button></div></td></tr>').join("");
 }
 function mapaPreview(){
@@ -120,7 +120,7 @@ function renderModulo(){
 }
 function render(){
  const hash=decodeURIComponent(location.hash.replace(/^#/,""))||"inicio";
- const proximo=hash==="inicio"||D.ESQUEMAS[hash]?hash:"inicio";
+ const proximo=hash==="inicio"||Object.hasOwn(D.ESQUEMAS,hash)?hash:"inicio";
  if(proximo!==atual)pesquisa="";
  atual=proximo;
  document.title=(atual==="inicio"?"Gestão":D.ESQUEMAS[atual].label)+" | Maringá Alerta";
@@ -215,7 +215,7 @@ function excluir(id){
  const item=db.registro(atual,id);if(!item)return;
  const label=item.nome||item.identificacao||"este registro";
  if(!confirm('Excluir "'+label+'"?'))return;
- try{db.excluir(atual,id);if(atual==="prefeituras")renderMunicipios();render();toast("Cadastro excluído.");}catch(e){toast(e.message);}
+ try{const anterior=db.municipioAtivo()?.id;db.excluir(atual,id);if(atual==="prefeituras"){renderMunicipios();if(anterior!==db.municipioAtivo()?.id){location.reload();return;}}render();toast("Cadastro excluído.");}catch(e){toast(e.message);}
 }
 FORM.addEventListener("submit",e=>{
  e.preventDefault();const modulo=atual;
@@ -256,6 +256,19 @@ $("toggle-sidebar").onclick=()=>{
 $("sidebar-scrim").onclick=()=>{FRAME.classList.remove("mobile-open");$("toggle-sidebar").setAttribute("aria-expanded","false");};
 window.addEventListener("hashchange",()=>{pesquisa="";render();});
 renderMunicipios();
+const abrirMapa=$("abrir-mapa");
+abrirMapa.addEventListener("click",e=>{
+ if(window.matchMedia("(max-width:850px)").matches)return; // navegador móvel controla a janela
+ e.preventDefault();
+ const largura=Math.max(760,Math.min(1500,screen.availWidth-70));
+ const altura=Math.max(550,Math.min(950,screen.availHeight-70));
+ const esquerda=Math.max(0,Math.round((screen.availWidth-largura)/2));
+ const topo=Math.max(0,Math.round((screen.availHeight-altura)/2));
+ const win=window.open(abrirMapa.href,"MaringaAlertaMapaOperacional",
+  "popup=yes,width="+largura+",height="+altura+",left="+esquerda+",top="+topo);
+ if(win){try{win.opener=null;win.focus();}catch(_){}}
+ else{const fallback=document.createElement("a");fallback.href=abrirMapa.href;fallback.target="_blank";fallback.rel="noopener noreferrer";document.body.appendChild(fallback);fallback.click();fallback.remove();}
+});
 if(globalThis.AlertaSessao&&globalThis.AlertaSessaoUI&&db.municipioAtivo()){
  try{
   const local=AlertaSessao.criar({municipioId:db.municipioAtivo().id});
