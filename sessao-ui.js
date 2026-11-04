@@ -51,7 +51,7 @@
     }
     function abrir(tipo){
       fecharMenu();
-      lastFocus=doc.activeElement;
+      lastFocus=$("session-trigger");
       overlay.hidden=false;
       tela(tipo);
       const primeiro=tipo==="form"?$("session-name"):tipo==="accounts"?$("session-accounts").querySelector("button")||$("session-new"): $("session-details-switch");
