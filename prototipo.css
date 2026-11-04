@@ -79,3 +79,22 @@ button:disabled{opacity:.45;cursor:not-allowed!important}
 @media(max-height:760px) and (min-width:861px){.sidebar-head{padding:10px}.sidebar-btn{padding:5px 8px;font-size:10px}.sidebar-actions{gap:4px}.demo-label{margin-top:8px}.demo-caption{font-size:9.5px}.zone-list{min-height:180px;flex:none}}
 
 .main{overflow:hidden}
+
+/* Território e contatos do Mapa de Evento */
+.territory-tools{padding:12px 10px 0;display:grid;gap:6px;font-size:12px}
+.territory-tools label{font-weight:700}
+.territory-tools input[type=search]{width:100%;padding:8px;background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:6px}
+.territory-hint{font-size:11px;color:var(--muted);line-height:1.4}
+#zone-list{flex:0 0 auto;min-height:0;max-height:36dvh}
+#zone-list button{width:100%;font:inherit;text-align:left;color:var(--fg);background:transparent;border:1px solid transparent}
+#zone-list button.active{background:var(--panel-2);border-color:var(--accent)}
+#zone-strip{font-size:12px;max-width:30vw;overflow:auto;max-height:52px}
+#floatwin-body h3{font-size:12px;margin:8px 4px;color:var(--muted)}
+#floatwin-body > p{font-size:11px;margin:8px 4px;color:var(--muted)}
+.person-toggle{width:100%;color:var(--fg);text-align:left;font:inherit;cursor:pointer}
+.person-toggle .c-info > span{display:block}
+.person-details{padding:8px;font-size:11px;line-height:1.5;color:var(--muted)}
+.person-actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.person-actions a{text-decoration:none}
+
+#territory-layers label{display:block;font-weight:400;padding:4px 0}

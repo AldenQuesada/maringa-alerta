@@ -300,7 +300,6 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .oc-pulse .ring{width:20px;height:20px;border:2px solid var(--oc);border-radius:50%;position:absolute;left:0;top:0;animation:ocpulse 1.6s infinite}
 @keyframes ocpulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.1);opacity:0}}
 .vol-dot{width:9px;height:9px;border-radius:50%;background:var(--blue);border:1px solid #06121c}
-.vol-dot.active{box-shadow:0 0 0 4px rgba(59,167,255,.35)}
 .official-pulse{position:relative;width:18px;height:18px}
 .official-pulse .core{width:12px;height:12px;background:var(--oc);border:2px solid #06121c;border-radius:50%;position:absolute;left:3px;top:3px;box-shadow:0 0 8px var(--oc)}
 .official-pulse .ring{width:18px;height:18px;border:2px solid var(--oc);border-radius:50%;position:absolute;left:0;top:0;animation:ocpulse 2.2s infinite}
@@ -330,10 +329,9 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   .floatwin{width:85vw;right:8px}
 }
 </style>
-<link rel="stylesheet" href="prototipo.css?v=sessoes-1">
+<link rel="stylesheet" href="prototipo.css?v=territorio-1">
 <link rel="stylesheet" href="sessao.css?v=sessoes-2">
 <link rel="stylesheet" href="mapa-navegacao.css?v=mapa-2">
-<link rel="stylesheet" href="dados-territoriais/camadas-mapas.css?v=territorio-1">
 </head>
 <body>
 <button id="menu-backdrop" class="menu-backdrop" aria-label="Fechar zonas e menus"></button>
@@ -342,9 +340,16 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   <div class="sidebar" id="sidebar">
     <div class="sidebar-head">
       <div class="brand"><span class="dot"></span>MARINGÁ ALERTA</div>
-      <div class="sub">Zonas de cobertura · clique para isolar</div>
-      <label class="tenant-label" for="demo-tenant">Município</label>
-      <select class="tenant-select" id="demo-tenant"><option value="maringa">Maringá</option><option value="exemplo">Município Exemplo</option></select>
+      <div class="sub">Maringá · PR · Demonstração</div>
+    </div>
+    <section class="territory-tools" aria-label="Filtro territorial">
+      <label for="territory-search">Bairros e zonas</label>
+      <input id="territory-search" type="search" placeholder="Buscar bairro ou zona">
+      <details id="territory-layers"><summary>Camadas do território</summary></details>
+    </section>
+    <div class="zone-list" id="zone-list"></div>
+    <div class="sidebar-head">
+      <div class="sub">Comandos</div>
       <div class="sidebar-actions">
         <button id="demo-new" class="sidebar-btn demo-primary">＋ Simular ocorrência confirmada</button>
         <button id="open-relatorio-evento" class="sidebar-btn">📊 Relatório do evento</button>
@@ -362,7 +367,6 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         <div class="saved-hint" id="demo-save-status" role="status"></div>
       </details>
     </div>
-    <div class="zone-list" id="zone-list"></div>
     <details class="sidebar-summary"><summary>Resumo e ocorrências resolvidas</summary><div class="sidebar-footer" id="sidebar-footer"></div></details>
   </div>
 
@@ -547,6 +551,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
     </div>
   </section>
 </div>
+<script src="gestao/dados.js"></script>
 <script src="fluxo-ajuda.js?v=sessoes-1"></script>
 <script src="sessao.js?v=sessoes-1"></script>
 <script src="sessao-ui.js?v=sessoes-2"></script>
@@ -555,14 +560,12 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <script>
-(function(){
+(async function(){
 "use strict";
-const PREFEITURAS_DEMO={maringa:{nome:'Maringá',marca:'MARINGÁ ALERTA',prefixo:'MA'},exemplo:{nome:'Município Exemplo',marca:'ALERTA · MUNICÍPIO EXEMPLO',prefixo:'EX'}};
-const prefeituraSolicitada=new URLSearchParams(location.search).get('prefeitura');
-const tenantId=Object.hasOwn(PREFEITURAS_DEMO,prefeituraSolicitada)?prefeituraSolicitada:'maringa';
-const tenantConfig=PREFEITURAS_DEMO[tenantId];
+const tenantId='maringa';
+const tenantConfig={nome:'Maringá',marca:'MARINGÁ ALERTA',prefixo:'MA'};
 const storageKey=nome=>`alerta_prototipo_v2_${tenantId}_${nome}`;
-// Os dois contextos são simulações locais. Isolamento real será implementado no backend.
+// O Mapa de Evento usa somente o contexto local de Maringá.
 
 
 /* ---------- zonas de demonstração sobre o mapa de Maringá ---------- */
@@ -605,19 +608,17 @@ const bairros = [
   { nome:"Centro Cívico", center:[-23.4225,-51.9365],
     poly:[[-23.415,-51.946],[-23.415,-51.927],[-23.430,-51.927],[-23.430,-51.946]] },
 ];
-if(tenantId==='exemplo') bairros.forEach((b,i)=>{b.nome=`Zona ${i+1} · Exemplo`;});
 let funcIdCursor = 1;
 const PAPEL_LABEL = { responsavel:"Responsável", substituto:"Substituto", coordenador:"Coordenador" };
 bairros.forEach(b=>{
   b.equipamentos = [equipamentosPool[Math.floor(Math.random()*equipamentosPool.length)], equipamentosPool[Math.floor(Math.random()*equipamentosPool.length)]];
   b.equipe = { responsavel: nextEquipe(), substituto: nextEquipe(), coordenador: nextEquipe() };
-  // monitoramento em tempo real via localizacao compartilhada no whatsapp
+  // Pontos fixos de demonstração, sem compartilhamento ao vivo.
   Object.entries(b.equipe).forEach(([papel,p])=>{
     p.id = "f"+(funcIdCursor++);
     p.papel = papel;
     p.zona = b.nome;
     p.pos = randPointInBox(b.poly);
-    p.ultimoPing = Date.now() - Math.floor(Math.random()*6)*60000;
     p.tel = "(44) 9" + Math.floor(1000+Math.random()*8999) + "-" + Math.floor(1000+Math.random()*8999);
   });
 });
@@ -757,7 +758,36 @@ function randPointInBox(poly){
 }
 
 let ocorrencias = [], voluntarios = [], idCounter = 1;
-let activeZone = null; // null = Todos
+const gestao = AlertaGestaoDados.criar();
+const normalizarTerritorio = texto => String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
+const areasCadastradas = ['zonas','bairros'].flatMap(tipo =>
+  gestao.lista(tipo,tenantId).filter(area=>area.verificacao!=='Rejeitado')
+    .map(area=>({...area,chave:tipo+':'+area.id,tipoArea:tipo==='zonas'?'Zona':'Bairro'}))
+);
+const fontesPublicas=await MaringaBairros.carregar().catch(()=>null);
+for(const [grupo,tipoArea] of [[fontesPublicas?.bairros,'Bairro'],[fontesPublicas?.zonas,'Zona cartográfica']]){
+  grupo?.features.forEach(feature=>{
+    const {id,nome}=feature.properties;
+    if(areasCadastradas.some(area=>area.tipoArea===tipoArea && normalizarTerritorio(area.nome)===normalizarTerritorio(nome))) return;
+    areasCadastradas.push({id,nome,tipoArea,chave:'publico:'+tipoArea+':'+(id||nome),geojson:feature.geometry,fonte:grupo.source});
+  });
+}
+const areas = [...areasCadastradas,...bairros.map(b=>({
+  nome:b.nome,chave:'demo:'+b.nome,tipoArea:'Zona demonstrativa',demo:b
+}))];
+const camadasVisiveis={Bairro:true,'Zona cartográfica':false,'Zona demonstrativa':true};
+const selecao = new Set();
+const areasSelecionadas = () => areas.filter(area=>selecao.has(area.chave));
+function pertence(area, territorio){
+  const nome = normalizarTerritorio(territorio);
+  if(nome && [area.id,area.nome].some(valor=>normalizarTerritorio(valor)===nome)) return true;
+  if(area.tipoArea!=='Zona') return false;
+  return areasCadastradas.some(bairro=>bairro.tipoArea==='Bairro'
+    && bairro.zona && [area.id,area.nome].some(valor=>normalizarTerritorio(valor)===normalizarTerritorio(bairro.zona))
+    && nome && [bairro.id,bairro.nome].some(valor=>normalizarTerritorio(valor)===nome));
+}
+const noRecorte = territorio => !selecao.size || areasSelecionadas().some(area=>pertence(area,territorio));
+const recorteLabel = () => areasSelecionadas().map(area=>area.nome).join(', ') || 'Todo o município';
 let currentRole = {tipo:"visualizacao"}; // sem sessão ativa, apenas leitura
 
 /* ---------- mapa ---------- */
@@ -766,35 +796,36 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution:'&copy; OpenStreetMap contributors',
   subdomains:'abc', maxZoom:19
 }).addTo(map);
+const estiloArea={color:'#f2c230',weight:2.2,opacity:.85,dashArray:'7,5',fillOpacity:.06,fillColor:'#f2c230'};
+areas.forEach(area=>{
+  try{
+    if(area.demo) area.layer=L.polygon(area.demo.poly,estiloArea);
+    else if(area.geojson){
+      const geo=typeof area.geojson==='string'?JSON.parse(area.geojson):area.geojson;
+      const geometria=geo.type==='Feature'?geo.geometry:geo;
+      if(['Polygon','MultiPolygon'].includes(geometria?.type)) area.layer=L.geoJSON(geometria,{style:area.tipoArea==='Bairro'
+        ? {...estiloArea,color:'#3daae4',fillColor:'#3daae4',weight:1.4,dashArray:null}:estiloArea});
+    }
+    if(!area.layer?.getBounds().isValid()){ area.layer=null; return; }
+    area.layer.bindTooltip(escHtml([area.nome,area.tipoArea,area.fonte].filter(Boolean).join(' · ')),{sticky:true});
+    area.layer.on('click',()=>selectZone(area.chave));
+    if(camadasVisiveis[area.tipoArea]!==false) area.layer.addTo(map);
+  }catch(_){ area.layer=null; }
+});
+
 // Mantém navegação dentro da área de Maringá sem interferir na seleção de ocorrências.
 const navegacaoMapa = window.AlertaMapaNavegacao.instalar({
-  map, L, zonas:bairros.map(b=>b.poly),
+  map, L, zonas:[
+    ...bairros.map(b=>b.poly),
+    ...areasCadastradas.filter(a=>a.layer).map(a=>{
+      const limites=a.layer.getBounds();
+      return [limites.getSouthWest(),limites.getNorthEast(),limites.getNorthWest()];
+    })
+  ],
   aoRestaurar: () => {
-    if (activeZone !== null) {
-      activeZone = null;
-      renderZoneList();
-      applyZoneVisibility();
-      updateZoneStrip();
-      updateKpis();
-      renderOfficialMarkers();
-      rebuildHeat();
-    }
+    if(selecao.size){ selecao.clear(); atualizarRecorte(); }
   }
 });
-
-bairros.forEach(b=>{
-  b.polyLayer = L.polygon(b.poly, {
-    color:'#f2c230', weight:2.2, opacity:.85, dashArray:'7,5', fillOpacity:.06, fillColor:'#f2c230'
-  }).addTo(map);
-  b.polyLayer.bindTooltip(b.nome.toUpperCase(), {permanent:true, direction:'center', className:'bairro-label', opacity:.9});
-  b.polyLayer.on('click', ()=>selectZone(b.nome));
-});
-
-// Camada pública de bairros administrativos em paralelo ao mapa operacional.
-// Não altera zonas táticas, roteamento, ocorrências ou despacho do protótipo.
-const camadaBairrosMaringa = tenantId==='maringa'&&window.MaringaBairros
-  ? window.MaringaBairros.iniciar({map,L,simulatedLayers:bairros.map(b=>b.polyLayer)})
-  : null;
 
 const ocLayer = L.layerGroup().addTo(map);
 const volLayer = L.layerGroup().addTo(map);
@@ -804,13 +835,13 @@ let heatOn = false;
 
 function rebuildHeat(){
   const pontos = ocorrencias
-    .filter(o=> (o.status==='ativa'||o.status==='em_atendimento') && (activeZone===null || o.bairro===activeZone))
+    .filter(o=> (o.status==='ativa'||o.status==='em_atendimento') && noRecorte(o.bairro))
     .map(o=> [o.pos[0], o.pos[1], o.gravidade/3]);
   heatLayer.setLatLngs(pontos);
 }
 
-function volIcon(active){
-  return L.divIcon({ className:'', html:`<div class="vol-dot${active?' active':''}"></div>`, iconSize:[9,9] });
+function volIcon(){
+  return L.divIcon({className:'',html:'<div class="vol-dot"></div>',iconSize:[9,9]});
 }
 function ocIcon(status){
   const color = STATUS_COLOR[status] || STATUS_COLOR.ativa;
@@ -835,12 +866,12 @@ function gerarVoluntarios(){
         temVeiculo:false, tipoVeiculo:null, aceitaReembolso:null, consentimentoLGPD:true,
         cadastradoEm: Date.now() - Math.floor(rnd(60,600))*60000,
       };
-      v.marker = L.marker(pos, { icon: volIcon(false) }).addTo(volLayer);
+      v.marker = L.marker(pos, { icon: volIcon(), title:v.nome }).addTo(volLayer);
+      v.marker.on('click',()=>mostrarFicha(v.id));
       voluntarios.push(v);
     }
   });
 }
-function refreshVolMarker(v){ if(v.marker)v.marker.setIcon(volIcon(v.ativo)); }
 
 function gerarOcorrencia(config={}){
   const b = bairros.find(z=>z.nome===config.zona)||pick(bairros);
@@ -886,69 +917,86 @@ function refreshOcTooltip(o){
 /* ---------- menu de zonas (sidebar) ---------- */
 const zoneListEl = document.getElementById('zone-list');
 
+document.getElementById('territory-search').addEventListener('input',renderZoneList);
+const controleCamadas=document.getElementById('territory-layers');
+Object.entries(camadasVisiveis).filter(([tipo])=>areas.some(area=>area.tipoArea===tipo)).forEach(([tipo,visivel])=>{
+  const label=document.createElement('label');
+  const check=document.createElement('input');
+  check.type='checkbox';
+  check.checked=visivel;
+  label.append(check, ' '+tipo);
+  controleCamadas.append(label);
+  check.onchange=()=>{camadasVisiveis[tipo]=check.checked;applyZoneVisibility();};
+});
 function renderZoneList(){
-  zoneListEl.innerHTML = '';
-  const todosItem = document.createElement('div');
-  todosItem.className = 'zone-item todos' + (activeZone===null ? ' active':'');
-  todosItem.innerHTML = `<span class="zi-text"><span class="zi-name">Todas as zonas</span><span class="zi-count">${bairros.length} zonas no mapa</span></span>`;
-  todosItem.setAttribute('role','button');todosItem.tabIndex=0;
-  todosItem.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectZone(null);}};
-  todosItem.onclick = ()=>selectZone(null);
-  zoneListEl.appendChild(todosItem);
-
-  const zonasAlerta = zonasComAlertaAtivo();
-  bairros.forEach(b=>{
-    const ativas = ocorrencias.filter(o=>o.bairro===b.nome && (o.status==='ativa'||o.status==='em_atendimento')).length;
-    const item = document.createElement('div');
-    item.className = 'zone-item' + (activeZone===b.nome ? ' active':'');
-    item.innerHTML = `
-      <span class="zi-dot"></span>
-      <span class="zi-text">
-        <span class="zi-name">${zonasAlerta.has(b.nome)?'🌦 ':''}${escHtml(b.nome)}</span>
-        <span class="zi-count">${escHtml(b.equipe.responsavel.nome.split(' ')[0])} · resp.</span>
-      </span>
-      ${ativas>0 ? `<span class="zi-badge">${ativas}</span>` : ''}
-    `;
-    item.setAttribute('role','button');item.tabIndex=0;
-    item.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectZone(b.nome);}};
-    item.onclick = ()=>selectZone(b.nome);
-    zoneListEl.appendChild(item);
+  const focado = zoneListEl.contains(document.activeElement) ? document.activeElement.dataset.area : null;
+  const busca=normalizarTerritorio(document.getElementById('territory-search').value);
+  const alertas=zonasComAlertaAtivo();
+  const abertas=ocorrencias.filter(o=>o.status==='ativa'||o.status==='em_atendimento');
+  const visiveis=areas.filter(area=>selecao.has(area.chave)||normalizarTerritorio(area.nome).includes(busca));
+  zoneListEl.innerHTML = `<button type="button" class="zone-item todos ${selecao.size?'':'active'}" data-area="" aria-pressed="${!selecao.size}">Todo o município</button>
+    ${!areasCadastradas.length?'<p class="territory-hint">Áreas de demonstração. Importe o cadastro municipal em Gestão.</p>':''}
+    ${visiveis.map(area=>{
+      const selecionada=selecao.has(area.chave);
+      const total=abertas.filter(o=>pertence(area,o.bairro)).length;
+      return `<button type="button" class="zone-item ${selecionada?'active':''}" data-area="${escHtml(area.chave)}" aria-pressed="${selecionada}">
+        <span class="zi-dot"></span><span class="zi-text" title="${escHtml(area.fonte||area.tipoArea)}"><span class="zi-name">${[...alertas].some(z=>pertence(area,z))?'🌦 ':''}${escHtml(area.nome)}</span>
+        <span class="zi-count">${area.tipoArea}${area.layer?'':' · sem limite no mapa'}</span></span><span class="zi-badge">${total}</span></button>`;
+    }).join('')}`;
+  zoneListEl.querySelectorAll('button').forEach(botao=>{
+    botao.onclick=()=>selectZone(botao.dataset.area);
+    if(focado!==null && botao.dataset.area===focado) botao.focus({preventScroll:true});
   });
 }
 
-function selectZone(nome){
-  activeZone = nome;
+function selectZone(chave){
+  if(!chave) selecao.clear();
+  else if(selecao.has(chave)) selecao.delete(chave);
+  else selecao.add(chave);
+  atualizarRecorte();
+  if(!selecao.size){ navegacaoMapa.restaurar(); return; }
+  const limites=L.latLngBounds([]);
+  areasSelecionadas().forEach(area=>{ if(area.layer) limites.extend(area.layer.getBounds()); });
+  if(limites.isValid()) map.fitBounds(limites,{padding:[40,40]});
+}
+
+function atualizarRecorte(){
   renderZoneList();
   applyZoneVisibility();
   updateZoneStrip();
   updateKpis();
   renderOfficialMarkers();
   rebuildHeat();
-  if(window.innerWidth<=860) fecharMenuMobile();
-  if(nome===null){
-    navegacaoMapa.restaurar();
-  } else {
-    const b = bairros.find(x=>x.nome===nome);
-    if(b) map.fitBounds(L.latLngBounds(b.poly), {padding:[40,40]});
+  if(currentPanelOcId && !ocorrencias.some(o=>o.id===currentPanelOcId && noRecorte(o.bairro))) document.getElementById('panel-close').click();
+  if(!filaOverlay.hidden) renderFila();
+  if(!relatorioOverlay.hidden) renderRelatorioEvento();
+  if(!alertasOverlay.hidden) renderAlertasBody();
+  if(!adminOverlay.hidden) renderAdminBody();
+  if(!auditOverlay.hidden) renderAudit();
+  if(!chatOverlay.hidden){
+    renderChatContacts();
+    if(!chatContatos().some(c=>c.id===chatContatoAtivo)){
+      chatContatoAtivo=null;
+      document.getElementById('chat-thread').textContent='Selecione um contato.';
+    }
   }
 }
 
 function applyZoneVisibility(){
-  bairros.forEach(b=>{
-    const show = activeZone===null || activeZone===b.nome;
-    const has = map.hasLayer(b.polyLayer);
-    if(show && !has) b.polyLayer.addTo(map);
-    if(!show && has) map.removeLayer(b.polyLayer);
+  areas.forEach(area=>{
+    if(!area.layer) return;
+    if(selecao.has(area.chave)||(!selecao.size&&camadasVisiveis[area.tipoArea]!==false)) area.layer.addTo(map);
+    else area.layer.remove();
   });
   ocorrencias.forEach(o=>{
     if(!o.marker)return;
-    const show=(activeZone===null||activeZone===o.bairro)&&(o.status==='ativa'||o.status==='em_atendimento');
+    const show=noRecorte(o.bairro)&&(o.status==='ativa'||o.status==='em_atendimento');
     const has=ocLayer.hasLayer(o.marker);
     if(show&&!has)o.marker.addTo(ocLayer);
     if(!show&&has)ocLayer.removeLayer(o.marker);
   });
   voluntarios.forEach(v=>{
-    const show = activeZone===null || activeZone===v.bairro;
+    const show = noRecorte(v.bairro);
     const has = volLayer.hasLayer(v.marker);
     if(show && !has) v.marker.addTo(volLayer);
     if(!show && has) volLayer.removeLayer(v.marker);
@@ -957,94 +1005,97 @@ function applyZoneVisibility(){
 }
 
 function updateZoneStrip(){
-  const stripEl = document.getElementById('zone-strip');
-  const eventoEl = document.getElementById('evento-label');
-  if(activeZone===null){
-    stripEl.style.display = 'none';
-    eventoEl.style.display = '';
-    return;
-  }
-  eventoEl.style.display = 'none';
-  const b = bairros.find(x=>x.nome===activeZone);
-  stripEl.style.display = 'flex';
-  const eq = b.equipe;
-  function card(role, person, color){
-    const minPing = minutosDesde(person.ultimoPing);
-    return `<div class="o-card" title="${escHtml(person.cargo)} · ${escHtml(person.tel)}">
-      <div class="avatar" style="background:${color}">${initials(person.nome)}</div>
-      <div>
-        <div class="o-role">${role}</div>
-        <div class="o-name">${escHtml(person.nome)}</div>
-        <div class="o-ping">📍 há ${minPing}min · WhatsApp</div>
-      </div>
-    </div>`;
-  }
-  const faltando = itensQueFaltamNaZona(b.nome);
-  stripEl.innerHTML = `
-    <div class="zs-title">${escHtml(b.nome)}<span>ZONA ISOLADA · ${b.equipamentos.join(' · ')}${faltando.length ? ` · 🙋 comunidade precisa de: ${faltando.map(f=>f.tipo).join(', ')}` : ''}</span></div>
-    <div class="officials">
-      ${card('Responsável', eq.responsavel, 'var(--accent)')}
-      ${card('Substituto', eq.substituto, 'var(--blue)')}
-      ${card('Coordenador', eq.coordenador, 'var(--green)')}
-    </div>
-  `;
+  const strip = document.getElementById('zone-strip');
+  strip.style.display = selecao.size ? 'flex' : 'none';
+  strip.textContent = selecao.size ? recorteLabel() : '';
+  strip.title = bairros.filter(b=>noRecorte(b.nome)).map(b=>{
+    const faltando=itensQueFaltamNaZona(b.nome).map(item=>item.tipo);
+    return [b.nome,b.equipamentos.join(', '),faltando.length?'Necessidades: '+faltando.join(', '):''].filter(Boolean).join(' · ');
+  }).join('\n');
+}
+
+const cadastroPessoas = [
+  ...gestao.lista('pessoas',tenantId).filter(p=>p.status!=='Inativo' && p.verificacao!=='Rejeitado')
+    .map(p=>({...p,id:'rh:'+p.id,oficial:true,sub:[p.funcao,...(Array.isArray(p.papeis)?p.papeis:[])].map(papel=>PAPEL_LABEL[papel]||papel).join(' · ')})),
+  ...gestao.lista('voluntarios',tenantId).map(p=>({...p,id:'cad:'+p.id,sub:[...['ajudas','maquinas','empreendedores','materiais'].flatMap(chave=>Array.isArray(p[chave])?p[chave]:[]),p.contribuicao].filter(Boolean).join(', ')}))
+];
+function pessoasPainel(){
+  return [
+    ...cadastroPessoas,
+    ...todosFuncionarios().map(p=>({...p,oficial:true,sub:PAPEL_LABEL[p.papel],demo:true})),
+    ...voluntarios.map(v=>({...v,zona:v.bairro,sub:(v.contribuicoes||[v.ajuda]).join(', '),demo:true,disponibilidade:estadoPessoa(v.id)}))
+  ].filter(p=>noRecorte(p.zona) || (p.oficial && p.zona && areasSelecionadas().some(area=>
+    area.tipoArea==='Bairro' && normalizarTerritorio(area.zona)===normalizarTerritorio(p.zona))));
+}
+
+let fichaAberta=null;
+const marcadoresPessoas=new Map();
+function mostrarFicha(id){
+  fichaAberta=id;
+  const painel=document.getElementById('floatwin-body');
+  if(painel.hidden || document.getElementById('floatwin').classList.contains('minimized')) document.getElementById('floatwin-min').click();
+  renderCollaborators();
+  document.getElementById('ficha-pessoa')?.scrollIntoView({block:'nearest'});
 }
 
 function renderOfficialMarkers(){
   officialLayer.clearLayers();
-  if(activeZone===null) return;
-  const b = bairros.find(x=>x.nome===activeZone);
-  if(!b) return;
-  const roles = [
-    ['Responsável', b.equipe.responsavel, '#ffb020'],
-    ['Substituto', b.equipe.substituto, '#3ba7ff'],
-    ['Coordenador', b.equipe.coordenador, '#2ecf78'],
-  ];
-  roles.forEach(([role, p, color])=>{
-    const icon = L.divIcon({
-      className:'', iconSize:[18,18], iconAnchor:[9,9],
-      html:`<div class="official-pulse" style="--oc:${color}"><div class="ring"></div><div class="core"></div></div>`
-    });
-    const m = L.marker(p.pos, {icon}).addTo(officialLayer);
-    m.bindTooltip(
-      `<div class="tt-title">${initials(p.nome)} · ${escHtml(role)}</div>
-       <div class="tt-row">${escHtml(p.nome)} — ${escHtml(p.cargo)}</div>
-       <div class="tt-row">📍 localização via WhatsApp há ${minutosDesde(p.ultimoPing)}min</div>
-       <div class="tt-row">${escHtml(p.tel)}</div>`,
-      { className:'oc-tooltip', direction:'top', offset:[0,-8] }
-    );
+  marcadoresPessoas.clear();
+  pessoasPainel().filter(p=>p.oficial && p.pos).forEach(p=>{
+    const marcador=L.marker(p.pos,{icon:volIcon(),title:p.nome}).addTo(officialLayer);
+    marcador.on('click',()=>mostrarFicha(p.id));
+    marcadoresPessoas.set(p.id,marcador);
   });
 }
 
-// simula pings de localizacao chegando pelo whatsapp a cada ~20s
-setInterval(()=>{
-  bairros.forEach(b=>{
-    Object.values(b.equipe).forEach(p=>{
-      if(Math.random()<0.5){
-        p.ultimoPing = Date.now();
-        p.pos = randPointInBox(b.poly);
-      }
-    });
-  });
-  if(activeZone!==null){ updateZoneStrip(); renderOfficialMarkers(); }
-}, 20000);
-
-/* ---------- lista de colaboradores (janela flutuante) ---------- */
 function renderCollaborators(){
-  const body = document.getElementById('floatwin-body');
-  const countEl = document.getElementById('fw-count');
-  const lista = voluntarios.filter(v=> activeZone===null || v.bairro===activeZone);
-  countEl.textContent = lista.length;
-  body.innerHTML = lista.map(v=>`
-    <div class="collab-row">
-      <div class="c-avatar${v.ativo?'':' inactive'}">${initials(v.nome)}</div>
-      <div class="c-info">
-        <div class="c-name">${escHtml(v.nome)}</div>
-        <div class="c-meta">${escHtml((v.contribuicoes||[v.ajuda]).join(', '))} · ${escHtml(v.bairro)}${v.disponibilidadeZona==='qualquer_zona'?' · 🌍 qualquer zona':''}</div>
-      </div>
-      <div class="c-status ${v.ativo?'on':'off'}">${escHtml(estadoPessoa(v.id))}</div>
-    </div>
-  `).join('') || '<div style="color:var(--muted);font-size:12px;padding:6px 2px">Nenhum colaborador nesta zona.</div>';
+  const body=document.getElementById('floatwin-body');
+  const pessoas=pessoasPainel();
+  const antes=body.scrollTop;
+  const item=p=>{
+    const aberto=fichaAberta===p.id;
+    const telefone=String(p.telefone||'').replace(/[^+\d]/g,'');
+    const email=String(p.email||'');
+    const contato=telefone?`tel:${telefone}`:/^[^\s@]+@[^\s@]+$/.test(email)?`mailto:${encodeURIComponent(email)}`:'';
+    return `<div class="person-card"${aberto?' id="ficha-pessoa"':''}>
+      <button type="button" class="collab-row person-toggle" data-person="${escHtml(p.id)}" aria-expanded="${aberto}">
+        <span class="c-avatar">${escHtml(initials(p.nome))}</span><span class="c-info"><span class="c-name">${escHtml(p.nome)}</span>
+        <span class="c-meta">${escHtml([p.sub,p.zona,p.demo?'Demonstração':''].filter(Boolean).join(' · '))}</span></span>
+        <span class="c-status">${escHtml(p.disponibilidade||'')}</span>
+      </button>
+      ${aberto?`<div class="person-details">
+        <div>${escHtml([p.cargo,p.orgao,p.sub,p.zona].filter(Boolean).join(' · '))}</div>
+        <div>${p.pos?'Ponto de demonstração · posição fixa':'Localização indisponível'}</div>
+        <div class="person-actions">
+          <button type="button" class="admin-btn" data-chat="${escHtml(p.id)}"${isViewOnly()?' disabled':''}>Chat</button>
+          ${contato&&!isViewOnly()?`<a class="admin-btn" href="${escHtml(contato)}">Contatar</a>`:'<button class="admin-btn" disabled>Contatar</button>'}
+          ${p.pos?`<button type="button" class="admin-btn" data-locate="${escHtml(p.id)}">Ver no mapa</button>`:''}
+        </div></div>`:''}
+    </div>`;
+  };
+  const oficiais=pessoas.filter(p=>p.oficial);
+  const colaboradores=pessoas.filter(p=>!p.oficial);
+  document.getElementById('fw-count').textContent=colaboradores.length;
+  body.innerHTML=`<h3>Responsáveis pelo território</h3>${oficiais.map(item).join('')||'<p>Nenhum responsável no recorte.</p>'}
+    <h3>Colaboradores</h3>${colaboradores.map(item).join('')||'<p>Nenhum colaborador no recorte.</p>'}`;
+  body.scrollTop=antes;
+  body.querySelectorAll('[data-person]').forEach(botao=>botao.onclick=()=>{
+    fichaAberta=fichaAberta===botao.dataset.person?null:botao.dataset.person;
+    renderCollaborators();
+    [...body.querySelectorAll('[data-person]')].find(el=>el.dataset.person===botao.dataset.person)?.focus({preventScroll:true});
+  });
+  body.querySelector('[data-chat]')?.addEventListener('click',e=>{
+    if(isViewOnly()) return;
+    chatContatoAtivo=e.currentTarget.dataset.chat;
+    chatOverlay.hidden=false;
+    renderChatContacts();
+    openChatThread(chatContatoAtivo);
+  });
+  body.querySelector('[data-locate]')?.addEventListener('click',e=>{
+    const id=e.currentTarget.dataset.locate;
+    const marcador=marcadoresPessoas.get(id)||voluntarios.find(v=>v.id===id)?.marker;
+    if(marcador) map.panTo(marcador.getLatLng());
+  });
 }
 
 /* ---------- janela flutuante: arrastar ---------- */
@@ -1156,7 +1207,7 @@ function openOcorrencia(o){
     if(!servico)return;
     o.acionamentoOficial={servico,quando:Date.now()};
     registrarEtapa(o,'contato',`Contato informado: ${servico}`);
-    auditPush(o.responsavel.nome,'Registrou contato com serviço',`${o.protocolo}: ${servico}`);
+    auditPush(o.responsavel.nome,'Registrou contato com serviço',`${o.protocolo}: ${servico}`,[o.bairro]);
     salvarPrototipo();openOcorrencia(o);
   };
   if(!canActZone(o.bairro)){
@@ -1311,13 +1362,14 @@ function cadastroFinalizar(){
     temVeiculo:d.temVeiculo, tipoVeiculo:d.tipoVeiculo, aceitaReembolso:d.aceitaReembolso,
     consentimentoLGPD:true, cadastradoEm:Date.now(), ativo:false,
   };
-  v.marker = L.marker(pos, { icon: volIcon(false) }).addTo(volLayer);
+  v.marker = L.marker(pos, { icon: volIcon(), title:v.nome }).addTo(volLayer);
+  v.marker.on('click',()=>mostrarFicha(v.id));
   voluntarios.push(v);
   applyZoneVisibility();
   updateKpis();
   renderZoneList();
   renderCollaborators();
-  auditPush('Sistema de cadastro', 'Novo colaborador registrado via WhatsApp', `${d.nome} em ${d.bairro}`);
+  auditPush('Sistema de cadastro', 'Novo colaborador registrado via WhatsApp', `${d.nome} em ${d.bairro}`,[d.bairro]);
 
   const faltando = itensQueFaltamNaZona(d.bairro);
   const eq = b.equipe;
@@ -1339,8 +1391,8 @@ setInterval(()=>{
 }, 7000);
 
 function updateKpis(){
-  const ocList = ocorrencias.filter(o=> activeZone===null || o.bairro===activeZone);
-  const volList = voluntarios.filter(v=> activeZone===null || v.bairro===activeZone);
+  const ocList = ocorrencias.filter(o=> noRecorte(o.bairro));
+  const volList = pessoasPainel().filter(p=>!p.oficial);
   const abertas = ocList.filter(o=>o.status==='ativa'||o.status==='em_atendimento');
   const resolvidas = ocList.filter(o=>o.status==='resolvida');
   document.getElementById('kpi-ativas').textContent = abertas.length;
@@ -1358,12 +1410,12 @@ function renderResumo(abertas){
   abertas.forEach(o=>{ porGrav[o.gravidade]++; porResp[o.responsabilidade]++; });
 
   const resolvidas = ocorrencias
-    .filter(o=> o.status==='resolvida' && (activeZone===null || o.bairro===activeZone))
+    .filter(o=> o.status==='resolvida' && noRecorte(o.bairro))
     .sort((a,c)=> (c.resolvidoEm||0) - (a.resolvidoEm||0))
     .slice(0,5);
 
   el.innerHTML = `
-    <div class="sf-label">Gravidade (${activeZone || 'todas as zonas'})</div>
+    <div class="sf-label">Gravidade (${escHtml(recorteLabel())})</div>
     <div class="sf-row"><span style="color:${GRAV_COLOR[3]}">Alta</span><b>${porGrav[3]}</b></div>
     <div class="sf-row"><span style="color:${GRAV_COLOR[2]}">Média</span><b>${porGrav[2]}</b></div>
     <div class="sf-row"><span style="color:${GRAV_COLOR[1]}">Baixa</span><b>${porGrav[1]}</b></div>
@@ -1416,7 +1468,7 @@ function renderAdminFunc(body){
   const grupos = { responsavel:'Responsáveis', substituto:'Substitutos', coordenador:'Coordenadores' };
   let html = '';
   Object.entries(grupos).forEach(([papel,label])=>{
-    let lista = todosFuncionarios().filter(p=>p.papel===papel);
+    let lista = todosFuncionarios().filter(p=>p.papel===papel && noRecorte(p.zona));
     if(currentRole && currentRole.tipo==='responsavel') lista = lista.filter(p=>p.zona===currentRole.zona);
     if(!lista.length) return;
     html += `<div class="admin-section-title">${label}</div>
@@ -1442,8 +1494,8 @@ function renderAdminFunc(body){
       p.cargo = tr.querySelector('[data-field="cargo"]').value.trim() || p.cargo;
       p.tel = tr.querySelector('[data-field="tel"]').value.trim() || p.tel;
       saveAdminState();
-      auditPush('Administração', 'Editou funcionário', `${p.nome} (${PAPEL_LABEL[p.papel]}, ${p.zona})`);
-      updateZoneStrip(); renderZoneList(); renderOfficialMarkers(); renderChatContacts();
+      auditPush('Administração', 'Editou funcionário', `${p.nome} (${PAPEL_LABEL[p.papel]}, ${p.zona})`,[p.zona]);
+      updateZoneStrip(); renderZoneList(); renderOfficialMarkers(); renderCollaborators(); renderChatContacts();
       btn.textContent = 'Salvo ✓'; setTimeout(()=>btn.textContent='Salvar', 1400);
     };
   });
@@ -1459,7 +1511,7 @@ function renderAdminEquipes(body){
   const zonasAtivas = {};
   ocorrencias.filter(o=>o.status==='ativa'||o.status==='em_atendimento').forEach(o=>{ zonasAtivas[o.bairro]=(zonasAtivas[o.bairro]||0)+1; });
   const souResponsavel = currentRole && currentRole.tipo==='responsavel';
-  const equipesVisiveis = souResponsavel ? equipesPrefeitura.filter(e=>e.zona===currentRole.zona) : equipesPrefeitura;
+  const equipesVisiveis=equipesPrefeitura.filter(e=>noRecorte(e.zona) && (!souResponsavel || e.zona===currentRole.zona));
   body.innerHTML = `
     <div class="admin-section-title">Equipes e equipamentos cadastrados</div>
     <table class="admin-table"><thead><tr><th>Equipe</th><th>Zona</th><th>Recursos</th><th>Membros</th><th>Status</th><th>Ocorrências na zona</th><th></th></tr></thead><tbody>
@@ -1507,7 +1559,7 @@ function renderAdminEquipes(body){
       e.membros = tr.querySelector('[data-field="membros"]').value.split(',').map(s=>s.trim()).filter(Boolean);
       e.status = tr.querySelector('[data-field="status"]').value;
       saveAdminState();
-      auditPush('Administração', 'Editou equipe', `${e.nome} (${e.zona})`);
+      auditPush('Administração', 'Editou equipe', `${e.nome} (${e.zona})`,[e.zona]);
       btn.textContent = 'Salvo ✓'; setTimeout(()=>renderAdminEquipes(body), 900);
     };
   });
@@ -1515,7 +1567,7 @@ function renderAdminEquipes(body){
     btn.onclick = ()=>{
       const tr = btn.closest('tr');
       const idx = equipesPrefeitura.findIndex(x=>x.id===tr.dataset.id);
-      if(idx>-1){ auditPush('Administração', 'Removeu equipe', equipesPrefeitura[idx].nome); equipesPrefeitura.splice(idx,1); }
+      if(idx>-1){ auditPush('Administração', 'Removeu equipe', equipesPrefeitura[idx].nome,[equipesPrefeitura[idx].zona]); equipesPrefeitura.splice(idx,1); }
       saveAdminState();
       renderAdminEquipes(body);
     };
@@ -1533,7 +1585,7 @@ function renderAdminEquipes(body){
     });
     equipesPrefeitura.push({ id:"eq"+(equipePrefIdCursor++), nome, zona, recursos: recursos.length?recursos:[{tipo:'Mão de obra',qtd:1,emUso:0}], membros: membros.length?membros:['A definir'], status:'disponível' });
     saveAdminState();
-    auditPush('Administração', 'Criou equipe', `${nome} (${zona})`);
+    auditPush('Administração', 'Criou equipe', `${nome} (${zona})`,[zona]);
     renderAdminEquipes(body);
   };
 }
@@ -1545,7 +1597,7 @@ function renderAdminColab(body){
     <div class="admin-section-title">O que cada zona ainda precisa (comunidade)</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Comparando quem já se cadastrou contra o mínimo desejável por zona (${itensEssenciaisZona.map(i=>`${escHtml(i.tipo)}: ${i.minimo}`).join(', ')}).</div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
-      ${bairros.map(b=>{
+      ${bairros.filter(b=>noRecorte(b.nome)).map(b=>{
         const f = faltandoPorZona[b.nome];
         return `<div class="alert-card" style="flex:1;min-width:150px;margin-bottom:0">
           <strong style="font-size:12px">${escHtml(b.nome)}</strong>
@@ -1555,7 +1607,7 @@ function renderAdminColab(body){
     </div>
     <div class="admin-section-title">Colaboradores cadastrados via WhatsApp</div>
     <table class="admin-table"><thead><tr><th>Nome</th><th>CPF</th><th>Zona</th><th>Pode ajudar com</th><th>Alerta</th><th>Outra zona?</th><th>Veículo</th><th>Status</th><th></th></tr></thead><tbody>
-      ${voluntarios.map(v=>`
+      ${voluntarios.filter(v=>noRecorte(v.bairro)).map(v=>`
         <tr data-id="${v.id}">
           <td>${escHtml(v.nome)}</td>
           <td style="font-family:var(--mono);font-size:10.5px">${escHtml(maskCPF(v.cpf))}</td>
@@ -1577,7 +1629,7 @@ function renderAdminColab(body){
       const idx = voluntarios.findIndex(x=>x.id===tr.dataset.id);
       if(idx>-1 && estadoPessoa(voluntarios[idx].id)!=='disponível'){renderAdminColab(body);return;}
       if(idx>-1){
-        auditPush('Administração', 'Removeu cadastro de colaborador', voluntarios[idx].nome);
+        auditPush('Administração', 'Removeu cadastro de colaborador', voluntarios[idx].nome,[voluntarios[idx].bairro]);
         volLayer.removeLayer(voluntarios[idx].marker);
         voluntarios.splice(idx,1);
       }
@@ -1600,11 +1652,11 @@ function renderFila(){
   const body = document.getElementById('fila-body');
   const lista = ocorrencias
     .filter(o=> o.status==='ativa'||o.status==='em_atendimento')
-    .filter(o=> activeZone===null || o.bairro===activeZone)
+    .filter(o=> noRecorte(o.bairro))
     .map(o=>({o, score:calcPrioridade(o)}))
     .sort((a,c)=>c.score-a.score);
   body.innerHTML = `
-    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Gravidade define a ordem; o tempo de espera desempata dentro de cada classe. Presença da equipe e propriedade pública/privada não reduzem o risco. ${activeZone?`Mostrando apenas ${escHtml(activeZone)}.`:'Mostrando todas as zonas.'}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Gravidade define a ordem; o tempo de espera desempata dentro de cada classe. Presença da equipe e propriedade pública/privada não reduzem o risco. Recorte: ${escHtml(recorteLabel())}.</div>
     ${lista.map(({o,score},i)=>`
       <div class="fila-item" data-oc="${o.id}">
         <div class="fila-rank">#${i+1}</div>
@@ -1675,7 +1727,7 @@ function gerarAlerta(){
     emitidoEm: Date.now(), janelaHoras: Math.floor(rnd(3,18)),
   };
   alertasClimaticos.unshift(alerta);
-  auditPush(alerta.fonte, 'Emitiu alerta meteorológico', `${alerta.tipo} (${NIVEL_LABEL[alerta.nivel]}) em ${zonasAfetadas.join(', ')}`);
+  auditPush(alerta.fonte, 'Emitiu alerta meteorológico', `${alerta.tipo} (${NIVEL_LABEL[alerta.nivel]}) em ${zonasAfetadas.join(', ')}`,zonasAfetadas);
   dispararPreAtivacao(alerta);
   return alerta;
 }
@@ -1732,9 +1784,9 @@ function zonasComAlertaAtivo(){
 
 function marcarZonasEmAlerta(){
   const ativas = zonasComAlertaAtivo();
-  bairros.forEach(b=>{
-    const emAlerta = ativas.has(b.nome);
-    b.polyLayer.setStyle(emAlerta
+  areas.filter(area=>area.layer).forEach(area=>{
+    const emAlerta = [...ativas].some(z=>pertence(area,z));
+    area.layer.setStyle(emAlerta
       ? { color:'#ff8a3b', weight:2.8, opacity:.95, dashArray:'3,5', fillOpacity:.1, fillColor:'#ff8a3b' }
       : { color:'#f2c230', weight:2.2, opacity:.85, dashArray:'7,5', fillOpacity:.06, fillColor:'#f2c230' });
   });
@@ -1765,14 +1817,14 @@ function renderAlertasBody(){
 function renderAlertasTab(body){
   body.innerHTML = `
     <button class="admin-btn primary" id="gerar-alerta-btn" style="margin-bottom:14px">🔔 Simular novo alerta meteorológico</button>
-    ${alertasClimaticos.map(a=>{
+    ${alertasClimaticos.filter(a=>a.zonasAfetadas.some(noRecorte)).map(a=>{
       const minutos = minutosDesde(a.emitidoEm);
       const ativo = minutos < a.janelaHoras*60;
       return `<div class="alert-card">
         <span class="alert-nivel" style="background:${NIVEL_COLOR[a.nivel]}22;color:${NIVEL_COLOR[a.nivel]}">${NIVEL_LABEL[a.nivel]}</span>
         <strong style="margin-left:8px">${escHtml(a.tipo)}</strong>
         <div class="alert-meta">Fonte: ${escHtml(a.fonte)} · emitido há ${minutos} min · janela de ${a.janelaHoras}h · ${ativo?'<span style="color:var(--green)">em vigor</span>':'<span style="color:var(--muted)">expirado</span>'}</div>
-        <div class="alert-zonas">${a.zonasAfetadas.map(z=>`<span>${escHtml(z)}</span>`).join('')}</div>
+        <div class="alert-zonas">${a.zonasAfetadas.filter(noRecorte).map(z=>`<span>${escHtml(z)}</span>`).join('')}</div>
       </div>`;
     }).join('') || '<div style="color:var(--muted);font-size:12px">Nenhum alerta emitido ainda. Clique no botão acima para simular um.</div>'}
   `;
@@ -1780,7 +1832,7 @@ function renderAlertasTab(body){
 }
 
 function renderProntidaoTab(body){
-  const zonasRelevantes = bairros.filter(b=> alertasClimaticos.some(a=>a.zonasAfetadas.includes(b.nome)));
+  const zonasRelevantes = bairros.filter(b=> noRecorte(b.nome) && alertasClimaticos.some(a=>a.zonasAfetadas.includes(b.nome)));
   if(!zonasRelevantes.length){
     body.innerHTML = '<div style="color:var(--muted);font-size:12px">Nenhuma zona em alerta ainda. A prontidão aparece aqui depois que um alerta for emitido.</div>';
     return;
@@ -1838,10 +1890,7 @@ document.getElementById('chat-close').onclick = ()=>{ chatOverlay.hidden=true; }
 chatOverlay.addEventListener('click', e=>{ if(e.target===chatOverlay) chatOverlay.hidden=true; });
 
 function chatContatos(){
-  return [
-    ...todosFuncionarios().map(p=>({id:p.id, nome:p.nome, sub:`${PAPEL_LABEL[p.papel]} · ${p.zona}`})),
-    ...voluntarios.map(v=>({id:v.id, nome:v.nome, sub:`Colaborador · ${v.bairro}`})),
-  ];
+  return pessoasPainel().map(p=>({id:p.id,nome:p.nome,sub:[p.sub,p.zona].filter(Boolean).join(' · ')}));
 }
 
 function renderChatContacts(){
@@ -1919,12 +1968,16 @@ async function sha256(str){
   return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 let auditSequencia=Promise.resolve();
-function auditPush(ator, acao, detalhe){
+function auditPayload({ts,ator,acao,detalhe,prev,territorios}){
+  return JSON.stringify({ts,ator,acao,detalhe,prev,territorios});
+}
+function auditPush(ator, acao, detalhe, territorios){
   const ts=Date.now();
   auditSequencia=auditSequencia.then(async()=>{
     const prev=auditLog.length?auditLog[auditLog.length-1].hash:'0';
-    const hash=await sha256(JSON.stringify({ts,ator,acao,detalhe,prev}));
-    auditLog.push({ts,ator,acao,detalhe,prev,hash});
+    const entrada={ts,ator,acao,detalhe,prev,territorios};
+    const hash=await sha256(auditPayload(entrada));
+    auditLog.push({...entrada,hash});
     try{localStorage.setItem(AUDIT_KEY,JSON.stringify(auditLog));}catch(e){}
     renderAuditIfOpen();
   }).catch(()=>{});
@@ -1935,7 +1988,7 @@ async function verificarIntegridadeAudit(){
   for(let i=0;i<auditLog.length;i++){
     const e = auditLog[i];
     const prevEsperado = i===0 ? '0' : auditLog[i-1].hash;
-    const payload = JSON.stringify({ts:e.ts, ator:e.ator, acao:e.acao, detalhe:e.detalhe, prev:prevEsperado});
+    const payload = auditPayload({...e,prev:prevEsperado});
     const recalculado = await sha256(payload);
     if(recalculado !== e.hash || e.prev !== prevEsperado) return {ok:false, indice:i};
   }
@@ -1951,14 +2004,14 @@ function renderAuditIfOpen(){ if(!auditOverlay.hidden) renderAudit(); }
 function renderAudit(){
   const body = document.getElementById('audit-body');
   body.innerHTML = `
-    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Cada ação fica registrada com o hash da entrada anterior, formando uma cadeia. Editar ou apagar uma entrada no meio quebra a cadeia a partir dali — é isso que "Verificar integridade" detecta.</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Cada ação fica registrada com o hash da entrada anterior, formando uma cadeia. Editar ou apagar uma entrada no meio quebra a cadeia a partir dali. A verificação percorre toda a cadeia municipal. Registros gerais e antigos sem território aparecem em todos os recortes.</div>
     <div style="display:flex;gap:8px;margin-bottom:14px">
       <button class="admin-btn primary" id="audit-verify">🔒 Verificar integridade</button>
       <button class="admin-btn danger" id="audit-tamper">⚠ Simular adulteração (demo)</button>
     </div>
     <div id="audit-result" style="margin-bottom:12px;font-size:12px"></div>
     <table class="admin-table"><thead><tr><th>Quando</th><th>Ator</th><th>Ação</th><th>Detalhe</th><th>Hash</th></tr></thead><tbody>
-      ${auditLog.slice().reverse().map(e=>`
+      ${auditLog.filter(e=>!selecao.size||!e.territorios?.length||e.territorios.some(noRecorte)).reverse().map(e=>`
         <tr><td style="white-space:nowrap">${new Date(e.ts).toLocaleTimeString('pt-BR')}</td><td>${escHtml(e.ator)}</td><td>${escHtml(e.acao)}</td><td>${escHtml(e.detalhe)}</td><td style="font-family:var(--mono);font-size:9.5px;color:var(--muted)">${e.hash.slice(0,10)}…</td></tr>
       `).join('') || '<tr><td colspan="5" style="color:var(--muted)">Nenhuma ação registrada ainda.</td></tr>'}
     </tbody></table>
@@ -1966,7 +2019,7 @@ function renderAudit(){
   document.getElementById('audit-verify').onclick = async ()=>{
     const r = await verificarIntegridadeAudit();
     document.getElementById('audit-result').innerHTML = r.ok
-      ? `<span style="color:var(--green)">✓ Cadeia íntegra: ${auditLog.length} entradas, nenhuma adulteração detectada.</span>`
+      ? `<span style="color:var(--green)">✓ Cadeia municipal íntegra: ${auditLog.length} entradas, nenhuma adulteração detectada.</span>`
       : `<span style="color:var(--red)">✗ Adulteração detectada na entrada #${r.indice+1} — o hash não corresponde ao conteúdo.</span>`;
   };
   document.getElementById('audit-tamper').onclick = ()=>{
@@ -2038,35 +2091,37 @@ relatorioOverlay.addEventListener('click', e=>{ if(e.target===relatorioOverlay) 
 
 function renderRelatorioEvento(){
   const body = document.getElementById('relatorio-body');
-  const resolvidas = ocorrencias.filter(o=>o.status==='resolvida');
-  const ativas = ocorrencias.filter(o=>o.status==='ativa'||o.status==='em_atendimento');
+  const filtradas=ocorrencias.filter(o=>noRecorte(o.bairro));
+  const resolvidas=filtradas.filter(o=>o.status==='resolvida');
+  const ativas=filtradas.filter(o=>o.status==='ativa'||o.status==='em_atendimento');
   const tempoMedioGeral = resolvidas.length ? Math.round(resolvidas.reduce((s,o)=>s+o.tempoReal,0)/resolvidas.length) : 0;
 
-  const porZona = bairros.map(b=>{
-    const ocz = ocorrencias.filter(o=>o.bairro===b.nome);
+  const porZona = (selecao.size?areasSelecionadas():areas).map(b=>{
+    const ocz = filtradas.filter(o=>pertence(b,o.bairro));
     const resz = ocz.filter(o=>o.status==='resolvida');
     const tempo = resz.length ? Math.round(resz.reduce((s,o)=>s+o.tempoReal,0)/resz.length) : null;
     return { zona:b.nome, total:ocz.length, resolvidas:resz.length, ativas:ocz.length-resz.length, tempo };
   });
 
   const rankingColab = {};
-  ocorrencias.forEach(o=> (o.participacoes||[]).filter(p=>p.status==='concluida').forEach(p=>{rankingColab[p.voluntarioId]=(rankingColab[p.voluntarioId]||0)+1;}));
+  filtradas.forEach(o=> (o.participacoes||[]).filter(p=>p.status==='concluida').forEach(p=>{rankingColab[p.voluntarioId]=(rankingColab[p.voluntarioId]||0)+1;}));
   const topColab = Object.entries(rankingColab).sort((a,c)=>c[1]-a[1]).slice(0,5).map(([id,n])=>({nome:pessoaNome(id), n}));
 
   let totalProntos=0, totalConf=0;
+  const idsRecorte=new Set(pessoasPainel().map(p=>p.id));
   Object.values(prontidao).forEach(mapa=>{
-    Object.values(mapa).forEach(st=>{ totalProntos++; if(st.status==='confirmado') totalConf++; });
+    Object.entries(mapa).filter(([id])=>!selecao.size||idsRecorte.has(id)).forEach(([,st])=>{ totalProntos++; if(st.status==='confirmado') totalConf++; });
   });
   const pctProntidao = totalProntos ? Math.round(totalConf/totalProntos*100) : null;
 
   body.innerHTML = `
-    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Gerado em ${new Date().toLocaleString('pt-BR')} · ${escHtml(tenantConfig.nome)} · evento de demonstração. Consolidado automaticamente a partir dos registros do protótipo.</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Gerado em ${new Date().toLocaleString('pt-BR')} · ${escHtml(tenantConfig.nome)} · ${escHtml(recorteLabel())} · evento de demonstração. Consolidado automaticamente a partir dos registros do protótipo.</div>
     <div class="rel-grid">
-      <div class="rel-tile"><b>${ocorrencias.length}</b><span>Ocorrências totais</span></div>
+      <div class="rel-tile"><b>${filtradas.length}</b><span>Ocorrências totais</span></div>
       <div class="rel-tile"><b>${resolvidas.length}</b><span>Resolvidas</span></div>
       <div class="rel-tile"><b>${ativas.length}</b><span>Ainda abertas</span></div>
       <div class="rel-tile"><b>${tempoMedioGeral||'—'}min</b><span>Tempo médio de resposta</span></div>
-      <div class="rel-tile"><b>${voluntarios.length}</b><span>Colaboradores cadastrados</span></div>
+      <div class="rel-tile"><b>${pessoasPainel().filter(p=>!p.oficial).length}</b><span>Colaboradores cadastrados</span></div>
       <div class="rel-tile"><b>${pctProntidao!==null?pctProntidao+'%':'—'}</b><span>Prontidão confirmada pré-evento</span></div>
     </div>
     <h3 style="font-size:13px;margin-bottom:8px">Desempenho por zona</h3>
@@ -2132,6 +2187,7 @@ function selecionarPerfilDemo(perfil) {
   currentRole = perfil && ['admin','responsavel','visualizacao'].includes(perfil.tipo)
     ? perfil : {tipo:'visualizacao'};
   applyRolePermissions();
+  renderCollaborators();
   if(currentPanelOcId) {
     const o=ocorrencias.find(x=>x.id===currentPanelOcId);
     if(o)openOcorrencia(o);
@@ -2214,7 +2270,6 @@ function acionarAjuda(o, candidatos=voluntarios){
     registrarEtapa(o,'encaminhamento',`${o.atendimentoEquipe.nome}: encaminhamento simulado registrado`);
   }
   AlertaFluxo.sincronizarDisponibilidade(voluntarios,ocorrencias);
-  voluntarios.forEach(refreshVolMarker);
   return resultado;
 }
 
@@ -2228,7 +2283,6 @@ function calcularTempos(o){
 
 function atualizarFluxo(){
   AlertaFluxo.sincronizarDisponibilidade(voluntarios,ocorrencias);
-  voluntarios.forEach(refreshVolMarker);
   ocorrencias.forEach(o=>{
     calcularTempos(o);
     if(o.marker){o.marker.setIcon(ocIcon(o.status));refreshOcTooltip(o);}
@@ -2317,7 +2371,7 @@ function confirmarWhatsApp(acao){
   enviarMensagemDemo(id,acao==='cheguei'?'Cheguei':'Terminei',o,acao,true);
   enviarMensagemDemo(id,acao==='cheguei'?'Chegada registrada. Obrigado por ajudar.':'Obrigado pela ajuda! Sua participação foi encerrada.',o,'resposta');
   registrarEtapa(o,acao,`${pessoa.nome}: ${acao==='cheguei'?'chegada confirmada':'ajuda concluída'}`);
-  auditPush(pessoa.nome,acao==='cheguei'?'Chegada pelo WhatsApp simulado':'Término pelo WhatsApp simulado',o.protocolo);
+  auditPush(pessoa.nome,acao==='cheguei'?'Chegada pelo WhatsApp simulado':'Término pelo WhatsApp simulado',o.protocolo,[o.bairro]);
   AlertaFluxo.sincronizarDisponibilidade(voluntarios,ocorrencias);
   if(acao==='terminei'&&!equipe){
     const v=voluntarios.find(x=>x.id===id);
@@ -2388,7 +2442,11 @@ function restaurarPrototipo(){
   if(!dados||dados.versao!==1||dados.tenantId!==tenantId||!Array.isArray(dados.ocorrencias)||!Array.isArray(dados.voluntarios))return false;
   if(dados.ocorrencias.some(o=>!bairros.some(b=>b.nome===o.bairro))||dados.voluntarios.some(v=>!bairros.some(b=>b.nome===v.bairro)))return false;
   idCounter=dados.idCounter||1;autoSimulation=!!dados.autoSimulation;if(Number.isFinite(dados.eventStart))eventStart=dados.eventStart;
-  voluntarios=dados.voluntarios.map(v=>({...v,tenantId,marker:L.marker(v.pos,{icon:volIcon(v.ativo)}).addTo(volLayer)}));
+  voluntarios=dados.voluntarios.map(v=>{
+    const marker=L.marker(v.pos,{icon:volIcon(),title:v.nome}).addTo(volLayer);
+    marker.on('click',()=>mostrarFicha(v.id));
+    return {...v,tenantId,marker};
+  });
   ocorrencias=dados.ocorrencias.map(item=>{
     const o={...item,tenantId,responsavel:bairros.find(b=>b.nome===item.bairro).equipe.responsavel,marker:null};
     if(o.status!=='resolvida'){
@@ -2413,11 +2471,9 @@ function iniciarControlesDemo(){
   document.querySelector('.brand').innerHTML=`<span class="dot"></span>${escHtml(tenantConfig.marca)}`;
   document.querySelector('.status-brand').textContent=tenantConfig.marca;
   document.title=tenantConfig.marca;
-  document.querySelector('.sidebar-head .sub').textContent='Zonas de cobertura · clique para isolar';
-  const seletor=document.getElementById('demo-tenant');seletor.value=tenantId;
-  seletor.onchange=()=>{salvarPrototipo();const url=new URL(location.href);url.searchParams.set('prefeitura',seletor.value);url.hash='';location.assign(url.href);};
   document.getElementById('demo-new').onclick=()=>{
-    const zona=activeZone||(currentRole.tipo==='responsavel'?currentRole.zona:bairros[0].nome);
+    const zona=bairros.find(b=>noRecorte(b.nome)&&canActZone(b.nome))?.nome;
+    if(!zona){ window.alert('Nenhuma área de demonstração disponível no recorte atual.'); return; }
     if(!canActZone(zona))return;
     const o=gerarOcorrencia({zona,tipo:tiposOcorrencia.find(t=>t.tipo==='Distribuição de água e alimentos')});
     atualizarFluxo();openOcorrencia(o);fecharMenuMobile();
@@ -2499,7 +2555,11 @@ atualizarFluxo();
 tickClock();
 renderOfficialMarkers();
 processarFilaOffline();
-
+const bairroSolicitado=new URLSearchParams(location.search).get('bairro');
+if(bairroSolicitado){
+  const area=areasCadastradas.find(a=>normalizarTerritorio(a.nome)===normalizarTerritorio(bairroSolicitado));
+  if(area) selectZone(area.chave);
+}
 
 })();
 </script>
