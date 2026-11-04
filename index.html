@@ -549,7 +549,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <script src="fluxo-ajuda.js?v=sessoes-1"></script>
 <script src="sessao.js?v=sessoes-1"></script>
 <script src="sessao-ui.js?v=sessoes-2"></script>
-<script src="mapa-navegacao.js?v=mapa-3"></script>
+<script src="mapa-navegacao.js?v=mapa-4"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <script>
@@ -759,7 +759,7 @@ let activeZone = null; // null = Todos
 let currentRole = {tipo:"visualizacao"}; // sem sessão ativa, apenas leitura
 
 /* ---------- mapa ---------- */
-const map = L.map('map', { zoomControl:true, attributionControl:true }).setView(MARINGA_CENTER, 13);
+const map = L.map('map', { zoomControl:true, attributionControl:true, zoomSnap:0, zoomDelta:0.5 }).setView(MARINGA_CENTER, 13);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution:'&copy; OpenStreetMap contributors',
   subdomains:'abc', maxZoom:19
