@@ -1,0 +1,39 @@
+# Painel de gestão do Maringá Alerta
+
+## Separação estabelecida
+
+- **Mapa Operacional existente:** `/index.html` no GitHub Pages. Preservar sem alterações nesta entrega.
+- **Novo painel de gestão:** `/gestao/`. Contém sidebar de cadastros, conteúdo administrativo central e botão **Mapa Operacional** no centro do cabeçalho.
+- O botão abre a URL do mapa original em uma janela independente no desktop, ou nova aba em navegadores móveis/onde popups não são permitidos.
+- Não existe iframe nem cópia da interface operacional na área administrativa.
+
+## Componentes
+
+- `gestao/index.html`: layout, cabeçalho, sidebar, área central, formulário lateral.
+- `gestao/gestao.css`: design responsivo, menu recolhível e tabelas/formulários.
+- `gestao/dados.js`: schemas reutilizáveis para cadastros, isolamento municipal local, validação e CRUD.
+- `gestao/gestao.js`: navegação, interfaces dinâmicas, edição, seleção de município, consulta opcional ao IBGE, mapa de prefeitura e sessão.
+- `gestao/tests/gestao-dados.test.cjs`: contratos de cadastro, separação municipal e preservação do mapa original.
+
+## Cadastros incluídos
+
+Prefeituras; zonas; bases e riscos; administradores; responsáveis; substitutos; coordenadores; operadores; equipes; integrantes; voluntários; saúde; emergência; parceiros; veículos; equipamentos; estoques; abrigos; pontos críticos; tipos de ocorrência; canais; regras de acionamento.
+
+Cadastros de categorias da mesma natureza compartilham a mesma coleção local: usuários são diferenciados por papel, instituições por categoria.
+
+## Limitações desta etapa
+
+O painel foi criado como **nova aplicação de interface e cadastro local**. Os registros são persistidos no `localStorage` do navegador com escopo municipal e não alimentam o Mapa Operacional original. A sessão usa os componentes de demonstração já presentes no repositório, sem autenticação segura nem autorização no servidor. O módulo de prefeitura oferece seleção pelo catálogo IBGE quando a rede responde e geocodificação não garantida por serviço externo; apenas Maringá tem coordenadas iniciais locais.
+
+Na fase de integração, substituir `AlertaGestaoDados.criar()` por repositório/API autenticado com PostgreSQL, PostGIS, vínculos por prefeitura, RLS e autorização por função. O mapa original passará a consumir esses mesmos dados por API, mantendo sua interface e fluxo aprovados. Não ativar acesso real de cidadãos/equipes sem o backend.
+
+Não adicionar mecanismos de aprovação de rotina: ocorrência confirmada continua acionando ajuda compatível automaticamente e avisando o responsável regional. Voluntário continua confirmando somente chegada e término.
+
+## Validação
+
+```bash
+node --test gestao/tests/gestao-dados.test.cjs
+node --test tests/*.test.cjs
+```
+
+Critérios do painel: botão operacional central no cabeçalho; login no canto direito; sidebar com apenas cadastros; conteúdo central com busca/CRUD; funcionamento móvel; criação de segunda prefeitura sem contaminar os cadastros de Maringá; alterações limitadas à pasta `gestao/`.
