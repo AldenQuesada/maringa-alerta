@@ -276,4 +276,7 @@ if(globalThis.AlertaSessao&&globalThis.AlertaSessaoUI&&db.municipioAtivo()){
  }catch(error){$("session-anchor").textContent="Minha sessão";}
 }
 render();
+// Ao trocar para uma prefeitura nova, tentar localizar seu mapa automaticamente.
+const prefeituraInicial=db.municipioAtivo();
+if(prefeituraInicial && prefeituraInicial.lat===undefined) geocodificarPrefeitura(prefeituraInicial);
 })();
