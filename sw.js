@@ -1,8 +1,8 @@
 // cache minimo do shell do app para abrir mesmo sem internet depois do primeiro carregamento.
 // protocolo real de missao critica precisaria de fila de sincronizacao mais robusta (Background Sync API);
 // isto aqui cobre o caso mais comum: internet caiu, mas o navegador ja tinha a pagina aberta/carregada antes.
-const CACHE_NAME = "maringa-alerta-shell-v8";
-const SHELL_FILES = ["./", "./index.html", "./fluxo-ajuda.js?v=sessoes-1", "./prototipo.css?v=sessoes-1", "./sessao.js?v=sessoes-1", "./sessao-ui.js?v=sessoes-2", "./sessao.css?v=sessoes-2", "./mapa-navegacao.js?v=mapa-1", "./mapa-navegacao.css?v=mapa-2"];
+const CACHE_NAME = "maringa-alerta-shell-v9";
+const SHELL_FILES = ["./", "./index.html", "./fluxo-ajuda.js?v=sessoes-1", "./prototipo.css?v=sessoes-1", "./sessao.js?v=sessoes-1", "./sessao-ui.js?v=sessoes-2", "./sessao.css?v=sessoes-2", "./mapa-navegacao.js?v=mapa-3", "./mapa-navegacao.css?v=mapa-2"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
