@@ -1587,53 +1587,22 @@ function renderAdminEquipes(body){
 }
 
 function renderAdminColab(body){
-  const faltandoPorZona = {};
-  bairros.forEach(b=> faltandoPorZona[b.nome] = itensQueFaltamNaZona(b.nome));
-  body.innerHTML = `
-    <div class="admin-section-title">O que cada zona ainda precisa (comunidade)</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Comparando quem já se cadastrou contra o mínimo desejável por zona (${itensEssenciaisZona.map(i=>`${escHtml(i.tipo)}: ${i.minimo}`).join(', ')}).</div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
-      ${bairros.filter(b=>noRecorte(b.nome)).map(b=>{
-        const f = faltandoPorZona[b.nome];
-        return `<div class="alert-card" style="flex:1;min-width:150px;margin-bottom:0">
-          <strong style="font-size:12px">${escHtml(b.nome)}</strong>
-          <div style="font-size:11px;margin-top:4px">${f.length ? `<span style="color:var(--red)">falta: ${f.map(x=>x.tipo).join(', ')}</span>` : '<span style="color:var(--green)">completo</span>'}</div>
-        </div>`;
-      }).join('')}
-    </div>
-    <div class="admin-section-title">Colaboradores cadastrados via WhatsApp</div>
-    <table class="admin-table"><thead><tr><th>Nome</th><th>CPF</th><th>Zona</th><th>Pode ajudar com</th><th>Alerta</th><th>Outra zona?</th><th>Veículo</th><th>Status</th><th></th></tr></thead><tbody>
-      ${voluntarios.filter(v=>noRecorte(v.bairro)).map(v=>`
-        <tr data-id="${v.id}">
-          <td>${escHtml(v.nome)}</td>
-          <td style="font-family:var(--mono);font-size:10.5px">${escHtml(maskCPF(v.cpf))}</td>
-          <td>${escHtml(v.bairro)}</td>
-          <td style="font-size:10.5px">${escHtml((v.contribuicoes||[v.ajuda]).join(', '))}</td>
-          <td style="font-size:10.5px">${escHtml(PREF_ALERTA[v.alertaPreferencia]||'—')}</td>
-          <td>${v.disponibilidadeZona==='qualquer_zona'?'🌍 sim':'só a sua'}</td>
-          <td style="font-size:10.5px">${v.temVeiculo ? escHtml(v.tipoVeiculo||'sim')+(v.aceitaReembolso?' · reembolso':v.aceitaReembolso===false?' · doação':'') : '—'}</td>
-          <td>${escHtml(estadoPessoa(v.id))}</td>
-          <td><button class="admin-btn danger" data-action="rm-vol"${estadoPessoa(v.id)!=='disponível'?' disabled title="Cadastro vinculado a uma participação em andamento"':''}>Remover</button></td>
-        </tr>
-      `).join('') || '<tr><td colspan="9" style="color:var(--muted)">Nenhum colaborador cadastrado ainda.</td></tr>'}
-    </tbody></table>
-    <div style="margin-top:10px;font-size:11px;color:var(--muted)">Novos colaboradores entram pelo Atendimento, usando o cadastro municipal compartilhado com os mapas. As pessoas fictícias do mapa permanecem identificadas como demonstração.</div>
-  `;
-  body.querySelectorAll('[data-action="rm-vol"]').forEach(btn=>{
-    btn.onclick = ()=>{
-      const tr = btn.closest('tr');
-      const idx = voluntarios.findIndex(x=>x.id===tr.dataset.id);
-      if(idx>-1 && estadoPessoa(voluntarios[idx].id)!=='disponível'){renderAdminColab(body);return;}
-      if(idx>-1){
-        auditPush('Administração', 'Removeu cadastro de colaborador', voluntarios[idx].nome,[voluntarios[idx].bairro]);
-        volLayer.removeLayer(voluntarios[idx].marker);
-        voluntarios.splice(idx,1);
-      }
-      updateKpis(); renderCollaborators(); renderChatContacts();
-      salvarPrototipo();
-      renderAdminColab(body);
-    };
-  });
+  // Leitura do mesmo cadastro utilizado pela Gestão e pelo Mapa de Colaboradores.
+  // Os voluntários legados do simulador continuam visíveis, mas não são um segundo cadastro.
+  const visiveis=pessoasMunicipio().filter(v=>!v.oficial&&noRecorte(v.bairroOrigem));
+  body.innerHTML='<div class="admin-section-title">Colaboradores do município</div>'+
+    '<p style="font-size:11px;color:var(--muted);margin:8px 0 14px">A inclusão, edição e exclusão acontecem exclusivamente no cadastro da Gestão. Registros do simulador são identificados como demonstração.</p>'+
+    '<a class="admin-btn primary" href="gestao/#voluntarios" style="display:inline-block;margin-bottom:15px">Gerenciar colaboradores na Gestão</a>'+
+    '<table class="admin-table"><thead><tr><th>Nome</th><th>Origem</th><th>Território de cadastro</th><th>Capacidades</th><th>Presença</th></tr></thead><tbody>'+
+    (visiveis.map(v=>{
+      const canonico=String(v.id).startsWith("cad:");
+      const capacidades=v.sub||(Array.isArray(v.contribuicoes)?v.contribuicoes.join(", "):v.ajuda||"");
+      const status=canonico?(v.checkin_status==="presente"?"Chegada GPS registrada":v.checkin_status==="finalizado"?"Saída registrada":"Não confirmado"):estadoPessoa(v.id)+" (simulação)";
+      return '<tr><td>'+escHtml(v.nome)+'</td><td>'+(canonico?"Cadastro municipal":"Simulação")+'</td>'+
+        '<td>'+escHtml(v.bairroOrigem||"Não informado")+'</td><td>'+escHtml(capacidades||"A definir")+'</td>'+
+        '<td>'+escHtml(status)+'</td></tr>';
+    }).join("")||'<tr><td colspan="5" style="color:var(--muted)">Nenhum colaborador nesta visão.</td></tr>')+
+    '</tbody></table>';
 }
 
 /* ---------- triagem automatica por prioridade ---------- */
