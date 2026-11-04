@@ -329,7 +329,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   .floatwin{width:85vw;right:8px}
 }
 </style>
-<link rel="stylesheet" href="prototipo.css?v=evento-2">
+<link rel="stylesheet" href="prototipo.css?v=evento-3">
 <link rel="stylesheet" href="sessao.css?v=sessoes-2">
 <link rel="stylesheet" href="mapa-navegacao.css?v=mapa-2">
 <link rel="stylesheet" href="gestao/acoes-cabecalho.css?v=acoes-2">
@@ -402,6 +402,17 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
           <button id="heat-toggle" style="margin-top:7px;width:100%;font-family:var(--mono);font-size:10.5px;background:var(--panel-2);color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:5px;cursor:pointer">🔥 Mapa de gravidade: desligado</button>
         </div>
 
+        <div class="floatwin" id="floatwin">
+          <div class="floatwin-head" id="floatwin-head">
+            <div class="fw-title"><span class="grip" aria-hidden="true">⠿</span> Colaboradores</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="fw-count" id="fw-count">0</span>
+              <button class="floatwin-min" id="floatwin-min" aria-controls="floatwin-body" aria-expanded="true">Recolher</button>
+            </div>
+          </div>
+          <div class="floatwin-body" id="floatwin-body"></div>
+        </div>
+
         <button class="register-fab" id="fab-cadastro">📲 Simular cadastro via WhatsApp</button>
         <div class="modal-overlay" id="cadastro-overlay" hidden>
           <div class="modal chat-modal" id="cadastro-modal" style="max-width:420px">
@@ -422,17 +433,6 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         <div id="alert-banner"></div>
         <div id="offline-banner" hidden>📡 Sem conexão. Algumas funções podem ficar indisponíveis.</div>
       </div>
-
-        <div class="floatwin" id="floatwin">
-          <div class="floatwin-head" id="floatwin-head">
-            <div class="fw-title">Colaboradores</div>
-            <div style="display:flex;align-items:center;gap:8px">
-              <span class="fw-count" id="fw-count">0</span>
-              <button class="floatwin-min" id="floatwin-min" aria-controls="floatwin-body" aria-expanded="true">Recolher</button>
-            </div>
-          </div>
-          <div class="floatwin-body" id="floatwin-body"></div>
-        </div>
 
       <div class="panel" id="panel">
         <div class="panel-head">
@@ -1127,11 +1127,38 @@ function renderCollaborators(){
   });
 }
 
+const janelaColaboradores=document.getElementById('floatwin');
+const barraColaboradores=document.getElementById('floatwin-head');
+const areaMapa=document.getElementById('mapwrap');
+let arrasteColaboradores=null;
+function posicionarColaboradores(x,y){
+  janelaColaboradores.style.right='auto';
+  janelaColaboradores.style.left=Math.max(0,Math.min(x,areaMapa.clientWidth-janelaColaboradores.offsetWidth))+'px';
+  janelaColaboradores.style.top=Math.max(0,Math.min(y,areaMapa.clientHeight-janelaColaboradores.offsetHeight))+'px';
+}
+function ajustarJanelaColaboradores(){
+  if(janelaColaboradores.style.left) posicionarColaboradores(janelaColaboradores.offsetLeft,janelaColaboradores.offsetTop);
+}
+barraColaboradores.addEventListener('pointerdown',e=>{
+  if(!e.isPrimary||e.button!==0||e.target.closest('button'))return;
+  arrasteColaboradores={id:e.pointerId,x:e.clientX-janelaColaboradores.offsetLeft,y:e.clientY-janelaColaboradores.offsetTop};
+  barraColaboradores.setPointerCapture(e.pointerId);
+  barraColaboradores.classList.add('dragging');
+});
+barraColaboradores.addEventListener('pointermove',e=>{
+  if(arrasteColaboradores?.id!==e.pointerId)return;
+  posicionarColaboradores(e.clientX-arrasteColaboradores.x,e.clientY-arrasteColaboradores.y);
+});
+barraColaboradores.addEventListener('lostpointercapture',()=>{
+  arrasteColaboradores=null;
+  barraColaboradores.classList.remove('dragging');
+});
+new ResizeObserver(ajustarJanelaColaboradores).observe(areaMapa);
 document.getElementById('floatwin-min').onclick=e=>{
-  const recolhido=document.getElementById('floatwin').classList.toggle('minimized');
+  const recolhido=janelaColaboradores.classList.toggle('minimized');
   e.currentTarget.textContent=recolhido?'Abrir colaboradores':'Recolher';
   e.currentTarget.setAttribute('aria-expanded',String(!recolhido));
-  map.invalidateSize({pan:false});
+  ajustarJanelaColaboradores();
 };
 
 /* ---------- painel de ocorrência (direita) ---------- */
