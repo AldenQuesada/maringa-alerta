@@ -144,6 +144,8 @@ function iniciar({map,L,simulatedLayers=[]}){
      .sort((a,b)=>a.localeCompare(b,"pt-BR"))
      .map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("");
   update();
+  const bairroSolicitado=new URLSearchParams(location.search).get("bairro");
+  if(bairroSolicitado)setTimeout(()=>focus(bairroSolicitado),80);
   return result;
  }).catch(error=>{
   if(isDestroyed)return null;
