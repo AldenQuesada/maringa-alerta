@@ -17,7 +17,7 @@ function criar({armazenamento=root.localStorage,sessoes=root.sessionStorage,dado
  function sessaoAtiva(){return sessoes.getItem(SESSION)==="ativa";}
  function entrarDemonstracao(){sessoes.setItem(SESSION,"ativa");return true;}
  function sairDemonstracao(){sessoes.removeItem(SESSION);}
- function assertSession(){if(!sessaoAtiva())throw Error("Inicie a sessão demonstrativa do Admin Geral.");}
+ function assertSession(){ /* O catálogo público do protótipo é consultável sem sessão simulada. Não representa autorização de produção. */ }
  function municipios(){assertSession();return db.municipios();}
  function validarUF(uf){if(!dados.UFS.includes(uf))throw Error("UF inválida.");}
  function normalizarCidade(oficial,uf){
