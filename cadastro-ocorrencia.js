@@ -6,7 +6,7 @@ function iniciar(api){
  const overlay=document.createElement('div');
  overlay.className='modal-overlay cadastro-ocorrencia';
  overlay.hidden=true;
- overlay.innerHTML=`<section class="modal cadastro-ocorrencia-modal" role="dialog" aria-modal="true" aria-labelledby="cad-oc-title">
+ overlay.innerHTML=`<section class="cadastro-ocorrencia-modal" role="dialog" aria-modal="true" aria-labelledby="cad-oc-title">
  <header class="modal-head"><h2 id="cad-oc-title">Registrar ocorrência</h2><button type="button" id="cad-oc-close" class="close-btn" aria-label="Fechar">✕</button></header>
  <form id="cad-oc-form" class="modal-body">
  <p class="demo-caption">Registro e acionamento de demonstração neste navegador.</p>

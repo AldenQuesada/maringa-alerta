@@ -1,5 +1,5 @@
-.cadastro-ocorrencia-modal{width:min(860px,96vw);max-height:94dvh}
-.cadastro-ocorrencia .modal-body{display:grid;gap:12px;overflow:auto}
+.cadastro-ocorrencia-modal{position:relative;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;width:min(860px,96vw);max-width:880px;max-height:94dvh;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.cadastro-ocorrencia .modal-body{display:grid;gap:12px;flex:1;min-height:0;overflow:auto}
 .cadastro-ocorrencia label{display:grid;gap:5px;color:var(--fg);font-size:12px}
 .cadastro-ocorrencia input:not([type=checkbox]),.cadastro-ocorrencia select,.cadastro-ocorrencia textarea{width:100%;padding:9px;color:var(--fg);background:var(--panel-2);border:1px solid var(--line);border-radius:5px}
 .cad-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
