@@ -51,4 +51,5 @@
     return { listarContas, obterSessao, cadastrar, trocar, sair, tipo: "local" };
   }
   global.AlertaSessao = { criar };
+  if (typeof module === "object" && module.exports) module.exports = global.AlertaSessao;
 })(typeof globalThis !== "undefined" ? globalThis : window);
