@@ -80,7 +80,7 @@ test("dados municipais não vazam para a prefeitura de outro tenant local",()=>{
 });
 test("nenhum canal WhatsApp real é usado no core",()=>{
  const {core}=novo();const out=core.acionarBrigada("Zona 7");
- assert.equal(out.destinatarios.length,0);assert.ok(out.mensagem.includes("MARINGÁ UNIDA"));
+ assert.equal(out.destinatarios.length,0);assert.ok(out.mensagem.includes("REDE MUNICIPAL"));
 });
 
 test("uma pessoa que precisa de ajuda encontra outro colaborador, mas não a si mesma",()=>{
