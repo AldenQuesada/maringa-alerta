@@ -4,11 +4,12 @@
 const $=id=>document.getElementById(id);
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const TIPO=new URLSearchParams(location.search).get("tipo")==="ajuda"?"ajuda":"colaboradores";
-let app=MaringaCrise.criar(),filtroZona="",filtroClasse="",texto="";
+const cidadeContexto=()=>sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa";
+let app=MaringaCrise.criar({municipioId:cidadeContexto(),escopoMunicipal:true}),filtroZona="",filtroClasse="",texto="";
 let territorio=null;
 let toastTimer;
 const nomeTipo=TIPO==="ajuda"?"Mapa da Ajuda":"Mapa de Colaboradores";
-document.title=nomeTipo+" | Maringá Unida";
+document.title=nomeTipo+" | "+(app.prefeitura()?.nome||"Município")+" · Sistema Integrado de Crise";
 $("nav-"+TIPO).classList.add("active");
 $("title").textContent=TIPO==="ajuda"?"Ajuda pós-evento":"Colaboradores por zona";
 $("eyebrow").textContent=TIPO==="ajuda"?"RECUPERAÇÃO PÓS-EVENTO":"REDE DE COLABORADORES";
@@ -28,8 +29,10 @@ function opts(el,items,selected,prefix) {
 function municipSelector(){
  const el=$("municipio"),lista=app.db.municipios();
  opts(el,lista.map(x=>({id:x.id,nome:x.nome+" / "+x.uf})),app.prefeitura()?.id);
+ el.disabled=true;
+ el.title="Município fixado pelo Admin Geral nesta sessão de demonstração.";
  el.onchange=()=>{
-  app=MaringaCrise.criar({municipioId:el.value});
+  app=MaringaCrise.criar({municipioId:cidadeContexto(),escopoMunicipal:true});
   filtroZona="";filtroClasse="";texto="";
   $("busca").value="";$("filtro").value="";
   renderMunicipio();render();

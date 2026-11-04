@@ -43,11 +43,11 @@ function waLink(numero,mensagem) {
  const full=n.startsWith("55")?n:"55"+n;
  return "https://wa.me/"+full+"?text="+encodeURIComponent(String(mensagem||"").slice(0,LIMITE_MENSAGEM));
 }
-function criar({armazenamento=root.localStorage,municipioId=null}={}) {
+function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal=false}={}) {
  const D=root.AlertaGestaoDados;
  if(!D)throw Error("Carregue gestao/dados.js primeiro.");
- const db=D.criar(armazenamento);
- if(municipioId&&db.municipioAtivo()?.id!==municipioId)db.selecionarMunicipio(municipioId);
+ const db=D.criar(armazenamento,escopoMunicipal&&municipioId?{municipioId}:{});
+ if(municipioId&&db.municipioAtivo()?.id!==municipioId&&!escopoMunicipal)db.selecionarMunicipio(municipioId);
  const prefeitura=()=>db.municipioAtivo();
  function zonas() {
   const locais=db.lista("zonas").map(x=>x.nome).filter(Boolean);
@@ -126,7 +126,7 @@ function criar({armazenamento=root.localStorage,municipioId=null}={}) {
  }
  function mensagemParaColaborador(pedido){
   const p=prefeitura();
-  return "MARINGÁ UNIDA · "+(p?.nome||"Município")+
+  return "REDE MUNICIPAL · "+(p?.nome||"Município")+
    "\nHá um pedido de ajuda "+(pedido.necessidade||"")+" na zona "+(pedido.zona||"não informada")+
    ".\nReferência: "+pedido.id+"\nAo chegar, envie CHEGUEI. Ao concluir, envie TERMINEI."+
    "\nUma equipe municipal deve fornecer instruções e endereço privadamente.";
@@ -150,7 +150,7 @@ function criar({armazenamento=root.localStorage,municipioId=null}={}) {
    ...equipes.map(x=>({id:x.id,nome:x.nome,telefone:x.telefone,tipo:"equipe"}))];
   const unicos=[];const telefones=new Set();
   for(const x of destinatarios){const f=telefone(x.telefone);if(f&&telefones.has(f))continue;if(f)telefones.add(f);unicos.push(x);}
-  const msg="MARINGÁ UNIDA · Brigada da zona "+zona+"\n"+(String(descricao).trim()||"Solicitação de mobilização da equipe e dos colaboradores disponíveis.")+
+  const msg="REDE MUNICIPAL · "+(prefeitura()?.nome||"Município")+" · Brigada da zona "+zona+"\n"+(String(descricao).trim()||"Solicitação de mobilização da equipe e dos colaboradores disponíveis.")+
     "\nPara participação em campo, registre apenas CHEGUEI e TERMINEI.";
   const item=db.gravar("mobilizacoes",{nome:"Brigada · "+zona,zona,mensagem:msg,status:"Preparada",
     destinatarios:JSON.stringify(unicos),criado_em:new Date().toISOString()});
@@ -160,7 +160,7 @@ function criar({armazenamento=root.localStorage,municipioId=null}={}) {
   const origem=prefeitura(),destino=db.municipios().find(x=>x.id===destinoId);
   if(!destino||destino.id===origem?.id)throw Error("Selecione outra prefeitura cadastrada.");
   if(!String(recurso||"").trim())throw Error("Especifique o recurso ou apoio solicitado.");
-  const msg="SOLICITAÇÃO INTERMUNICIPAL · MARINGÁ UNIDA\nOrigem: "+origem.nome+"/"+origem.uf+
+  const msg="SOLICITAÇÃO INTERMUNICIPAL · SISTEMA INTEGRADO DE CRISE\nOrigem: "+origem.nome+"/"+origem.uf+
     "\nDestino: "+destino.nome+"/"+destino.uf+"\nRecurso solicitado: "+String(recurso).trim()+
     "\nSolicitação preparada no protótipo; validação institucional obrigatória.";
   const item=db.gravar("apoios",{nome:"Pedido a "+destino.nome,destino:destino.nome+" / "+destino.uf,

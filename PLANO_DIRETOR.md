@@ -363,6 +363,23 @@ A disponibilização pública da fonte municipal de 2026 e da malha de bairros d
 
 **Estado operacional:** geometria dos bairros IBGE 2022 carregável automaticamente no protótipo. Persistência de cadastros continua local e a infraestrutura não representa um serviço compartilhado em produção municipal.
 
+### 5.8 Administração Geral da plataforma — modelo multi-prefeituras (04/11/2026)
+
+**Decisão final:** o Admin Geral **não pertence à Prefeitura de Maringá nem ao menu municipal Maringá Alerta**. É a Administração Geral de **todo o Sistema Integrado de Gestão de Crise**, responsável por criar e governar Maringá, Londrina e demais municípios. A estrutura segue o modelo de provisionamento multi-tenant do LifeSinal, com papéis centrais e vínculos municipais separados. Não compartilhar o banco nem o cadastro de usuários do LifeSinal.
+
+**Hierarquia canônica:** Plataforma → País → Estado → Município → gestão territorial, instituições, usuários e equipes. País e Estado são dimensões da plataforma; o usuário municipal recebe o escopo de sua Prefeitura e não pode criar novas prefeituras. A hierarquia de dados não deve representar telas em profundidade.
+
+**Rotas separadas:**
+- `/plataforma/` Admin Geral global: Dashboard, Prefeituras (novo/editar/ativar/suspender) e Georreferenciamento inicial, em uma tela de cadastro Brasil → Estado → Município validado por IBGE.
+- `/gestao/` Admin Municipal: começa já com a Prefeitura atribuída e seu território; mostra Território municipal (somente leitura para identificadores centrais), Bairros, Zonas, Bases, Áreas de risco, Pessoas e Hierarquia. Remover do sidebar municipal as ações **Prefeituras** e **Implantar Maringá**.
+- Os grupos inferiores — Equipes e comunidade, Ajuda e mobilização, Rede de emergência, Infraestrutura e recursos, Regras e comunicação — permanecem com seus módulos e dados preservados.
+
+**Provisionamento central:** status da Prefeitura (`implantacao`, `ativa`, `suspensa`), código IBGE único, dados de georreferenciamento com origem, administrador municipal de referência, vínculo de permissões no servidor (futuro). Maringá permanece registrada como município inicial; Londrina é exemplo de cidade a ser criada pelo Admin Geral a partir de seleção IBGE, **não** deve receber de forma automática os 113 bairros específicos de Maringá. Uma Prefeitura não ativa pode ter seus dados preparados, sem confundir essa condição com homologação operacional.
+
+**Sessões e isolamento:** duas identidades distintas no projeto futuro — `platform_admin` e `municipal_admin` (e demais papéis operacionais). Em produção, identificação autenticada, autorização por vínculo e RLS/tenant no backend são obrigatórias, sem fallback para a primeira cidade ou seleção arbitrária por query. O protótipo GitHub Pages usa sessão demonstrativa local e filtro por município, **não representa autenticação segura nem isolamento real entre empresas, municípios ou usuários**. Não usar dados reais até ter backend apropriado.
+
+**Preservação:** os três botões dos mapas e o Mapa de Evento de Maringá não são removidos. Um novo município não pode receber falsas ocorrências ou zonas simuladas da cidade de Maringá como se fossem suas.
+
 ## 6. Hierarquia de módulos e interfaces
 
 ### 6.1 Cinco experiências distintas

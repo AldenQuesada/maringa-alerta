@@ -95,8 +95,9 @@ test("pessoas e hierarquia convivem com telas legadas sem duplicação",()=>{
 });
 test("somente os dois primeiros grupos mudam e três mapas ficam intactos",()=>{
  const group=D.GROUPS;
- assert.deepEqual(group[1].items,["prefeituras","implantacao","bairros","zonas","bases","riscos"]);
+ assert.deepEqual(group[1].items,["territorio","bairros","zonas","bases","riscos"]);
  assert.deepEqual(group[2].items,["pessoas"]);
+ assert.ok(!group[1].items.includes("prefeituras")&&!group[1].items.includes("implantacao"),"provisionamento pertence ao Admin Geral");
  const legacy={"Equipes e comunidade":["equipes","integrantes","voluntarios"],
  "Ajuda e mobilização":["solicitacoes","mobilizacoes","apoios"],
  "Rede de emergência":["saude","emergencias","parceiros"],
