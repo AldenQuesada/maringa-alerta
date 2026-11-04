@@ -10,11 +10,14 @@ const js=fs.readFileSync(path.join(__dirname,"../acoes-cabecalho.js"),"utf8");
 const dados=fs.readFileSync(path.join(__dirname,"../dados.js"),"utf8");
 test("três mapas têm nomes completos e abrem telas independentes",()=>{
  assert.match(html,/>Mapa de Evento<\/span>/);
- assert.match(html,/>Mapa de Colaboradores<\/a>/);
- assert.match(html,/>Mapa da Ajuda<\/a>/);
+ assert.match(html,/>Mapa de Colaboradores<\/span>/);
+ assert.match(html,/>Mapa da Ajuda<\/span>/);
  assert.match(html,/href="\.\.\/index\.html"/);
  assert.match(html,/href="\.\.\/mapas\/\?tipo=colaboradores"/);
  assert.match(html,/href="\.\.\/mapas\/\?tipo=ajuda"/);
+ assert.equal((html.match(/class="map-arrow"/g)||[]).length,3,"cada mapa deve mostrar seta de abrir");
+ assert.equal((html.match(/class="map-symbol"/g)||[]).length,3,"os três botões devem ter o mesmo ícone");
+ assert.match(css,/\.map-hub \.map-arrow\{display:inline-flex/, "setas visíveis também no layout responsivo");
 });
 test("novo cabeçalho preserva o sidebar de 27 acessos e o componente da sessão",()=>{
  assert.match(html,/id="sidebar-nav"/);
