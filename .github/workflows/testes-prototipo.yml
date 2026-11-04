@@ -1,0 +1,31 @@
+name: Testes do protótipo
+
+on:
+  push:
+    branches:
+      - main
+      - feat/sistema-integrado-crise-tres-mapas-20261104
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar sintaxe dos módulos
+        run: |
+          node --check fluxo-ajuda.js
+          node --check gestao/dados.js
+          node --check gestao/gestao.js
+          node --check crise/core.js
+          node --check mapas/app.js
+          node --check atendimento/chat.js
+      - name: Executar testes funcionais
+        run: node --test tests/*.test.cjs gestao/tests/*.test.cjs crise/tests/*.test.cjs
