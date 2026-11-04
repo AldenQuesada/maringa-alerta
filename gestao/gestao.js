@@ -125,7 +125,7 @@ function structures(){return STRUCT_MODULES.flatMap(([m])=>db.lista(m));}
 function responsible(x,people){return people.find(p=>p.id===x.responsavel_id)||people.find(p=>p.estrutura_id===x.id)||null;}
 function renderTerritorioMunicipal(){
  const p=db.municipioAtivo();if(!p){PAGE.innerHTML=topo("Município indisponível","Prefeitura ainda não provisionada pelo Admin Geral.");return;}
- const people=db.lista("pessoas"),orgs=structures();
+ const orgs=structures(),people=db.lista("pessoas").filter(x=>x.estrutura_id||orgs.some(o=>o.responsavel_id===x.id)||["admin","responsavel","substituto","coordenador"].includes(x.funcao));
  const fields=[["Município",p.nome],["Estado",p.estado||p.uf],["Código IBGE",p.codigo_ibge],["Situação",p.status||"Em implantação"],["Contato institucional",p.responsavel],["Telefone",p.telefone],["E-mail institucional",p.email||p.admin_municipal_email],["Origem do cadastro",p.origem_provisionamento],["Georreferenciamento",p.fonte_geo]];
  PAGE.innerHTML=topo("Gerais · "+p.nome,"Dados institucionais definidos pelo Admin Geral e composição do Gabinete de Crise.")+
  '<section class="section-card"><header class="section-card-head"><h2>Dados da Prefeitura</h2><span class="pref-note">Cadastro do Admin Geral · somente leitura</span></header><div class="section-card-body"><dl class="pref-details">'+fields.map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v||"Não informado")+'</dd></div>').join("")+'</dl></div></section>'+
@@ -149,7 +149,7 @@ function renderEstruturas(){
 function renderModulo(){
  const d=D.ESQUEMAS[atual];
  if(atual==="bairros"){
-  PAGE.innerHTML=topo("Bairros","Inventário territorial e vínculos com as zonas operacionais. Utilize Novo cadastro para incluir um bairro.");
+  PAGE.innerHTML=topo("Bairros","Inventário territorial e vínculos com as zonas operacionais. Utilize Novo cadastro para incluir um bairro.","bairros");
   return; // O catálogo de bairros é o único inventário visível, montado pelo adaptador territorial existente.
  }
  PAGE.innerHTML=topo(d.label,d.summary,atual)+
