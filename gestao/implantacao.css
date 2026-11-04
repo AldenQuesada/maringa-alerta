@@ -118,6 +118,20 @@
 .mi-official-actions input{background:#0b1724;color:#e6eff8;border:1px solid #47607b;border-radius:8px;padding:10px 12px;min-height:41px;flex:1;min-width:180px}
 .mi-official-actions button{background:#2a4052;border:1px solid #536b7d;color:#f0f5fb;padding:10px 13px;min-height:41px;border-radius:8px;font-size:11px;font-weight:720;cursor:pointer}
 .mi-official-actions button:hover{border-color:#e4b155;color:#ffd083}
+/* Aproveitar a primeira dobra do painel de Bairros sem afetar outras telas. */
+#page:has(#catalogo-oficial-bairros){padding-bottom:22px}
+#catalogo-oficial-bairros .mi-official-scroll{
+ height:clamp(470px,calc(100dvh - 385px),820px);
+ max-height:none;
+ overflow:auto;
+ scrollbar-color:#4b6377 transparent;
+}
+@media(max-width:850px){
+ #catalogo-oficial-bairros .mi-official-scroll{height:clamp(370px,calc(100dvh - 365px),700px)}
+}
+@media(max-width:600px){
+ #catalogo-oficial-bairros .mi-official-scroll{height:clamp(310px,calc(100dvh - 390px),570px)}
+}
 .mi-official-scroll{max-height:470px;overflow:auto;scrollbar-color:#4b6377 transparent}
 .mi-official-scroll table{width:100%;border-collapse:collapse}
 .mi-official-scroll th{font-size:10px;color:#a5b9c8;text-transform:uppercase;letter-spacing:.04em;background:#1c3041;position:sticky;top:0;z-index:1}
