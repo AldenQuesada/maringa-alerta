@@ -421,22 +421,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
           <div class="floatwin-body" id="floatwin-body"></div>
         </div>
 
-        <button class="register-fab" id="fab-cadastro">📲 Simular cadastro via WhatsApp</button>
-        <div class="modal-overlay" id="cadastro-overlay" hidden>
-          <div class="modal chat-modal" id="cadastro-modal" style="max-width:420px">
-            <div class="modal-head">
-              <h2>📲 (44) 99XXX-XXXX · Cadastro de voluntário</h2>
-              <button class="close-btn" id="cadastro-close">✕</button>
-            </div>
-            <div class="modal-body" style="padding:0;display:flex;flex-direction:column;min-height:460px">
-              <div class="chat-messages" id="cadastro-messages" style="background:#060809"></div>
-              <div class="chat-input-row">
-                <input type="text" id="cadastro-input" placeholder="Digite sua resposta...">
-                <button id="cadastro-send">Enviar</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <a class="register-fab" id="fab-cadastro" href="./atendimento/" title="Cadastro único na Gestão e nos mapas">Cadastrar colaborador</a>
         <div class="reco-banner" id="reco-banner"></div>
         <div id="alert-banner"></div>
         <div id="offline-banner" hidden>📡 Sem conexão. Algumas funções podem ficar indisponíveis.</div>
@@ -1401,150 +1386,8 @@ function showReco(o){
   setTimeout(()=>banner.classList.remove('show'), 5200);
 }
 
-/* ---------- cadastro simulado via whatsapp ---------- */
-/* ---------- cadastro conversacional de voluntario, simulando o fluxo real de whatsapp ---------- */
-const cadastroOverlay = document.getElementById('cadastro-overlay');
-const cadastroMsgsEl = document.getElementById('cadastro-messages');
-let cadastroState = null;
-
-function cadastroBubble(texto, de){
-  const b = document.createElement('div');
-  b.className = 'chat-bubble ' + (de==='eu' ? 'me' : 'them');
-  b.textContent = texto;
-  cadastroMsgsEl.appendChild(b);
-  cadastroMsgsEl.scrollTop = cadastroMsgsEl.scrollHeight;
-}
-
-const cadastroPassos = [
-  { campo:'nome', pergunta:`Oi! Bem-vindo ao cadastro de voluntários de ${tenantConfig.nome}. Qual seu nome e sobrenome?` },
-  { campo:'cpf', pergunta:'Qual seu CPF? Usamos só para confirmar identidade em caso de reembolso ou resgate de equipamento — só números.' },
-  { campo:'endereco', pergunta:'Qual seu endereço (rua e bairro)?' },
-  { campo:'zonaEscolha', pergunta:null }, // montado dinamicamente com a lista de zonas
-  { campo:'contribuicoes', pergunta:'Como você pode contribuir? Pode escolher mais de uma opção — me manda os números separados por vírgula:\n'+tiposContribuicao.map(t=>`${t.num}. ${t.label}`).join('\n') },
-  { campo:'alertaPreferencia', pergunta:'Como você prefere ser alertado?\n1. Antes do evento (alertas preventivos)\n2. Durante o evento (convocação ativa)\n3. Só depois (ajudar na reconstrução)\n4. Em todas as fases' },
-  { campo:'disponibilidadeZona', pergunta:'Você topa ajudar só na sua área ou em qualquer zona do município se for preciso?\n1. Só na minha zona\n2. Qualquer zona do município' },
-  { campo:'veiculo', pergunta:'Você tem veículo que pode ser usado (caminhão, carro, moto)? Se sim, qual tipo — se não, responda "não".' },
-  { campo:'reembolso', pergunta:null }, // só aparece se tiver veiculo
-  { campo:'lgpd', pergunta:`Este é um cadastro de demonstração de ${tenantConfig.nome}. Use somente dados fictícios. Podemos guardar os dados deste teste neste navegador?\n1. Sim\n2. Não` },
-];
-
-function cadastroIniciar(){
-  cadastroMsgsEl.innerHTML = '';
-  cadastroState = { passoIdx:0, dados:{} };
-  cadastroOverlay.hidden = false;
-  cadastroPerguntarAtual();
-}
-document.getElementById('fab-cadastro').onclick = cadastroIniciar;
-document.getElementById('cadastro-close').onclick = ()=>{ cadastroOverlay.hidden = true; };
-cadastroOverlay.addEventListener('click', e=>{ if(e.target===cadastroOverlay) cadastroOverlay.hidden = true; });
-
-function cadastroPassoAtual(){ return cadastroPassos[cadastroState.passoIdx]; }
-
-function cadastroPerguntarAtual(){
-  const passo = cadastroPassoAtual();
-  if(passo.campo==='zonaEscolha'){
-    cadastroBubble('Em qual zona você está?\n'+bairros.map((b,i)=>`${i+1}. ${b.nome}`).join('\n'), 'eles');
-    return;
-  }
-  if(passo.campo==='reembolso'){
-    if(!cadastroState.dados.temVeiculo){ cadastroState.passoIdx++; cadastroPerguntarAtual(); return; }
-    cadastroBubble('Se seu veículo for usado e gastar combustível, você quer que a prefeitura reembolse?\n1. Sim, quero reembolso\n2. Não, é doação', 'eles');
-    return;
-  }
-  cadastroBubble(passo.pergunta, 'eles');
-}
-
-document.getElementById('cadastro-send').onclick = cadastroResponder;
-document.getElementById('cadastro-input').addEventListener('keydown', e=>{ if(e.key==='Enter') cadastroResponder(); });
-
-function cadastroResponder(){
-  const input = document.getElementById('cadastro-input');
-  const texto = input.value.trim();
-  if(!texto || !cadastroState) return;
-  cadastroBubble(texto, 'eu');
-  input.value = '';
-  const passo = cadastroPassoAtual();
-  const d = cadastroState.dados;
-
-  if(passo.campo==='nome'){
-    d.nome = texto;
-  } else if(passo.campo==='cpf'){
-    if(!validaCPF(texto)){ cadastroBubble('Esse CPF não parece válido. Pode digitar de novo? (só números, 11 dígitos)', 'eles'); return; }
-    d.cpf = texto.replace(/\D/g,'');
-  } else if(passo.campo==='endereco'){
-    d.endereco = texto;
-  } else if(passo.campo==='zonaEscolha'){
-    const n = parseInt(texto);
-    if(!n || n<1 || n>bairros.length){ cadastroBubble('Não entendi. Digite o número da sua zona na lista.', 'eles'); return; }
-    d.bairro = bairros[n-1].nome;
-  } else if(passo.campo==='contribuicoes'){
-    const nums = texto.split(',').map(s=>parseInt(s.trim())).filter(n=>n>=1 && n<=tiposContribuicao.length);
-    if(!nums.length){ cadastroBubble('Não entendi nenhum número. Digite os números das opções separados por vírgula, ex.: 1,4', 'eles'); return; }
-    d.contribuicoes = [...new Set(nums)].map(n=>tiposContribuicao.find(t=>t.num===n).tipo);
-  } else if(passo.campo==='alertaPreferencia'){
-    const map = {1:'antes',2:'durante',3:'depois',4:'todos'};
-    const n = parseInt(texto);
-    if(!map[n]){ cadastroBubble('Digite 1, 2, 3 ou 4.', 'eles'); return; }
-    d.alertaPreferencia = map[n];
-  } else if(passo.campo==='disponibilidadeZona'){
-    const map = {1:'somente_minha',2:'qualquer_zona'};
-    const n = parseInt(texto);
-    if(!map[n]){ cadastroBubble('Digite 1 ou 2.', 'eles'); return; }
-    d.disponibilidadeZona = map[n];
-  } else if(passo.campo==='veiculo'){
-    const naotem = /^n[aã]o$/i.test(texto.trim());
-    d.temVeiculo = !naotem;
-    d.tipoVeiculo = naotem ? null : texto;
-  } else if(passo.campo==='reembolso'){
-    const n = parseInt(texto);
-    if(n!==1 && n!==2){ cadastroBubble('Digite 1 ou 2.', 'eles'); return; }
-    d.aceitaReembolso = n===1;
-  } else if(passo.campo==='lgpd'){
-    const n = parseInt(texto);
-    if(n!==1 && n!==2){ cadastroBubble('Digite 1 ou 2.', 'eles'); return; }
-    if(n===2){
-      cadastroBubble('Entendido — sem o aceite não conseguimos guardar seu cadastro. Se mudar de ideia, é só mandar mensagem de novo. Obrigado!', 'eles');
-      cadastroState = null;
-      return;
-    }
-    d.consentimentoLGPD = true;
-    cadastroFinalizar();
-    return;
-  }
-
-  cadastroState.passoIdx++;
-  cadastroPerguntarAtual();
-}
-
-function cadastroFinalizar(){
-  const d = cadastroState.dados;
-  const b = bairros.find(x=>x.nome===d.bairro);
-  const pos = randPointInBox(b.poly);
-  const v = {
-    id:"v"+(idCounter++), tenantId, nome:d.nome, cpf:d.cpf, endereco:d.endereco, bairro:d.bairro, pos,
-    ajuda: d.contribuicoes[0], contribuicoes:d.contribuicoes,
-    alertaPreferencia:d.alertaPreferencia, disponibilidadeZona:d.disponibilidadeZona,
-    temVeiculo:d.temVeiculo, tipoVeiculo:d.tipoVeiculo, aceitaReembolso:d.aceitaReembolso,
-    consentimentoLGPD:true, cadastradoEm:Date.now(), ativo:false,
-  };
-  v.marker = L.marker(pos, { icon: volIcon(), title:v.nome }).addTo(volLayer);
-  configurarMarcadorPessoa(v.marker,v);
-  voluntarios.push(v);
-  applyZoneVisibility();
-  updateKpis();
-  renderZoneList();
-  renderCollaborators();
-  auditPush('Sistema de cadastro', 'Novo colaborador registrado via WhatsApp', `${d.nome} em ${d.bairro}`,[d.bairro]);
-
-  const faltando = itensQueFaltamNaZona(d.bairro);
-  const eq = b.equipe;
-  let msg = `Cadastro concluído! ✅\n\nVocê está vinculado à ${d.bairro}.\nResponsável: ${eq.responsavel.nome} (${eq.responsavel.tel})\nCoordenador: ${eq.coordenador.nome} (${eq.coordenador.tel})\n`;
-  msg += faltando.length
-    ? `\nSua zona ainda precisa de: ${faltando.map(f=>f.tipo).join(', ')}.\nSe você conhece alguém que possa ajudar com isso, encaminhe este número para essa pessoa! 📲`
-    : `\nSua zona está com a equipe de colaboradores completa por enquanto — mas toda ajuda extra conta.`;
-  cadastroBubble(msg, 'eles');
-  cadastroState = null;
-}
+/* Cadastro de colaboradores: somente pela rota canônica ./atendimento/.
+   A entrada do Mapa de Evento reutiliza a mesma coleção da Gestão e dos demais mapas. */
 
 function updateKpis(){
   const ocList = ocorrencias.filter(ocorrenciaVisivel);
@@ -1774,7 +1617,7 @@ function renderAdminColab(body){
         </tr>
       `).join('') || '<tr><td colspan="9" style="color:var(--muted)">Nenhum colaborador cadastrado ainda.</td></tr>'}
     </tbody></table>
-    <div style="margin-top:10px;font-size:11px;color:var(--muted)">Novos colaboradores entram automaticamente quando se cadastram pelo número de WhatsApp da prefeitura (simulado aqui pelo botão "Simular cadastro via WhatsApp" no mapa). CPF aparece mascarado por padrão.</div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted)">Novos colaboradores entram pelo Atendimento, usando o cadastro municipal compartilhado com os mapas. As pessoas fictícias do mapa permanecem identificadas como demonstração.</div>
   `;
   body.querySelectorAll('[data-action="rm-vol"]').forEach(btn=>{
     btn.onclick = ()=>{
