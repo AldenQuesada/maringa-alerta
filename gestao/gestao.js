@@ -113,15 +113,38 @@ function mapaPreview(){
  }
  return '<aside class="geo-panel"><div class="geo-head">Mapa · '+esc(p.nome)+'</div>'+mapa+'<div class="hint">A vista do município é independente do Mapa Operacional.</div></aside>';
 }
+const PREF_TABS=[["territorio","Gerais"],["bairros","Bairros"],["zonas","Zonas"],["estruturas","Estruturas"],["pessoas","Gabinete de Crise"],["bases","Bases"],["riscos","Riscos"]];
+const STRUCT_MODULES=[["saude","Saúde"],["emergencias","Emergência e segurança"],["parceiros","Órgãos e concessionárias"]];
+const PREF_SECTIONS=new Set([...PREF_TABS.map(x=>x[0]),...STRUCT_MODULES.map(x=>x[0])]);
+function renderPrefTabs(){
+ const active=STRUCT_MODULES.some(x=>x[0]===atual)?"estruturas":atual;
+ const html='<nav class="pref-tabs" aria-label="Etapas da gestão da Prefeitura">'+PREF_TABS.map(([id,label],i)=>'<a class="pref-tab'+(id===active?' active':'')+'" href="#'+id+'"'+(id===active?' aria-current="page"':'')+'><small>'+String(i+1).padStart(2,"0")+'</small>'+esc(label)+'</a>').join("")+'</nav>';
+ const heading=PAGE.querySelector(".heading-row,.mi-head");if(heading)heading.insertAdjacentHTML("afterend",html);else PAGE.insertAdjacentHTML("afterbegin",html);
+}
+function structures(){return STRUCT_MODULES.flatMap(([m])=>db.lista(m));}
+function responsible(x,people){return people.find(p=>p.id===x.responsavel_id)||people.find(p=>p.estrutura_id===x.id)||null;}
 function renderTerritorioMunicipal(){
- const p=db.municipioAtivo();
- if(!p){PAGE.innerHTML=topo("Município indisponível","O Admin Geral ainda não provisionou este município.");return;}
- const atalhos=[["Bairros","bairros"],["Zonas operacionais","zonas"]];
- const outros=[["Bases de apoio","bases"],["Áreas de risco","riscos"],["Unidades de saúde","saude"],["Bombeiros e polícias","emergencias"],["Órgãos e concessionárias","parceiros"]];
- const linhas=itens=>itens.map(([name,id])=>'<div class="overview-entry"><div><strong>'+esc(name)+'</strong><p>'+db.lista(id).length+' registro(s) neste município</p></div><a class="mini-action" href="#'+id+'">Abrir '+icon("chevron")+'</a></div>').join("");
- PAGE.innerHTML=topo("Prefeitura de "+p.nome,"Gestão municipal das zonas, bairros, equipes e serviços. Identificação institucional e georreferenciamento inicial pertencem ao Admin Geral.")+
- '<section class="section-card"><header class="section-card-head"><h2>Bairros e zonas operacionais</h2></header><div class="section-card-body">'+linhas(atalhos)+'</div></section>'+
- '<section class="section-card"><header class="section-card-head"><h2>Infraestrutura e instituições</h2></header><div class="section-card-body">'+linhas(outros)+'</div></section>'+mapaPreview();
+ const p=db.municipioAtivo();if(!p){PAGE.innerHTML=topo("Município indisponível","Prefeitura ainda não provisionada pelo Admin Geral.");return;}
+ const people=db.lista("pessoas"),orgs=structures();
+ const fields=[["Município",p.nome],["Estado",p.estado||p.uf],["Código IBGE",p.codigo_ibge],["Situação",p.status||"Em implantação"],["Contato institucional",p.responsavel],["Telefone",p.telefone],["E-mail institucional",p.email||p.admin_municipal_email],["Origem do cadastro",p.origem_provisionamento],["Georreferenciamento",p.fonte_geo]];
+ PAGE.innerHTML=topo("Gerais · "+p.nome,"Dados institucionais definidos pelo Admin Geral e composição do Gabinete de Crise.")+
+ '<section class="section-card"><header class="section-card-head"><h2>Dados da Prefeitura</h2><span class="pref-note">Cadastro do Admin Geral · somente leitura</span></header><div class="section-card-body"><dl class="pref-details">'+fields.map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v||"Não informado")+'</dd></div>').join("")+'</dl></div></section>'+
+ '<section class="section-card"><header class="section-card-head"><h2>Membros do Gabinete de Crise</h2><a class="mini-action" href="#pessoas">Gerenciar membros</a></header><div class="section-card-body">'+
+ (people.length?'<div class="pref-member-grid">'+people.map(x=>{
+ const org=orgs.find(o=>o.id===x.estrutura_id||o.responsavel_id===x.id)||orgs.find(o=>x.orgao&&o.nome===x.orgao);
+ return '<div class="pref-member"><strong>'+esc(x.nome)+'</strong><span>'+esc(x.cargo||x.funcao||"Função pendente")+'</span><small>'+esc(org?.nome||x.orgao||"Estrutura ainda não vinculada")+'</small></div>';
+ }).join("")+'</div>':'<p class="pref-note">Nenhum membro cadastrado. Adicione as pessoas e vincule seus órgãos ou estruturas.</p>')+
+ '</div></section>';
+}
+function renderEstruturas(){
+ const people=db.lista("pessoas");
+ PAGE.innerHTML=topo("Estruturas do Gabinete de Crise","Cada órgão tem seu próprio registro e representante vinculado ao cadastro único de pessoas.")+
+ STRUCT_MODULES.map(([module,label])=>{
+  const records=db.lista(module);
+  return '<section class="section-card"><header class="section-card-head"><h2>'+esc(label)+'</h2><a class="mini-action" href="#'+module+'">Cadastrar e editar</a></header><div class="section-card-body">'+
+  (records.length?records.map(x=>'<div class="overview-entry"><div><strong>'+esc(x.nome)+'</strong><p>Representante: '+esc(responsible(x,people)?.nome||"Não atribuído")+'</p></div></div>').join(""):'<p class="pref-note">Nenhuma estrutura cadastrada.</p>')+
+  '</div></section>';
+ }).join("");
 }
 function renderModulo(){
  const d=D.ESQUEMAS[atual];
@@ -146,10 +169,10 @@ function render(){
  }
  const hash=decodeURIComponent(location.hash.replace(/^#/,""))||"inicio";
  const adjusted=hash==="prefeituras"||hash==="implantacao"?"territorio":hash;
- const proximo=adjusted==="inicio"||Object.hasOwn(D.ESQUEMAS,adjusted)?adjusted:"inicio";
+ const proximo=adjusted==="inicio"||adjusted==="estruturas"||Object.hasOwn(D.ESQUEMAS,adjusted)?adjusted:"inicio";
  if(proximo!==atual)pesquisa="";
  atual=proximo;
- document.title=(atual==="inicio"?"Gestão":D.ESQUEMAS[atual].label)+" | Maringá Alerta";
+ document.title=(atual==="inicio"?"Gestão":atual==="estruturas"?"Estruturas":D.ESQUEMAS[atual].label)+" | Maringá Alerta";
  renderNav();
  if(atual==="inicio")renderInicio();
  else if(atual==="territorio")renderTerritorioMunicipal();
@@ -157,7 +180,9 @@ function render(){
   if(globalThis.AlertaImplantacaoUI)AlertaImplantacaoUI.montar({page:PAGE,db,mode:atual,toast});
   else PAGE.innerHTML=topo("Implantação indisponível","Não foi possível carregar o módulo territorial.");
  }
+ else if(atual==="estruturas")renderEstruturas();
  else renderModulo();
+ if(PREF_SECTIONS.has(atual))renderPrefTabs();
 }
 function campoHTML(f,valor){
  const id="field-"+f.key,v=esc(valor??""),required=f.required?' required':"";
@@ -166,9 +191,9 @@ function campoHTML(f,valor){
  if(f.type==="multi"){const current=Array.isArray(valor)?valor:String(valor||"").split(";").map(x=>x.trim()).filter(Boolean);
  return '<fieldset class="field multi-field"><legend>'+esc(f.label)+'</legend><div class="multi-choices">'+(f.options||[]).map(opt=>'<label class="multi-option"><input type="checkbox" name="'+esc(f.key)+'" value="'+esc(opt)+'"'+(current.includes(opt)?' checked':'')+'/><span>'+esc(opt)+'</span></label>').join("")+'</div></fieldset>';}
  if(f.type==="textarea")return '<div class="field">'+label+'<textarea id="'+id+'" name="'+esc(f.key)+'"'+required+'>'+v+'</textarea></div>';
- if(f.type==="select"||f.type==="uf"||f.type==="zone"||f.type==="team"){
-  const options=f.type==="uf"?D.UFS:f.type==="zone"?db.lista("zonas").map(x=>x.nome):f.type==="team"?db.lista("equipes").map(x=>x.nome):f.options||[];
-  return '<div class="field">'+label+'<select id="'+id+'" name="'+esc(f.key)+'"'+required+'><option value="">Selecionar</option>'+options.map(o=>'<option value="'+esc(o)+'"'+(String(o)===String(valor)?" selected":"")+'>'+esc(o)+'</option>').join("")+'</select></div>';
+ if(f.type==="select"||f.type==="uf"||f.type==="zone"||f.type==="team"||f.type==="person"||f.type==="structure"){
+  const options=f.type==="uf"?D.UFS:f.type==="zone"?db.lista("zonas").map(x=>x.nome):f.type==="team"?db.lista("equipes").map(x=>x.nome):f.type==="person"?db.lista("pessoas").map(x=>({id:x.id,nome:x.nome})):f.type==="structure"?structures().map(x=>({id:x.id,nome:x.nome})):f.options||[];
+  return '<div class="field">'+label+'<select id="'+id+'" name="'+esc(f.key)+'"'+required+'><option value="">Selecionar</option>'+options.map(o=>'<option value="'+esc(o.id??o)+'"'+(String(o.id??o)===String(valor)?" selected":"")+'>'+esc(o.nome??o)+'</option>').join("")+'</select></div>';
  }
  const type=f.type==="number"?"number":f.type==="date"?"date":f.type==="tel"?"tel":f.type==="email"?"email":"text";
  const attr=type==="number"?' min="0" step="any"':"";
