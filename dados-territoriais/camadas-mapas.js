@@ -110,6 +110,7 @@ function iniciar({map,L,simulatedLayers=[]}){
   const box=L.DomUtil.create("div","maringa-territorio-control");
   box.innerHTML='<div class="territory-head"><strong>Território de Maringá</strong><span class="territory-status">Carregando...</span></div>'+
   '<label class="territory-search">Localizar bairro/zona <input type="search" name="busca-bairro" list="territory-list" placeholder="Digite o nome da área..." autocomplete="off"></label>'+
+  '<label class="territory-search">Todos os bairros <select name="selecionar-bairro" aria-label="Escolha um bairro cadastrado"><option value="">Selecione um bairro</option></select></label>'+
   '<datalist id="territory-list"></datalist>'+
   '<div class="territory-options"><label><input type="checkbox" name="bairros" checked> Bairros (polígonos)</label>'+
   '<label><input type="checkbox" name="zonas"> Zonas cartográficas</label>'+
@@ -120,6 +121,8 @@ function iniciar({map,L,simulatedLayers=[]}){
   box.querySelector('[name="zonas"]').onchange=e=>{visibleZ=e.target.checked;update();};
   box.querySelector('[name="demo"]').onchange=e=>{showDemo=e.target.checked;update();};
   const search=box.querySelector('[name="busca-bairro"]');
+  const select=box.querySelector('[name="selecionar-bairro"]');
+  select.onchange=()=>{if(select.value)focus(select.value);};
   search.onchange=()=>focus(search.value);
   search.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();focus(search.value);}};
   return box;
@@ -133,8 +136,13 @@ function iniciar({map,L,simulatedLayers=[]}){
   el.querySelector(".territory-status").textContent="Fonte pública";
   el.querySelector('[name="zonas"]').disabled=!layerZ;
   const options=[...result.bairros.features,...(result.zonas?.features||[])].map(x=>x.properties.nome);
-  el.querySelector("#territory-list").innerHTML=[...new Set(options)].sort((a,b)=>a.localeCompare(b,"pt-BR"))
-   .map(x=>'<option value="'+esc(x)+'"></option>').join("");
+  const sorted=[...new Set(options)].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+  el.querySelector("#territory-list").innerHTML=sorted.map(x=>'<option value="'+esc(x)+'"></option>').join("");
+  const select=el.querySelector('[name="selecionar-bairro"]');
+  if(select)select.innerHTML='<option value="">'+esc(result.bairros.count)+' bairros — selecione</option>'+
+   [...new Set(result.bairros.features.map(x=>x.properties.nome))]
+     .sort((a,b)=>a.localeCompare(b,"pt-BR"))
+     .map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("");
   update();
   return result;
  }).catch(error=>{
