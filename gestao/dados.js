@@ -7,7 +7,7 @@ const CHAVE="alerta_painel_gestao_v1";
 const UFS=["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const F=(key,label,type="text",extra={})=>({key,label,type,...extra});
 const C=(label,values)=>F(label[0],label[1],"select",{options:values});
-const Z=()=>F("zona","Zona operacional","zone");
+const Z=()=>F("zona","Zona de referência","zone");
 const CONTATO=[F("telefone","Telefone","tel"),F("email","E-mail","email")];
 const CATALOGOS={
  ajudas:["FORNECER ALIMENTAÇÃO","ATENDER PESSOAS COM NECESSIDADES ESPECIAIS","CUIDADOR","LIMPEZA","PEDREIRO","METALÚRGICO","CARPINTEIRO","OPERADOR DE MOTOSSERRA","ELETRICISTA","LAUDO","EMITIR LAUDOS DE PREJUÍZOS","OUTRO"],
@@ -17,7 +17,7 @@ const CATALOGOS={
  necessidades:["Alimentação","Telhas e cobertura","Apoio financeiro","Abrigo e moradia","Roupas e cobertores","Medicamentos e saúde","Limpeza e remoção","Material de construção","Eletricidade e gerador","Água potável","Transporte","Cuidados especiais","Laudos de prejuízos","Apoio a empreendedores","Outro"]
 };
 const GEO_FIELDS=[
- F("bairro","Bairro"),F("zona","Zona operacional"),F("lat","Latitude"),F("lng","Longitude"),
+ F("bairro","Bairro"),F("zona","Zona de referência"),F("lat","Latitude"),F("lng","Longitude"),
  F("fonte","Fonte de dados"),F("url_fonte","URL da fonte"),F("externalId","ID externo"),
  F("verificacao","Verificação","select",{options:["Pendente","Em conferência","Validado","Rejeitado"]}),
  F("atualizado_em","Atualizado em"),F("geojson","Geometria GeoJSON","textarea")
@@ -34,7 +34,7 @@ const ESQUEMAS={
   F("verificacao","Verificação","select",{options:["Pendente","Validado","Rejeitado"]}),...CONTATO]},
 
   prefeituras:{label:"Prefeituras",singular:"Prefeitura",collection:"prefeituras",summary:"Municípios participantes e suas configurações territoriais.",columns:["nome","uf","codigo_ibge"],fields:[F("uf","Estado","uf",{required:true}),F("nome","Município","city",{required:true}),F("codigo_ibge","Código IBGE","text",{required:true}),F("responsavel","Contato institucional"),F("pais","País"),F("paisId","Código ISO do país"),F("estado","Estado"),F("codigo_uf","Código IBGE UF"),F("status","Situação","select",{options:["implantacao","ativa","suspensa"]}),F("admin_municipal_email","E-mail de referência do administrador municipal","email"),F("origem_provisionamento","Origem do provisionamento"),...CONTATO]},
-  zonas:{label:"Zonas operacionais",singular:"Zona",collection:"zonas",summary:"Divisões utilizadas para localização e coordenação.",columns:["nome","tipo","responsavel"],fields:[F("nome","Nome da zona","text",{required:true}),F("tipo","Tipo de área","select",{options:["Urbana","Rural","Mista","Outra"]}),F("responsavel","Responsável regional"),F("observacoes","Observações","textarea"),F("geojson","Polígono GeoJSON","textarea"),F("fonte","Fonte"),F("verificacao","Verificação")]},
+  zonas:{label:"Zonas numeradas",singular:"Zona numerada",collection:"zonas",summary:"Zonas territoriais numeradas da Prefeitura, com limites e fontes cartográficas verificadas.",columns:["nome","tipo","responsavel"],fields:[F("nome","Zona (ex.: Zona 1)","text",{required:true}),F("tipo","Classificação territorial","select",{options:["Zona numerada","Zona Central","Zona Industrial","Outra"]}),F("responsavel","Responsável regional"),F("observacoes","Observações","textarea"),F("geojson","Polígono GeoJSON","textarea"),F("fonte","Fonte"),F("verificacao","Verificação")]},
   bases:{label:"Bases de apoio",singular:"Base",collection:"bases",summary:"Locais de apoio e estacionamento operacional.",columns:["nome","zona","endereco"],fields:[F("nome","Nome","text",{required:true}),Z(),F("endereco","Endereço"),F("coordenadas","Localização"),F("bairro","Bairro"),F("lat","Latitude"),F("lng","Longitude"),F("fonte","Fonte"),F("verificacao","Verificação"),...CONTATO]},
   riscos:{label:"Áreas de risco",singular:"Área de risco",collection:"riscos",summary:"Pontos e setores que requerem atenção.",columns:["nome","zona","categoria"],fields:[F("nome","Nome da área","text",{required:true}),Z(),F("categoria","Risco","select",{options:["Alagamento","Deslizamento","Vendaval","Incêndio","Colapso estrutural","Tecnológico","Outro"]}),F("localizacao","Endereço ou referência"),F("descricao","Descrição","textarea"),F("geojson","Polígono GeoJSON","textarea"),F("lat","Latitude"),F("lng","Longitude"),F("fonte","Fonte"),F("verificacao","Verificação")]},
   administradores:{label:"Administradores",singular:"Administrador",collection:"usuarios",role:"admin",summary:"Responsáveis pela administração do município.",columns:["nome","email","telefone"],fields:[F("nome","Nome e sobrenome","text",{required:true}),F("cargo","Cargo"),...CONTATO]},
