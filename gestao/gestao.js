@@ -32,7 +32,7 @@ const ICONS={
   chevron:'<path d="m9 18 6-6-6-6"/>'
 };
 const icon=(id,css="")=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="'+css+'" aria-hidden="true">'+(ICONS[id]||ICONS.list)+'</svg>';
-const icons={solicitacoes:"list",mobilizacoes:"bell",apoios:"building",inicio:"dashboard",prefeituras:"building",zonas:"layers",bases:"pin",riscos:"shield",administradores:"shield",responsaveis:"user",substitutos:"user",coordenadores:"users",operadores:"user",equipes:"wrench",integrantes:"users",voluntarios:"users",saude:"hospital",emergencias:"siren",parceiros:"building",veiculos:"truck",equipamentos:"wrench",estoques:"box",abrigos:"hospital",pontos:"pin",ocorrencias:"list",canais:"bell",regras:"shield"};
+const icons={implantacao:"pin",bairros:"layers",pessoas:"users",solicitacoes:"list",mobilizacoes:"bell",apoios:"building",inicio:"dashboard",prefeituras:"building",zonas:"layers",bases:"pin",riscos:"shield",administradores:"shield",responsaveis:"user",substitutos:"user",coordenadores:"users",operadores:"user",equipes:"wrench",integrantes:"users",voluntarios:"users",saude:"hospital",emergencias:"siren",parceiros:"building",veiculos:"truck",equipamentos:"wrench",estoques:"box",abrigos:"hospital",pontos:"pin",ocorrencias:"list",canais:"bell",regras:"shield"};
 let atual="inicio",pesquisa="",edicao=null,ultimoFoco=null,toastTimer=null;
 const cidadesPorUf=new Map();
 const municipio=db.municipioAtivo();
@@ -61,8 +61,9 @@ function renderInicio(){
  const numero=tipo=>db.lista(tipo).length;
  const entradas=[
   ["Prefeituras","Definir o município e seu mapa inicial.","prefeituras"],
+  ["Implantar Maringá","Importar IBGE, CNES, bairros, unidades e pontos críticos em um único fluxo.","implantacao"],
   ["Zonas operacionais","Organizar a cobertura e vincular responsáveis.","zonas"],
-  ["Usuários e hierarquia","Cadastrar administradores, responsáveis e coordenadores.","administradores"],
+  ["Pessoas e hierarquia","Vincular responsáveis, substitutos e operadores a órgãos e zonas.","pessoas"],
   ["Equipes e instituições","Organizar equipes, hospitais e serviços de emergência.","equipes"],
   ["Recursos e comunicação","Configurar equipamentos, abrigos e canais.","equipamentos"],
   ["Ajuda pós-evento","Gerenciar solicitações por zona.","solicitacoes"],
@@ -118,6 +119,7 @@ function renderModulo(){
  (atual==="prefeituras"?'<div class="prefecture-layout"><section class="section-card"><header class="section-card-head"><h2>Prefeitura selecionada</h2></header><div class="section-card-body"><div class="hierarchy">'+
  '<div class="hierarchy-step"><strong>'+esc(db.municipioAtivo()?.nome||"—")+'</strong><small>'+esc(db.municipioAtivo()?.uf||"")+' · Código IBGE '+esc(db.municipioAtivo()?.codigo_ibge||"—")+'</small></div>'+
  '<div class="hierarchy-step"><strong>Território e instituições</strong><small>As zonas e cadastros desta prefeitura ficam no menu esquerdo.</small></div></div></div></section>'+mapaPreview()+'</div>':"");
+ if(atual==="prefeituras")PAGE.insertAdjacentHTML("beforeend",'<section class="section-card"><div class="section-card-body"><strong>Implantação georreferenciada de Maringá</strong><p class="page-subtitle">No fluxo único é possível conferir IBGE, CNES, bairros, zonas, unidades, pontos críticos e órgãos do gabinete de crise.</p><a class="btn btn-primary" href="#implantacao">Abrir implantação única</a></div></section>');
  const search=$("table-search");search.value=pesquisa;search.oninput=e=>{pesquisa=e.target.value;tabelaLinhas();};
  tabelaLinhas();
 }
@@ -128,7 +130,12 @@ function render(){
  atual=proximo;
  document.title=(atual==="inicio"?"Gestão":D.ESQUEMAS[atual].label)+" | Maringá Alerta";
  renderNav();
- if(atual==="inicio")renderInicio();else renderModulo();
+ if(atual==="inicio")renderInicio();
+ else if(atual==="implantacao"||atual==="pessoas"){
+  if(globalThis.AlertaImplantacaoUI)AlertaImplantacaoUI.montar({page:PAGE,db,mode:atual,toast});
+  else PAGE.innerHTML=topo("Implantação indisponível","Não foi possível carregar o módulo territorial.");
+ }
+ else renderModulo();
 }
 function campoHTML(f,valor){
  const id="field-"+f.key,v=esc(valor??""),required=f.required?' required':"";
