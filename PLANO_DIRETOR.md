@@ -334,6 +334,21 @@ Os mapas possuem **responsabilidades diferentes**, com potencial de cruzamento p
 
 **Estado auditado:** consultar [AUDITORIA_SISTEMA_INTEGRADO_CRISE.md](AUDITORIA_SISTEMA_INTEGRADO_CRISE.md) para a matriz entre funcionalidades demonstrativas e integrações necessárias. O compromisso de produto é um Sistema Integrado de Gestão de Crise; o código estático de GitHub Pages não é infraestrutura operacional real.
 
+### 5.6 Implantação única georreferenciada de Maringá — Prefeituras e Pessoas (04/11/2026)
+
+**Escopo aprovado:** implantar somente Maringá nesta fase, mantendo o ciclo multi-tenant para futuro administrador de País e Estado. A hierarquia de dados é **Brasil → Paraná → Maringá (IBGE 4115200) → bairros e zonas → unidades / instalações / pontos críticos**. Essa hierarquia não cria três ou mais páginas de navegação: país, UF e prefeitura permanecem no contexto da mesma tela. No máximo dois cliques do sidebar até a visualização ou edição de um registro.
+
+**Somente os primeiros dois grupos do menu esquerdo mudam:**
+- **Prefeituras e território:** Prefeituras; Implantar Maringá (tela única de importação); Bairros; Zonas operacionais; Bases de apoio; Áreas de risco. O inventário completo também permite consultar, no mesmo fluxo, UBS, UPA, pronto-socorros, hospitais, Bombeiros, polícias, Copel, Sanepar, abrigos e pontos críticos. As tabelas preexistentes dos módulos de serviços e recursos permanecem preservadas e reusam os registros.
+- **Usuários e hierarquia:** Pessoas e hierarquia, uma tabela de RH com funções principais e adicionais (administrador, responsável, substituto, coordenador, operador), vínculo com órgão, zona e substituto. O nome público de integrante do gabinete de crise não basta para ativar permissões nem enviar comandos.
+- **Equipes e comunidade, Ajuda e mobilização, Rede de emergência, Infraestrutura e recursos, Regras e comunicação:** nenhuma alteração de menu ou fluxo nesta implantação.
+
+**Importação segura:** IBGE Localidades e Malhas fornecem identidade/limite oficial do município; a API CNES fornece estabelecimentos de saúde sob código municipal com paginação. Bairros, pontos e geometrias não disponíveis por API aberta são carregados de arquivo municipal GeoJSON/CSV exportado da Prefeitura/IPPLAM e submetidos a conferência. **Não presumir georreferenciamento completo** a partir do nome de uma instituição. Cada registro possui fonte, identificador, bairro/zona, endereço público, coordenadas ou polígono quando conhecidos, verificação e data de atualização. Importação deve ser repetível, preservar dados validados e impedir duplicatas por código oficial.
+
+**Uma tela, dois cliques:** importar → conferir tabela/mapa → salvar. Toda linha tem acesso imediato a Mapa e Editar; os dados físicos são persistidos sob o mesmo município; RH é uma tabela única separada de recursos físicos. Administradores País/Estado exigem autorização e backend verdadeiros antes de entrarem no produto.
+
+**Estado atual:** demonstração estática em GitHub Pages, no navegador. As fontes remotas podem falhar por indisponibilidade, CORS ou limite; o fallback por arquivo público é mantido. Não constitui cadastro municipal homologado, GIS oficial, banco compartilhado ou sistema de emergência em produção.
+
 ## 6. Hierarquia de módulos e interfaces
 
 ### 6.1 Cinco experiências distintas
