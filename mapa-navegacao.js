@@ -5,40 +5,59 @@
 (function (global) {
   "use strict";
 
+  // Extremos aproximados do contorno municipal, com base na malha do IBGE.
+  // Fonte de referência: https://www.teraserv.com.br/ferramentas/coordenadas-de-municipios/pr/maringa
+  // O contorno continua retangular; não representa a divisa poligonal legal.
   const AREA_MARINGA = Object.freeze([
-    Object.freeze([-23.578, -52.123]),
-    Object.freeze([-23.235, -51.813])
+    Object.freeze([-23.5583, -52.1001]),
+    Object.freeze([-23.2540, -51.8358])
   ]);
-  const ZOOM_INICIAL = 13;
+  const PADDING = 32; // folga visual nas quatro bordas da visão geral
 
-  function instalar({ map, L, centro = [-23.4205, -51.9333], zoom = ZOOM_INICIAL, aoRestaurar }) {
+  function instalar({ map, L, aoRestaurar }) {
     if (!map || !L || !map.zoomControl || typeof map.zoomControl.getContainer !== "function") {
       throw new TypeError("Mapa Leaflet com controle de zoom obrigatório.");
     }
     const limites = L.latLngBounds(AREA_MARINGA);
-    const destino = L.latLng(centro);
+    let zoomGeralAnterior = null;
 
-    // Máxima resistência ao arrastar para além dos limites; impede zoom-out excessivo.
-    map.options.maxBoundsViscosity = 1;
-    map.setMaxBounds(limites);
-
+    // false: calcula o zoom em que TODO o município cabe DENTRO da tela.
+    // true faria o inverso e foi a causa do corte da parte norte.
     function zoomMinimo() {
-      const requerido = map.getBoundsZoom(limites, true);
-      return Math.max(zoom, Number.isFinite(requerido) ? Math.ceil(requerido) : zoom);
-    }
-    function adequarLimites() {
-      const minimo = zoomMinimo();
-      map.setMinZoom(minimo);
-      if (map.getZoom() < minimo) map.setZoom(minimo, { animate: false });
+      const zoom = map.getBoundsZoom(limites, false, L.point(PADDING * 2, PADDING * 2));
+      return Number.isFinite(zoom) ? Math.max(0, zoom) : Math.max(0, map.getMinZoom());
     }
 
-    adequarLimites();
-    map.setView(destino, Math.max(zoom, map.getMinZoom()), { animate: false });
+    function limitesDeNavegacao(zoomGeral) {
+      // A própria tela pode ser mais larga/alta que a área municipal,
+      // principalmente no celular. Incluímos a vista geral nos limites
+      // para evitar reposicionamento/corte causado por setMaxBounds.
+      const centro = map.project(limites.getCenter(), zoomGeral);
+      const meiaTela = map.getSize().divideBy(2);
+      const noroeste = map.unproject(centro.subtract(meiaTela), zoomGeral);
+      const sudeste = map.unproject(centro.add(meiaTela), zoomGeral);
+      return limites.pad(0.12).extend(noroeste).extend(sudeste);
+    }
+
+    function adequarLimites({ recenter = false, animate = false } = {}) {
+      const estavaNaVisaoGeral = zoomGeralAnterior !== null &&
+        Math.abs(map.getZoom() - zoomGeralAnterior) < 0.01;
+      const novoZoomGeral = zoomMinimo();
+      zoomGeralAnterior = novoZoomGeral;
+      map.options.maxBoundsViscosity = 1;
+      map.setMaxBounds(limitesDeNavegacao(novoZoomGeral));
+      map.setMinZoom(novoZoomGeral);
+      if (recenter || estavaNaVisaoGeral) {
+        // fitBounds também ajusta o centro para abarcar norte, sul, leste e oeste.
+        map.fitBounds(limites, { padding: [PADDING, PADDING], animate });
+      }
+    }
+
+    adequarLimites({ recenter: true });
 
     function restaurar() {
       if (typeof aoRestaurar === "function") aoRestaurar();
-      adequarLimites();
-      map.setView(destino, Math.max(zoom, map.getMinZoom()), { animate: true });
+      adequarLimites({ recenter: true, animate: true });
     }
 
     // O terceiro comando pertence ao mesmo bloco + / − do Leaflet.
@@ -63,12 +82,12 @@
       }
     });
 
-    map.on("resize", adequarLimites);
+    map.on("resize", () => adequarLimites());
 
     return { restaurar, limites, zoomMinimo, botao };
   }
 
-  const api = { instalar, AREA_MARINGA, ZOOM_INICIAL };
+  const api = { instalar, AREA_MARINGA };
   global.AlertaMapaNavegacao = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : window);
