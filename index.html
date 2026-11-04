@@ -1125,6 +1125,19 @@ function renderCollaborators(){
     if(!grupos.has(chave)) grupos.set(chave,{nome,pessoas:[]});
     grupos.get(chave).pessoas.push(p);
   });
+  if(!selecionadas.length){
+    function indiceDoGrupo(grupo){
+      const nome=normalizarTerritorio(grupo.nome);
+      const demonstracao=grupo.pessoas.every(p=>p.demo);
+      const indice=areas.findIndex(area=>normalizarTerritorio(area.nome)===nome
+        && (demonstracao?!!area.demo:!area.demo));
+      return indice<0?Infinity:indice;
+    }
+    const ordenados=[...grupos.entries()].sort(([,a],[,b])=>
+      indiceDoGrupo(a)-indiceDoGrupo(b)||a.nome.localeCompare(b.nome,'pt-BR'));
+    grupos.clear();
+    ordenados.forEach(([chave,grupo])=>grupos.set(chave,grupo));
+  }
   const papeis=Object.keys(PAPEL_LABEL);
   const ordem=p=>{const i=papeis.indexOf(p.papel||p.funcao);return i<0?papeis.length:i;};
   document.getElementById('fw-count').textContent=pessoas.filter(p=>!p.oficial).length;
