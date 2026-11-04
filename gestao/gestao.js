@@ -36,7 +36,7 @@ const ICONS={
 };
 const icon=(id,css="")=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="'+css+'" aria-hidden="true">'+(ICONS[id]||ICONS.list)+'</svg>';
 const icons={territorio:"layers",implantacao:"pin",bairros:"layers",pessoas:"users",solicitacoes:"list",mobilizacoes:"bell",apoios:"building",inicio:"dashboard",prefeituras:"building",zonas:"layers",bases:"pin",riscos:"shield",administradores:"shield",responsaveis:"user",substitutos:"user",coordenadores:"users",operadores:"user",equipes:"wrench",integrantes:"users",voluntarios:"users",saude:"hospital",emergencias:"siren",parceiros:"building",veiculos:"truck",equipamentos:"wrench",estoques:"box",abrigos:"hospital",pontos:"pin",ocorrencias:"list",canais:"bell",regras:"shield"};
-let atual="inicio",pesquisa="",edicao=null,ultimoFoco=null,toastTimer=null,geoTipo="todos",drawerModulo=null;
+let atual="inicio",pesquisa="",edicao=null,ultimoFoco=null,toastTimer=null,geoTipo="zonas",drawerModulo=null;
 const cidadesPorUf=new Map();
 const municipio=db.municipioAtivo();
 function renderMunicipios(){
@@ -150,11 +150,10 @@ function renderEstruturas(){
  }).join("");
 }
 function renderGeoterritorialidade(){
- PAGE.innerHTML=topo("Geoterritorialidade","Bairros e zonas reunidos em uma única tabela territorial.")+
+ PAGE.innerHTML=topo("Geoterritorialidade","Zonas numeradas de referência do município e bairros, em um único inventário geográfico.")+
  '<section class="section-card geo-workspace"><div class="section-card-body">'+
  '<div class="geo-controls"><label for="geo-type">Exibir<select id="geo-type"><option value="todos">Todos</option><option value="bairros">Bairros</option><option value="zonas">Zonas</option></select></label><div class="geo-new-actions">'+
- '<button type="button" class="btn btn-primary" data-geo-new="bairros">+ Novo bairro</button> '+
- '<button type="button" class="btn btn-primary" data-geo-new="zonas">+ Nova zona</button></div></div>'+
+ '<button type="button" class="btn btn-primary" data-geo-new="territorio">+ Novo território</button></div></div>'+
  '<div id="geo-content" class="geo-content"></div></div></section>';
  $("geo-type").value=geoTipo;
  $("geo-type").onchange=e=>{geoTipo=e.target.value;window.dispatchEvent(new Event("gestao:geo-render"));};
@@ -329,7 +328,10 @@ PAGE.addEventListener("click",e=>{
  const novo=e.target.closest("[data-new]"),edit=e.target.closest("[data-edit]"),del=e.target.closest("[data-delete]");
  if(atual==="geoterritorialidade"){
   const add=e.target.closest("[data-geo-new]"),geoEdit=e.target.closest("[data-geo-edit]"),geoDel=e.target.closest("[data-geo-delete]");
-  if(add){abrirDrawer(null,add.dataset.geoNew);return;}
+  if(add){
+   if(geoTipo==="todos"){toast("Selecione Zona numerada ou Bairro antes de cadastrar.");return;}
+   abrirDrawer(null,geoTipo);return;
+  }
   if(geoEdit){abrirDrawer(geoEdit.dataset.geoEdit,geoEdit.dataset.geoModule||geoTipo);return;}
   if(geoDel){
    const id=geoDel.dataset.geoDelete;
