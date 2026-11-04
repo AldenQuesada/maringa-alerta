@@ -48,7 +48,7 @@ const ESQUEMAS={
   solicitacoes:{label:"Pedidos de ajuda",singular:"Pedido",collection:"solicitacoes",summary:"Demandas pós-evento que aparecem no Mapa da Ajuda.",columns:["nome","necessidade","zona","status"],fields:[
     F("nome","Nome ou razão social","text",{required:true}),F("tipo_pessoa","Pessoa física ou jurídica","select",{required:true,options:["FÍSICA","JURÍDICA"]}),F("telefone","WhatsApp","tel",{required:true}),F("endereco","Endereço (privado)","text",{required:true}),Z(),
     F("necessidade","O que precisa?","select",{required:true,options:CATALOGOS.necessidades}),F("descricao","Descreva a necessidade","textarea"),
-    F("urgencia","Urgência","select",{options:["Normal","Alta","Crítica"]}),F("status","Situação","select",{options:["Aguardando","Encaminhada","Cheguei","Atendida","Cancelada"]}),
+    F("urgencia","Urgência","select",{options:["Normal","Alta","Crítica"]}),F("evento_referencia","Evento relacionado (opcional)"),F("status","Situação","select",{options:["Aguardando","Encaminhada","Cheguei","Atendida","Cancelada"]}),
     F("atribuido_a","Colaborador acionado (ID)","hidden"),F("criado_em","Criado em","hidden")]},
   mobilizacoes:{label:"Mobilizações de brigadas",singular:"Mobilização",collection:"mobilizacoes",summary:"Registro de preparação de mensagens para a brigada da zona; envio real depende de integração.",columns:["nome","zona","status"],fields:[
     F("nome","Nome da mobilização","text",{required:true}),Z(),F("mensagem","Mensagem","textarea"),F("status","Estado","select",{options:["Preparada","Cancelada"]}),
