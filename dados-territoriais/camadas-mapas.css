@@ -1,0 +1,30 @@
+/* Camada territorial de bairros: mesma interface nos 3 mapas Leaflet. */
+.maringa-territorio-control{
+  background:rgba(15,25,38,.97);border:1px solid #40546a;border-radius:11px;
+  padding:13px 14px;width:290px;max-width:calc(100vw - 48px);
+  box-shadow:0 8px 30px rgba(0,0,0,.36);color:#e5edf6;
+  font:12px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.maringa-territorio-control .territory-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.maringa-territorio-control .territory-head strong{font-size:12px;font-weight:800;letter-spacing:.005em}
+.maringa-territorio-control .territory-status{font-size:9.5px;color:#ffd28a;white-space:nowrap}
+.maringa-territorio-control .territory-search{display:flex;flex-direction:column;gap:6px;font-size:10px;color:#a6b9c9}
+.maringa-territorio-control .territory-search input{min-height:36px;border:1px solid #4c6075;background:#0a1623;color:#eaf2f9;border-radius:7px;padding:8px 10px;font-size:12px;width:100%;font-family:inherit}
+.maringa-territorio-control .territory-search input:focus{outline:2px solid #ffb84d;outline-offset:1px}
+.maringa-territorio-control .territory-options{display:flex;flex-direction:column;gap:5px;margin:11px 0 9px;padding-top:10px;border-top:1px solid #324454}
+.maringa-territorio-control .territory-options label{display:flex;align-items:center;gap:7px;cursor:pointer;color:#c2d1df;font-size:10.5px;line-height:1.4}
+.maringa-territorio-control input[type=checkbox]{accent-color:#ffd070;flex:none;width:14px;height:14px;margin:0}
+.maringa-territorio-control .territory-count{display:block;font-size:9.6px;color:#8ba4b7;line-height:1.5;border-top:1px solid #324454;padding-top:8px}
+.leaflet-container .maringa-territorio-control a{color:#ffce83}
+@media(max-width:750px){
+ .maringa-territorio-control{width:243px;padding:10px}
+ .maringa-territorio-control .territory-head strong{font-size:11px}
+ .maringa-territorio-control .territory-search input{min-height:35px}
+}
+@media(max-width:500px){
+ .maringa-territorio-control{width:205px;max-width:calc(100vw - 95px);padding:9px}
+ .maringa-territorio-control .territory-head{align-items:flex-start;flex-direction:column;gap:3px}
+ .maringa-territorio-control .territory-options{gap:5px}
+ .maringa-territorio-control .territory-options label{font-size:10px}
+}
