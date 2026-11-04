@@ -63,7 +63,7 @@ function renderMunSwitch(){
  select.onchange=()=>{if(draft&&dirty&&!confirm("Descartar mudanças não salvas na prefeitura?")){select.value=db.municipioAtivo()?.id||"";return;}db.selecionarMunicipio(select.value);draft=null;editingId=null;dirty=false;render();};
 }
 function renderNav(){
- $("sidebar-nav").innerHTML=nav.map(g=>'<section class="nav-group"><h2 class="nav-group-title">'+g.title+'</h2>'+g.items.map(k=>'<a class="nav-item'+(page===k?" active":"")+'" href="#'+k+'" data-navigation="'+k+'" aria-current="'+(page===k?"page":"false")+'"><span class="nav-label">'+esc(titles[k])+'</span></a>').join("")+'</section>').join("");
+ $("sidebar-nav").innerHTML=nav.map(g=>'<section class="nav-group"><h2 class="nav-group-title">'+g.title+'</h2>'+g.items.map(k=>'<a class="nav-item'+(page===k?" active":"")+'" href="#'+k+'" data-navigation="'+k+'" aria-current="'+(page===k?"page":"false")+'"><span class="nav-letter" aria-hidden="true">'+esc(titles[k].slice(0,1))+'</span><span class="nav-label">'+esc(titles[k])+'</span></a>').join("")+'</section>').join("");
 }
 function renderInicio(){
  const prefeitura=db.municipioAtivo();
@@ -100,9 +100,9 @@ function fieldHTML(key,label,type,value,required=false,options=null,prefix="fiel
  return '<div class="field">'+heading+'<input id="'+esc(id)+'" name="'+esc(key)+'" type="'+textType+'" value="'+val+'"'+req+list+'></div>';
 }
 function salvarCamposPrefeitura(){
- const form=$("pref-form");if(!draft||!form)return;
+ if(!draft||!$("pref-form"))return;
  for(const key of ["uf","nome","codigo_ibge","responsavel","telefone","email"]){
-  const input=form.elements.namedItem(key);
+  const input=$("pref-"+key);
   if(input)draft.prefeitura[key]=input.value;
  }
 }
@@ -223,7 +223,9 @@ function retirarLinha(k,id){
  activeEditor=null;dirty=true;renderFicha();
 }
 function salvarFicha(e){
- e.preventDefault();salvarCamposPrefeitura();
+ e.preventDefault();
+ if(activeEditor){toast("Conclua ou cancele a edição do item antes de salvar a Prefeitura.");return;}
+ salvarCamposPrefeitura();
  try{
   const salvo=db.salvarFichaPrefeitura(draft,editingId);
   draft=null;editingId=null;activeEditor=null;dirty=false;openSections.clear();
