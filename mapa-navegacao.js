@@ -12,7 +12,7 @@
     Object.freeze([-23.235, -51.813])
   ]);
   // Para a vista inicial, a referência são as seis zonas efetivamente desenhadas.
-  const PADDING = 48;
+  const PADDING = 24;
 
   function instalar({ map, L, zonas, aoRestaurar }) {
     if (!map || !L || !map.zoomControl || typeof map.zoomControl.getContainer !== "function") {
@@ -28,7 +28,7 @@
 
     function margem() {
       const tamanho = map.getSize();
-      return Math.max(16, Math.min(PADDING, Math.floor(Math.min(tamanho.x, tamanho.y) * 0.09)));
+      return Math.max(12, Math.min(PADDING, Math.floor(Math.min(tamanho.x, tamanho.y) * 0.035)));
     }
 
     function zoomMinimo() {

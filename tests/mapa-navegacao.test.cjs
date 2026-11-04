@@ -41,13 +41,14 @@ function unproject(p,z){
 function simularMapa(w=1440,h=900){
  const events={},container={children:[]};
  const map={
-  width:w,height:h,zoom:13,minZoom:0,center:{lat:-23.4205,lng:-51.9333},options:{},
+  width:w,height:h,zoom:13,minZoom:0,center:{lat:-23.4205,lng:-51.9333},options:{zoomSnap:0},
   zoomControl:{getContainer:()=>container},
   getSize(){return point(this.width,this.height)},project,unproject,
   getBoundsZoom(b,inside,padding=point(0,0)){
    assert.equal(inside,false,"o municipio precisa caber na tela, nunca o contrario");
    const sw=project({lat:b.getSouth(),lng:b.getWest()},0),ne=project({lat:b.getNorth(),lng:b.getEast()},0);
-   return Math.floor(Math.log2(Math.min((this.width-padding.x)/(ne.x-sw.x),(this.height-padding.y)/(sw.y-ne.y))));
+   const zoom=Math.log2(Math.min((this.width-padding.x)/(ne.x-sw.x),(this.height-padding.y)/(sw.y-ne.y)));
+   return this.options.zoomSnap===0?zoom:Math.floor(zoom);
   },
   getZoom(){return this.zoom},getMinZoom(){return this.minZoom},
   setMinZoom(z){this.minZoom=z;if(this.zoom<z)this.zoom=z;return this},
@@ -147,4 +148,29 @@ test("limites de deslocamento permanecem restritos à região de Maringá",()=>{
  instalar({map,L,zonas:POLIGONOS});
  assert.ok(map.maxBounds.getSouth()<=AREA_MARINGA[0][0]);
  assert.ok(map.maxBounds.getNorth()>=AREA_MARINGA[1][0]);
+});
+
+
+test("zoom preciso reduz o espaço vazio superior sem cortar Vila Esperança no desktop",()=>{
+ for(const [w,h] of [[1440,900],[1024,768],[1920,1080]]) {
+  const {map,L}=simularMapa(w,h);
+  instalar({map,L,zonas:POLIGONOS});
+  const norte=Math.max(...POLIGONOS.flat().map(p=>p[0]));
+  const nortePixel=project({lat:norte,lng:-51.94},map.zoom).y - project(map.center,map.zoom).y + h/2;
+  assert.ok(nortePixel>=-0.001,"a parte norte foi cortada");
+  assert.ok(nortePixel<=35,
+    "margem superior excessiva: "+Math.round(nortePixel)+"px na tela "+w+"x"+h);
+  assert.ok(map.zoom%1!==0,"zoom deve ser fracionário para aproveitar área útil");
+  visaoIncluiTodasAsZonas(map);
+ }
+});
+
+test("o botão de centralizar retorna à mesma escala precisa em vez do zoom 13 fixo",()=>{
+ const {map,L}=simularMapa(1440,900);
+ const nav=instalar({map,L,zonas:POLIGONOS});
+ const inicial=map.zoom;
+ map.zoom=inicial+2.5;
+ nav.restaurar();
+ assert.ok(Math.abs(map.zoom-inicial)<0.000001);
+ visaoIncluiTodasAsZonas(map);
 });
