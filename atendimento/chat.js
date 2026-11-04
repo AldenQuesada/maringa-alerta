@@ -3,8 +3,11 @@
 "use strict";
 const $=id=>document.getElementById(id);
 const app=MaringaCrise.criar({municipioId:sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa",escopoMunicipal:true});
+const nomeMunicipio=app.prefeitura()?.nome||"Município";
+document.title=nomeMunicipio+" Unida · Atendimento";
 const catalogos=AlertaGestaoDados.CATALOGOS;
 const history=$("history"),options=$("options"),form=$("reply-form"),input=$("reply");
+const heading=document.querySelector(".header-title strong");if(heading)heading.textContent=nomeMunicipio+" Unida";
 let identity=null,role=null,answers={},steps=[],index=0,current=null;
 const timestamp=()=>new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
 function mensagem(conteudo,personal=false,notice=false){
@@ -25,7 +28,7 @@ function optionsSimple(items){
 }
 function startMenu(){
  role=null;answers={};steps=[];index=0;
- bot("Olá, bem-vindo ao Maringá Unida! 🇧🇷\n\nComo você gostaria de se cadastrar?");
+ bot("Olá, bem-vindo ao "+nomeMunicipio+" Unida! 🇧🇷\n\nComo você gostaria de se cadastrar?");
  optionsSimple([
   ["Colaborador",()=>start("colaborador")],
   ["Receber ajuda",()=>start("solicitacao")],
