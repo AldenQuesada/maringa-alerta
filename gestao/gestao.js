@@ -163,6 +163,23 @@ function abrirDrawer(id=null){
  $("drawer-eyebrow").textContent=def.label;
  $("drawer-title").textContent=(id?"Editar ":"Novo cadastro · ")+def.singular;
  $("cadastro-campos").innerHTML=def.fields.map(f=>campoHTML(f,item?.[f.key])).join("")+(atual==="prefeituras"?'<datalist id="ibge-cidades"></datalist>':"");
+ const bairro=$("field-bairro");
+ if(bairro&&(atual==="pessoas"||atual==="voluntarios")){
+  bairro.required=true;
+  bairro.setAttribute("list","bairros-origem");
+  const lista=document.createElement("datalist");
+  lista.id="bairros-origem";
+  const nomes=new Set(db.lista("bairros").map(x=>x.nome));
+  const preencher=()=>{lista.replaceChildren(...[...nomes].sort((a,b)=>a.localeCompare(b,"pt-BR")).map(nome=>new Option(nome)));};
+  bairro.after(lista);
+  preencher();
+  if(db.municipioAtivo()?.id==="maringa"&&globalThis.MaringaBairros){
+   MaringaBairros.carregar().then(({bairros})=>{
+    bairros.features.forEach(f=>nomes.add(f.properties.nome));
+    preencher();
+   }).catch(()=>{});
+  }
+ }
  $("form-error").textContent="";
  DRAWER.hidden=false;
  if(atual==="prefeituras"){

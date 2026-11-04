@@ -28,7 +28,7 @@ const ESQUEMAS={
  pessoas:{label:"Pessoas e hierarquia",singular:"Pessoa",collection:"usuarios",summary:"Cadastro integrado de pessoal, órgãos, papéis, zonas e substituições.",columns:["nome","funcao","orgao","zona"],fields:[F("nome","Nome e sobrenome","text",{required:true}),
   F("funcao","Função principal","select",{required:true,options:["admin","responsavel","substituto","coordenador","operador"]}),
   F("papeis","Outras funções","multi",{options:["admin","responsavel","substituto","coordenador","operador"]}),
-  F("orgao","Órgão ou instituição"),F("zona","Zona operacional","zone"),F("cargo","Cargo"),F("especialidade","Área de responsabilidade"),
+  F("orgao","Órgão ou instituição"),F("bairro","Bairro de origem"),F("zona","Zona operacional","zone"),F("cargo","Cargo"),F("especialidade","Área de responsabilidade"),
   F("substituto_id","Substituto vinculado"),F("status","Situação","select",{options:["Pendente de validação","Ativo","Inativo"]}),
   F("verificacao","Verificação","select",{options:["Pendente","Validado","Rejeitado"]}),...CONTATO]},
 
@@ -44,7 +44,7 @@ const ESQUEMAS={
   equipes:{label:"Equipes de recuperação",singular:"Equipe",collection:"equipes",summary:"Equipes municipais com capacidades e disponibilidade.",columns:["nome","tipo","zona","status"],fields:[F("nome","Nome da equipe","text",{required:true}),F("tipo","Especialidade","select",{options:["Recuperação básica","Árvores e obstáculos","Obras e infraestrutura","Saúde","Assistência social","Resgate especializado","Logística","Resgate animal","Outra"]}),Z(),F("lider","Líder"),F("integrantes","Número de integrantes","number"),F("base","Base"),F("status","Disponibilidade","select",{options:["Disponível","Em atendimento","Indisponível"]}),F("recursos","Recursos e equipamentos","textarea"),F("telefone","Contato","tel")]},
   integrantes:{label:"Integrantes",singular:"Integrante",collection:"integrantes",summary:"Pessoas associadas às equipes municipais.",columns:["nome","equipe","funcao"],fields:[F("nome","Nome e sobrenome","text",{required:true}),F("equipe","Equipe","team"),F("funcao","Função"),F("habilitacoes","Habilitações"),F("telefone","Telefone","tel")]},
   voluntarios:{label:"Colaboradores",singular:"Colaborador",collection:"voluntarios",summary:"Pessoas físicas e jurídicas que oferecem ajuda. O cadastro também pode ser feito pelo atendimento simulado.",columns:["nome","tipo_pessoa","zona","telefone"],fields:[
- F("nome","Nome ou razão social","text",{required:true}),F("tipo_pessoa","Pessoa física ou jurídica","select",{required:true,options:["FÍSICA","JURÍDICA"]}),F("endereco","Endereço","text",{required:true}),F("telefone","Telefone / WhatsApp","tel",{required:true}),Z(),
+ F("nome","Nome ou razão social","text",{required:true}),F("tipo_pessoa","Pessoa física ou jurídica","select",{required:true,options:["FÍSICA","JURÍDICA"]}),F("endereco","Endereço","text",{required:true}),F("telefone","Telefone / WhatsApp","tel",{required:true}),F("bairro","Bairro de origem"),Z(),
  F("ajudas","Ajuda para pessoas atingidas","multi",{options:CATALOGOS.ajudas}),F("maquinas","Maquinário, equipamentos e materiais","multi",{options:CATALOGOS.maquinas}),
  F("empreendedores","Apoio para empreendedores","multi",{options:CATALOGOS.empreendedores}),F("materiais","Material / combustível","multi",{options:CATALOGOS.materiais}),
  F("outros","Especificar outros","textarea"),F("disponibilidade","Disponibilidade","select",{options:["Disponível","Indisponível","A combinar"]}),

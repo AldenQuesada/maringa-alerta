@@ -30,7 +30,7 @@ overlay.className="ma-overlay";overlay.hidden=true;
 overlay.innerHTML='<section class="ma-dialog" role="dialog" aria-modal="true" aria-labelledby="ma-dialog-title"><header class="ma-dialog-head"><div><span class="ma-eyebrow" id="ma-eyebrow">MARINGÁ ALERTA</span><h2 id="ma-dialog-title">Ações</h2></div><button class="ma-close" type="button" aria-label="Fechar painel" id="ma-dialog-close">×</button></header><div class="ma-dialog-body" id="ma-dialog-body"></div></section>';
 document.body.appendChild(overlay);
 let active=null,lastFocus=null,lastMsg="";
-const getPref=()=>D.criar().municipioAtivo();
+const getPref=()=>{const db=D.criar();return wrap.dataset.municipio ? db.municipios().find(p=>p.id===wrap.dataset.municipio) : db.municipioAtivo();};
 const getId=()=>getPref()?.id||"maringa";
 const read=(key,def)=>{try{const x=JSON.parse(global.localStorage.getItem(key)||"null");return x??def;}catch(_){return def;}};
 const put=(key,x)=>{try{global.localStorage.setItem(key,JSON.stringify(x));return true;}catch(_){return false;}};
@@ -38,21 +38,21 @@ const tasks=()=>{const x=read(TKEY+getId(),[]);return Array.isArray(x)?x:[];};
 const taskSave=x=>put(TKEY+getId(),x);
 const safeDate=iso=>{if(!iso)return "";const d=new Date(iso);return Number.isNaN(d.valueOf())?String(iso):d.toLocaleDateString("pt-BR")};
 function alerts(){
- const db=D.criar(),id=db.municipioAtivo()?.id;
+ const db=D.criar(),id=getId();
  const state=db.estado();
  const list=[];
  for(const x of state.solicitacoes||[]){
   if(x.municipioId!==id||x.status!=="Aguardando")continue;
   list.push({id:"pedido:"+x.id,kind:x.urgencia==="Crítica"?"critical":x.urgencia==="Alta"?"high":"normal",
-    title:"Pedido aguardando · "+(x.necessidade||"Ajuda"),sub:"Zona "+(x.zona||"não informada")+" · "+(x.urgencia||"Normal"),href:"../mapas/?tipo=ajuda"});
+    title:"Pedido aguardando · "+(x.necessidade||"Ajuda"),sub:"Zona "+(x.zona||"não informada")+" · "+(x.urgencia||"Normal"),href:(wrap.dataset.mapas||"../mapas/")+"?tipo=ajuda"});
  }
  for(const x of state.mobilizacoes||[]){
   if(x.municipioId!==id||x.status!=="Preparada")continue;
-  list.push({id:"mobilizacao:"+x.id,kind:"high",title:"Brigada preparada",sub:x.zona||"Zona não informada",href:"../mapas/?tipo=colaboradores"});
+  list.push({id:"mobilizacao:"+x.id,kind:"high",title:"Brigada preparada",sub:x.zona||"Zona não informada",href:(wrap.dataset.mapas||"../mapas/")+"?tipo=colaboradores"});
  }
  for(const x of state.apoios||[]){
   if(x.municipioId!==id||x.status!=="Preparada")continue;
-  list.push({id:"apoio:"+x.id,kind:"high",title:"Pedido intermunicipal preparado",sub:x.destino||"Prefeitura destinatária",href:"../mapas/?tipo=ajuda"});
+  list.push({id:"apoio:"+x.id,kind:"high",title:"Pedido intermunicipal preparado",sub:x.destino||"Prefeitura destinatária",href:(wrap.dataset.mapas||"../mapas/")+"?tipo=ajuda"});
  }
  const rank={critical:0,high:1,normal:2};
  return list.sort((a,b)=>rank[a.kind]-rank[b.kind]||a.title.localeCompare(b.title,"pt-BR"));
