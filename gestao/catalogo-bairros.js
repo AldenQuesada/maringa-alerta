@@ -12,7 +12,7 @@ function linkMapa(nome,tipo){
 }
 function linkEvento(nome){return "../index.html?bairro="+encodeURIComponent(nome);}
 function bairrosUI(){
- const panel=$("page");
+ const panel=document.querySelector("#page .pref-tab-body")||$("page");
  if(DB().municipioAtivo()?.id!=="maringa"){
   if(panel)panel.insertAdjacentHTML("beforeend",'<section class="mi-official-catalog"><div class="mi-official-head"><div><h2>Bairros municipais</h2><p>O catálogo local de 113 bairros IBGE pertence exclusivamente a Maringá. Os bairros deste município devem ser implantados pelo Admin Geral a partir da cartografia correspondente.</p></div><span class="mi-official-badge">Ainda não importados</span></div></section>');
   return;
@@ -72,7 +72,7 @@ function bairrosUI(){
  });
 }
 function zonasUI(){
- const panel=$("page");if(!panel)return;
+ const panel=document.querySelector("#page .pref-tab-body")||$("page");if(!panel)return;
  if(DB().municipioAtivo()?.id!=="maringa"){
   panel.insertAdjacentHTML("beforeend",'<section class="mi-official-catalog"><div class="mi-official-head"><div><h2>Zonas operacionais</h2><p>Este município ainda não possui zonas operacionais homologadas na demonstração. Cadastre apenas limites confirmados pela Prefeitura e Defesa Civil.</p></div></div></section>');
   return;
