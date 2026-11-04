@@ -8,41 +8,112 @@ function iniciar(api){
  overlay.hidden=true;
  overlay.innerHTML=`<section class="cadastro-ocorrencia-modal" role="dialog" aria-modal="true" aria-labelledby="cad-oc-title">
  <header class="modal-head"><h2 id="cad-oc-title">Registrar ocorrência</h2><button type="button" id="cad-oc-close" class="close-btn" aria-label="Fechar">✕</button></header>
- <form id="cad-oc-form" class="modal-body">
+ <form id="cad-oc-form" novalidate>
+ <nav class="cad-steps" aria-label="Etapas do cadastro"><span data-step-label="0">1. Ocorrência</span><span data-step-label="1">2. Local</span><span data-step-label="2">3. Equipes</span><span data-step-label="3">4. Relato e revisão</span></nav>
+ <div class="cad-step-content"><section class="cad-step" data-step="0">
  <p class="demo-caption">Registro e acionamento de demonstração neste navegador.</p>
  <div class="cad-grid">
- <label>Tipo de ocorrência <select name="tipo" required></select></label>
+ <label>Tipo de ocorrência <span class="cad-select-add"><select name="tipo" required></select><button type="button" class="cad-add" data-add="tipo" aria-label="Adicionar tipo de ocorrência" title="Adicionar tipo de ocorrência">+</button></span></label>
  <label>Gravidade <select name="gravidade" required><option value="">Selecione a gravidade</option><option value="1">Baixa</option><option value="2">Média</option><option value="3">Alta</option></select></label>
  <label>Responsabilidade <select name="responsabilidade" required><option value="">Selecione a responsabilidade</option><option value="publica">Pública</option><option value="privada">Privada</option><option value="mista">Mista</option></select></label>
- <label>Evento relacionado <select name="evento"><option value="">Nenhum evento relacionado</option></select></label>
+ <label>Evento relacionado <span class="cad-select-add"><select name="evento"><option value="">Nenhum evento relacionado</option></select><button type="button" class="cad-add" data-add="evento" aria-label="Adicionar evento" title="Adicionar evento">+</button></span></label>
  </div>
- <details><summary>Criar evento maior</summary>
+ <div class="cad-add-panel" id="cad-add-tipo" hidden><div class="cad-grid"><label>Nome do tipo <input id="cad-tipo-nome" maxlength="160"></label><label>Prioridade padrão <select id="cad-tipo-prioridade"><option value="">Selecione</option><option>Baixa</option><option>Média</option><option>Alta</option></select></label></div><button type="button" id="cad-tipo-criar" class="admin-btn">Salvar tipo</button><p id="cad-tipo-status" role="status"></p></div>
+ <div class="cad-add-panel" id="cad-add-evento" hidden>
  <div class="cad-grid"><label>Nome do evento <input id="cad-evento-nome" maxlength="160"></label><label>Tipo do evento <input id="cad-evento-tipo" maxlength="100" placeholder="Ex.: tempestade"></label></div>
  <button type="button" id="cad-evento-criar" class="admin-btn">Criar evento</button><p id="cad-evento-status" role="status"></p>
- </details>
+ </div>
  <label>Descrição <textarea name="descricao" rows="2" maxlength="2000"></textarea></label>
  <div class="cad-grid"><label>Pessoas afetadas <input name="afetados" type="number" min="0" max="100000"></label><label>Riscos observados <input name="riscos" maxlength="500"></label></div>
+ </section>
+ <section class="cad-step" data-step="1" hidden>
  <label>Endereço ou ponto de referência <input name="endereco" required maxlength="300"></label>
  <button type="button" id="cad-oc-search" class="admin-btn">Buscar endereço no mapa</button><p class="demo-caption">Clique no mapa para confirmar o local. Arraste o marcador para corrigir.</p>
  <div id="cad-oc-map" aria-label="Mapa para selecionar o local"></div>
  <p id="cad-oc-pos" role="status">Nenhum ponto selecionado.</p>
  <label>Bairro ou zona <select name="bairro" required><option value="">Selecione o bairro ou zona</option></select></label>
  <label>Complemento e acesso <input name="acesso" maxlength="300"></label>
- <fieldset><legend>Organizações e equipes</legend><p class="demo-caption">Selecione entre os cadastros disponíveis. As sugestões usam as regras cadastradas.</p><div id="cad-oc-orgs"></div></fieldset>
+ </section>
+ <section class="cad-step" data-step="2" hidden>
+ <div class="cad-heading"><h3>Organizações e equipes</h3><button type="button" class="cad-add" data-add="org" aria-label="Adicionar organização ou equipe" title="Adicionar organização ou equipe">+</button></div>
+ <div class="cad-add-panel" id="cad-add-org" hidden><div class="cad-grid"><label>Nome <input id="cad-org-nome" maxlength="160"></label><label>Categoria <select id="cad-org-categoria"><option value="equipes">Equipe municipal</option><option value="emergencias">Emergência e segurança</option><option value="saude">Saúde</option><option value="parceiros">Órgãos e entidades</option></select></label></div><button type="button" id="cad-org-criar" class="admin-btn">Salvar no cadastro</button><p id="cad-org-status" role="status"></p></div>
+ <fieldset><legend>Participantes</legend><p class="demo-caption">Selecione entre os cadastros disponíveis. As sugestões usam as regras cadastradas.</p><div id="cad-oc-orgs"></div></fieldset>
+ </section>
+ <section class="cad-step" data-step="3" hidden>
  <div class="cad-grid"><label>Origem <select name="origem"><option>Operador</option><option>WhatsApp</option><option>Telefone</option><option>Cidadão</option><option>Equipe em campo</option><option>Outro</option></select></label>
  <label>Data e hora do relato <input type="datetime-local" name="quando" required></label></div>
  <div class="cad-grid"><label>Nome do comunicante <input name="comunicante" maxlength="160"></label><label>Contato <input name="contato" maxlength="100"></label></div>
  <label>Fotos <input name="fotos" type="file" accept="image/*" multiple></label><div id="cad-oc-previews" class="attachment-previews"></div>
  <label class="cad-choice"><input type="checkbox" name="fotosPublicas"> Autorizar exibição das fotos no status público</label>
- <details><summary>Critérios para localizar relatos semelhantes</summary>
+ <button type="button" id="cad-criterios-toggle" class="cad-text-toggle" aria-expanded="false">Critérios para localizar relatos semelhantes</button><div id="cad-criterios" hidden>
  <div class="cad-grid"><label>Distância em metros <input name="raio" type="number" min="1" max="5000" value="150"></label><label>Intervalo em horas <input name="janela" type="number" min="1" max="720" value="24"></label></div>
- </details>
- <div id="cad-oc-duplicates" role="status"></div><p id="cad-oc-error" role="alert"></p>
- <div class="flow-actions"><button type="button" id="cad-oc-cancel" class="admin-btn">Cancelar</button><button type="submit" name="acao" value="triagem" class="admin-btn">Salvar para triagem</button><button type="submit" name="acao" value="confirmar" class="admin-btn primary">Confirmar e acionar</button></div>
+ </div>
+ <div id="cad-oc-duplicates" role="status"></div>
+ </section></div><p id="cad-oc-error" role="alert"></p>
+ <div class="cad-footer"><button type="button" id="cad-oc-back" class="admin-btn" hidden>Voltar</button><button type="button" id="cad-oc-next" class="admin-btn primary">Continuar</button><button type="button" id="cad-oc-cancel" class="admin-btn">Cancelar</button><button type="submit" name="acao" value="triagem" class="admin-btn" hidden>Salvar para triagem</button><button type="submit" name="acao" value="confirmar" class="admin-btn primary" hidden>Confirmar e acionar</button></div>
  </form></section>`;
  document.body.appendChild(overlay);
  const form=overlay.querySelector('form'), error=overlay.querySelector('#cad-oc-error'), tipo=form.elements.tipo, bairro=form.elements.bairro;
- let map,marker,pos=null,files=[],matches=[],busy=false,duplicateAcknowledged=false,duplicateSignature="";
+ let map,marker,pos=null,files=[],matches=[],busy=false,duplicateAcknowledged=false,duplicateSignature="",etapa=0;
+ function mostrarEtapa(indice){
+  etapa=indice;
+  overlay.querySelectorAll('.cad-step').forEach(sec=>{sec.hidden=Number(sec.dataset.step)!==indice;});
+  overlay.querySelectorAll('[data-step-label]').forEach(el=>{el.classList.toggle('active',Number(el.dataset.stepLabel)===indice);});
+  overlay.querySelector('#cad-oc-back').hidden=indice===0;
+  overlay.querySelector('#cad-oc-next').hidden=indice===3;
+  overlay.querySelectorAll('button[type="submit"]').forEach(el=>{el.hidden=indice!==3;});
+  overlay.querySelector('.cad-step-content').scrollTop=0;
+  error.textContent='';
+  if(indice===1 && map)setTimeout(()=>map.invalidateSize(),50);
+  if(indice===3)verificar();
+ }
+ function validarEtapa(indice){
+  const sec=overlay.querySelector('[data-step="'+indice+'"]');
+  const campo=[...sec.querySelectorAll('input,select,textarea')].find(el=>!el.disabled&&!el.closest('.cad-add-panel[hidden], #cad-criterios[hidden]')&&!el.checkValidity());
+  if(campo){mostrarEtapa(indice);campo.reportValidity();return false;}
+  if(indice===1&&!pos){mostrarEtapa(1);error.textContent='Selecione o ponto da ocorrência no mapa.';return false;}
+  return true;
+ }
+ function validarFormulario(){
+  const anterior=etapa;
+  for(let indice=0;indice<4;indice++)if(!validarEtapa(indice))return false;
+  if(etapa!==anterior)mostrarEtapa(anterior);
+  return true;
+ }
+ overlay.querySelector('#cad-oc-next').onclick=()=>{if(validarEtapa(etapa))mostrarEtapa(etapa+1);};
+ overlay.querySelector('#cad-oc-back').onclick=()=>mostrarEtapa(etapa-1);
+ overlay.querySelectorAll('[data-add]').forEach(button=>button.onclick=()=>{
+  const painel=overlay.querySelector('#cad-add-'+button.dataset.add);
+  painel.hidden=!painel.hidden;button.setAttribute('aria-expanded',String(!painel.hidden));
+  if(!painel.hidden)painel.querySelector('input,select')?.focus();
+ });
+ overlay.querySelector('#cad-criterios-toggle').onclick=e=>{
+  const painel=overlay.querySelector('#cad-criterios');painel.hidden=!painel.hidden;
+  e.currentTarget.setAttribute('aria-expanded',String(!painel.hidden));
+ };
+ overlay.querySelector('#cad-tipo-criar').onclick=()=>{
+  const nome=overlay.querySelector('#cad-tipo-nome').value.trim();
+  const prioridade=overlay.querySelector('#cad-tipo-prioridade').value;
+  const aviso=overlay.querySelector('#cad-tipo-status');
+  if(!nome){aviso.textContent='Informe o nome do tipo.';return;}
+  try{
+   api.createType(nome,prioridade);tipo.innerHTML=escOptions(api.types());tipo.value=nome;
+   tipo.dispatchEvent(new Event('change'));aviso.textContent='Tipo salvo e selecionado.';
+  }catch(e){aviso.textContent=e.message;}
+ };
+ overlay.querySelector('#cad-org-criar').onclick=()=>{
+  const nome=overlay.querySelector('#cad-org-nome').value.trim();
+  const categoria=overlay.querySelector('#cad-org-categoria').value;
+  const aviso=overlay.querySelector('#cad-org-status');
+  if(!nome){aviso.textContent='Informe o nome.';return;}
+  try{
+   const id=api.createOrganization(nome,categoria,bairro.value);
+   preencherOrganizacoes();
+   const novo=[...overlay.querySelectorAll('#cad-oc-orgs input')].find(el=>el.value===id);
+   if(novo)novo.checked=true;
+   aviso.textContent='Cadastro salvo e selecionado.';
+  }catch(e){aviso.textContent=e.message;}
+ };
  const escOptions=values=>values.map(x=>`<option value="${esc(x.value)}">${esc(x.label)}</option>`).join('');
  function fechar(){overlay.hidden=true;api.onClose?.();api.trigger.focus();}
  function preencherOrganizacoes(){
@@ -77,6 +148,7 @@ function iniciar(api){
  }
  api.trigger.addEventListener('click',()=>{
   overlay.hidden=false;form.reset();files=[];pos=null;matches=[];busy=false;
+  overlay.querySelectorAll('.cad-add-panel').forEach(p=>p.hidden=true);overlay.querySelectorAll('[data-add],#cad-criterios-toggle').forEach(b=>b.setAttribute('aria-expanded','false'));overlay.querySelectorAll('.cad-add-panel [role=status]').forEach(p=>p.textContent='');duplicateAcknowledged=false;duplicateSignature='';overlay.querySelector('#cad-criterios').hidden=true;mostrarEtapa(0);
   error.textContent='';overlay.querySelector('#cad-oc-previews').replaceChildren();overlay.querySelector('#cad-oc-duplicates').replaceChildren();
   overlay.querySelector('#cad-oc-pos').textContent='Nenhum ponto selecionado.';
   tipo.innerHTML=escOptions(api.types());form.elements.evento.innerHTML='<option value="">Nenhum evento relacionado</option>'+escOptions(api.events());bairro.innerHTML='<option value="">Selecione o bairro ou zona</option>'+escOptions(api.neighborhoods());
@@ -114,8 +186,8 @@ function iniciar(api){
  overlay.addEventListener('click',e=>{if(e.target===overlay)fechar();});
  tipo.addEventListener('change',()=>{
   const escolhido=api.types().find(x=>x.value===tipo.value);
-  if(escolhido?.gravidade)form.elements.gravidade.value=String(escolhido.gravidade);
-  if(escolhido?.responsabilidade)form.elements.responsabilidade.value=escolhido.responsabilidade;
+  form.elements.gravidade.value=escolhido?.gravidade?String(escolhido.gravidade):'';
+  form.elements.responsabilidade.value=escolhido?.responsabilidade||'';
   preencherOrganizacoes();verificar();
  });
  bairro.addEventListener('change',()=>{preencherOrganizacoes();verificar();});
@@ -123,7 +195,7 @@ function iniciar(api){
  overlay.querySelector('#cad-oc-duplicates').addEventListener('change',e=>{if(e.target.id==='cad-oc-separate'){duplicateAcknowledged=e.target.checked;duplicateSignature=matches.map(x=>x.id).sort().join('|');}});
  overlay.querySelector('#cad-oc-duplicates').addEventListener('click',async e=>{
   const id=e.target.dataset.link;if(!id||busy)return;
-  if(!form.reportValidity()||!pos){error.textContent='Preencha o endereço, o bairro e selecione o ponto no mapa.';return;}
+  if(!validarFormulario())return;
   busy=true;try{await api.link(id,dados());fechar();api.feedback('Relato vinculado ao registro existente.');}catch(err){error.textContent=err.message;}finally{busy=false;}
  });
  form.elements.fotos.addEventListener('change',async e=>{
@@ -138,7 +210,7 @@ function iniciar(api){
  });
  form.addEventListener('submit',async e=>{
   e.preventDefault();if(busy)return;error.textContent='';
-  if(!pos){error.textContent='Selecione o ponto da ocorrência no mapa.';return;}
+  if(!validarFormulario())return;
   const atuais=api.findDuplicates(dados());
   if(atuais.length&&(!duplicateAcknowledged||atuais.map(x=>x.id).sort().join('|')!==duplicateSignature)){verificar();error.textContent='Revise os registros semelhantes e confirme se é uma ocorrência separada.';return;}
   busy=true;

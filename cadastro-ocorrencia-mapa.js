@@ -42,6 +42,20 @@ function instalar(ctx){
     },
     types:()=>tipos().map(t=>({value:t.tipo,label:t.tipo,gravidade:t.gravBase,responsabilidade:t.resp?.length===1?t.resp[0]:null})),
     events:()=>db().lista('eventos',tenantId).filter(e=>e.status!=='Encerrado').map(e=>({value:e.id,label:e.nome+' · '+e.tipo})),
+    createType:(nome,prioridade)=>{
+      if(tipos().some(t=>normalizarTerritorio(t.tipo)===normalizarTerritorio(nome)))throw Error('Já existe um tipo com este nome.');
+      return db().gravar('ocorrencias',{nome,prioridade});
+    },
+    createOrganization:(nome,categoria,bairro)=>{
+      if(!['equipes','emergencias','saude','parceiros'].includes(categoria))throw Error('Categoria inválida.');
+      if(db().lista(categoria,tenantId).some(x=>normalizarTerritorio(x.nome)===normalizarTerritorio(nome)))throw Error('Já existe um cadastro com este nome nesta categoria.');
+      const area=areas.find(a=>normalizarTerritorio(a.nome)===normalizarTerritorio(bairro));
+      const dados={nome,tipo:categoria==='equipes'?'Outra':'Outro'};
+      if(categoria==='equipes'){dados.zona=bairro;dados.status='Disponível';}
+      else if(area?.tipoArea==='Bairro')dados.bairro=bairro;
+      else dados.zona=bairro;
+      const item=db().gravar(categoria,dados);return categoria+':'+item.id;
+    },
     createEvent:(nome,tipo)=>{
       if(db().lista('eventos',tenantId).some(e=>normalizarTerritorio(e.nome)===normalizarTerritorio(nome)))throw Error('Já existe um evento com este nome.');
       const evento=db().gravar('eventos',{nome,tipo,status:'Em andamento',inicio:new Date().toISOString(),descricao:''});

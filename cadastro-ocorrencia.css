@@ -14,3 +14,23 @@
 .evento-filter select{max-width:150px;color:var(--fg);background:var(--panel-2);border:1px solid var(--line);border-radius:5px;padding:6px}
 
 .cadastro-ocorrencia-aviso{padding:9px 15px;background:#123d2c;color:#b8f4ce;font-size:12px}
+
+/* Cadastro em etapas: conteúdo amplo e rolagem integrada ao tema escuro. */
+.cadastro-ocorrencia-modal{width:min(1100px,96vw);max-width:1100px;max-height:94dvh}
+.cadastro-ocorrencia-modal .modal-head{flex:none}
+#cad-oc-form{display:flex;flex:1;flex-direction:column;min-height:0;overflow:hidden}
+.cadastro-ocorrencia [hidden]{display:none!important}
+.cad-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:12px 18px;border-bottom:1px solid var(--line);color:var(--muted);font-size:12px}
+.cad-steps span{padding:8px;border-radius:5px}.cad-steps .active{background:#243647;color:#ffcf42;font-weight:700}
+.cad-step-content{min-height:0;overflow-y:auto;padding:16px 20px;scrollbar-color:#45576a #121b25;scrollbar-width:thin;color-scheme:dark}
+.cad-step-content::-webkit-scrollbar{width:8px}.cad-step-content::-webkit-scrollbar-track{background:#121b25}.cad-step-content::-webkit-scrollbar-thumb{background:#45576a;border-radius:8px}
+.cad-step{display:grid;gap:12px}.cad-step p,.cad-step h3{margin:0}.cad-footer{display:flex;gap:8px;flex-wrap:wrap;padding:12px 20px;border-top:1px solid var(--line)}
+.cad-footer #cad-oc-cancel{margin-left:auto}#cad-oc-error{margin:0;padding:0 20px}
+.cad-select-add{display:flex;gap:8px;align-items:stretch}.cad-select-add select{flex:1;min-width:0}
+.cad-add{flex:none;display:grid;place-items:center;min-width:38px;min-height:38px;border:1px solid #a98212;border-radius:6px;background:#332b13;color:#ffcd32;font-size:24px;line-height:1;cursor:pointer}
+.cad-add:hover{background:#4b3d15}.cad-add:focus-visible{outline:2px solid #ffcd32;outline-offset:2px}
+.cad-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.cad-add-panel{display:grid;gap:10px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel-2)}
+.cad-add-panel button{justify-self:start}.cad-text-toggle{justify-self:start;border:0;background:none;color:#e7c459;padding:0;cursor:pointer;text-align:left}
+.cadastro-ocorrencia select{appearance:none;-webkit-appearance:none;background-image:none}.cadastro-ocorrencia summary{list-style:none;cursor:pointer;color:#e7c459}.cadastro-ocorrencia summary::-webkit-details-marker{display:none}
+#cad-oc-map{height:min(30dvh,230px);min-height:150px}
+@media(max-width:600px){.cadastro-ocorrencia-modal{width:96vw;max-height:94dvh}.cad-steps{grid-template-columns:repeat(2,minmax(0,1fr));padding:8px}.cad-step-content{padding:12px}.cad-footer{padding:10px}.cad-footer #cad-oc-cancel{margin-left:0}}
