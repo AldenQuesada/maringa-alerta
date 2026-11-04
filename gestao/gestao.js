@@ -54,7 +54,7 @@ function renderNav(){
  });
 }
 function topo(titulo,subtitulo,acao){
- return '<div class="heading-row"><div><div class="eyebrow">'+esc(db.municipioAtivo()?.nome||"Municípios")+'</div><h1 class="page-title">'+esc(titulo)+'</h1><p class="page-subtitle">'+esc(subtitulo)+'</p></div>'+
+ return '<div class="heading-row"><div><div class="eyebrow">'+esc(PREF_SECTIONS.has(atual)?"GESTÃO MUNICIPAL":db.municipioAtivo()?.nome||"Municípios")+'</div><h1 class="page-title">'+esc(titulo)+'</h1><p class="page-subtitle">'+esc(subtitulo)+'</p></div>'+
  (acao?'<div class="heading-actions"><button class="btn btn-primary" type="button" data-new="'+esc(acao)+'">'+icon("plus")+ 'Novo cadastro</button></div>':"")+"</div>";
 }
 function resumoCard(nome,valor,icone,nota){
@@ -120,6 +120,9 @@ function renderPrefTabs(){
  const active=STRUCT_MODULES.some(x=>x[0]===atual)?"estruturas":atual;
  const html='<nav class="pref-tabs" aria-label="Etapas da gestão da Prefeitura">'+PREF_TABS.map(([id,label],i)=>'<a class="pref-tab'+(id===active?' active':'')+'" href="#'+id+'"'+(id===active?' aria-current="page"':'')+'><small>'+String(i+1).padStart(2,"0")+'</small>'+esc(label)+'</a>').join("")+'</nav>';
  const heading=PAGE.querySelector(".heading-row,.mi-head");if(heading)heading.insertAdjacentHTML("afterend",html);else PAGE.insertAdjacentHTML("afterbegin",html);
+ const nav=PAGE.querySelector(".pref-tabs"),body=document.createElement("div");body.className="pref-tab-body";
+ while(nav.nextSibling)body.appendChild(nav.nextSibling);PAGE.appendChild(body);
+ PAGE.closest(".content")?.scrollTo(0,0);
 }
 function structures(){return STRUCT_MODULES.flatMap(([m])=>db.lista(m));}
 function responsible(x,people){return people.find(p=>p.id===x.responsavel_id)||people.find(p=>p.estrutura_id===x.id)||null;}
@@ -127,7 +130,7 @@ function renderTerritorioMunicipal(){
  const p=db.municipioAtivo();if(!p){PAGE.innerHTML=topo("Município indisponível","Prefeitura ainda não provisionada pelo Admin Geral.");return;}
  const orgs=structures(),people=db.lista("pessoas").filter(x=>x.estrutura_id||orgs.some(o=>o.responsavel_id===x.id)||["admin","responsavel","substituto","coordenador"].includes(x.funcao));
  const fields=[["Município",p.nome],["Estado",p.estado||p.uf],["Código IBGE",p.codigo_ibge],["Situação",p.status||"Em implantação"],["Contato institucional",p.responsavel],["Telefone",p.telefone],["E-mail institucional",p.email||p.admin_municipal_email],["Origem do cadastro",p.origem_provisionamento],["Georreferenciamento",p.fonte_geo]];
- PAGE.innerHTML=topo("Gerais · "+p.nome,"Dados institucionais definidos pelo Admin Geral e composição do Gabinete de Crise.")+
+ PAGE.innerHTML=topo("Gerais","Dados institucionais e composição do Gabinete de Crise.")+
  '<section class="section-card"><header class="section-card-head"><h2>Dados da Prefeitura</h2><span class="pref-note">Cadastro do Admin Geral · somente leitura</span></header><div class="section-card-body"><dl class="pref-details">'+fields.map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v||"Não informado")+'</dd></div>').join("")+'</dl></div></section>'+
  '<section class="section-card"><header class="section-card-head"><h2>Membros do Gabinete de Crise</h2><a class="mini-action" href="#pessoas">Gerenciar membros</a></header><div class="section-card-body">'+
  (people.length?'<div class="pref-member-grid">'+people.map(x=>{
