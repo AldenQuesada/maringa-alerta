@@ -14,8 +14,8 @@ const MUNICIPIO_PADRAO={id:"maringa",nome:"Maringá",uf:"PR",codigo_ibge:MUNICIP
 const FONTES={
  ibge:"https://servicodados.ibge.gov.br/api/v1/localidades/municipios/4115200",
  malha:"https://servicodados.ibge.gov.br/api/v3/malhas/municipios/4115200?formato=application%2Fvnd.geo%2Bjson&qualidade=minima",
- cnes:"https://apidadosabertos.saude.gov.br/assistencia-a-saude/cnes-estabelecimentos",
- geomaringa:"https://geopav.maringa.pr.gov.br/",
+ cnes:"https://apidadosabertos.saude.gov.br/cnes/estabelecimentos",
+ geomaringa:"https://www.maringa.pr.gov.br/",
  cnesCsv:"https://cnes.datasus.gov.br/pages/estabelecimentos/extracao.jsp"
 };
 const FONTES_DESC={
@@ -89,7 +89,7 @@ function cnesItem(raw,{fonte=FONTES.cnes}={}){
 }
 function unwrapCNES(value){
  if(Array.isArray(value))return {rows:value,total:null};
- const rows=pick(value,["estabelecimentos","dados","data","results","result","items","records","registros","unidades"]);
+ const rows=pick(value,["estabelecimentos","dados","data","results","result","items","records","registros","unidades","estabelecimento"]);
  const list=Array.isArray(rows)?rows:Array.isArray(rows?.items)?rows.items:Array.isArray(value?.resultados)?value.resultados:[];
  const total=Number(pick(value,["total","total_registros","totalRegistros","total_de_registros","count","total_itens"]));
  return {rows:list,total:Number.isFinite(total)&&total>0?total:null};
