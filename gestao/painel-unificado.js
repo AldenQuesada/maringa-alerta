@@ -8,7 +8,21 @@ if(!D){$("page").textContent="Falha ao carregar os dados de gestão.";return;}
 const db=D.criar();
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 const name=x=>String(x?.nome||x?.identificacao||x?.titulo||x?.tipo||"Registro").trim();
-const titles={inicio:"Visão geral",prefeituras:"Prefeituras",colaboradores:"Colaboradores",solicitacoes:"Pedidos de ajuda",mobilizacoes:"Mobilização"};
+const sectionLinks={
+ zonas:"zonas",bases:"bases",riscos:"riscos",
+ responsaveis:"usuarios",equipes:"equipes",integrantes:"integrantes",
+ unidades:"instituicoes",
+ veiculos:"veiculos",equipamentos:"equipamentos",estoques:"estoques",abrigos:"abrigos",pontos:"pontos",
+ ocorrencias:"ocorrenciaTipos",canais:"canais",regras:"regras"
+};
+const titles={
+ inicio:"Visão geral",prefeituras:"Prefeituras",
+ zonas:"Zonas operacionais",bases:"Bases de apoio",riscos:"Áreas de risco",
+ responsaveis:"Responsáveis e hierarquia",equipes:"Equipes e brigadas",integrantes:"Integrantes",
+ unidades:"Unidades e instituições",veiculos:"Veículos",equipamentos:"Equipamentos",estoques:"Estoques",
+ abrigos:"Abrigos",pontos:"Pontos críticos",ocorrencias:"Tipos de ocorrência",canais:"Canais",regras:"Regras de acionamento",
+ colaboradores:"Colaboradores",solicitacoes:"Pedidos de ajuda",mobilizacoes:"Mobilização"
+};
 const links={
  evento:{label:"Mapa de Evento",url:"../index.html"},
  colaboradores:{label:"Mapa de Colaboradores",url:"../mapas/?tipo=colaboradores"},
@@ -45,7 +59,17 @@ function camposDaColecao(k){
  const def=D.ESQUEMAS[config.schema];
  return def.fields.filter(f=>f.type!=="hidden").map(f=>[f.key,f.label,f.type==="zone"||f.type==="team"?"text":f.type,!!f.required,f.options]);
 }
-const nav=[{title:"Gestão",items:["inicio","prefeituras"]},{title:"Atendimento",items:["colaboradores","solicitacoes"]},{title:"Coordenação",items:["mobilizacoes"]}];
+const nav=[
+ {title:"Gestão",items:["inicio","prefeituras"]},
+ {title:"Território e cobertura",items:["zonas","bases","riscos"]},
+ {title:"Pessoas e equipes",items:["responsaveis","equipes","integrantes"]},
+ {title:"Rede municipal",items:["unidades"]},
+ {title:"Recursos e infraestrutura",items:["veiculos","equipamentos","estoques","abrigos","pontos"]},
+ {title:"Regras e comunicação",items:["ocorrencias","canais","regras"]},
+ {title:"Atendimento",items:["colaboradores","solicitacoes"]},
+ {title:"Coordenação",items:["mobilizacoes"]}
+];
+const gruposAbertos=new Set(nav.map(g=>g.title));
 let page="inicio",draft=null,editingId=null,activeEditor=null,openSections=new Set(),dirty=false,search="",toastTimer;
 const ibgeUF=new Map();
 function toast(message){const el=$("toast");el.textContent=message;el.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.hidden=true,3500);}
@@ -63,8 +87,41 @@ function renderMunSwitch(){
  select.onchange=()=>{if(draft&&dirty&&!confirm("Descartar mudanças não salvas na prefeitura?")){select.value=db.municipioAtivo()?.id||"";return;}db.selecionarMunicipio(select.value);draft=null;editingId=null;dirty=false;location.reload();};
 }
 function renderNav(){
- $("sidebar-nav").innerHTML=nav.map(g=>'<section class="nav-group"><h2 class="nav-group-title">'+g.title+'</h2>'+g.items.map(k=>'<a class="nav-item'+(page===k?" active":"")+'" href="#'+k+'" data-navigation="'+k+'" aria-current="'+(page===k?"page":"false")+'"><span class="nav-letter" aria-hidden="true">'+esc(titles[k].slice(0,1))+'</span><span class="nav-label">'+esc(titles[k])+'</span></a>').join("")+'</section>').join("");
+ $("sidebar-nav").innerHTML=nav.map((g,i)=>{
+  const selected=g.items.some(k=>page===k);
+  const aberto=gruposAbertos.has(g.title)||selected;
+  return '<details class="sidebar-group" data-nav-group="'+i+'"'+(aberto?' open':'')+'><summary class="nav-group-title">'+esc(g.title)+'</summary>'+
+   '<div class="nav-group">'+g.items.map(k=>
+     '<a class="nav-item'+(page===k?' active':'')+'" href="#'+k+'" data-navigation="'+k+'" aria-current="'+(page===k?'page':'false')+'">'+
+     '<span class="nav-letter" aria-hidden="true">'+esc(titles[k].slice(0,1))+'</span><span class="nav-label">'+esc(titles[k])+'</span></a>'
+   ).join('')+'</div></details>';
+ }).join("");
+ $("sidebar-nav").querySelectorAll("[data-nav-group]").forEach(el=>el.addEventListener("toggle",()=>{
+   const title=nav[Number(el.dataset.navGroup)]?.title;
+   if(!title)return;
+   if(el.open)gruposAbertos.add(title);else gruposAbertos.delete(title);
+ }));
 }
+function abrirSecaoMunicipal(rota){
+ const key=sectionLinks[rota],i=sections.findIndex(sec=>sec.keys.includes(key));
+ if(!key||i<0)return;
+ if(!draft){
+  const ativa=db.municipioAtivo();
+  if(!ativa){$("page").innerHTML=pageHeading("Prefeitura não encontrada","Cadastre uma prefeitura antes de configurar a estrutura.");return;}
+  draft=db.fichaPrefeitura(ativa.id);
+  editingId=ativa.id;
+  activeEditor=null;
+  dirty=false;
+  openSections=new Set();
+ }else salvarCamposPrefeitura();
+ openSections.add(i);
+ renderFicha();
+ requestAnimationFrame(()=>{
+  const row=document.querySelector('[data-collection="'+key+'"]');
+  if(row)row.scrollIntoView({block:"start",behavior:"instant"});
+ });
+}
+
 function renderInicio(){
  const prefeitura=db.municipioAtivo();
  const grupos=db.estado();
@@ -126,13 +183,13 @@ function secaoHTML(sec,index){
  return '<details class="municipal-section" data-section="'+index+'"'+(open?" open":"")+'><summary><span><strong>'+esc(sec.title)+'</strong><small>'+esc(sec.hint)+'</small></span><span class="section-count">'+sec.keys.reduce((v,k)=>v+(draft.grupos[k]?.length||0),0)+' registros</span></summary>'+
  '<div class="municipal-section-body">'+sec.keys.map(k=>{
    const rows=draft.grupos[k]||[];
-   return '<div class="subcollection"><header class="subcollection-head"><strong>'+esc(catalog[k].label)+'</strong><button type="button" class="btn-mini" data-add-row="'+k+'">+ Adicionar</button></header>'+
+   return '<div class="subcollection" data-collection="'+k+'"><header class="subcollection-head"><strong>'+esc(catalog[k].label)+'</strong><button type="button" class="btn-mini" data-add-row="'+k+'">+ Adicionar</button></header>'+
    (rows.length?rows.map(row=>resumoLinha(k,row)).join(""):'<p class="empty-mini">Nenhum registro nesta seção.</p>')+
    (activeEditor?.key===k?formularioLinha(k,activeEditor.id):"")+'</div>';
  }).join("")+'</div></details>';
 }
 function renderFicha(){
- const p=draft.prefeitura,id=editingId,estado=id?"Editar Prefeitura":"Nova Prefeitura";
+ const p=draft.prefeitura,id=editingId,estado=sectionLinks[page]?titles[page]+" · Prefeitura":id?"Editar Prefeitura":"Nova Prefeitura";
  $("page").innerHTML=pageHeading(estado,"Todos os dados municipais ficam nesta única ficha. Você pode adicionar itens em cada seção e salvar tudo ao final.")+
  '<form id="pref-form" novalidate><section class="section-card"><header class="section-card-head"><h2>Identificação do município</h2></header><div class="section-card-body"><div class="municipal-fields">'+
  fieldHTML("uf","UF","uf",p.uf,true,null,"pref")+
@@ -277,6 +334,7 @@ function render(){
  renderNav();
  if(page==="inicio")renderInicio();
  else if(page==="prefeituras")renderPrefeituras();
+ else if(Object.hasOwn(sectionLinks,page))abrirSecaoMunicipal(page);
  else if(page==="colaboradores"||page==="solicitacoes")renderConsulta(page);
  else renderMobilizacoes();
 }
@@ -292,7 +350,14 @@ $("page").addEventListener("click",e=>{
  if(t.hasAttribute("data-cancel-row")){salvarCamposPrefeitura();activeEditor=null;renderFicha();return;}
 });
 $("sidebar-nav").addEventListener("click",e=>{
- if(!e.target.closest("[data-navigation]"))return;
+ const link=e.target.closest("[data-navigation]");
+ if(!link)return;
+ const rota=link.dataset.navigation;
+ if(Object.hasOwn(sectionLinks,rota)){
+  if(activeEditor){e.preventDefault();toast("Conclua ou cancele o registro em edição antes de mudar de seção.");return;}
+  if(location.hash==="#"+rota){e.preventDefault();abrirSecaoMunicipal(rota);}
+  return; // O formulário municipal continua único, com rascunho preservado.
+ }
  if(draft&&dirty&&!confirm("Descartar alterações não salvas na Prefeitura?")){e.preventDefault();return;}
  draft=null;editingId=null;activeEditor=null;dirty=false;
 });
@@ -307,7 +372,19 @@ $("toggle-sidebar").onclick=()=>{
  }
 };
 $("sidebar-scrim").onclick=()=>$("app-frame").classList.remove("mobile-open");
-window.addEventListener("hashchange",()=>{search="";if(draft){if(dirty&&!confirm("Descartar alterações não salvas na Prefeitura?")){location.hash="#prefeituras";return;}draft=null;dirty=false;}render();});
+window.addEventListener("hashchange",()=>{
+ search="";
+ const rota=decodeURIComponent(location.hash.slice(1));
+ if(Object.hasOwn(sectionLinks,rota)){
+  if(activeEditor){toast("Conclua ou cancele o item em edição.");history.replaceState(null,"","#prefeituras");return;}
+  render();return;
+ }
+ if(draft){
+  if(dirty&&!confirm("Descartar alterações não salvas na Prefeitura?")){history.replaceState(null,"","#prefeituras");return;}
+  draft=null;editingId=null;activeEditor=null;dirty=false;
+ }
+ render();
+});
 document.querySelectorAll(".map-hub a").forEach(link=>{
  link.addEventListener("click",e=>{
   if(matchMedia("(max-width:850px)").matches)return;
