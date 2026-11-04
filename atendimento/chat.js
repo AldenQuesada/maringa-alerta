@@ -56,6 +56,7 @@ function definirSteps(papel){
  ];
 }
 function start(papel){
+ form.onsubmit=responderEtapa;
  role=papel;answers=identity?{...identity}:{};
  steps=definirSteps(role);index=0;
  bot(papel==="colaborador"?
@@ -94,7 +95,7 @@ function proxima(){
  }
  history.scrollTop=history.scrollHeight;
 }
-form.onsubmit=e=>{
+function responderEtapa(e){
  e.preventDefault();
  const v=input.value.trim();
  if(current.required&&!v){input.focus();return;}
@@ -103,7 +104,8 @@ form.onsubmit=e=>{
   if(digits.length<10||digits.length>13){mensagem("Por favor, informe um telefone válido com DDD.");input.focus();return;}
  }
  gravarResposta(v);
-};
+}
+form.onsubmit=responderEtapa;
 function concluir(){
  try{
   if(role==="colaborador"){
