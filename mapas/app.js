@@ -5,6 +5,7 @@ const $=id=>document.getElementById(id);
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const TIPO=new URLSearchParams(location.search).get("tipo")==="ajuda"?"ajuda":"colaboradores";
 let app=MaringaCrise.criar(),filtroZona="",filtroClasse="",texto="";
+let territorio=null;
 let toastTimer;
 const nomeTipo=TIPO==="ajuda"?"Mapa da Ajuda":"Mapa de Colaboradores";
 document.title=nomeTipo+" | Maringá Unida";
@@ -32,6 +33,9 @@ function municipSelector(){
   filtroZona="";filtroClasse="";texto="";
   $("busca").value="";$("filtro").value="";
   renderMunicipio();render();
+  if(territorio){territorio.destroy();territorio=null;}
+  if(app.prefeitura()?.id==="maringa"&&globalThis.MaringaBairros)
+    territorio=MaringaBairros.iniciar({map,L,simulatedLayers:poligonos.getLayers()});
  };
 }
 function zoneSelect(){
@@ -188,4 +192,6 @@ $("filtro").onchange=()=>{filtroClasse=$("filtro").value;render();};
 $("busca").oninput=()=>{texto=$("busca").value;render();};
 window.addEventListener("storage",event=>{if(event.key===AlertaGestaoDados.CHAVE)location.reload();});
 municipSelector();renderMunicipio();render();
+if(app.prefeitura()?.id==="maringa"&&globalThis.MaringaBairros)
+ territorio=MaringaBairros.iniciar({map,L,simulatedLayers:poligonos.getLayers()});
 })();
