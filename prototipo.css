@@ -127,3 +127,8 @@ button:disabled{opacity:.45;cursor:not-allowed!important}
 }
 #floatwin .person-territory p{font-size:11px;color:var(--muted)}
 #apoio-bairro-form select{width:100%;padding:6px;margin-bottom:4px;color:var(--fg);background:var(--panel-2);border:1px solid var(--line)}
+
+#floatwin-min{min-width:36px;min-height:32px;font:700 18px var(--mono)}
+.equipe-kpis{display:inline-block;margin-left:4px;color:var(--fg);font:10px var(--mono)}
+.vol-live{box-shadow:0 0 0 4px rgba(50,175,255,.5);animation:localizacao-viva 1.5s infinite}
+@keyframes localizacao-viva{50%{box-shadow:0 0 0 8px rgba(50,175,255,.08)}}
