@@ -1192,10 +1192,15 @@ function renderCollaborators(){
   }
   const papeis=Object.keys(PAPEL_LABEL);
   const ordem=p=>{const i=papeis.indexOf(p.papel||p.funcao);return i<0?papeis.length:i;};
+  const ordemSituacao={local:0,caminho:1,fora:2,indefinido:3};
+  const compararPessoas=(a,b)=>{
+    const diferenca=ordemSituacao[statusPessoaMapa(a)[0]]-ordemSituacao[statusPessoaMapa(b)[0]];
+    return diferenca||ordem(a)-ordem(b)||a.nome.localeCompare(b.nome,'pt-BR');
+  };
   document.getElementById('fw-count').textContent=pessoas.filter(p=>!p.oficial).length;
   body.innerHTML=[...grupos.values()].map(grupo=>{
-    const oficiais=grupo.pessoas.filter(p=>p.oficial).sort((a,b)=>ordem(a)-ordem(b));
-    const colaboradores=grupo.pessoas.filter(p=>!p.oficial);
+    const oficiais=grupo.pessoas.filter(p=>p.oficial).sort(compararPessoas);
+    const colaboradores=grupo.pessoas.filter(p=>!p.oficial).sort(compararPessoas);
     const ativos=colaboradores.filter(p=>colaboradorAtivo(p.id)).length;
     const percentual=colaboradores.length?Math.round(100*ativos/colaboradores.length):0;
     return `<section class="person-territory">
