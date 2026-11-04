@@ -329,7 +329,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   .floatwin{width:85vw;right:8px}
 }
 </style>
-<link rel="stylesheet" href="prototipo.css?v=evento-5">
+<link rel="stylesheet" href="prototipo.css?v=evento-6">
 <link rel="stylesheet" href="sessao.css?v=sessoes-2">
 <link rel="stylesheet" href="mapa-navegacao.css?v=mapa-2">
 <link rel="stylesheet" href="gestao/acoes-cabecalho.css?v=acoes-2">
@@ -341,7 +341,6 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   <div class="sidebar" id="sidebar">
     <div class="sidebar-head">
       <div class="brand"><span class="dot"></span>MARINGÁ ALERTA</div>
-      <div class="sub">Maringá · PR · Demonstração</div>
     </div>
     <section class="territory-tools" aria-label="Filtro territorial">
       <label for="territory-search">Bairros e zonas</label>
@@ -362,11 +361,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         <a href="#status" id="open-status-publico" class="sidebar-btn" style="text-decoration:none;display:block;color:var(--muted)">👁 Ver status público</a>
       </div>
       
-      <details class="demo-options"><summary>Cenários de teste</summary>
-        <button id="demo-auto" class="sidebar-btn" aria-pressed="false">▶ Gerar ocorrências automaticamente</button>
-        <button id="demo-reset" class="admin-btn">Reiniciar esta demonstração</button>
-        <div class="saved-hint" id="demo-save-status" role="status"></div>
-      </details>
+      <div class="saved-hint" id="demo-save-status" role="status" hidden></div>
     </div>
     <details class="sidebar-summary"><summary>Resumo e ocorrências resolvidas</summary><div class="sidebar-footer" id="sidebar-footer"></div></details>
   </div>
@@ -374,8 +369,8 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   <div class="right">
     <div class="topbar" id="topbar">
       <button class="menu-mobile" id="mobile-menu" aria-label="Abrir zonas e menus" aria-controls="sidebar" aria-expanded="false">☰</button>
-      <div class="event-heading"><div class="evento" id="evento-label">Maringá · Mapa de Evento</div>
-        <small>Monitoramento · Ocorrências por região · <time id="clock"></time></small></div>
+      <div class="event-heading"><div class="evento" id="evento-label">Mapa de Evento</div>
+        <small>Ocorrências por região · <time id="clock"></time></small></div>
       <div class="event-search">
         <input id="event-search" type="search" placeholder="Buscar no mapa" aria-label="Buscar no mapa" aria-controls="event-results" aria-expanded="false">
         <div id="event-results" hidden></div>
@@ -387,8 +382,10 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         <div class="stat blue"><b id="kpi-voluntarios">0</b><span>Voluntários</span></div>
         <div class="stat"><b id="kpi-tempo">—</b><span>Tempo médio</span></div>
       </div>
+      <div class="topbar-right">
       <div id="header-actions" class="header-actions" data-municipio="maringa" data-mapas="./mapas/" role="group" aria-label="Ações rápidas"></div>
       <div class="session-anchor" id="session-anchor"></div>
+      </div>
     </div>
 
     <div class="main">
@@ -944,7 +941,7 @@ function renderZoneList(){
       const selecionada=selecao.has(area.chave);
       const total=abertas.filter(o=>pertence(area,o.bairro)).length;
       return `<button type="button" class="zone-item ${selecionada?'active':''}" data-area="${escHtml(area.chave)}" aria-pressed="${selecionada}">
-        <span class="zi-dot"></span><span class="zi-text" title="${escHtml(area.fonte||area.tipoArea)}"><span class="zi-name">${[...alertas].some(z=>pertence(area,z))?'🌦 ':''}${escHtml(area.nome)}</span>
+        <span class="zi-dot"></span><span class="zi-text" title="${escHtml([area.nome,area.tipoArea,area.layer?area.fonte:'Sem limite no mapa'].filter(Boolean).join(' · '))}"><span class="zi-name">${[...alertas].some(z=>pertence(area,z))?'🌦 ':''}${escHtml(area.nome)}</span>
         <span class="zi-count">${area.tipoArea}${area.layer?'':' · sem limite no mapa'}</span></span><span class="zi-badge">${total}</span></button>`;
     }).join('')}`;
   zoneListEl.querySelectorAll('button').forEach(botao=>{
@@ -1442,15 +1439,6 @@ function cadastroFinalizar(){
   cadastroBubble(msg, 'eles');
   cadastroState = null;
 }
-
-/* ---------- geração periódica de novas ocorrências ---------- */
-setInterval(()=>{
-  if(autoSimulation && ocorrencias.filter(o=>o.status==='ativa'||o.status==='em_atendimento').length < 14 && Math.random()<0.6){
-    gerarOcorrencia();
-    updateKpis();
-    renderZoneList();
-  }
-}, 7000);
 
 function updateKpis(){
   const ocList = ocorrencias.filter(o=> noRecorte(o.bairro));
@@ -2239,8 +2227,6 @@ function applyRolePermissions(){
   document.getElementById('open-audit').style.display = canAdmin() ? '' : 'none';
   document.getElementById('open-admin').style.display = isViewOnly() ? 'none' : '';
   document.getElementById('demo-new').disabled = isViewOnly();
-  document.getElementById('demo-auto').disabled = !canAdmin();
-  document.getElementById('demo-reset').disabled = !canAdmin();
 }
 function selecionarPerfilDemo(perfil) {
   currentRole = perfil && ['admin','responsavel','visualizacao'].includes(perfil.tipo)
@@ -2283,7 +2269,6 @@ document.getElementById('heat-toggle').onclick = (e)=>{
 
 /* ---------- fluxo simples de ajuda e WhatsApp de demonstracao ---------- */
 let whatsappContexto = null;
-let autoSimulation = false;
 let estadoPronto = false;
 let ultimaSerializacao = null;
 const PARTICIPACAO_LABEL = {convidado:'Convite enviado', no_local:'No local', concluida:'Ajuda concluída', recusada:'Não pode ir'};
@@ -2542,7 +2527,7 @@ function salvarAnexos(o){
 function salvarPrototipo(){
   if(!estadoPronto)return;
   try{
-    const dados={versao:1,tenantId,idCounter,autoSimulation,eventStart,
+    const dados={versao:1,tenantId,idCounter,eventStart,
       voluntarios:voluntarios.map(({marker,...v})=>v),
       ocorrencias:ocorrencias.map(({marker,responsavel,...o})=>({...o,responsavelId:responsavel?.id})),
       chatHistorico,alertasClimaticos,prontidao,alertaIdCursor};
@@ -2550,8 +2535,8 @@ function salvarPrototipo(){
     if(serializado===ultimaSerializacao)return;
     localStorage.setItem(storageKey('operacao'),serializado);
     ultimaSerializacao=serializado;
-    document.getElementById('demo-save-status').textContent='Simulação salva neste navegador';
-  }catch(e){document.getElementById('demo-save-status').textContent='Não foi possível salvar neste navegador. Mantenha esta página aberta.';}
+    document.getElementById('demo-save-status').hidden=true;
+  }catch(e){const aviso=document.getElementById('demo-save-status');aviso.textContent='Não foi possível salvar neste navegador.';aviso.hidden=false;}
 }
 
 function restaurarPrototipo(){
@@ -2559,7 +2544,7 @@ function restaurarPrototipo(){
   try{dados=JSON.parse(localStorage.getItem(storageKey('operacao'))||'null');}catch(e){return false;}
   if(!dados||dados.versao!==1||dados.tenantId!==tenantId||!Array.isArray(dados.ocorrencias)||!Array.isArray(dados.voluntarios))return false;
   if(dados.ocorrencias.some(o=>!bairros.some(b=>b.nome===o.bairro))||dados.voluntarios.some(v=>!bairros.some(b=>b.nome===v.bairro)))return false;
-  idCounter=dados.idCounter||1;autoSimulation=!!dados.autoSimulation;if(Number.isFinite(dados.eventStart))eventStart=dados.eventStart;
+  idCounter=dados.idCounter||1;if(Number.isFinite(dados.eventStart))eventStart=dados.eventStart;
   voluntarios=dados.voluntarios.map(v=>{
     const marker=L.marker(v.pos,{icon:volIcon(),title:v.nome}).addTo(volLayer);
     marker.on('click',()=>mostrarFicha(v.id));
@@ -2580,11 +2565,6 @@ function restaurarPrototipo(){
   return true;
 }
 
-function atualizarControlesDemo(){
-  document.getElementById('demo-auto').textContent=autoSimulation?'⏸ Pausar novas ocorrências':'▶ Gerar ocorrências automaticamente';
-  document.getElementById('demo-auto').setAttribute('aria-pressed',String(autoSimulation));
-}
-
 function iniciarControlesDemo(){
   document.querySelector('.brand').innerHTML=`<span class="dot"></span>${escHtml(tenantConfig.marca)}`;
   document.querySelector('.status-brand').textContent=tenantConfig.marca;
@@ -2595,14 +2575,6 @@ function iniciarControlesDemo(){
     if(!canActZone(zona))return;
     const o=gerarOcorrencia({zona,tipo:tiposOcorrencia.find(t=>t.tipo==='Distribuição de água e alimentos')});
     atualizarFluxo();openOcorrencia(o);fecharMenuMobile();
-  };
-  document.getElementById('demo-auto').onclick=()=>{if(!canAdmin())return;autoSimulation=!autoSimulation;atualizarControlesDemo();salvarPrototipo();};
-  document.getElementById('demo-reset').onclick=()=>{
-    if(!canAdmin())return;
-    if(!confirm(`Reiniciar somente os dados de demonstração de ${tenantConfig.nome}? Os outros municípios serão mantidos.`))return;
-    estadoPronto=false;
-    ['operacao','audit','offline'].forEach(k=>localStorage.removeItem(storageKey(k)));
-    location.reload();
   };
   document.getElementById('whatsapp-close').onclick=()=>document.getElementById('whatsapp-overlay').hidden=true;
   document.getElementById('whatsapp-overlay').onclick=e=>{if(e.target.id==='whatsapp-overlay')e.currentTarget.hidden=true;};
@@ -2629,7 +2601,6 @@ function iniciarControlesDemo(){
     if(e.key!=='Escape')return;
     fecharMenuMobile();document.querySelectorAll('.modal-overlay:not([hidden]):not(#role-overlay)').forEach(el=>{el.hidden=true;});
   });
-  atualizarControlesDemo();
   window.addEventListener('beforeunload',salvarPrototipo);
   window.addEventListener('pagehide',()=>localizacoes.forEach((_,id)=>pararLocalizacao(id)));
   setInterval(salvarPrototipo,5000);
@@ -2670,7 +2641,6 @@ bairros.forEach(b=>{
 }
 estadoPronto=true;
 saveAdminState();
-atualizarControlesDemo();
 atualizarFluxo();
 tickClock();
 renderOfficialMarkers();
