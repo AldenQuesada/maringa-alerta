@@ -1,3 +1,13 @@
+# Organização vigente — Admin Geral separado das Prefeituras (04/11/2026)
+
+**Admin Geral é de toda a plataforma:** `/plataforma/`. Ele cria/edita Maringá, Londrina e outros municípios selecionados pelo IBGE, controla status, administrator municipal de referência e georreferenciamento inicial. Não pertence à Prefeitura de Maringá. O painel abaixo recebe somente o município atribuído.
+
+**Ambiente municipal:** `/gestao/`. O grupo Prefeitura e Território começa por **Território municipal** (somente leitura dos identificadores centrais), seguido de Bairros, Zonas, Bases e Áreas de risco. **Não há Criar Prefeitura ou Implantar Maringá no menu municipal.** O grupo Pessoas e Hierarquia mantém RH e vínculos de responsabilidades locais. Todos os demais grupos do sidebar continuam como antes. Os três mapas permanecem.
+
+**Estado atual:** sessão de demonstração em `sessionStorage` e coleções locais em `localStorage`, sem autenticação ou controle de acesso real. Não utilizar dados sensíveis. Backend exclusivo da plataforma com `platform_users`, `municipalities`, memberships e RLS é requisito para produção. O banco do LifeSinal não é utilizado nem alterado. Consulte `/plataforma/README.md`.
+
+---
+
 # Painel de gestão do Maringá Alerta
 
 ## Separação estabelecida

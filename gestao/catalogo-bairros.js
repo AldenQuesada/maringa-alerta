@@ -5,6 +5,7 @@
 const $=id=>document.getElementById(id),D=globalThis.AlertaGestaoDados;
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const SITE="../mapas/?tipo=";
+const DB=()=>D.criar(undefined,{municipioId:sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa"});
 let token=0;
 function linkMapa(nome,tipo){
  return SITE+tipo+"&bairro="+encodeURIComponent(nome);
@@ -12,6 +13,10 @@ function linkMapa(nome,tipo){
 function linkEvento(nome){return "../index.html?bairro="+encodeURIComponent(nome);}
 function bairrosUI(){
  const panel=$("page");
+ if(DB().municipioAtivo()?.id!=="maringa"){
+  if(panel)panel.insertAdjacentHTML("beforeend",'<section class="mi-official-catalog"><div class="mi-official-head"><div><h2>Bairros municipais</h2><p>O catálogo local de 113 bairros IBGE pertence exclusivamente a Maringá. Os bairros deste município devem ser implantados pelo Admin Geral a partir da cartografia correspondente.</p></div><span class="mi-official-badge">Ainda não importados</span></div></section>');
+  return;
+ }
  if(!panel||!globalThis.MaringaBairros)return;
  const id=++token;
  const div=document.createElement("section");div.id="catalogo-oficial-bairros";div.className="mi-official-catalog";
@@ -39,7 +44,7 @@ function bairrosUI(){
   };
   render();$("mi-official-search").oninput=render;
   $("mi-official-save").onclick=()=>{
-   const db=D.criar();
+   const db=DB();
    if(db.municipioAtivo()?.id!=="maringa"){alert("Selecione Maringá.");return;}
    if(!confirm("Registrar as "+layer.count+" áreas da fonte "+layer.source+" no armazenamento local? Os registros validados serão preservados."))return;
    const rows=layer.features.map(f=>({
@@ -61,6 +66,10 @@ function bairrosUI(){
 }
 function zonasUI(){
  const panel=$("page");if(!panel)return;
+ if(DB().municipioAtivo()?.id!=="maringa"){
+  panel.insertAdjacentHTML("beforeend",'<section class="mi-official-catalog"><div class="mi-official-head"><div><h2>Zonas operacionais</h2><p>Este município ainda não possui zonas operacionais homologadas na demonstração. Cadastre apenas limites confirmados pela Prefeitura e Defesa Civil.</p></div></div></section>');
+  return;
+ }
  const div=document.createElement("section");div.className="mi-official-catalog";
  const n=["Zona 7","Jardim Alvorada","Conjunto Requião","Jardim Universo","Vila Esperança","Centro Cívico"];
  div.innerHTML='<div class="mi-official-head"><div><h2>Contexto das zonas operacionais</h2><p>O Mapa de Evento ainda usa seis zonas de simulação. Não são limites de cobertura homologados nem os mesmos bairros do IBGE.</p></div><span class="mi-official-badge">6 demonstrativas</span></div>'+
