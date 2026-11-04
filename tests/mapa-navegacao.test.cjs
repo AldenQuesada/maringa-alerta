@@ -101,7 +101,7 @@ test("a vista inicial inclui Vila Esperança e todas as seis zonas com margem",(
  assert.equal(container.children.length,1);
  assert.equal(map.options.maxBoundsViscosity,1);
  assert.ok(nav.limites.getNorth()>=-23.374);
- assert.ok(map.zoom<13,"zoom mínimo 13 cortava Vila Esperança");
+ assert.equal(map.zoom,nav.zoomMinimo(),"o zoom deve ser calculado para a largura e altura da tela");
 });
 test("telas desktop, compacta e celular não cortam Vila Esperança",()=>{
  for(const [w,h] of [[1920,1080],[1440,900],[1024,768],[850,600],[390,844],[320,568]]){
