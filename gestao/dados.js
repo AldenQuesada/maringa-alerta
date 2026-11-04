@@ -16,11 +16,26 @@ const CATALOGOS={
  materiais:["MATERIAL DE CONSTRUÇÃO","COMBUSTÍVEL"],
  necessidades:["Alimentação","Telhas e cobertura","Apoio financeiro","Abrigo e moradia","Roupas e cobertores","Medicamentos e saúde","Limpeza e remoção","Material de construção","Eletricidade e gerador","Água potável","Transporte","Cuidados especiais","Laudos de prejuízos","Apoio a empreendedores","Outro"]
 };
+const GEO_FIELDS=[
+ F("bairro","Bairro"),F("zona","Zona operacional"),F("lat","Latitude"),F("lng","Longitude"),
+ F("fonte","Fonte de dados"),F("url_fonte","URL da fonte"),F("externalId","ID externo"),
+ F("verificacao","Verificação","select",{options:["Pendente","Em conferência","Validado","Rejeitado"]}),
+ F("atualizado_em","Atualizado em"),F("geojson","Geometria GeoJSON","textarea")
+];
 const ESQUEMAS={
-  prefeituras:{label:"Prefeituras",singular:"Prefeitura",collection:"prefeituras",summary:"Municípios participantes e suas configurações territoriais.",columns:["nome","uf","codigo_ibge"],fields:[F("uf","Estado","uf",{required:true}),F("nome","Município","city",{required:true}),F("codigo_ibge","Código IBGE","text",{required:true}),F("responsavel","Contato institucional"),...CONTATO]},
-  zonas:{label:"Zonas operacionais",singular:"Zona",collection:"zonas",summary:"Divisões utilizadas para localização e coordenação.",columns:["nome","tipo","responsavel"],fields:[F("nome","Nome da zona","text",{required:true}),F("tipo","Tipo de área","select",{options:["Urbana","Rural","Mista","Outra"]}),F("responsavel","Responsável regional"),F("observacoes","Observações","textarea")]},
-  bases:{label:"Bases de apoio",singular:"Base",collection:"bases",summary:"Locais de apoio e estacionamento operacional.",columns:["nome","zona","endereco"],fields:[F("nome","Nome","text",{required:true}),Z(),F("endereco","Endereço"),F("coordenadas","Localização"),...CONTATO]},
-  riscos:{label:"Áreas de risco",singular:"Área de risco",collection:"riscos",summary:"Pontos e setores que requerem atenção.",columns:["nome","zona","categoria"],fields:[F("nome","Nome da área","text",{required:true}),Z(),F("categoria","Risco","select",{options:["Alagamento","Deslizamento","Vendaval","Incêndio","Colapso estrutural","Tecnológico","Outro"]}),F("localizacao","Endereço ou referência"),F("descricao","Descrição","textarea")]},
+ implantacao:{label:"Implantar Maringá",singular:"Implantação",collection:"importacoes",summary:"Fluxo único de implantação territorial com fontes e georreferenciamento.",columns:["nome","status","criado_em"],fields:[F("nome","Importação","text",{required:true}),F("status","Estado"),F("fonte","Fonte"),F("criado_em","Data"),F("quantidade","Registros","number")]},
+ bairros:{label:"Bairros",singular:"Bairro",collection:"bairros",summary:"Bairros e geometrias territoriais importadas ou validadas para Maringá.",columns:["nome","zona","verificacao"],fields:[F("nome","Nome do bairro","text",{required:true}),F("zona","Zona operacional"),F("fonte","Fonte"),F("externalId","ID na fonte"),F("verificacao","Verificação","select",{options:["Pendente","Em conferência","Validado","Rejeitado"]}),F("geojson","Polígono GeoJSON","textarea")]},
+ pessoas:{label:"Pessoas e hierarquia",singular:"Pessoa",collection:"usuarios",summary:"Cadastro integrado de pessoal, órgãos, papéis, zonas e substituições.",columns:["nome","funcao","orgao","zona"],fields:[F("nome","Nome e sobrenome","text",{required:true}),
+  F("funcao","Função principal","select",{required:true,options:["admin","responsavel","substituto","coordenador","operador"]}),
+  F("papeis","Outras funções","multi",{options:["admin","responsavel","substituto","coordenador","operador"]}),
+  F("orgao","Órgão ou instituição"),F("zona","Zona operacional","zone"),F("cargo","Cargo"),F("especialidade","Área de responsabilidade"),
+  F("substituto_id","Substituto vinculado"),F("status","Situação","select",{options:["Pendente de validação","Ativo","Inativo"]}),
+  F("verificacao","Verificação","select",{options:["Pendente","Validado","Rejeitado"]}),...CONTATO]},
+
+  prefeituras:{label:"Prefeituras",singular:"Prefeitura",collection:"prefeituras",summary:"Municípios participantes e suas configurações territoriais.",columns:["nome","uf","codigo_ibge"],fields:[F("uf","Estado","uf",{required:true}),F("nome","Município","city",{required:true}),F("codigo_ibge","Código IBGE","text",{required:true}),F("responsavel","Contato institucional"),F("pais","País"),F("paisId","Código ISO do país"),F("estado","Estado"),F("codigo_uf","Código IBGE UF"),...CONTATO]},
+  zonas:{label:"Zonas operacionais",singular:"Zona",collection:"zonas",summary:"Divisões utilizadas para localização e coordenação.",columns:["nome","tipo","responsavel"],fields:[F("nome","Nome da zona","text",{required:true}),F("tipo","Tipo de área","select",{options:["Urbana","Rural","Mista","Outra"]}),F("responsavel","Responsável regional"),F("observacoes","Observações","textarea"),F("geojson","Polígono GeoJSON","textarea"),F("fonte","Fonte"),F("verificacao","Verificação")]},
+  bases:{label:"Bases de apoio",singular:"Base",collection:"bases",summary:"Locais de apoio e estacionamento operacional.",columns:["nome","zona","endereco"],fields:[F("nome","Nome","text",{required:true}),Z(),F("endereco","Endereço"),F("coordenadas","Localização"),F("bairro","Bairro"),F("lat","Latitude"),F("lng","Longitude"),F("fonte","Fonte"),F("verificacao","Verificação"),...CONTATO]},
+  riscos:{label:"Áreas de risco",singular:"Área de risco",collection:"riscos",summary:"Pontos e setores que requerem atenção.",columns:["nome","zona","categoria"],fields:[F("nome","Nome da área","text",{required:true}),Z(),F("categoria","Risco","select",{options:["Alagamento","Deslizamento","Vendaval","Incêndio","Colapso estrutural","Tecnológico","Outro"]}),F("localizacao","Endereço ou referência"),F("descricao","Descrição","textarea"),F("geojson","Polígono GeoJSON","textarea"),F("lat","Latitude"),F("lng","Longitude"),F("fonte","Fonte"),F("verificacao","Verificação")]},
   administradores:{label:"Administradores",singular:"Administrador",collection:"usuarios",role:"admin",summary:"Responsáveis pela administração do município.",columns:["nome","email","telefone"],fields:[F("nome","Nome e sobrenome","text",{required:true}),F("cargo","Cargo"),...CONTATO]},
   responsaveis:{label:"Responsáveis regionais",singular:"Responsável",collection:"usuarios",role:"responsavel",summary:"Referências diretas de cada zona.",columns:["nome","zona","telefone"],fields:[F("nome","Nome e sobrenome","text",{required:true}),Z(),F("cargo","Cargo"),...CONTATO]},
   substitutos:{label:"Substitutos",singular:"Substituto",collection:"usuarios",role:"substituto",summary:"Pessoas que assumem na ausência do responsável.",columns:["nome","zona","telefone"],fields:[F("nome","Nome e sobrenome","text",{required:true}),Z(),F("cargo","Cargo"),...CONTATO]},
@@ -34,14 +49,14 @@ const ESQUEMAS={
  F("empreendedores","Apoio para empreendedores","multi",{options:CATALOGOS.empreendedores}),F("materiais","Material / combustível","multi",{options:CATALOGOS.materiais}),
  F("outros","Especificar outros","textarea"),F("disponibilidade","Disponibilidade","select",{options:["Disponível","Indisponível","A combinar"]}),
  F("contribuicao","Observações da oferta","textarea")]},
-  saude:{label:"UBS e hospitais",singular:"Unidade de saúde",collection:"instituicoes",category:"Saúde",summary:"Serviços de saúde e unidades de referência.",columns:["nome","tipo","telefone"],fields:[F("nome","Nome oficial","text",{required:true}),F("tipo","Tipo","select",{options:["UBS","UPA","Hospital","Santa Casa","SAMU","Farmácia","Outro"]}),F("endereco","Endereço"),F("codigo_cnes","CNES"),F("servicos","Serviços e capacidade","textarea"),...CONTATO]},
-  emergencias:{label:"Bombeiros e polícias",singular:"Unidade de emergência",collection:"instituicoes",category:"Emergência",summary:"Órgãos de socorro, segurança e defesa.",columns:["nome","tipo","telefone"],fields:[F("nome","Nome oficial","text",{required:true}),F("tipo","Tipo","select",{options:["Defesa Civil","Bombeiros","Polícia Militar","Polícia Civil","Guarda Municipal","Trânsito","Outro"]}),F("endereco","Endereço"),F("area","Área atendida"),...CONTATO]},
-  parceiros:{label:"Órgãos e entidades",singular:"Instituição",collection:"instituicoes",category:"Parceiros",summary:"Concessionárias, entidades e serviços de apoio.",columns:["nome","tipo","telefone"],fields:[F("nome","Nome oficial","text",{required:true}),F("tipo","Tipo","select",{options:["Água","Energia","Telecomunicações","Obras","ONG","Universidade","Empresa","Transporte","Outro"]}),F("endereco","Endereço"),F("capacidade","Capacidades disponíveis","textarea"),...CONTATO]},
+  saude:{label:"UBS e hospitais",singular:"Unidade de saúde",collection:"instituicoes",category:"Saúde",summary:"Serviços de saúde e unidades de referência.",columns:["nome","tipo","telefone"],fields:[F("nome","Nome oficial","text",{required:true}),F("tipo","Tipo","select",{options:["UBS","UPA","Hospital","Santa Casa","SAMU","Farmácia","Outro"]}),F("endereco","Endereço"),F("codigo_cnes","CNES"),F("servicos","Serviços e capacidade","textarea"),...GEO_FIELDS,...CONTATO]},
+  emergencias:{label:"Bombeiros e polícias",singular:"Unidade de emergência",collection:"instituicoes",category:"Emergência",summary:"Órgãos de socorro, segurança e defesa.",columns:["nome","tipo","telefone"],fields:[F("nome","Nome oficial","text",{required:true}),F("tipo","Tipo","select",{options:["Defesa Civil","Bombeiros","Polícia Militar","Polícia Civil","Guarda Municipal","Trânsito","Outro"]}),F("endereco","Endereço"),F("area","Área atendida"),...GEO_FIELDS,...CONTATO]},
+  parceiros:{label:"Órgãos e entidades",singular:"Instituição",collection:"instituicoes",category:"Parceiros",summary:"Concessionárias, entidades e serviços de apoio.",columns:["nome","tipo","telefone"],fields:[F("nome","Nome oficial","text",{required:true}),F("tipo","Tipo","select",{options:["Água","Energia","Telecomunicações","Obras","ONG","Universidade","Empresa","Transporte","Outro"]}),F("endereco","Endereço"),F("capacidade","Capacidades disponíveis","textarea"),...GEO_FIELDS,...CONTATO]},
   veiculos:{label:"Veículos",singular:"Veículo",collection:"veiculos",summary:"Frota e transporte disponível.",columns:["identificacao","tipo","base","status"],fields:[F("identificacao","Identificação","text",{required:true}),F("tipo","Tipo"),F("placa","Placa"),F("capacidade","Capacidade"),F("base","Base"),F("status","Disponibilidade","select",{options:["Disponível","Em uso","Indisponível"]})]},
   equipamentos:{label:"Equipamentos",singular:"Equipamento",collection:"equipamentos",summary:"Equipamentos operacionais e sua disponibilidade.",columns:["nome","quantidade","localizacao"],fields:[F("nome","Equipamento","text",{required:true}),F("quantidade","Quantidade","number"),F("localizacao","Localização"),F("condicao","Condição"),F("responsavel","Responsável")]},
   estoques:{label:"Estoques",singular:"Item de estoque",collection:"estoques",summary:"Suprimentos físicos, localização e saldo.",columns:["nome","quantidade","unidade","base"],fields:[F("nome","Item","text",{required:true}),F("quantidade","Saldo atual","number"),F("unidade","Unidade"),F("base","Depósito"),F("validade","Validade","date")]},
   abrigos:{label:"Abrigos",singular:"Abrigo",collection:"abrigos",summary:"Acolhimento e capacidade por localização.",columns:["nome","endereco","capacidade","status"],fields:[F("nome","Abrigo","text",{required:true}),F("endereco","Endereço"),F("capacidade","Capacidade","number"),F("disponiveis","Vagas disponíveis","number"),F("acessibilidade","Acessibilidade e estrutura"),F("status","Situação","select",{options:["Disponível","Lotado","Indisponível"]}),F("contato","Contato","tel")]},
-  pontos:{label:"Pontos críticos",singular:"Ponto crítico",collection:"pontos",summary:"Pontes, vias, instalações e acessos prioritários.",columns:["nome","tipo","zona"],fields:[F("nome","Nome","text",{required:true}),F("tipo","Tipo"),Z(),F("localizacao","Localização"),F("observacoes","Observações","textarea")]},
+  pontos:{label:"Pontos críticos",singular:"Ponto crítico",collection:"pontos",summary:"Pontes, vias, instalações e acessos prioritários.",columns:["nome","tipo","zona"],fields:[F("nome","Nome","text",{required:true}),F("tipo","Tipo"),Z(),F("localizacao","Localização"),F("observacoes","Observações","textarea"),F("bairro","Bairro"),F("lat","Latitude"),F("lng","Longitude"),F("fonte","Fonte"),F("verificacao","Verificação")]},
   ocorrencias:{label:"Tipos de ocorrência",singular:"Tipo",collection:"ocorrenciaTipos",summary:"Catálogo de situações e encaminhamentos.",columns:["nome","competencia","prioridade"],fields:[F("nome","Categoria","text",{required:true}),F("competencia","Responsável principal"),F("prioridade","Prioridade","select",{options:["Alta","Média","Baixa"]}),F("recurso","Recurso necessário")]},
   canais:{label:"Canais de comunicação",singular:"Canal",collection:"canais",summary:"WhatsApp institucional e contatos alternativos.",columns:["nome","tipo","identificacao"],fields:[F("nome","Nome do canal","text",{required:true}),F("tipo","Canal","select",{options:["WhatsApp","Telefone","E-mail","Web","Rádio"]}),F("identificacao","Número ou identificador"),F("responsavel","Responsável")]},
   regras:{label:"Regras de acionamento",singular:"Regra",collection:"regras",summary:"Critérios previamente definidos para mobilização automática.",columns:["nome","ocorrencia","recurso"],fields:[F("nome","Nome da regra","text",{required:true}),F("ocorrencia","Tipo de ocorrência"),F("recurso","Equipe ou recurso"),F("zona","Zona","zone"),F("alternativa","Alternativa sem recurso disponível")]},
@@ -61,8 +76,8 @@ const ESQUEMAS={
 };
 const GROUPS=[
  {label:"Início",items:["inicio"]},
- {label:"Prefeituras e território",items:["prefeituras","zonas","bases","riscos"]},
- {label:"Usuários e hierarquia",items:["administradores","responsaveis","substitutos","coordenadores","operadores"]},
+ {label:"Prefeituras e território",items:["prefeituras","implantacao","bairros","zonas","bases","riscos"]},
+ {label:"Usuários e hierarquia",items:["pessoas"]},
  {label:"Equipes e comunidade",items:["equipes","integrantes","voluntarios"]},
  {label:"Ajuda e mobilização",items:["solicitacoes","mobilizacoes","apoios"]},
  {label:"Rede de emergência",items:["saude","emergencias","parceiros"]},
@@ -71,7 +86,7 @@ const GROUPS=[
 ];
 const COLLECTIONS=[...new Set(Object.values(ESQUEMAS).map(x=>x.collection))];
 function novoEstado(){const v={version:1,municipioAtivo:"maringa"};for(const k of COLLECTIONS)v[k]=[];
-v.prefeituras.push({id:"maringa",nome:"Maringá",uf:"PR",codigo_ibge:"4115200",lat:-23.4205,lng:-51.9333,zoom:12});
+v.prefeituras.push({id:"maringa",nome:"Maringá",uf:"PR",codigo_ibge:"4115200",pais:"Brasil",paisId:"BR",estado:"Paraná",codigo_uf:"41",lat:-23.4205,lng:-51.9333,zoom:12});
 return v;}
 function criar(armazenamento=global.localStorage){
  function carregar(){let bruto=null;try{bruto=JSON.parse(armazenamento.getItem(CHAVE)||"null")}catch(_){}const base=novoEstado();if(bruto&&bruto.version===1){for(const k of COLLECTIONS)base[k]=Array.isArray(bruto[k])?bruto[k]:base[k];base.municipioAtivo=bruto.municipioAtivo||"maringa";}if(!base.prefeituras.some(x=>x.id===base.municipioAtivo))base.municipioAtivo=base.prefeituras[0]?.id||"";return base;}
@@ -83,7 +98,7 @@ function criar(armazenamento=global.localStorage){
  function lista(modulo,id=estado.municipioAtivo){
   const m=ESQUEMAS[modulo];if(!m)throw new Error("Cadastro desconhecido.");
   return estado[m.collection].filter(x=>m.collection==="prefeituras"||x.municipioId===id)
-   .filter(x=>!m.role||x.funcao===m.role).filter(x=>!m.category||x.categoria===m.category)
+   .filter(x=>!m.role||x.funcao===m.role||(Array.isArray(x.papeis)&&x.papeis.includes(m.role))).filter(x=>!m.category||x.categoria===m.category)
    .sort((a,b)=>String(a.nome||a.identificacao||"").localeCompare(String(b.nome||b.identificacao||""),"pt-BR"));
  }
  function registro(modulo,id){return lista(modulo).find(x=>x.id===id)||null}
@@ -101,7 +116,50 @@ function criar(armazenamento=global.localStorage){
   if(!atual){estado[m.collection].push(item)}else{const idx=estado[m.collection].findIndex(x=>x.id===id);estado[m.collection][idx]=item}
   salvar();return item;
  }
- function atualizarGeo(id,geo){const p=estado.prefeituras.find(x=>x.id===id);if(!p)return null;for(const k of ["lat","lng","zoom","bbox"]){if(geo[k]!==undefined)p[k]=geo[k]}salvar();return p;}
+ function atualizarGeo(id,geo){const p=estado.prefeituras.find(x=>x.id===id);if(!p)return null;for(const k of ["lat","lng","zoom","bbox","limite_geojson","fonte_geo","geo_atualizado","pais","paisId","estado","codigo_uf"]){if(geo[k]!==undefined)p[k]=geo[k]}salvar();return p;}
+
+ function importarLote(modulo,rows,{modo="revisado"}={}){
+  const permitido=new Set(["bairros","zonas","bases","riscos","pontos","saude","emergencias","parceiros"]);
+  if(!permitido.has(modulo))throw new Error("Coleção não permitida para importação.");
+  if(!Array.isArray(rows)||rows.length>5000)throw new Error("Lote inválido ou maior que 5.000 registros.");
+  const m=ESQUEMAS[modulo],municipioId=estado.municipioAtivo;
+  if(!municipioId)throw new Error("Selecione o município.");
+  const anterior=estado;
+  const clone=JSON.parse(JSON.stringify(estado));
+  const all=clone[m.collection],filtered=all.filter(x=>x.municipioId===municipioId);
+  const byKey=new Map(filtered.filter(x=>x.externalId||x.codigo_cnes).map(x=>[String(x.externalId||"cnes:"+x.codigo_cnes),x]));
+  const byName=new Map(filtered.filter(x=>x.nome).map(x=>[(String(x.nome).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()+"|"+String(x.tipo||"").toLowerCase()),x]));
+  const idGen=()=>global.crypto&&typeof global.crypto.randomUUID==="function"?global.crypto.randomUUID():"cad-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2);
+  const stats={novos:0,atualizados:0,preservados:0,duplicados:0};
+  const batchSeen=new Set();
+  for(const src of rows){
+   if(!src||typeof src!=="object"||!String(src.nome||"").trim())throw new Error("Lote contém registro sem nome.");
+   if(src.municipioId&&src.municipioId!==municipioId)throw new Error("Município divergente no lote.");
+   if(m.category&&src.categoria&&src.categoria!==m.category)throw new Error("Categoria divergente no lote.");
+   const exid=String(src.externalId||src.codigo_cnes&&"cnes:"+src.codigo_cnes||"");
+   const fallback=String(src.nome).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()+"|"+String(src.tipo||"").toLowerCase();
+   const unique=exid||fallback;
+   if(batchSeen.has(unique)){stats.duplicados++;continue;}
+   batchSeen.add(unique);
+   const old=exid?byKey.get(exid)||byName.get(fallback):byName.get(fallback);
+   if(old?.verificacao==="Validado"||old?.verificacao==="Manual confirmado"){
+    stats.preservados++;continue;
+   }
+   const allowedFields=new Set([...m.fields.map(f=>f.key),"externalId","codigo_cnes","lat","lng","geojson","fonte","url_fonte","verificacao","atualizado_em","bairro","cep","observacoes","categoria"]);
+   const cleaned=Object.fromEntries(Object.entries(src).filter(([k,v])=>allowedFields.has(k)&&v!==undefined&&v!==null));
+   if(old){
+    const idx=all.findIndex(x=>x.id===old.id);
+    all[idx]={...old,...Object.fromEntries(Object.entries(cleaned).filter(([k,v])=>v!=="")),id:old.id,municipioId,categoria:m.category||old.categoria};
+    stats.atualizados++;
+   }else{
+    const item={...cleaned,id:idGen(),municipioId,categoria:m.category||cleaned.categoria};
+    all.push(item);byName.set(fallback,item);if(exid)byKey.set(exid,item);
+    stats.novos++;
+   }
+  }
+  estado=clone;
+  try{salvar();return stats}catch(e){estado=anterior;throw e}
+ }
  function excluir(modulo,id){
   const m=ESQUEMAS[modulo],old=registro(modulo,id);if(!old)return false;
   if(m.collection==="prefeituras"&&estado.prefeituras.length===1)throw new Error("É necessário manter pelo menos uma prefeitura.");
@@ -110,7 +168,7 @@ function criar(armazenamento=global.localStorage){
    if(estado.municipioAtivo===id)estado.municipioAtivo=estado.prefeituras[0]?.id||"";}
   salvar();return true;
  }
- return {municipios,municipioAtivo,selecionarMunicipio,lista,registro,gravar,atualizarGeo,excluir,estado:()=>JSON.parse(JSON.stringify(estado))};
+ return {municipios,municipioAtivo,selecionarMunicipio,lista,registro,gravar,importarLote,atualizarGeo,excluir,estado:()=>JSON.parse(JSON.stringify(estado))};
 }
 const api={CHAVE,UFS,CATALOGOS,ESQUEMAS,GROUPS,criar};
 global.AlertaGestaoDados=api;if(typeof module==="object"&&module.exports)module.exports=api;
