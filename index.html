@@ -333,6 +333,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <link rel="stylesheet" href="sessao.css?v=sessoes-2">
 <link rel="stylesheet" href="mapa-navegacao.css?v=mapa-2">
 <link rel="stylesheet" href="gestao/acoes-cabecalho.css?v=acoes-2">
+<link rel="stylesheet" href="cadastro-ocorrencia.css?v=1">
 </head>
 <body>
 <button id="menu-backdrop" class="menu-backdrop" aria-label="Fechar zonas e menus"></button>
@@ -351,7 +352,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
     <div class="sidebar-head">
       <div class="sub">Comandos</div>
       <div class="sidebar-actions">
-        <button id="demo-new" class="sidebar-btn demo-primary">＋ Simular ocorrência confirmada</button>
+        <button id="demo-new" class="sidebar-btn demo-primary">＋ Registrar ocorrência</button>
         <button id="open-relatorio-evento" class="sidebar-btn">📊 Relatório do evento</button>
         <button id="open-fila" class="sidebar-btn">📋 Fila de prioridade</button>
         <button id="open-audit" class="sidebar-btn">🔒 Log de auditoria</button>
@@ -375,6 +376,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         <input id="event-search" type="search" placeholder="Buscar no mapa" aria-label="Buscar no mapa" aria-controls="event-results" aria-expanded="false">
         <div id="event-results" hidden></div>
       </div>
+      <label class="evento-filter">Evento <select id="filtro-evento" aria-label="Filtrar por evento"><option value="">Todos</option></select></label>
       <div class="zone-strip" id="zone-strip" style="display:none"></div>
       <div class="stats-row">
         <div class="stat red"><b id="kpi-ativas">0</b><span>Ativas</span></div>
@@ -388,6 +390,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
       </div>
     </div>
 
+    <div id="cadastro-ocorrencia-aviso" class="cadastro-ocorrencia-aviso" role="status" hidden></div>
     <div class="main">
       <div class="mapwrap" id="mapwrap">
         <div id="map"></div>
@@ -553,8 +556,10 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
     </div>
   </section>
 </div>
-<script src="gestao/dados.js?v=bairro-1"></script>
+<script src="gestao/dados.js?v=evento-oc-1"></script>
 <script src="gestao/acoes-cabecalho.js?v=evento-2"></script>
+<script src="cadastro-ocorrencia.js?v=1"></script>
+<script src="cadastro-ocorrencia-mapa.js?v=1"></script>
 <script src="fluxo-ajuda.js?v=sessoes-1"></script>
 <script src="sessao.js?v=sessoes-1"></script>
 <script src="sessao-ui.js?v=sessoes-2"></script>
@@ -779,6 +784,8 @@ const areas = [...areasCadastradas,...bairros.map(b=>({
   nome:b.nome,chave:'demo:'+b.nome,tipoArea:'Zona demonstrativa',demo:b
 }))];
 const camadasVisiveis={Bairro:true,'Zona cartográfica':false,'Zona demonstrativa':true};
+let eventoAtivo='';
+const noEvento=o=>!eventoAtivo||o.eventoId===eventoAtivo;
 const selecao = new Set();
 const areasPorChave=new Map(areas.map(area=>[area.chave,area]));
 const areasSelecionadas=()=>[...selecao].map(chave=>areasPorChave.get(chave));
@@ -839,7 +846,7 @@ let heatOn = false;
 
 function rebuildHeat(){
   const pontos = ocorrencias
-    .filter(o=> (o.status==='ativa'||o.status==='em_atendimento') && noRecorte(o.bairro))
+    .filter(o=> (o.status==='ativa'||o.status==='em_atendimento') && noRecorte(o.bairro) && noEvento(o))
     .map(o=> [o.pos[0], o.pos[1], o.gravidade/3]);
   heatLayer.setLatLngs(pontos);
 }
@@ -907,7 +914,7 @@ function gerarOcorrencia(config={}){
 
 function refreshOcTooltip(o){
   if(!o.marker)return;
-  const statusLabel = o.status==='ativa' ? 'AGUARDANDO EQUIPE' : o.status==='em_atendimento' ? 'EM ATENDIMENTO' : 'RESOLVIDA';
+  const statusLabel = o.confirmado===false ? 'EM TRIAGEM' : o.status==='ativa' ? 'AGUARDANDO EQUIPE' : o.status==='em_atendimento' ? 'EM ATENDIMENTO' : 'RESOLVIDA';
   o.marker.unbindTooltip();
   o.marker.bindTooltip(
     `<div class="tt-title">${o.icone} ${escHtml(o.tipo)}</div>
@@ -936,7 +943,7 @@ function renderZoneList(){
   const focado = zoneListEl.contains(document.activeElement) ? document.activeElement.dataset.area : null;
   const busca=normalizarTerritorio(document.getElementById('territory-search').value);
   const alertas=zonasComAlertaAtivo();
-  const abertas=ocorrencias.filter(o=>o.status==='ativa'||o.status==='em_atendimento');
+  const abertas=ocorrencias.filter(o=>noEvento(o)&&(o.status==='ativa'||o.status==='em_atendimento'));
   const visiveis=areas.filter(area=>selecao.has(area.chave)||normalizarTerritorio(area.nome).includes(busca));
   zoneListEl.innerHTML = `<button type="button" class="zone-item todos ${selecao.size?'':'active'}" data-area="" aria-pressed="${!selecao.size}">Todo o município</button>
     ${!areasCadastradas.length?'<p class="territory-hint">Áreas de demonstração. Importe o cadastro municipal em Gestão.</p>':''}
@@ -994,7 +1001,7 @@ function applyZoneVisibility(){
   });
   ocorrencias.forEach(o=>{
     if(!o.marker)return;
-    const show=noRecorte(o.bairro)&&(o.status==='ativa'||o.status==='em_atendimento');
+    const show=noRecorte(o.bairro)&&noEvento(o)&&(o.status==='ativa'||o.status==='em_atendimento');
     const has=ocLayer.hasLayer(o.marker);
     if(show&&!has)o.marker.addTo(ocLayer);
     if(!show&&has)ocLayer.removeLayer(o.marker);
@@ -1287,7 +1294,7 @@ function badgeChip(label, color){
 function openOcorrencia(o){
   currentPanelOcId=o.id;
   const panel=document.getElementById('panel'), body=document.getElementById('panel-body');
-  const [badgeClass,badgeLabel]=STATUS_BADGE[o.status]||STATUS_BADGE.ativa;
+  const [badgeClass,badgeLabel]=o.confirmado===false?['ativa','EM TRIAGEM']:(STATUS_BADGE[o.status]||STATUS_BADGE.ativa);
   document.getElementById('panel-title').innerHTML=`${o.icone} ${escHtml(o.tipo)} <span class="badge ${badgeClass}">${badgeLabel}</span><div style="font-family:var(--mono);font-size:10px;color:var(--muted);width:100%;margin-top:5px">${escHtml(o.protocolo)} · ${escHtml(o.bairro)}</div>`;
   const pessoas=participantesDaConversa(o);
   const apoios=o.apoiosBairro||[];
@@ -1297,12 +1304,12 @@ function openOcorrencia(o){
   const noLocal=pessoas.filter(p=>p.status==='no_local').length;
   const convidados=pessoas.filter(p=>p.status==='convidado').length;
   const concluidos=pessoas.filter(p=>p.status==='concluida').length;
-  const mensagem=o.status==='resolvida'?'Atendimento concluído. Obrigado a quem ajudou.':noLocal?`${noLocal} ${noLocal===1?'pessoa confirmou':'pessoas confirmaram'} chegada. O atendimento continua.`:o.atendimentoEquipe?`${o.atendimentoEquipe.nome}: encaminhamento simulado. Aguardando chegada.`:`${convidados} ${convidados===1?'convite enviado':'convites enviados'}. Aguardando confirmação de chegada.`;
+  const mensagem=o.confirmado===false?'Relato salvo para triagem. Ainda não houve acionamento.':o.status==='resolvida'?'Atendimento concluído. Obrigado a quem ajudou.':noLocal?`${noLocal} ${noLocal===1?'pessoa confirmou':'pessoas confirmaram'} chegada. O atendimento continua.`:o.atendimentoEquipe?`${o.atendimentoEquipe.nome}: encaminhamento simulado. Aguardando chegada.`:`${convidados} ${convidados===1?'convite enviado':'convites enviados'}. Aguardando confirmação de chegada.`;
   const tempoChegada=o.confirmadoEm?Math.max(0,Math.round((o.confirmadoEm-o.reportadoEm)/60000)):null;
   body.innerHTML=`
     <div class="photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 7h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13" r="3.4"/></svg><div class="tag">${escHtml(o.fotoTag||'Registro de demonstração')}</div></div>
     <div class="grid2" style="margin-bottom:12px">${badgeChip('Gravidade: '+GRAV_LABEL[o.gravidade],GRAV_COLOR[o.gravidade])}${badgeChip('Resp.: '+RESP_LABEL[o.responsabilidade],RESP_COLOR[o.responsabilidade])}</div>
-    <div class="flow-note">${escHtml(mensagem)}<small>Responsável regional avisado automaticamente. ${concluidos?`${concluidos} participação(ões) concluída(s).`:''}</small></div>
+    <div class="flow-note">${escHtml(mensagem)}${o.confirmado!==false&&o.responsavel?.id!=='sem-responsavel'?'<small>Aviso simulado ao responsável regional. ': '<small>'}${concluidos?`${concluidos} participação(ões) concluída(s).`:''}</small></div>
     <div class="grid2"><div class="field"><label>${tempoChegada===null?'Recebida há':'Tempo até chegada'}</label><div class="val mono">${tempoChegada===null?minutosDesde(o.reportadoEm):tempoChegada} min</div></div><div class="field"><label>${o.status==='resolvida'?'Tempo total':'Em atendimento'}</label><div class="val mono" id="live-atendimento">${o.status==='resolvida'?`${o.tempoReal||0} min`:o.confirmadoEm?`${minutosDesde(o.confirmadoEm)} min`:'Aguardando chegada'}</div></div></div>
     ${o.orientacaoAjuda?`<div class="demo-caption">${escHtml(o.orientacaoAjuda)}</div>`:''}
     ${o.gravidade===3&&o.status!=='resolvida'?`<div class="sla-box">Contatos de emergência: <a href="tel:192">SAMU 192</a> · <a href="tel:193">Bombeiros 193</a> · <a href="tel:199">Defesa Civil 199</a><div class="demo-caption">Esta demonstração não aciona esses serviços.</div>${o.acionamentoOficial?`<div>Contato registrado: ${escHtml(o.acionamentoOficial.servico)}</div>`:`<button class="admin-btn" id="acionar-oficial-btn">Registrar contato com serviço</button>`}</div>`:''}
@@ -1317,11 +1324,21 @@ function openOcorrencia(o){
       ${candidatosApoio.map(p=>`<option value="${escHtml(p.id)}">${escHtml(p.nome+' · '+p.bairroOrigem)}</option>`).join('')}</select>
       <button class="admin-btn" type="submit">Registrar pedido de apoio</button>
       <p class="demo-caption">Registro local nesta demonstração.</p></form>`:''}
+    ${o.organizacoes?.length?`<div class="flow-title">Organizações e equipes previstas</div><p class="demo-caption">Acionamento preparado neste navegador. Nenhum aviso real foi enviado.</p>${o.organizacoes.map(x=>`<p>${escHtml(x.nome)} · Preparado</p>`).join('')}`:''}
+    ${o.endereco?`<div class="flow-title">Local e relato</div><p>${escHtml(o.endereco)} · ${escHtml(o.acesso||'')}</p><p>${escHtml(o.descricao||'')}</p><p>Origem: ${escHtml(o.origem||'Operador')} · Evento: ${escHtml(o.evento||'Não informado')}</p><p>Riscos: ${escHtml(o.riscos||'Não informados')} · Pessoas afetadas: ${escHtml(o.afetados||'Não informado')}</p>${(o.relatos||[]).map(r=>`<p>${escHtml(r.origem)} · ${escHtml(r.descricao||r.endereco)}</p><div class="attachment-previews">${(r.fotos||[]).map(f=>`<img src="${escHtml(f.dados)}" alt="${escHtml(f.nome)}">`).join('')}</div>`).join('')}`:''}
+    ${o.confirmado===false&&canActZone(o.bairro)?'<button type="button" id="confirmar-triagem" class="admin-btn primary">Confirmar e acionar</button>':''}
     <div class="flow-title">Histórico da ocorrência</div>
     <ol class="flow-timeline">${(o.timeline||[{ts:o.reportadoEm,texto:'Ocorrência registrada no histórico de demonstração'}]).map(e=>`<li><time>${new Date(e.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</time><span>${escHtml(e.texto)}</span></li>`).join('')}</ol>
     ${renderAnexos(o)}
   `;
   panel.classList.add('open');
+  body.querySelector('#confirmar-triagem')?.addEventListener('click',()=>{
+    o.confirmado=true;
+    registrarEtapa(o,'confirmada','Ocorrência confirmada');
+    if(!salvarPrototipo()){o.confirmado=false;o.timeline.pop();return;}
+    acionarAjuda(o);
+    salvarPrototipo();atualizarFluxo();openOcorrencia(o);
+  });
   body.querySelector('#apoio-bairro-form')?.addEventListener('submit',e=>{
     e.preventDefault();
     const pessoa=candidatosApoio.find(p=>p.id===new FormData(e.currentTarget).get('pessoa'));
@@ -1517,7 +1534,7 @@ function cadastroFinalizar(){
 }
 
 function updateKpis(){
-  const ocList = ocorrencias.filter(o=> noRecorte(o.bairro));
+  const ocList = ocorrencias.filter(o=> noRecorte(o.bairro)&&noEvento(o));
   const volList = pessoasPainel().filter(p=>!p.oficial);
   const abertas = ocList.filter(o=>o.status==='ativa'||o.status==='em_atendimento');
   const resolvidas = ocList.filter(o=>o.status==='resolvida');
@@ -1536,7 +1553,7 @@ function renderResumo(abertas){
   abertas.forEach(o=>{ porGrav[o.gravidade]++; porResp[o.responsabilidade]++; });
 
   const resolvidas = ocorrencias
-    .filter(o=> o.status==='resolvida' && noRecorte(o.bairro))
+    .filter(o=> o.status==='resolvida' && noRecorte(o.bairro) && noEvento(o))
     .sort((a,c)=> (c.resolvidoEm||0) - (a.resolvidoEm||0))
     .slice(0,5);
 
@@ -1775,7 +1792,7 @@ function renderFila(){
   const body = document.getElementById('fila-body');
   const lista = ocorrencias
     .filter(o=> o.status==='ativa'||o.status==='em_atendimento')
-    .filter(o=> noRecorte(o.bairro))
+    .filter(o=> noRecorte(o.bairro)&&noEvento(o))
     .map(o=>({o, score:calcPrioridade(o)}))
     .sort((a,c)=>c.score-a.score);
   body.innerHTML = `
@@ -1800,10 +1817,11 @@ function renderFila(){
 const SLA_LIMITE_MIN = 2; // no relogio simulado do prototipo; num evento real seria configuravel (ex. 20-30min)
 setInterval(()=>{
   ocorrencias.forEach(o=>{
-    if(o.status==='ativa' && o.gravidade===3 && !o._escalado && minutosDesde(o.reportadoEm) >= SLA_LIMITE_MIN){
+    if(o.confirmado!==false && o.status==='ativa' && o.gravidade===3 && !o._escalado && minutosDesde(o.reportadoEm) >= SLA_LIMITE_MIN){
       o._escalado = true;
       const zona = bairros.find(b=>b.nome===o.bairro);
-      const coord = zona.equipe.coordenador;
+      const coord = zona?.equipe?.coordenador;
+      if(!coord)return;
       if(!chatHistorico[coord.id]) chatHistorico[coord.id] = [];
       chatHistorico[coord.id].push({ de:'eles', texto:`⚠ SLA excedido: "${o.tipo}" em ${o.bairro} sem confirmação de presença há ${minutosDesde(o.reportadoEm)}min. Precisa de apoio?`, ts: Date.now() });
       renderChatContacts();
@@ -2157,7 +2175,8 @@ function renderAudit(){
 function statusSteps(o){
   const steps = [
     { label:'Ocorrência recebida', done:true },
-    { label:'Equipe confirmou presença na área', done: o.status!=='ativa', now: o.status==='ativa' },
+    ...(o.confirmado===false?[{label:'Em triagem',done:false,now:true}]:[]),
+    { label:'Equipe confirmou presença na área', done: o.status!=='ativa', now: o.status==='ativa'&&o.confirmado!==false },
     { label:'Atendimento concluído', done: o.status==='resolvida', now: o.status==='em_atendimento' },
   ];
   return steps.map(s=> s.done ? {...s, cls:'done'} : s.now ? {...s, cls:'now'} : {...s, cls:'pending'});
@@ -2182,7 +2201,7 @@ function renderStatusResultado(o){
                 ${o.relatorio.fotoAtual?`<img src="${o.relatorio.fotoAtual}" alt="Situação inicial" style="width:100%;border-radius:6px">`:""}
                 ${o.relatorio.fotoFinal?`<img src="${o.relatorio.fotoFinal}" alt="Situação final" style="width:100%;border-radius:6px">`:""}
               </div>` : `<div style="margin-top:8px;font-size:11px;color:var(--muted)">Não há fotos públicas neste registro.</div>`}`
-        : `<div style="margin-top:12px;font-size:12px;color:var(--muted)">Tempo estimado: ${o.tempoEstimado} minutos a partir do recebimento.</div>`}
+        : o.tempoEstimado>0?`<div style="margin-top:12px;font-size:12px;color:var(--muted)">Tempo estimado: ${o.tempoEstimado} minutos a partir do recebimento.</div>`:'<div style="margin-top:12px;font-size:12px;color:var(--muted)">Tempo estimado ainda não informado.</div>'}
     </div>
   `;
 }
@@ -2214,7 +2233,7 @@ relatorioOverlay.addEventListener('click', e=>{ if(e.target===relatorioOverlay) 
 
 function renderRelatorioEvento(){
   const body = document.getElementById('relatorio-body');
-  const filtradas=ocorrencias.filter(o=>noRecorte(o.bairro));
+  const filtradas=ocorrencias.filter(o=>noRecorte(o.bairro)&&noEvento(o));
   const resolvidas=filtradas.filter(o=>o.status==='resolvida');
   const ativas=filtradas.filter(o=>o.status==='ativa'||o.status==='em_atendimento');
   const tempoMedioGeral = resolvidas.length ? Math.round(resolvidas.reduce((s,o)=>s+o.tempoReal,0)/resolvidas.length) : 0;
@@ -2238,7 +2257,7 @@ function renderRelatorioEvento(){
   const pctProntidao = totalProntos ? Math.round(totalConf/totalProntos*100) : null;
 
   body.innerHTML = `
-    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Gerado em ${new Date().toLocaleString('pt-BR')} · ${escHtml(tenantConfig.nome)} · ${escHtml(recorteLabel())} · evento de demonstração. Consolidado automaticamente a partir dos registros do protótipo.</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Gerado em ${new Date().toLocaleString('pt-BR')} · ${escHtml(tenantConfig.nome)} · ${escHtml(recorteLabel())} · ${escHtml(document.getElementById('filtro-evento').selectedOptions[0]?.textContent||'Todos')} · evento de demonstração. Consolidado automaticamente a partir dos registros do protótipo.</div>
     <div class="rel-grid">
       <div class="rel-tile"><b>${filtradas.length}</b><span>Ocorrências totais</span></div>
       <div class="rel-tile"><b>${resolvidas.length}</b><span>Resolvidas</span></div>
@@ -2371,7 +2390,7 @@ function acionarAjuda(o, candidatos=voluntarios){
   const resultado = AlertaFluxo.ativar(o, candidatos.filter(v=>v.bairro===o.bairro), ocorrencias, {
     agora:Date.now(), limite:2, distancia:(v,oc)=>map.distance(v.pos,oc.pos)
   });
-  if(!o.responsavelAvisadoEm){
+  if(!o.responsavelAvisadoEm&&o.responsavel?.id!=='sem-responsavel'){
     o.responsavelAvisadoEm=Date.now();
     registrarEtapa(o,'responsavel','Responsável da região avisado automaticamente');
     enviarMensagemDemo(o.responsavel.id,`Ocorrência confirmada: ${o.tipo}, ${o.bairro}. Protocolo ${o.protocolo}. O sistema já iniciou o acionamento conforme a necessidade.`,o,'aviso_regional');
@@ -2609,18 +2628,19 @@ function salvarPrototipo(){
       ocorrencias:ocorrencias.map(({marker,responsavel,...o})=>({...o,responsavelId:responsavel?.id})),
       chatHistorico,alertasClimaticos,prontidao,alertaIdCursor};
     const serializado=JSON.stringify(dados);
-    if(serializado===ultimaSerializacao)return;
+    if(serializado===ultimaSerializacao)return true;
     localStorage.setItem(storageKey('operacao'),serializado);
     ultimaSerializacao=serializado;
     document.getElementById('demo-save-status').hidden=true;
-  }catch(e){const aviso=document.getElementById('demo-save-status');aviso.textContent='Não foi possível salvar neste navegador.';aviso.hidden=false;}
+    return true;
+  }catch(e){const aviso=document.getElementById('demo-save-status');aviso.textContent='Não foi possível salvar neste navegador.';aviso.hidden=false;return false;}
 }
 
 function restaurarPrototipo(){
   let dados;
   try{dados=JSON.parse(localStorage.getItem(storageKey('operacao'))||'null');}catch(e){return false;}
   if(!dados||dados.versao!==1||dados.tenantId!==tenantId||!Array.isArray(dados.ocorrencias)||!Array.isArray(dados.voluntarios))return false;
-  if(dados.ocorrencias.some(o=>!bairros.some(b=>b.nome===o.bairro))||dados.voluntarios.some(v=>!bairros.some(b=>b.nome===v.bairro)))return false;
+  if(dados.voluntarios.some(v=>!bairros.some(b=>b.nome===v.bairro)))return false;
   idCounter=dados.idCounter||1;if(Number.isFinite(dados.eventStart))eventStart=dados.eventStart;
   voluntarios=dados.voluntarios.map(v=>{
     const marker=L.marker(v.pos,{icon:volIcon(),title:v.nome}).addTo(volLayer);
@@ -2628,7 +2648,7 @@ function restaurarPrototipo(){
     return {...v,tenantId,marker};
   });
   ocorrencias=dados.ocorrencias.map(item=>{
-    const o={...item,tenantId,responsavel:bairros.find(b=>b.nome===item.bairro).equipe.responsavel,marker:null};
+    const o={...item,tenantId,responsavel:responsavelDaOcorrencia(item.bairro),marker:null};
     if(o.status!=='resolvida'){
       o.marker=L.marker(o.pos,{icon:ocIcon(o.status)}).addTo(ocLayer);
       o.marker.on('click',()=>openOcorrencia(o));refreshOcTooltip(o);
@@ -2642,17 +2662,42 @@ function restaurarPrototipo(){
   return true;
 }
 
+function responsavelDaOcorrencia(nome){
+  const demo=bairros.find(b=>b.nome===nome);
+  if(demo)return demo.equipe.responsavel;
+  const registro=AlertaGestaoDados.criar().lista('responsaveis',tenantId).find(p=>normalizarTerritorio(p.bairro||p.zona)===normalizarTerritorio(nome));
+  return registro?{id:registro.id,nome:registro.nome,cargo:registro.cargo||'Responsável',tel:registro.telefone||''}
+    :{id:'sem-responsavel',nome:'Não cadastrado',cargo:'Responsável',tel:''};
+}
+function atualizarFiltroEventos(){
+  const select=document.getElementById('filtro-evento');
+  const lista=AlertaGestaoDados.criar().lista('eventos',tenantId);
+  select.replaceChildren(new Option('Todos',''),...lista.map(e=>new Option(e.nome,e.id)));
+  if(!lista.some(e=>e.id===eventoAtivo))eventoAtivo='';
+  select.value=eventoAtivo;
+}
+document.getElementById('filtro-evento').addEventListener('change',e=>{
+  eventoAtivo=e.target.value;
+  if(currentPanelOcId&&!noEvento(ocorrencias.find(o=>o.id===currentPanelOcId)||{}))document.getElementById('panel-close').click();
+  atualizarRecorte();
+});
+function instalarCadastroOcorrencia(){
+  CadastroOcorrenciaMapa.instalar({
+    tenantId,tenantConfig,areas,tiposOcorrencia,map,ocLayer,MARINGA_CENTER,
+    normalizarTerritorio,pertence,canActZone,responsavelDaOcorrencia,ocIcon,
+    refreshOcTooltip,salvarPrototipo,acionarAjuda,atualizarFluxo,atualizarFiltroEventos,
+    openOcorrencia,fecharMenuMobile,obterOcorrencias:()=>ocorrencias,
+    proximoId:()=>idCounter++,reverterId:id=>{if(idCounter===id+1)idCounter=id;},
+    setEventoFiltro:id=>{eventoAtivo=id;}
+  });
+}
+
 function iniciarControlesDemo(){
   document.querySelector('.brand').innerHTML=`<span class="dot"></span>${escHtml(tenantConfig.marca)}`;
   document.querySelector('.status-brand').textContent=tenantConfig.marca;
   document.title=tenantConfig.marca;
-  document.getElementById('demo-new').onclick=()=>{
-    const zona=bairros.find(b=>noRecorte(b.nome)&&canActZone(b.nome))?.nome;
-    if(!zona){ window.alert('Nenhuma área de demonstração disponível no recorte atual.'); return; }
-    if(!canActZone(zona))return;
-    const o=gerarOcorrencia({zona,tipo:tiposOcorrencia.find(t=>t.tipo==='Distribuição de água e alimentos')});
-    atualizarFluxo();openOcorrencia(o);fecharMenuMobile();
-  };
+  atualizarFiltroEventos();
+  instalarCadastroOcorrencia();
   document.getElementById('whatsapp-close').onclick=()=>document.getElementById('whatsapp-overlay').hidden=true;
   document.getElementById('whatsapp-overlay').onclick=e=>{if(e.target.id==='whatsapp-overlay')e.currentTarget.hidden=true;};
   document.getElementById('wa-cheguei').onclick=()=>confirmarWhatsApp('cheguei');
@@ -2755,7 +2800,7 @@ function buscarNoMapa(){
   const grupos=[
     ['Bairros e zonas',areas.map(a=>({nome:a.nome,meta:a.tipoArea,abrir:()=>{if(!selecao.has(a.chave))selectZone(a.chave);}}))],
     ['Ocorrências',ocorrencias.map(o=>({nome:o.tipo,meta:[o.protocolo,o.bairro,o.endereco].filter(Boolean).join(' · '),territorio:o.bairro,
-      abrir:()=>{incluirTerritorio(o.bairro);if(o.pos)map.panTo(o.pos);openOcorrencia(o);}}))],
+      abrir:()=>{if(!noEvento(o)){eventoAtivo='';atualizarFiltroEventos();atualizarRecorte();}incluirTerritorio(o.bairro);if(o.pos)map.panTo(o.pos);openOcorrencia(o);}}))],
     ['Pessoas',pessoasMunicipio().map(p=>({nome:p.nome,meta:[p.sub,p.bairroOrigem].filter(Boolean).join(' · '),territorio:p.bairroOrigem,
       abrir:()=>{incluirTerritorio(p.bairroOrigem);mostrarFicha(p.id);}}))],
     ['Unidades e pontos cadastrados',recursosBusca.map(r=>({nome:r.nome,meta:[r.tipo,r.categoria,r.endereco,r.localizacao].filter(Boolean).join(' · '),
