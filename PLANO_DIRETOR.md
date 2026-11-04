@@ -305,6 +305,35 @@ Os nomes abaixo são **campos do backend**, não perguntas extras obrigatórias 
 
 ---
 
+### 5.5 Sistema Integrado de Gestão de Crise — três mapas e Maringá Unida (04/11/2026)
+
+**Separação funcional aprovada:**
+
+1. **Mapa de Colaboradores** (`/mapas/?tipo=colaboradores`): cadastro de pessoas físicas e jurídicas, equipes, maquinários, materiais e ofertas por zona; seleção por categoria; preparação de acionamento de brigadas zonais.
+2. **Mapa de Evento** (`/index.html`): aplicação operacional anteriormente aprovada, mantida sem reconstrução ou retirada de funcionalidades. O botão do cabeçalho da Gestão deve abrir o mapa standalone.
+3. **Mapa da Ajuda** (`/mapas/?tipo=ajuda`): organização de pedidos de ajuda e recuperação pós-evento por zona, necessidade, prioridade e situação; correspondência com a oferta de colaboradores e gestão de apoio entre municípios.
+
+Os mapas possuem **responsabilidades diferentes**, com potencial de cruzamento pelo mesmo município, zona, colaborador, recurso, evento e pedido. A futura implementação oficial deve fornecer **banco e API únicos**; a versão de navegador atual é uma simulação com coleções locais. Não duplicar o Mapa de Evento no painel administrativo.
+
+**Entrada principal pelo WhatsApp — Maringá Unida:**
+
+> Olá, bem-vindo ao Maringá Unida! Como você gostaria de se cadastrar?  
+> **Colaborador** | **Receber ajuda**
+
+- **Colaborador:** o catálogo completo e os únicos quatro campos-base obrigatórios estão definidos na seção 5.4. Seleção múltipla por capacidade; PF/PJ diferenciadas; oferta de equipamentos não implica operador habilitado; “Outro” pode ser especificado. A oferta aparece no Mapa de Colaboradores por zona, com disponibilidade.
+- **Receber ajuda:** nome/razão social, pessoa física/jurídica, telefone, endereço privado, zona, necessidade, descrição opcional e urgência. Catálogo inicial: alimentação, telhas/cobertura, apoio financeiro, abrigo/moradia, roupas, medicamentos, limpeza, material de construção, energia/gerador, água, transporte, cuidados especiais, laudos, empreendedores e outro. A solicitação aparece no Mapa da Ajuda por zona, não no endereço exato da residência.
+- **A mesma identidade pode fazer os dois fluxos:** alguém que se ofereceu como colaborador pode pedir ajuda depois, sem cancelar a oferta; alguém inicialmente atingido também pode passar a colaborar. Reutilizar cadastro por vínculo verificado. O telefone é apenas aproximação na simulação, não autenticação em produção.
+- **Depois de qualquer cadastro:** disponibilizar “Também preciso de ajuda”, “Também quero colaborar” e novo atendimento, sem impor papel exclusivo.
+- **Chegada e conclusão:** mantida a regra de **somente CHEGUEI e TERMINEI**, sem aceite intermediário, fotos, relatórios ou nota obrigatórios.
+
+**Mobilização zonal com uma ação:** selecionar zona → obter equipes/colaboradores compatíveis e disponíveis → conferir credenciais/conflitos internamente → criar campanha idempotente → emitir mensagens pelo canal oficial → acompanhar CHEGUEI/TERMINEI. O responsável regional é notificado em paralelo, **não aprova** um acionamento normal. No protótipo há preparação de lista e links individuais `wa.me`; **não há envio em massa real**.
+
+**Cooperação entre prefeituras com uma ação:** escolher município destinatário → recurso solicitado → registro institucional → envio autenticado → recebimento e aceite ou indisponibilidade → mobilização rastreável. O protótipo cria o registro local e prepara mensagem para o telefone institucional quando conhecido; **não há rede intermunicipal em operação**.
+
+**Salvaguardas:** pedidos de dinheiro passam por triagem e mecanismo institucional, sem transferência automática. Pedidos de resgate, atendimento médico ou risco elétrico/estrutural são encaminhados às autoridades e equipes habilitadas. Não publicar endereços ou telefones de cidadãos no mapa de consulta.
+
+**Estado auditado:** consultar [AUDITORIA_SISTEMA_INTEGRADO_CRISE.md](AUDITORIA_SISTEMA_INTEGRADO_CRISE.md) para a matriz entre funcionalidades demonstrativas e integrações necessárias. O compromisso de produto é um Sistema Integrado de Gestão de Crise; o código estático de GitHub Pages não é infraestrutura operacional real.
+
 ## 6. Hierarquia de módulos e interfaces
 
 ### 6.1 Cinco experiências distintas
