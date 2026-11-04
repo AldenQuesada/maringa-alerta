@@ -55,3 +55,17 @@ test('capacidade completa mantém os dois convites sem acionamento municipal red
   assert.equal(c.o.atendimentoEquipe, undefined);
   assert.equal(c.mensagens.filter(m => m[3] === 'encaminhamento').length, 0);
 });
+
+test('cadastro de colaboradores segue um único fluxo canônico nos três mapas', () => {
+  const chat = fs.readFileSync(path.join(__dirname, '../atendimento/chat.js'), 'utf8');
+  const core = fs.readFileSync(path.join(__dirname, '../crise/core.js'), 'utf8');
+  const mapa = fs.readFileSync(path.join(__dirname, '../mapas/app.js'), 'utf8');
+  assert.match(html, /<a class="register-fab" id="fab-cadastro" href="\.\/atendimento\/"/);
+  assert.doesNotMatch(html, /id="cadastro-overlay"|function cadastroFinalizar\(/);
+  assert.match(chat, /app\.registrarColaborador\(/);
+  assert.match(core, /db\.gravar\("voluntarios"/);
+  assert.match(mapa, /app\.oferentes\(\)/);
+  assert.match(html, /cadastro\.lista\('voluntarios',tenantId\)/);
+  assert.match(html, /Gerenciar colaboradores na Gestão/);
+  assert.doesNotMatch(html, /data-action="rm-vol"/);
+});
