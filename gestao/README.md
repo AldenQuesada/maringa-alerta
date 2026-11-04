@@ -37,3 +37,19 @@ node --test tests/*.test.cjs
 ```
 
 Critérios do painel: botão operacional central no cabeçalho; login no canto direito; sidebar com apenas cadastros; conteúdo central com busca/CRUD; funcionamento móvel; criação de segunda prefeitura sem contaminar os cadastros de Maringá; alterações limitadas à pasta `gestao/`.
+
+## Atualização: Sistema Integrado de Gestão de Crise (04/11/2026)
+
+Esta etapa acrescentou **dois mapas standalone** e um atendimento conversacional demonstrativo, preservando a interface original de eventos.
+
+| Mapa | URL | Função |
+|---|---|---|
+| Evento | `/index.html` | Ocorrências e comando operacional original, intocado |
+| Colaboradores | `/mapas/?tipo=colaboradores` | Pessoas físicas/jurídicas, equipamentos, ofertas por zona e preparação de brigadas |
+| Ajuda | `/mapas/?tipo=ajuda` | Pedidos pós-evento, status, correspondência e solicitação a outras prefeituras |
+
+Entrada conversacional: `/atendimento/` (**simulação**, não um número WhatsApp oficial). A UI da Gestão continua dedicada à administração, com três atalhos de mapas no cabeçalho. Novos módulos do sidebar: **Pedidos de ajuda**, **Mobilizações de brigadas** e **Apoio entre prefeituras**. O cadastro de colaboradores agora contempla as categorias completas da seção 5.4 do Plano Diretor.
+
+Fonte compartilhada de demonstração: `gestao/dados.js` + `crise/core.js` com `localStorage`, isolado por município **somente no navegador**. As ações de brigadas e entre prefeituras preparam registros/mensagens, **não enviam** mensagens ou pedidos por API. As necessidades financeiras não desencadeiam pagamentos. O mapa não publica endereço nem telefone de solicitantes.
+
+Consulte `/AUDITORIA_SISTEMA_INTEGRADO_CRISE.md` para o estado funcional e as integrações reais que faltam. Testes: `node --test crise/tests/crise.test.cjs gestao/tests/gestao-dados.test.cjs tests/*.test.cjs`.
