@@ -4,7 +4,10 @@
 const {$}={ $: id => document.getElementById(id) };
 const D=window.AlertaGestaoDados;
 if(!D){document.getElementById("page").textContent="Não foi possível carregar os cadastros.";return;}
-const db=D.criar();
+// Município recebido do Admin Geral fica fixo nesta aba (sessionStorage).
+// Apenas isolamento de demonstração; autorizações reais exigem backend e RLS.
+const CIDADE_DEMO=sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa";
+const db=D.criar(undefined,{municipioId:CIDADE_DEMO});
 const PAGE=document.getElementById("page");
 const NAV=document.getElementById("sidebar-nav");
 const FRAME=document.getElementById("app-frame");
@@ -32,7 +35,7 @@ const ICONS={
   chevron:'<path d="m9 18 6-6-6-6"/>'
 };
 const icon=(id,css="")=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="'+css+'" aria-hidden="true">'+(ICONS[id]||ICONS.list)+'</svg>';
-const icons={implantacao:"pin",bairros:"layers",pessoas:"users",solicitacoes:"list",mobilizacoes:"bell",apoios:"building",inicio:"dashboard",prefeituras:"building",zonas:"layers",bases:"pin",riscos:"shield",administradores:"shield",responsaveis:"user",substitutos:"user",coordenadores:"users",operadores:"user",equipes:"wrench",integrantes:"users",voluntarios:"users",saude:"hospital",emergencias:"siren",parceiros:"building",veiculos:"truck",equipamentos:"wrench",estoques:"box",abrigos:"hospital",pontos:"pin",ocorrencias:"list",canais:"bell",regras:"shield"};
+const icons={territorio:"layers",implantacao:"pin",bairros:"layers",pessoas:"users",solicitacoes:"list",mobilizacoes:"bell",apoios:"building",inicio:"dashboard",prefeituras:"building",zonas:"layers",bases:"pin",riscos:"shield",administradores:"shield",responsaveis:"user",substitutos:"user",coordenadores:"users",operadores:"user",equipes:"wrench",integrantes:"users",voluntarios:"users",saude:"hospital",emergencias:"siren",parceiros:"building",veiculos:"truck",equipamentos:"wrench",estoques:"box",abrigos:"hospital",pontos:"pin",ocorrencias:"list",canais:"bell",regras:"shield"};
 let atual="inicio",pesquisa="",edicao=null,ultimoFoco=null,toastTimer=null;
 const cidadesPorUf=new Map();
 const municipio=db.municipioAtivo();
@@ -40,7 +43,7 @@ function renderMunicipios(){
  const select=$("municipio-switch"),lista=db.municipios();
  select.innerHTML=lista.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.nome)+" · "+esc(x.uf)+"</option>").join("");
  select.value=db.municipioAtivo()?.id||"";
- select.onchange=()=>{db.selecionarMunicipio(select.value);location.reload();};
+ select.disabled=true;select.title="O município é atribuído pelo Admin Geral da plataforma.";
 }
 function renderNav(){
  NAV.innerHTML=D.GROUPS.map(g=>'<div class="nav-group"><div class="nav-group-title">'+esc(g.label)+'</div>'+
@@ -60,8 +63,7 @@ function resumoCard(nome,valor,icone,nota){
 function renderInicio(){
  const numero=tipo=>db.lista(tipo).length;
  const entradas=[
-  ["Prefeituras","Definir o município e seu mapa inicial.","prefeituras"],
-  ["Implantar Maringá","Importar IBGE, CNES, bairros, unidades e pontos críticos em um único fluxo.","implantacao"],
+  ["Território municipal","Consultar limites, bairros, zonas e instalações do município provisionado.","territorio"],
   ["Zonas operacionais","Organizar a cobertura e vincular responsáveis.","zonas"],
   ["Pessoas e hierarquia","Vincular responsáveis, substitutos e operadores a órgãos e zonas.","pessoas"],
   ["Equipes e instituições","Organizar equipes, hospitais e serviços de emergência.","equipes"],
@@ -111,6 +113,27 @@ function mapaPreview(){
  }
  return '<aside class="geo-panel"><div class="geo-head">Mapa · '+esc(p.nome)+'</div>'+mapa+'<div class="hint">A vista do município é independente do Mapa Operacional.</div></aside>';
 }
+function renderTerritorioMunicipal(){
+ const p=db.municipioAtivo();
+ if(!p){PAGE.innerHTML=topo("Município indisponível","O Admin Geral ainda não provisionou este município.");return;}
+ const obras=[
+  ["Bairros","bairros"],["Zonas operacionais","zonas"],["Bases de apoio","bases"],["Áreas de risco","riscos"],
+  ["Unidades de saúde","saude"],["Bombeiros e polícias","emergencias"],["Órgãos e concessionárias","parceiros"]
+ ];
+ PAGE.innerHTML=topo("Território de "+p.nome,
+  "Município provisionado pelo Admin Geral. Identificação e malha geográfica não podem ser alteradas por este painel.")+
+ '<section class="section-card"><header class="section-card-head"><h2>Identificação municipal</h2></header><div class="section-card-body">'+
+ '<div class="hierarchy"><div class="hierarchy-step"><strong>Brasil</strong><small>País · BR</small></div><div class="hierarchy-arrow">↓</div>'+
+ '<div class="hierarchy-step"><strong>'+esc(p.estado||p.uf)+'</strong><small>Estado · '+esc(p.uf)+'</small></div><div class="hierarchy-arrow">↓</div>'+
+ '<div class="hierarchy-step"><strong>'+esc(p.nome)+'</strong><small>IBGE '+esc(p.codigo_ibge)+'</small></div></div>'+
+ '<p class="page-subtitle">Situação: '+esc(p.status==="ativa"?"Ativa":p.status==="suspensa"?"Suspensa":"Em implantação")+
+ '. Fonte territorial: '+esc(p.fonte_geo||"Cadastro inicial do Admin Geral")+
+ '. Somente o Admin Geral cria Prefeituras e atualiza sua georreferência inicial.</p></div></section>'+
+ '<section class="section-card"><header class="section-card-head"><h2>Cadastros territoriais</h2></header><div class="section-card-body">'+
+ obras.map(([name,id])=>'<div class="overview-entry"><div><strong>'+esc(name)+'</strong><p>'+db.lista(id).length+' registro(s) neste município</p></div><a class="mini-action" href="#'+id+'">Abrir '+icon("chevron")+'</a></div>').join("")+
+ '</div></section>'+mapaPreview()+
+ '<p class="page-subtitle">Consulta local de demonstração; a identidade real e o isolamento por município dependem de autenticação e autorização no servidor.</p>';
+}
 function renderModulo(){
  const d=D.ESQUEMAS[atual];
  PAGE.innerHTML=topo(d.label,d.summary,atual)+
@@ -125,13 +148,15 @@ function renderModulo(){
 }
 function render(){
  const hash=decodeURIComponent(location.hash.replace(/^#/,""))||"inicio";
- const proximo=hash==="inicio"||Object.hasOwn(D.ESQUEMAS,hash)?hash:"inicio";
+ const adjusted=hash==="prefeituras"||hash==="implantacao"?"territorio":hash;
+ const proximo=adjusted==="inicio"||Object.hasOwn(D.ESQUEMAS,adjusted)?adjusted:"inicio";
  if(proximo!==atual)pesquisa="";
  atual=proximo;
  document.title=(atual==="inicio"?"Gestão":D.ESQUEMAS[atual].label)+" | Maringá Alerta";
  renderNav();
  if(atual==="inicio")renderInicio();
- else if(atual==="implantacao"||atual==="pessoas"){
+ else if(atual==="territorio")renderTerritorioMunicipal();
+ else if(atual==="pessoas"){
   if(globalThis.AlertaImplantacaoUI)AlertaImplantacaoUI.montar({page:PAGE,db,mode:atual,toast});
   else PAGE.innerHTML=topo("Implantação indisponível","Não foi possível carregar o módulo territorial.");
  }
@@ -293,5 +318,5 @@ if(globalThis.AlertaSessao&&globalThis.AlertaSessaoUI&&db.municipioAtivo()){
 render();
 // Ao trocar para uma prefeitura nova, tentar localizar seu mapa automaticamente.
 const prefeituraInicial=db.municipioAtivo();
-if(prefeituraInicial && prefeituraInicial.lat===undefined) geocodificarPrefeitura(prefeituraInicial);
+// Georreferenciamento inicial exclusivo da Administração Geral.
 })();
