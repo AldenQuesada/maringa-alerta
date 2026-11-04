@@ -23,7 +23,7 @@ const GEO_FIELDS=[
  F("atualizado_em","Atualizado em"),F("geojson","Geometria GeoJSON","textarea")
 ];
 const ESQUEMAS={
- territorio:{label:"Território municipal",singular:"Território",collection:"prefeituras",summary:"Município provisionado pelo Administrador Geral da plataforma.",columns:["nome","uf","codigo_ibge"],fields:[F("nome","Município","text",{required:true})]},
+ territorio:{label:"Prefeitura",singular:"Território",collection:"prefeituras",summary:"Município provisionado pelo Administrador Geral da plataforma.",columns:["nome","uf","codigo_ibge"],fields:[F("nome","Município","text",{required:true})]},
  implantacao:{label:"Implantar Maringá",singular:"Implantação",collection:"importacoes",summary:"Fluxo único de implantação territorial com fontes e georreferenciamento.",columns:["nome","status","criado_em"],fields:[F("nome","Importação","text",{required:true}),F("status","Estado"),F("fonte","Fonte"),F("criado_em","Data"),F("quantidade","Registros","number")]},
  bairros:{label:"Bairros",singular:"Bairro",collection:"bairros",summary:"Bairros e geometrias territoriais importadas ou validadas para Maringá.",columns:["nome","zona","verificacao"],fields:[F("nome","Nome do bairro","text",{required:true}),F("zona","Zona operacional"),F("fonte","Fonte"),F("externalId","ID na fonte"),F("verificacao","Verificação","select",{options:["Pendente","Em conferência","Validado","Rejeitado"]}),F("geojson","Polígono GeoJSON","textarea")]},
  pessoas:{label:"Pessoas e hierarquia",singular:"Pessoa",collection:"usuarios",summary:"Cadastro integrado de pessoal, órgãos, papéis, zonas e substituições.",columns:["nome","funcao","orgao","zona"],fields:[F("nome","Nome e sobrenome","text",{required:true}),
