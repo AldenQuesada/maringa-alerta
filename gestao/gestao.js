@@ -47,7 +47,7 @@ function renderMunicipios(){
 }
 function renderNav(){
  NAV.innerHTML=D.GROUPS.map(g=>'<div class="nav-group"><div class="nav-group-title">'+esc(g.label)+'</div>'+
-   g.items.map(id=>'<a class="nav-item'+(atual===id?" active":"")+'" href="#'+esc(id)+'" data-nav="'+esc(id)+'" aria-current="'+(atual===id?"page":"false")+'" title="'+esc(id==="inicio"?"Visão geral":D.ESQUEMAS[id].label)+'">'+icon(icons[id])+'<span class="nav-label">'+esc(id==="inicio"?"Visão geral":D.ESQUEMAS[id].label)+"</span></a>").join("")+"</div>").join("");
+   g.items.map(id=>'<a class="nav-item'+((atual===id||(id==="territorio"&&PREF_SECTIONS.has(atual)))?" active":"")+'" href="#'+esc(id)+'" data-nav="'+esc(id)+'" aria-current="'+((atual===id||(id==="territorio"&&PREF_SECTIONS.has(atual)))?"page":"false")+'" title="'+esc(id==="inicio"?"Visão geral":D.ESQUEMAS[id].label)+'">'+icon(icons[id])+'<span class="nav-label">'+esc(id==="inicio"?"Visão geral":D.ESQUEMAS[id].label)+"</span></a>").join("")+"</div>").join("");
  NAV.querySelectorAll("[data-nav]").forEach(el=>el.onclick=()=>{
   FRAME.classList.remove("mobile-open");
   if(location.hash==="#"+el.dataset.nav) {pesquisa="";render();}
@@ -93,7 +93,7 @@ function tabelaLinhas(){
   tbody.innerHTML='<tr><td colspan="'+(def.columns.length+1)+'"><div class="empty-state">'+icon(icons[atual])+'<h3>'+(pesquisa?"Nenhum resultado":"Nenhum cadastro ainda")+'</h3><p>'+(pesquisa?"Altere os termos da busca.":"Adicione o primeiro registro para começar.")+'</p>'+""+'</div></td></tr>';
   return;
  }
- tbody.innerHTML=list.map(item=>'<tr>'+def.columns.map(c=>'<td>'+esc(item[c]===0?0:item[c]||"—")+'</td>').join("")+
+ tbody.innerHTML=list.map(item=>'<tr>'+def.columns.map(c=>'<td>'+esc(c==="responsavel_id"?(db.lista("pessoas").find(p=>p.id===item[c])?.nome||"Não vinculado"):(item[c]===0?0:item[c]||"—"))+'</td>').join("")+
  '<td><div class="row-actions"><button class="row-action" type="button" data-edit="'+esc(item.id)+'" title="Editar">Editar</button><button class="row-action danger" type="button" data-delete="'+esc(item.id)+'" title="Excluir">Excluir</button></div></td></tr>').join("");
 }
 function mapaPreview(){
