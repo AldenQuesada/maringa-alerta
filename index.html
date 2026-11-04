@@ -329,7 +329,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   .floatwin{width:85vw;right:8px}
 }
 </style>
-<link rel="stylesheet" href="prototipo.css?v=evento-6">
+<link rel="stylesheet" href="prototipo.css?v=evento-7">
 <link rel="stylesheet" href="sessao.css?v=sessoes-2">
 <link rel="stylesheet" href="mapa-navegacao.css?v=mapa-2">
 <link rel="stylesheet" href="gestao/acoes-cabecalho.css?v=acoes-2">
@@ -842,7 +842,7 @@ function rebuildHeat(){
 }
 
 function volIcon(aoVivo=false){
-  return L.divIcon({className:'',html:`<div class="vol-dot${aoVivo?' vol-live':''}"></div>`,iconSize:[9,9]});
+  return L.divIcon({className:'vol-marker',html:`<div class="vol-dot${aoVivo?' vol-live':''}"></div>`,iconSize:[24,24],iconAnchor:[12,12]});
 }
 function ocIcon(status){
   const color = STATUS_COLOR[status] || STATUS_COLOR.ativa;
@@ -868,7 +868,7 @@ function gerarVoluntarios(){
         cadastradoEm: Date.now() - Math.floor(rnd(60,600))*60000,
       };
       v.marker = L.marker(pos, { icon: volIcon(), title:v.nome }).addTo(volLayer);
-      v.marker.on('click',()=>mostrarFicha(v.id));
+      configurarMarcadorPessoa(v.marker,v);
       voluntarios.push(v);
     }
   });
@@ -1015,17 +1015,27 @@ function updateZoneStrip(){
   }).join('\n');
 }
 
-const cadastroPessoas = [
-  ...gestao.lista('pessoas',tenantId).filter(p=>p.status!=='Inativo' && p.verificacao!=='Rejeitado')
-    .map(p=>({...p,id:'rh:'+p.id,oficial:true,sub:[p.funcao,...(Array.isArray(p.papeis)?p.papeis:[])].map(papel=>PAPEL_LABEL[papel]||papel).join(' · ')})),
-  ...gestao.lista('voluntarios',tenantId).map(p=>({...p,id:'cad:'+p.id,sub:[...['ajudas','maquinas','empreendedores','materiais'].flatMap(chave=>Array.isArray(p[chave])?p[chave]:[]),p.contribuicao].filter(Boolean).join(', ')}))
-];
 function pessoasMunicipio(){
+  const cadastro=AlertaGestaoDados.criar();
   return [
-    ...cadastroPessoas,
+    ...cadastro.lista('pessoas',tenantId).filter(p=>p.status!=='Inativo'&&p.verificacao!=='Rejeitado')
+      .map(p=>({...p,id:'rh:'+p.id,oficial:true,sub:[p.funcao,...(Array.isArray(p.papeis)?p.papeis:[])].map(papel=>PAPEL_LABEL[papel]||papel).join(' · ')})),
+    ...cadastro.lista('voluntarios',tenantId).map(p=>({...p,id:'cad:'+p.id,
+      sub:[...['ajudas','maquinas','empreendedores','materiais'].flatMap(chave=>Array.isArray(p[chave])?p[chave]:[]),p.contribuicao].filter(Boolean).join(', ')})),
     ...todosFuncionarios().map(p=>({...p,oficial:true,sub:PAPEL_LABEL[p.papel],demo:true})),
     ...voluntarios.map(v=>({...v,zona:v.bairro,sub:(v.contribuicoes||[v.ajuda]).join(', '),demo:true,disponibilidade:estadoPessoa(v.id)}))
   ].map(p=>({...p,bairroOrigem:p.bairro||p.zona}));
+}
+function pontoPessoa(p){
+  if(p.pos) return p.pos;
+  const lat=Number(p.checkin_lat),lng=Number(p.checkin_lng);
+  if(p.checkin_status==='presente'&&p.checkin_lat!==''&&p.checkin_lng!==''&&Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180) return [lat,lng];
+  return null;
+}
+function configurarMarcadorPessoa(marcador,p){
+  marcador.bindTooltip(`<strong>${escHtml(p.nome)}</strong><br>${escHtml([p.sub||p.ajuda,p.bairroOrigem||p.bairro||p.zona,p.demo?'Demonstração':''].filter(Boolean).join(' · '))}`,{direction:'top',offset:[0,-8]});
+  marcador.on('click',()=>mostrarFicha(p.id));
+  return marcador;
 }
 function pessoasPainel(){
   return pessoasMunicipio().filter(p=>noRecorte(p.bairroOrigem));
@@ -1045,12 +1055,21 @@ function mostrarFicha(id){
 function renderOfficialMarkers(){
   officialLayer.clearLayers();
   marcadoresPessoas.clear();
-  pessoasPainel().filter(p=>p.oficial && p.pos).forEach(p=>{
-    const marcador=L.marker(p.pos,{icon:volIcon(),title:p.nome}).addTo(officialLayer);
-    marcador.on('click',()=>mostrarFicha(p.id));
+  pessoasPainel().filter(p=>(p.oficial||p.id.startsWith('cad:'))&&pontoPessoa(p)).forEach(p=>{
+    const marcador=configurarMarcadorPessoa(L.marker(pontoPessoa(p),{icon:volIcon(),title:p.nome}),p).addTo(officialLayer);
     marcadoresPessoas.set(p.id,marcador);
   });
 }
+
+function atualizarCadastroMapa(){
+  renderOfficialMarkers();
+  renderCollaborators();
+  updateKpis();
+}
+window.addEventListener('storage',e=>{
+  if(e.key===AlertaGestaoDados.CHAVE) atualizarCadastroMapa();
+});
+window.addEventListener('focus',atualizarCadastroMapa);
 
 const localizacoes=new Map();
 const VALIDADE_GPS_MS=90000;
@@ -1080,6 +1099,8 @@ function checkInValido(o,id){
     && map.distance(atual.pos,o.pos)+atual.precisao<=RAIO_CHECK_IN_M;
 }
 function colaboradorAtivo(id){
+  const pessoa=pessoasMunicipio().find(p=>p.id===id);
+  if(pessoa?.id.startsWith('cad:')) return pessoa.checkin_status==='presente'&&normalizarTerritorio(pessoa.checkin_bairro)===normalizarTerritorio(pessoa.bairroOrigem);
   const atual=posicaoAtual(id);
   const ocorrencia=atual&&ocorrencias.find(o=>o.id===atual.ocorrenciaId);
   return !!ocorrencia?.participacoes?.some(p=>p.voluntarioId===id&&p.status==='no_local'&&p.checkInGPS);
@@ -1090,7 +1111,7 @@ function renderCollaborators(){
   const antes=body.scrollTop;
   const item=p=>{
     const aberto=fichaAberta===p.id;
-    const telefone=String(p.telefone||'').replace(/[^+\d]/g,'');
+    const telefone=String(p.telefone||p.tel||'').replace(/[^+\d]/g,'');
     const email=String(p.email||'');
     const contato=telefone?`tel:${telefone}`:/^[^\s@]+@[^\s@]+$/.test(email)?`mailto:${encodeURIComponent(email)}`:'';
     return `<div class="person-card"${aberto?' id="ficha-pessoa"':''}>
@@ -1103,9 +1124,9 @@ function renderCollaborators(){
         <div>${escHtml([p.cargo,p.orgao,p.sub,p.bairroOrigem].filter(Boolean).join(' · '))}</div>
         <div>${posicaoAtual(p.id)?'Localização ao vivo · '+new Date(posicaoAtual(p.id).ts).toLocaleTimeString('pt-BR'):p.pos?'Ponto de demonstração · posição fixa':'Localização indisponível'}</div>
         <div class="person-actions">
-          <button type="button" class="admin-btn" data-chat="${escHtml(p.id)}"${isViewOnly()?' disabled':''}>Chat</button>
-          ${contato&&!isViewOnly()?`<a class="admin-btn" href="${escHtml(contato)}">Contatar</a>`:'<button class="admin-btn" disabled>Contatar</button>'}
-          ${p.pos?`<button type="button" class="admin-btn" data-locate="${escHtml(p.id)}">Ver no mapa</button>`:''}
+          <button type="button" class="admin-btn" data-chat="${escHtml(p.id)}"${isViewOnly()?' disabled':''} title="Abre uma conversa interna simulada">Chat interno</button>
+          ${contato&&!isViewOnly()?`<a class="admin-btn" href="${escHtml(contato)}" title="Abre o telefone ou e-mail cadastrado">Contatar</a>`:'<button class="admin-btn" disabled>Contatar</button>'}
+          ${pontoPessoa(p)?`<button type="button" class="admin-btn" data-locate="${escHtml(p.id)}">Ver no mapa</button>`:''}
         </div></div>`:''}
     </div>`;
   };
@@ -1147,11 +1168,12 @@ function renderCollaborators(){
     const ativos=colaboradores.filter(p=>colaboradorAtivo(p.id)).length;
     const percentual=colaboradores.length?Math.round(100*ativos/colaboradores.length):0;
     return `<section class="person-territory">
-      <h4>${escHtml(grupo.nome)} <span class="equipe-kpis">Colab: ${colaboradores.length} · Act: ${ativos} · ${percentual}%</span></h4>
+      <h4>${escHtml(grupo.nome)} <span class="equipe-kpis" title="Ativos: colaboradores com check-in presente no bairro ou chegada validada com GPS nesta sessão.">Colab: ${colaboradores.length} · Act: ${ativos} · ${percentual}%</span></h4>
       <h3 class="person-section">Responsáveis da equipe</h3>
       ${oficiais.map(item).join('')||'<p>Nenhum responsável cadastrado.</p>'}
       <h3 class="person-section">Colaboradores · ${colaboradores.length}</h3>
       ${colaboradores.map(item).join('')||'<p>Nenhum colaborador cadastrado.</p>'}
+      <p class="equipe-nota">Act: presença registrada ou check-in GPS ativo.</p>
     </section>`;
   }).join('')||'<p>Nenhuma equipe no recorte.</p>';
   body.scrollTop=antes;
@@ -1170,7 +1192,12 @@ function renderCollaborators(){
   body.querySelector('[data-locate]')?.addEventListener('click',e=>{
     const id=e.currentTarget.dataset.locate;
     const marcador=marcadoresPessoas.get(id)||voluntarios.find(v=>v.id===id)?.marker;
-    if(marcador) map.panTo(marcador.getLatLng());
+    if(!marcador)return;
+    map.setView(marcador.getLatLng(),Math.max(map.getZoom(),15),{animate:false});
+    const rect=janelaColaboradores.getBoundingClientRect(),mapa=areaMapa.getBoundingClientRect();
+    if(rect.left<mapa.left+mapa.width*.65) map.panBy([-Math.min(rect.width/2,120),0],{animate:false});
+    else map.panBy([Math.min(rect.width/2,120),0],{animate:false});
+    marcador.openTooltip();
   });
 }
 
@@ -1435,7 +1462,7 @@ function cadastroFinalizar(){
     consentimentoLGPD:true, cadastradoEm:Date.now(), ativo:false,
   };
   v.marker = L.marker(pos, { icon: volIcon(), title:v.nome }).addTo(volLayer);
-  v.marker.on('click',()=>mostrarFicha(v.id));
+  configurarMarcadorPessoa(v.marker,v);
   voluntarios.push(v);
   applyZoneVisibility();
   updateKpis();
@@ -2560,7 +2587,7 @@ function restaurarPrototipo(){
   idCounter=dados.idCounter||1;if(Number.isFinite(dados.eventStart))eventStart=dados.eventStart;
   voluntarios=dados.voluntarios.map(v=>{
     const marker=L.marker(v.pos,{icon:volIcon(),title:v.nome}).addTo(volLayer);
-    marker.on('click',()=>mostrarFicha(v.id));
+    configurarMarcadorPessoa(marker,v);
     return {...v,tenantId,marker};
   });
   ocorrencias=dados.ocorrencias.map(item=>{

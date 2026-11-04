@@ -120,7 +120,7 @@ button:disabled{opacity:.45;cursor:not-allowed!important}
 #topbar .stats-row{margin-left:0;gap:4px}
 #topbar #header-actions .ma-action-label{display:none}
 #floatwin{position:absolute;top:8px;right:12px;width:clamp(245px,24vw,330px);max-width:calc(100% - 16px);height:calc(100% - 60px);max-height:none}
-#floatwin.minimized{height:auto;width:auto}
+#floatwin.minimized{height:auto}
 #floatwin .floatwin-head{touch-action:none;flex:none}
 #floatwin .floatwin-body{min-height:0;max-height:none;padding:8px}
 #floatwin .person-section{padding:6px 0;border-bottom:1px solid var(--line);margin:4px 0 6px}
@@ -154,3 +154,7 @@ button:disabled{opacity:.45;cursor:not-allowed!important}
  #topbar .session-trigger-label,#topbar .session-trigger-role{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
  #topbar .session-avatar{width:22px;height:22px}
 }
+
+.vol-marker{display:flex;align-items:center;justify-content:center;cursor:pointer}
+.vol-marker .vol-dot{width:11px;height:11px}
+#floatwin.minimized .floatwin-head{min-width:240px}
