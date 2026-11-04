@@ -101,6 +101,52 @@ function criar(armazenamento=global.localStorage){
   if(!atual){estado[m.collection].push(item)}else{const idx=estado[m.collection].findIndex(x=>x.id===id);estado[m.collection][idx]=item}
   salvar();return item;
  }
+ const COLECOES_ESTRUTURA=["zonas","bases","riscos","usuarios","equipes","integrantes","instituicoes","veiculos","equipamentos","estoques","abrigos","pontos","ocorrenciaTipos","canais","regras"];
+ function fichaPrefeitura(id=null){
+  const p=id?estado.prefeituras.find(x=>x.id===id):null;
+  if(id&&!p)throw new Error("Prefeitura não encontrada.");
+  const grupos={};
+  for(const key of COLECOES_ESTRUTURA)grupos[key]=p?JSON.parse(JSON.stringify(estado[key].filter(x=>x.municipioId===id))):[];
+  return {prefeitura:p?JSON.parse(JSON.stringify(p)):{uf:"PR",nome:"",codigo_ibge:"",responsavel:"",telefone:"",email:""},grupos};
+ }
+ function salvarFichaPrefeitura(ficha,id=null){
+  if(!ficha||!ficha.prefeitura||!ficha.grupos)throw new Error("Formulário incompleto.");
+  if(id&&!estado.prefeituras.some(x=>x.id===id))throw new Error("Prefeitura não encontrada.");
+  const p={...ficha.prefeitura};
+  for(const key of ["nome","uf","codigo_ibge","responsavel","telefone","email"]){
+   if(typeof p[key]==="string")p[key]=p[key].trim();
+  }
+  if(!p.nome||!p.uf||!/^\d{7}$/.test(String(p.codigo_ibge)))throw new Error("Informe município, UF e código IBGE de sete dígitos.");
+  if(!UFS.includes(p.uf))throw new Error("UF inválida.");
+  if(estado.prefeituras.some(x=>x.id!==id&&String(x.codigo_ibge)===String(p.codigo_ibge)))throw new Error("Esta prefeitura já está cadastrada.");
+  // Validar toda a estrutura antes de persistir: um só comando Salvar prefeitura.
+  for(const key of COLECOES_ESTRUTURA){
+   const rows=ficha.grupos[key];
+   if(!Array.isArray(rows))throw new Error("Dados inválidos na seção "+key+".");
+   const ids=new Set();
+   for(const item of rows){
+    if(!item||typeof item!=="object"||Array.isArray(item))throw new Error("Registro inválido em "+key+".");
+    if(item.id&&ids.has(item.id))throw new Error("Registro duplicado em "+key+".");
+    if(item.id)ids.add(item.id);
+    if(["zonas","usuarios","equipes","instituicoes"].includes(key)&&!String(item.nome||"").trim())throw new Error("Preencha os nomes na seção "+key+".");
+   }
+  }
+  const uid=()=>global.crypto&&typeof global.crypto.randomUUID==="function"?global.crypto.randomUUID():"cad-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2);
+  const pid=id||uid();
+  const atual=id?estado.prefeituras.find(x=>x.id===id):null;
+  const salvo={...(atual||{}),...p,id:pid};
+  const futuro={...estado,prefeituras:id?estado.prefeituras.map(x=>x.id===id?salvo:x):[...estado.prefeituras,salvo]};
+  for(const key of COLECOES_ESTRUTURA){
+   const outros=estado[key].filter(x=>x.municipioId!==pid);
+   const novos=ficha.grupos[key].map(x=>({...x,id:x.id||uid(),municipioId:pid}));
+   futuro[key]=outros.concat(novos);
+  }
+  futuro.municipioAtivo=pid;
+  const anterior=estado;
+  estado=futuro;
+  try{salvar()}catch(error){estado=anterior;throw error;}
+  return salvo;
+ }
  function atualizarGeo(id,geo){const p=estado.prefeituras.find(x=>x.id===id);if(!p)return null;for(const k of ["lat","lng","zoom","bbox"]){if(geo[k]!==undefined)p[k]=geo[k]}salvar();return p;}
  function excluir(modulo,id){
   const m=ESQUEMAS[modulo],old=registro(modulo,id);if(!old)return false;
@@ -110,7 +156,7 @@ function criar(armazenamento=global.localStorage){
    if(estado.municipioAtivo===id)estado.municipioAtivo=estado.prefeituras[0]?.id||"";}
   salvar();return true;
  }
- return {municipios,municipioAtivo,selecionarMunicipio,lista,registro,gravar,atualizarGeo,excluir,estado:()=>JSON.parse(JSON.stringify(estado))};
+ return {municipios,municipioAtivo,selecionarMunicipio,lista,registro,gravar,fichaPrefeitura,salvarFichaPrefeitura,atualizarGeo,excluir,estado:()=>JSON.parse(JSON.stringify(estado))};
 }
 const api={CHAVE,UFS,CATALOGOS,ESQUEMAS,GROUPS,criar};
 global.AlertaGestaoDados=api;if(typeof module==="object"&&module.exports)module.exports=api;
