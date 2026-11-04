@@ -17,8 +17,8 @@ const warning='<div class="notice"><strong>Ambiente demonstrativo.</strong> Os d
 function badge(status){const value=status||"implantacao";return '<span class="status '+esc(value)+'">'+esc(value==="implantacao"?"Em implantação":value==="ativa"?"Ativa":value==="suspensa"?"Suspensa":value)+'</span>';}
 function renderNav(){
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===section));
- $("session-status").textContent=central.sessaoAtiva()?"· sessão local ativa":"· demonstração";
- $("session-button").textContent=central.sessaoAtiva()?"Encerrar Admin Geral":"Iniciar Admin Geral";
+ const active=central.sessaoAtiva();
+ $("session-button").replaceChildren(document.createTextNode(active?"Encerrar Admin Geral ":"Iniciar Admin Geral "),Object.assign(document.createElement("span"),{id:"session-status",textContent:active?"· sessão local ativa":"· demonstração"}));
 }
 function renderGate(){
  $("screen").innerHTML=heading("Administração Geral da Plataforma","Crie e configure todos os municípios do Sistema Integrado de Gestão de Crise, independentemente de Maringá.")+
