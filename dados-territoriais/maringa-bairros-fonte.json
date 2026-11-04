@@ -1,0 +1,12 @@
+{
+  "municipio": "Maringá",
+  "codigo_ibge": "4115200",
+  "camada": "Bairro (ID 9)",
+  "servico": "https://paranainterativo.pr.gov.br/interativo2/rest/services/BaseDadosParanaInterativo/FeatureServer/9/query",
+  "filtro": "CdMunicipioIBGE='4115200'",
+  "consulta_em_utc": "2026-11-04T14:44:55.152850+00:00",
+  "feicoes": 50,
+  "nomes_distintos": 49,
+  "observacao": "Bairros administrativos, não zonas operacionais da Defesa Civil. Verificar atualidade com IPPLAM.",
+  "status": "Dados publicados pela fonte estadual, sujeitos à revisão da Prefeitura"
+}
