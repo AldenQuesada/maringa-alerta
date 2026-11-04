@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c1817"><title>Maringá Unida · Atendimento</title>
+<link rel="stylesheet" href="./chat.css?v=crise-1"></head>
+<body>
+<div class="chat-shell">
+ <header class="chat-header">
+  <a class="back" href="../gestao/" aria-label="Voltar ao painel">‹</a>
+  <div class="avatar">MU</div>
+  <div class="header-title"><strong>Maringá Unida</strong><small>Atendimento e cadastro · simulação</small></div>
+  <nav class="header-links"><a href="../mapas/?tipo=colaboradores" target="_blank" rel="noopener">Colaboradores</a><a href="../mapas/?tipo=ajuda" target="_blank" rel="noopener">Ajuda</a></nav>
+ </header>
+ <div class="safety-banner" role="note">Protótipo local. Não é um canal oficial de emergência nem envia mensagens reais. Use dados fictícios nos testes. Em emergências, ligue 190, 192 ou 193.</div>
+ <main id="history" class="history" aria-live="polite" aria-label="Conversa de cadastro">
+  <div class="day-divider">Maringá Unida</div>
+ </main>
+ <footer class="response-area">
+  <div id="options" class="options"></div>
+  <form id="reply-form" class="reply-form" hidden>
+   <input id="reply" autocomplete="off" placeholder="Escreva sua resposta..." aria-label="Responder mensagem">
+   <button id="reply-send" type="submit">Enviar <span aria-hidden="true">➤</span></button>
+  </form>
+  <p id="hint" class="hint">As respostas são salvas somente no navegador deste dispositivo.</p>
+ </footer>
+</div>
+<script src="../gestao/dados.js?v=gestao-2"></script>
+<script src="../crise/core.js?v=crise-1"></script>
+<script src="./chat.js?v=crise-1"></script>
+</body></html>
