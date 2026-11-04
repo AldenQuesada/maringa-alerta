@@ -53,3 +53,20 @@ Entrada conversacional: `/atendimento/` (**simulação**, não um número WhatsA
 Fonte compartilhada de demonstração: `gestao/dados.js` + `crise/core.js` com `localStorage`, isolado por município **somente no navegador**. As ações de brigadas e entre prefeituras preparam registros/mensagens, **não enviam** mensagens ou pedidos por API. As necessidades financeiras não desencadeiam pagamentos. O mapa não publica endereço nem telefone de solicitantes.
 
 Consulte `/AUDITORIA_SISTEMA_INTEGRADO_CRISE.md` para o estado funcional e as integrações reais que faltam. Testes: `node --test crise/tests/crise.test.cjs gestao/tests/gestao-dados.test.cjs tests/*.test.cjs`.
+
+
+## Implantação territorial georreferenciada de Maringá (04/11/2026)
+
+**Entrada única:** Painel de Gestão → Prefeituras e território → **Implantar Maringá**. Dentro da mesma tela: Brasil/Paraná/Maringá (IBGE 4115200), consulta IBGE Localidades/Malhas, consulta CNES, importação de GeoJSON ou CSV municipal, prévia em tabela e mapa, conferência, salvamento consolidado. Também é possível alcançar o fluxo pelo botão na tela Prefeituras.
+
+**Usuários e hierarquia:** agora um único item **Pessoas e hierarquia** com filtros por função/órgão/zona e formulário de pessoa com função principal, papéis adicionais e substituto. Não se atribuem automaticamente cargos a nomes encontrados em notícias.
+
+**Escopo rigorosamente preservado:** os grupos Equipes e comunidade, Ajuda e mobilização, Rede de emergência, Infraestrutura e recursos, Regras e comunicação, os três mapas e a sessão permanecem na estrutura anterior. Cadastros históricos de administradores, responsáveis, substitutos, coordenadores e operadores continuam na coleção única `usuarios`, embora os atalhos separados sejam substituídos por um único item.
+
+**Fontes**: IBGE `/api/v1/localidades/municipios/4115200` e `/api/v3/malhas/municipios/4115200` (GeoJSON); DEMAS `/cnes/estabelecimentos` filtrado por município, status ativo, limite 20 e `offset` como número de página. Se a chamada remota falhar ou a base municipal não tiver API pública compatível, usar o arquivo oficial exportado (CNES CSV ou GeoJSON municipal). A interface evidencia os erros e **não insere registros não conferidos** como operacionais.
+
+**Identificadores e não duplicação:** CNES recebe `externalId: cnes:<código>`; bairros e outros registros exigem nome e geometria compatível; importação em lote não substitui cadastros validados manualmente e não toca coleções de voluntários, equipes e pedidos. Referências institucionais Copel/Sanepar/Polícias/Bombeiros podem ser preparadas sem localização e ficar em estado **Pendente**, jamais declaradas unidades georreferenciadas.
+
+**Status técnico:** implementado como **protótipo em GitHub Pages com persistência local (localStorage)**. Nem importações nem alterações são compartilhadas entre dispositivos ou usuários; não há backend geoespacial, PostGIS, autenticação/RLS, sincronização de prefeituras ou WhatsApp oficial. Para implantação municipal real, requer backend, autorização institucional, curadoria das bases e validação territorial por órgãos responsáveis.
+
+**Teste de implementação:** `node --test gestao/tests/*.test.cjs crise/tests/*.test.cjs tests/*.test.cjs` e verificação sintática dos arquivos `gestao/implantacao-core.js`, `gestao/implantacao-ui.js`.
