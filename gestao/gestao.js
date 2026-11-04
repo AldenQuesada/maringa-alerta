@@ -147,6 +147,10 @@ function renderModulo(){
  tabelaLinhas();
 }
 function render(){
+ if(db.municipioAtivo()?.status==="suspensa"){
+  PAGE.innerHTML=topo("Município suspenso","O Admin Geral suspendeu este ambiente de demonstração. A gestão municipal não pode operar até reativação.");
+  return;
+ }
  const hash=decodeURIComponent(location.hash.replace(/^#/,""))||"inicio";
  const adjusted=hash==="prefeituras"||hash==="implantacao"?"territorio":hash;
  const proximo=adjusted==="inicio"||Object.hasOwn(D.ESQUEMAS,adjusted)?adjusted:"inicio";
@@ -297,6 +301,14 @@ $("sidebar-scrim").onclick=()=>{FRAME.classList.remove("mobile-open");$("toggle-
 window.addEventListener("hashchange",()=>{pesquisa="";render();});
 renderMunicipios();
 const abrirMapa=$("abrir-mapa");
+// O Mapa de Evento original contém apenas simulação de Maringá;
+// não mostrar ocorrências de Maringá a uma Prefeitura recém-provisionada.
+if(db.municipioAtivo()?.id!=="maringa"){
+ abrirMapa.href="#";
+ abrirMapa.title="Mapa de Evento deste município requer implantação operacional.";
+ abrirMapa.setAttribute("aria-disabled","true");
+ abrirMapa.addEventListener("click",e=>{e.preventDefault();toast("O Mapa de Evento desta Prefeitura ainda precisa ser configurado. Não serão mostradas ocorrências de Maringá.");},true);
+}
 abrirMapa.addEventListener("click",e=>{
  if(window.matchMedia("(max-width:850px)").matches)return; // navegador móvel controla a janela
  e.preventDefault();
