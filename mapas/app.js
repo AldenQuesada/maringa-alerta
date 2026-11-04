@@ -9,7 +9,7 @@ let app=MaringaCrise.criar({municipioId:cidadeContexto(),escopoMunicipal:true}),
 let territorio=null;
 let toastTimer;
 const nomeTipo=TIPO==="ajuda"?"Mapa da Ajuda":"Mapa de Colaboradores";
-document.title=nomeTipo+" | Maringá Unida";
+document.title=nomeTipo+" | "+(app.prefeitura()?.nome||"Município")+" · Sistema Integrado de Crise";
 $("nav-"+TIPO).classList.add("active");
 $("title").textContent=TIPO==="ajuda"?"Ajuda pós-evento":"Colaboradores por zona";
 $("eyebrow").textContent=TIPO==="ajuda"?"RECUPERAÇÃO PÓS-EVENTO":"REDE DE COLABORADORES";
