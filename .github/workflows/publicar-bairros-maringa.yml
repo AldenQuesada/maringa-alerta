@@ -1,0 +1,48 @@
+name: Publicar bairros oficiais de Maringá
+
+on:
+  push:
+    branches:
+      - feat/bairros-oficiais-nos-tres-mapas-20261104
+    paths:
+      - scripts/atualizar-bairros-maringa.py
+      - .github/workflows/publicar-bairros-maringa.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  importar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Consultar fonte geográfica oficial
+        run: python scripts/atualizar-bairros-maringa.py
+      - name: Validar arquivo gerado
+        run: |
+          python - <<'PY'
+          import json
+          with open('dados-territoriais/maringa-bairros.geojson') as f:
+              data=json.load(f)
+          assert data['type']=='FeatureCollection'
+          assert len(data['features'])>=30
+          print("Bairros validados:",len(data['features']))
+          PY
+      - name: Versionar GeoJSON no repositório
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dados-territoriais/maringa-bairros.geojson dados-territoriais/maringa-bairros-fonte.json
+          if git diff --cached --quiet; then
+            echo "Arquivo sem diferenças."
+          else
+            git commit -m "Adicionar polígonos dos bairros de Maringá da fonte estadual"
+            git push
+          fi
