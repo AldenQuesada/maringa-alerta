@@ -158,3 +158,9 @@ button:disabled{opacity:.45;cursor:not-allowed!important}
 .vol-marker{display:flex;align-items:center;justify-content:center;cursor:pointer}
 .vol-marker .vol-dot{width:11px;height:11px}
 #floatwin.minimized .floatwin-head{min-width:240px}
+
+.person-toggle[aria-expanded="true"]{background:rgba(59,167,255,.20);border-color:#3ba7ff}
+.pessoa-local{background:#2ecf78}
+.pessoa-caminho{background:#ffc93c}
+.pessoa-fora{background:#ff5959}
+.pessoa-indefinido{background:#92a1b2}
