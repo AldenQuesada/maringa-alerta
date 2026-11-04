@@ -7,6 +7,7 @@
 <title>Maringá Alerta | Gestão</title>
 <link rel="stylesheet" href="../sessao.css?v=sessoes-2">
 <link rel="stylesheet" href="./gestao.css?v=gestao-2">
+<link rel="stylesheet" href="./acoes-cabecalho.css?v=acoes-1">
 </head>
 <body>
 <header class="topbar" id="topbar">
@@ -21,9 +22,9 @@
     <span>Mapa de Evento</span>
     <svg class="map-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M14 5h5v5M19 5l-9 9"/><path d="M19 13v6H5V5h6"/></svg>
   </a>
-  <a class="map-launch map-secondary" href="../mapas/?tipo=colaboradores" target="_blank" rel="noopener noreferrer" title="Abrir Mapa de Colaboradores">Colaboradores</a>
-  <a class="map-launch map-secondary" href="../mapas/?tipo=ajuda" target="_blank" rel="noopener noreferrer" title="Abrir Mapa da Ajuda">Ajuda</a></div>
-  <div class="topbar-right"><div id="session-anchor" class="session-anchor"></div></div>
+  <a class="map-launch map-secondary" href="../mapas/?tipo=colaboradores" target="_blank" rel="noopener noreferrer" title="Abrir Mapa de Colaboradores">Mapa de Colaboradores</a>
+  <a class="map-launch map-secondary" href="../mapas/?tipo=ajuda" target="_blank" rel="noopener noreferrer" title="Abrir Mapa da Ajuda">Mapa da Ajuda</a></div>
+  <div class="topbar-right"><div id="header-actions" class="header-actions" role="group" aria-label="Ações rápidas"></div><div id="session-anchor" class="session-anchor"></div></div>
 </header>
 <div class="app-frame" id="app-frame">
   <aside class="sidebar" id="sidebar" aria-label="Cadastros do sistema">
@@ -54,5 +55,6 @@
 <script src="../sessao-ui.js?v=sessoes-2"></script>
 <script src="./dados.js?v=gestao-2"></script>
 <script src="./gestao.js?v=gestao-2"></script>
+<script src="./acoes-cabecalho.js?v=acoes-1"></script>
 </body>
 </html>
