@@ -1,0 +1,108 @@
+/* Fluxo único de implantação Maringá e RH integrado. */
+.mi-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.mi-head .page-subtitle{max-width:870px}
+.mi-context{display:flex;align-items:center;gap:9px;padding:13px 17px;border:1px solid #35495e;background:#172433;border-radius:10px;margin-bottom:18px;flex-wrap:wrap}
+.mi-context strong{font-size:12px;color:#eaf0f8}
+.mi-context>span:not(.mi-code){color:#9db3c8}
+.mi-code{font-size:10px;color:#f7c36d;border:1px solid #645033;padding:5px 7px;border-radius:5px}
+.mi-context small{margin-left:auto;color:#91a6bb;font-size:10px;line-height:1.5}
+.mi-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;margin-bottom:18px}
+.mi-summary>div{border:1px solid #32445b;background:#172333;border-radius:11px;padding:14px 15px;display:flex;flex-direction:column;gap:9px;min-height:84px}
+.mi-summary span{font-size:11px;color:#99acc1}
+.mi-summary strong{font-size:25px;line-height:1;font-weight:800}
+.mi-workflow{border:1px solid #3c536b;background:#132234;border-radius:11px;padding:19px 20px;margin-bottom:19px}
+.mi-workflow-title{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:15px}
+.mi-workflow-title strong{font-size:14px}.mi-workflow-title small,.mi-workflow>p{color:#9eb3c7;font-size:12px;line-height:1.55}
+.mi-actions{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.mi-actions .btn,.mi-file-btn{min-height:42px;padding:10px 12px;font-size:12px;font-weight:750;white-space:nowrap}
+.mi-actions .btn:disabled{opacity:.44}
+.mi-file-btn{display:flex;align-items:center;background:#223348;border:1px solid #4c5e75;border-radius:8px;cursor:pointer;color:#e1ebf6}
+.mi-file-btn:hover{border-color:#ffb020}
+#mi-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.mi-file-kind{display:flex;align-items:flex-start;flex-direction:column;gap:5px;color:#a8bed0;font-size:10px}
+.mi-file-kind select{height:42px;min-width:165px;border:1px solid #455c74;border-radius:8px;color:#e5eef7;background:#0b1724;padding:8px 10px}
+.mi-progress{padding:10px 0 1px;color:#b1c3d3;font-size:11px;line-height:1.5}
+.mi-logs{display:flex;flex-direction:column;gap:5px;border-top:1px solid #304459;padding-top:10px;margin-top:10px;max-height:175px;overflow:auto}
+.mi-logs>div{font-size:11px;color:#a8bed0;line-height:1.45;padding:5px 9px;border-left:3px solid #5e7892}
+.mi-logs>.ok{border-color:#2bc993;color:#b3e5d1}
+.mi-logs>.warn{border-color:#f0ad3a;color:#f2ce8e}
+.mi-logs>.error{border-color:#e35a63;color:#ffa0a7}
+.mi-catalog{border:1px solid #36485c;border-radius:12px;overflow:hidden;background:#121e2b}
+.mi-filterbar{padding:13px 17px;background:#192737;border-bottom:1px solid #33485c;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.mi-filterbar label{display:flex;align-items:center;gap:8px;color:#aabfce;font-size:11px}
+.mi-filterbar input,.mi-filterbar select{height:39px;min-width:200px;max-width:270px;color:#e9f1f8;background:#0c1724;border:1px solid #40556a;border-radius:8px;padding:7px 10px;font-size:12px}
+.mi-filterbar #mi-count{margin-left:auto;font-size:11px;color:#9ab2c8}
+.mi-datagrid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(340px,1fr);min-height:480px}
+.mi-table-wrap{overflow:auto;max-height:570px;min-height:250px}
+.mi-table{border-collapse:collapse;width:100%;font-size:12px;line-height:1.45;table-layout:auto}
+.mi-table th,.mi-table td{padding:13px 12px;text-align:left;border-bottom:1px solid #2f4053;vertical-align:middle}
+.mi-table th{background:#172535;font-size:10px;color:#a6b7c8;text-transform:uppercase;letter-spacing:.06em;position:sticky;top:0;z-index:1}
+.mi-table td strong{display:block;font-size:12px;font-weight:700}
+.mi-table td small{display:block;color:#96a9bb;font-size:10px;margin-top:4px;line-height:1.45;overflow-wrap:anywhere}
+.mi-table tbody tr:hover{background:#1a2b3c}
+.mi-state{padding:5px 7px;border:1px solid #655135;border-radius:6px;font-size:10px;white-space:nowrap;color:#e8bc79}
+.mi-state.ok{border-color:#326b56;color:#9ae6bd}
+.mi-row-actions{display:flex;gap:5px}
+.mi-row-actions button,.mi-rh-list button,.mi-reference button{border:1px solid #4a5d73;background:#24374a;color:#d9e5ef;border-radius:6px;padding:7px 9px;font-size:10px;font-weight:680;cursor:pointer}
+.mi-row-actions button:hover,.mi-rh-list button:hover,.mi-reference button:hover{color:#ffca72;border-color:#b78a3d}
+.mi-empty{text-align:center!important;color:#94aac0;padding:28px 15px!important}
+.mi-map-pane{display:flex;flex-direction:column;min-width:0;border-left:1px solid #36485b}
+.mi-map-header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 15px}
+.mi-map-header strong{font-size:12px}.mi-map-header small{font-size:10px;color:#94a8bd}
+.mi-map{flex:1;min-height:365px;background:#1c3140}
+.mi-map-footer{padding:10px 13px;color:#8fa7bd;font-size:10px;line-height:1.5}
+.mi-map .leaflet-control-attribution{font-size:9px}
+.mi-review{margin-top:22px;border:1px solid #ad8546;background:#172738;border-radius:10px;padding:19px 20px}
+.mi-review[hidden]{display:none}
+.mi-review h2{font-size:18px;margin:0 0 8px}
+.mi-review .page-subtitle{margin-bottom:17px}
+.mi-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.mi-fields label{display:flex;flex-direction:column;gap:7px;font-size:11px;font-weight:640;color:#c5d3df;min-width:0}
+.mi-fields input,.mi-fields select{min-height:42px;width:100%;background:#0d1a28;border:1px solid #43566b;border-radius:8px;padding:9px 11px;color:#e9f0f6;font-size:12px}
+.mi-fields input:focus,.mi-fields select:focus{border-color:#f3b860}
+.mi-edit-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+.mi-sources{border:1px solid #304256;border-radius:10px;margin-top:18px;padding:17px 20px;background:#131f2d}
+.mi-sources>strong{font-size:13px}
+.mi-sources>p{font-size:11px;color:#9eb2c5;line-height:1.6;margin:8px 0 12px}
+.mi-sources>div:not(.mi-reference){display:flex;gap:13px;flex-wrap:wrap}
+.mi-sources a{color:#ffd081;font-size:11px;text-decoration:underline;text-underline-offset:3px}
+.mi-rh-filters{margin:20px 0 12px;border:1px solid #3c4d63;border-radius:10px}
+.mi-rh-list{max-height:540px;border:1px solid #34465d;border-radius:10px}
+.mi-rh-list .mi-table th{background:#19283a}
+.mi-rh-list .mi-table td{font-size:11px}
+.mi-rh-list .mi-table td:first-child{min-width:140px}
+.mi-note{color:#a6bbcd;font-size:11px;line-height:1.5}
+.mi-roles{display:flex;flex-wrap:wrap;gap:10px;margin-top:17px;border:1px solid #40546a;border-radius:8px;padding:12px}
+.mi-roles legend{font-size:11px;color:#c5d4e2;font-weight:700;padding:0 7px}
+.mi-roles label{display:inline-flex;align-items:center;gap:6px;font-size:11px}
+.mi-roles input{accent-color:#ffb020}
+.mi-reference{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #36485b;padding:12px 0}
+.mi-reference span{font-size:11px;color:#d2deea;line-height:1.4}
+.mi-reference strong{color:#e9f2fa}
+.mi-reference button{flex:none}
+@media(max-width:1350px){
+ .mi-datagrid{grid-template-columns:1fr}
+ .mi-map-pane{border-left:0;border-top:1px solid #34475b;min-height:380px}
+ .mi-map{height:380px;flex:none}
+}
+@media(max-width:1100px){
+ .mi-summary{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .mi-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:650px){
+ .mi-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .mi-summary>div{min-height:72px;padding:11px}
+ .mi-summary strong{font-size:22px}
+ .mi-context{padding:11px;gap:7px}.mi-context small{margin-left:0;width:100%}
+ .mi-workflow{padding:14px}.mi-actions{gap:7px}.mi-actions .btn,.mi-file-btn{white-space:normal;font-size:11px}
+ .mi-file-kind{width:100%}.mi-file-kind select{width:100%;max-width:none}
+ .mi-filterbar{padding:10px}.mi-filterbar label{flex-direction:column;align-items:flex-start;width:100%}
+ .mi-filterbar input,.mi-filterbar select{min-width:0;max-width:none;width:100%}
+ .mi-filterbar #mi-count{margin:0}
+ .mi-table-wrap{max-height:430px;min-height:160px}
+ .mi-table{font-size:11px}.mi-table th,.mi-table td{padding:9px 7px}
+ .mi-row-actions{flex-direction:column}
+ .mi-fields{grid-template-columns:1fr}
+ .mi-review{padding:14px}
+ .mi-reference{align-items:flex-start;flex-wrap:wrap}
+}

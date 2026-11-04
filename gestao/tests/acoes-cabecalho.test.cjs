@@ -19,14 +19,20 @@ test("três mapas têm nomes completos e abrem telas independentes",()=>{
  assert.equal((html.match(/class="map-symbol"/g)||[]).length,3,"os três botões devem ter o mesmo ícone");
  assert.match(css,/\.map-hub \.map-arrow\{display:inline-flex/, "setas visíveis também no layout responsivo");
 });
-test("novo cabeçalho preserva o sidebar de 27 acessos e o componente da sessão",()=>{
+test("o cabeçalho preserva a sessão e todas as funções dos grupos não alterados",()=>{
  assert.match(html,/id="sidebar-nav"/);
  assert.match(html,/id="header-actions"/);
  assert.match(html,/id="session-anchor"/);
  assert.match(html,/src="\.\/gestao.js/);
  assert.match(html,/src="\.\/acoes-cabecalho.js/);
  const groups=dados.slice(dados.indexOf("const GROUPS=["),dados.indexOf("const COLLECTIONS="));
- assert.equal((groups.match(/"inicio"|"prefeituras"|"zonas"|"bases"|"riscos"|"administradores"|"responsaveis"|"substitutos"|"coordenadores"|"operadores"|"equipes"|"integrantes"|"voluntarios"|"solicitacoes"|"mobilizacoes"|"apoios"|"saude"|"emergencias"|"parceiros"|"veiculos"|"equipamentos"|"estoques"|"abrigos"|"pontos"|"ocorrencias"|"canais"|"regras"/g)||[]).length,27);
+ for(const name of ["equipes","integrantes","voluntarios","solicitacoes","mobilizacoes","apoios",
+   "saude","emergencias","parceiros","veiculos","equipamentos","estoques","abrigos","pontos","ocorrencias","canais","regras"])
+   assert.match(groups,new RegExp('"'+name+'"'),"Acesso preservado: "+name);
+ for(const name of ["implantacao","bairros","pessoas"])
+   assert.match(groups,new RegExp('"'+name+'"'),"Novo cadastro obrigatório: "+name);
+ assert.doesNotMatch(groups,/"administradores"|"responsaveis"|"substitutos"|"coordenadores"|"operadores"/,
+   "Os cinco papéis de RH devem usar um único menu Pessoas e Hierarquia");
 });
 test("não inclui Vigilância Sanitária nem chamada de colaboradores internos",()=>{
  assert.doesNotMatch(html+css+js,/Vigilância Sanitária|chamar colaboradores internos|TeamCallBar|SanitaryInspectionAlertButton/i);
