@@ -320,13 +320,6 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   #relatorio-overlay .modal-head button{display:none!important}
   #relatorio-overlay .rel-tile,#relatorio-overlay table{background:#fff!important;color:#000!important;border-color:#999!important}
 }
-.acesso-direto{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);font:12px system-ui,sans-serif}
-.acesso-direto label{font-weight:650;color:var(--accent)}
-.acesso-direto select,.acesso-direto button{min-height:34px;max-width:175px;border:1px solid #46566c;border-radius:6px;background:var(--bg);color:var(--fg);font:12px system-ui,sans-serif;padding:6px;cursor:pointer}
-.acesso-direto button{background:var(--accent);color:#101318;border-color:var(--accent);font-weight:700;padding:6px 12px}
-.acesso-direto [hidden]{display:none!important}
-.acesso-direto :is(select,button):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:860px){.topbar .acesso-direto{width:100%;order:3;justify-content:flex-start}.topbar .acesso-direto select{flex:1;min-width:100px;max-width:220px}}
 @media (max-width:860px){
   .sidebar{position:absolute;left:0;top:0;bottom:0;transform:translateX(-100%);transition:transform .2s;box-shadow:0 0 30px rgba(0,0,0,.5)}
   .sidebar.open{transform:translateX(0)}
@@ -337,8 +330,8 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   .floatwin{width:85vw;right:8px}
 }
 </style>
-<link rel="stylesheet" href="prototipo.css?v=acesso-direto-1">
-<link rel="stylesheet" href="entrada-perfil.css?v=acesso-direto-1">
+<link rel="stylesheet" href="prototipo.css?v=sessoes-1">
+<link rel="stylesheet" href="sessao.css?v=sessoes-1">
 </head>
 <body>
 <button id="menu-backdrop" class="menu-backdrop" aria-label="Fechar zonas e menus"></button>
@@ -348,9 +341,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
     <div class="sidebar-head">
       <div class="brand"><span class="dot"></span>MARINGÁ ALERTA</div>
       <div class="sub">Zonas de cobertura · clique para isolar</div>
-      <div class="demo-label">PROTÓTIPO INTERATIVO</div>
-      <div class="demo-caption">Dados e mensagens simulados. Nenhum acionamento real.</div>
-      <label class="demo-caption" for="demo-tenant">Prefeitura da demonstração</label>
+      <label class="tenant-label" for="demo-tenant">Município</label>
       <select class="tenant-select" id="demo-tenant"><option value="maringa">Maringá</option><option value="exemplo">Município Exemplo</option></select>
       <div class="sidebar-actions">
         <button id="demo-new" class="sidebar-btn demo-primary">＋ Simular ocorrência confirmada</button>
@@ -360,13 +351,13 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         <button id="open-alertas" class="sidebar-btn alerta-btn">🌦 Alertas &amp; Prontidão</button>
         <button id="open-admin" class="sidebar-btn">⚙ Administração</button>
         <button id="open-chat" class="sidebar-btn">💬 Chat interno</button>
-        <a href="#status" id="open-status-publico" class="sidebar-btn" style="text-decoration:none;display:block;color:var(--muted)">👁 Ver status público (demo)</a>
+        <a href="#status" id="open-status-publico" class="sidebar-btn" style="text-decoration:none;display:block;color:var(--muted)">👁 Ver status público</a>
       </div>
-      <div class="role-badge" id="role-badge"></div>
-      <details class="demo-options"><summary>Controles da demonstração</summary>
+      
+      <details class="demo-options"><summary>Cenários de teste</summary>
         <button id="demo-auto" class="sidebar-btn" aria-pressed="false">▶ Gerar ocorrências automaticamente</button>
         <button id="demo-reset" class="admin-btn">Reiniciar esta demonstração</button>
-        <div class="saved-hint" id="demo-save-status" role="status">Simulação local</div>
+        <div class="saved-hint" id="demo-save-status" role="status"></div>
       </details>
     </div>
     <div class="zone-list" id="zone-list"></div>
@@ -376,13 +367,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   <div class="right">
     <div class="topbar" id="topbar">
       <button class="menu-mobile" id="mobile-menu" aria-label="Abrir zonas e menus" aria-controls="sidebar" aria-expanded="false">☰</button>
-      <div class="acesso-direto" aria-label="Entrada rápida de demonstração">
-        <label for="perfil-direto">Acesso</label>
-        <select id="perfil-direto" aria-label="Escolher perfil de entrada"><option value="visualizacao">Visualização</option><option value="admin">Administrador</option><option value="responsavel">Responsável regional</option></select>
-        <select id="zona-direta" aria-label="Escolher zona do responsável" hidden></select>
-        <button id="entrar-direto" type="button">Entrar</button>
-      </div>
-      <div class="evento" id="evento-label">CICLONE EXTRATROPICAL · 03/11/2026 · T+4h12min</div>
+      <div class="evento" id="evento-label">Central de ocorrências</div>
       <div class="zone-strip" id="zone-strip" style="display:none"></div>
       <div class="stats-row">
         <div class="stat red"><b id="kpi-ativas">0</b><span>Ativas</span></div>
@@ -390,15 +375,16 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         <div class="stat blue"><b id="kpi-voluntarios">0</b><span>Voluntários</span></div>
         <div class="stat"><b id="kpi-tempo">—</b><span>Tempo médio</span></div>
       </div>
+      <div class="session-anchor" id="session-anchor"></div>
     </div>
 
     <div class="main">
       <div class="mapwrap" id="mapwrap">
         <div id="map"></div>
         <div class="timescale">
-          <span>Evento</span>
-          <b>Ciclone de Novembro</b>
-          <span id="clock">03/11/2026 · 14:12</span>
+          <span>Monitoramento</span>
+          <b>Ocorrências por região</b>
+          <span id="clock"></span>
         </div>
         <div class="legend">
           <div><i style="background:var(--red)"></i> Ocorrência ativa</div>
@@ -437,7 +423,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         </div>
         <div class="reco-banner" id="reco-banner"></div>
         <div id="alert-banner"></div>
-        <div id="offline-banner" hidden>📡 Sem conexão · registros locais de demonstração; nenhuma mensagem real é enviada</div>
+        <div id="offline-banner" hidden>📡 Sem conexão. Algumas funções podem ficar indisponíveis.</div>
       </div>
 
       <div class="panel" id="panel">
@@ -449,32 +435,6 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
       </div>
     </div>
   </div>
-</div>
-
-<div class="modal-overlay entrada-overlay" id="role-overlay" hidden>
-  <section class="modal entrada-dialog" id="role-modal" role="dialog" aria-modal="true" aria-labelledby="entrada-title" aria-describedby="entrada-description" tabindex="-1">
-    <header class="entrada-head">
-      <div><div class="entrada-brand" id="entrada-municipio">MARINGÁ ALERTA</div><h2 id="entrada-title">Quem está entrando?</h2></div>
-      <button type="button" class="entrada-close" data-entry-close aria-label="Fechar e continuar no painel" title="Fechar e continuar">✕</button>
-    </header>
-    <div class="entrada-body">
-      <p id="entrada-description">Escolha como deseja acessar o painel.</p>
-      <div class="entrada-options">
-        <button type="button" class="entrada-choice" data-entry-role="admin">
-          <span class="entrada-icon" aria-hidden="true">⚙</span><span><strong>Administrador geral</strong><small>Acompanhar todas as regiões e gerenciar as equipes.</small></span><span class="entrada-arrow" aria-hidden="true">→</span>
-        </button>
-        <div class="entrada-region">
-          <div class="entrada-region-title"><span class="entrada-icon" aria-hidden="true">👤</span><span><strong>Responsável regional</strong><small>Acompanhar as ocorrências da sua região.</small></span></div>
-          <label for="role-zona">Sua região</label>
-          <div class="entrada-region-controls"><select id="role-zona" data-entry-zone></select><button type="button" class="entrada-enter" data-entry-role="responsavel">Entrar como responsável</button></div>
-        </div>
-        <button type="button" class="entrada-choice" data-entry-role="visualizacao">
-          <span class="entrada-icon" aria-hidden="true">◉</span><span><strong>Apenas visualizar</strong><small>Explorar o mapa e acompanhar os atendimentos.</small></span><span class="entrada-arrow" aria-hidden="true">→</span>
-        </button>
-      </div>
-    </div>
-    <footer class="entrada-footer">Ambiente de demonstração · dados simulados</footer>
-  </section>
 </div>
 
 <div id="status-view" hidden>
@@ -585,8 +545,9 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
     </div>
   </section>
 </div>
-<script src="fluxo-ajuda.js?v=acesso-direto-1"></script>
-<script src="entrada-perfil.js?v=acesso-direto-1"></script>
+<script src="fluxo-ajuda.js?v=sessoes-1"></script>
+<script src="sessao.js?v=sessoes-1"></script>
+<script src="sessao-ui.js?v=sessoes-1"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <script>
@@ -793,10 +754,7 @@ function randPointInBox(poly){
 
 let ocorrencias = [], voluntarios = [], idCounter = 1;
 let activeZone = null; // null = Todos
-let currentRole = null; // controle de acesso simulado; populado logo abaixo, antes do roteamento por hash
-try{ currentRole = JSON.parse(sessionStorage.getItem(storageKey('role')) || 'null'); }catch(e){ currentRole = null; }
-if(!currentRole || !['admin','responsavel','visualizacao'].includes(currentRole.tipo) || (currentRole.tipo==='responsavel'&&!bairros.some(b=>b.nome===currentRole.zona))) currentRole={tipo:"visualizacao"};
-let entradaPerfil=null;
+let currentRole = {tipo:"visualizacao"}; // sem sessão ativa, apenas leitura
 
 /* ---------- mapa ---------- */
 const map = L.map('map', { zoomControl:true, attributionControl:true }).setView(MARINGA_CENTER, 13);
@@ -1401,10 +1359,10 @@ function tickClock(){
   const now = new Date();
   const h = String(now.getHours()).padStart(2,'0');
   const m = String(now.getMinutes()).padStart(2,'0');
-  document.getElementById('clock').textContent = `DEMONSTRAÇÃO · ${h}:${m}`;
+  document.getElementById('clock').textContent = `${now.toLocaleDateString("pt-BR")} · ${h}:${m}`;
   const diffMin = Math.floor((Date.now()-eventStart)/60000);
   const hh = Math.floor(diffMin/60), mm = diffMin%60;
-  document.getElementById('evento-label').textContent = `${tenantConfig.nome.toUpperCase()} · EVENTO DE DEMONSTRAÇÃO · T+${hh}h${String(mm).padStart(2,'0')}min`;
+  document.getElementById('evento-label').textContent = `${tenantConfig.nome} · Central de ocorrências`;
 }
 setInterval(tickClock, 30000);
 
@@ -2041,7 +1999,7 @@ function applyRoute(){
   document.getElementById('app-view').hidden = isStatus;
   document.getElementById('status-view').hidden = !isStatus;
   if(isStatus) document.getElementById('status-resultado').innerHTML = '';
-  if(entradaPerfil && isStatus) entradaPerfil.fechar();
+
 }
 window.addEventListener('hashchange', applyRoute);
 applyRoute();
@@ -2141,60 +2099,37 @@ function isViewOnly(){ return !currentRole || currentRole.tipo==='visualizacao';
 function applyRolePermissions(){
   document.getElementById('open-audit').style.display = canAdmin() ? '' : 'none';
   document.getElementById('open-admin').style.display = isViewOnly() ? 'none' : '';
-  const badge = document.getElementById('role-badge');
-  const label = !currentRole ? '' : currentRole.tipo==='admin' ? 'Administrador geral'
-    : currentRole.tipo==='responsavel' ? `Responsável · ${currentRole.zona}`
-    : 'Modo visualização';
-  badge.innerHTML = currentRole ? `<span>👤 ${escHtml(label)}</span><a href="#" id="role-trocar">Trocar perfil</a>` : '';
-  const trocar = document.getElementById('role-trocar');
-  if(trocar) trocar.onclick = (e)=>{ e.preventDefault(); if(entradaPerfil) entradaPerfil.abrir(currentRole); else document.getElementById('perfil-direto').focus(); };
-  const rapido=document.getElementById('perfil-direto');
-  if(rapido){
-    rapido.value=currentRole?.tipo || 'visualizacao';
-    const zona=document.getElementById('zona-direta');
-    zona.hidden=rapido.value!=='responsavel';
-    if(currentRole?.zona && [...zona.options].some(o=>o.value===currentRole.zona))zona.value=currentRole.zona;
-  }
 }
-
-function selecionarPerfilDemo(perfil){
-  currentRole=perfil;
-  try{sessionStorage.setItem(storageKey('role'),JSON.stringify(perfil));}catch(e){}
+function selecionarPerfilDemo(perfil) {
+  currentRole = perfil && ['admin','responsavel','visualizacao'].includes(perfil.tipo)
+    ? perfil : {tipo:'visualizacao'};
   applyRolePermissions();
-  if(currentPanelOcId){const o=ocorrencias.find(x=>x.id===currentPanelOcId);if(o)openOcorrencia(o);}
+  if(currentPanelOcId) {
+    const o=ocorrencias.find(x=>x.id===currentPanelOcId);
+    if(o)openOcorrencia(o);
+  }
   if(!document.getElementById('admin-overlay').hidden){
     if(isViewOnly())document.getElementById('admin-overlay').hidden=true;
     else renderAdminBody();
   }
   if(!canAdmin())document.getElementById('audit-overlay').hidden=true;
-  queueMicrotask(()=>{
-    const menu=document.getElementById('mobile-menu');
-    const destino=menu.getClientRects().length?menu:document.getElementById('role-trocar');
-    destino?.focus({preventScroll:true});
-  });
 }
-
-document.getElementById('entrada-municipio').textContent=tenantConfig.marca;
-const zonaDireta=document.getElementById('zona-direta');
-zonaDireta.innerHTML=bairros.map(b=>`<option value="${escHtml(b.nome)}">${escHtml(b.nome)}</option>`).join('');
-const perfilDireto=document.getElementById('perfil-direto');
-perfilDireto.onchange=()=>{zonaDireta.hidden=perfilDireto.value!=='responsavel';};
-document.getElementById('entrar-direto').onclick=()=>{
-  const tipo=perfilDireto.value;
-  if(!['admin','responsavel','visualizacao'].includes(tipo))return;
-  if(tipo==='responsavel'&&!bairros.some(b=>b.nome===zonaDireta.value))return;
-  selecionarPerfilDemo(tipo==='responsavel'?{tipo,zona:zonaDireta.value}:{tipo});
-  entradaPerfil?.fechar();
-};
-if(window.AlertaEntrada){
-  entradaPerfil=AlertaEntrada.criar({
-    overlay:document.getElementById('role-overlay'),
+if(window.AlertaSessao && window.AlertaSessaoUI){
+  const servicoSessao = AlertaSessao.criar({ municipioId:tenantId });
+  const sessaoAtual = servicoSessao.obterSessao();
+  selecionarPerfilDemo(sessaoAtual?.conta?.perfil || {tipo:'visualizacao'});
+  AlertaSessaoUI.criar({
+    target:document.getElementById('session-anchor'),
+    sessao:servicoSessao,
+    municipio:tenantConfig.nome,
     zonas:bairros.map(b=>b.nome),
-    onEscolher:selecionarPerfilDemo,
-    onFechar:()=>{}
+    aoMudar:atual=>selecionarPerfilDemo(atual?.conta?.perfil || {tipo:'visualizacao'})
   });
-}else document.getElementById('role-overlay').hidden=true;
-applyRolePermissions();
+}else{
+  selecionarPerfilDemo({tipo:'visualizacao'});
+  const item=document.createElement('span'); item.textContent='Sessão indisponível';
+  document.getElementById('session-anchor').appendChild(item);
+}
 applyRoute();
 
 document.getElementById('heat-toggle').onclick = (e)=>{
@@ -2449,8 +2384,8 @@ function atualizarControlesDemo(){
 function iniciarControlesDemo(){
   document.querySelector('.brand').innerHTML=`<span class="dot"></span>${escHtml(tenantConfig.marca)}`;
   document.querySelector('.status-brand').textContent=tenantConfig.marca;
-  document.title=tenantConfig.marca+' · Protótipo';
-  document.querySelector('.sidebar-head .sub').textContent=tenantId==='exemplo'?'Município fictício · mesmas áreas para teste':'Zonas demonstrativas · clique para isolar';
+  document.title=tenantConfig.marca;
+  document.querySelector('.sidebar-head .sub').textContent='Zonas de cobertura · clique para isolar';
   const seletor=document.getElementById('demo-tenant');seletor.value=tenantId;
   seletor.onchange=()=>{salvarPrototipo();const url=new URL(location.href);url.searchParams.set('prefeitura',seletor.value);url.hash='';location.assign(url.href);};
   document.getElementById('demo-new').onclick=()=>{
