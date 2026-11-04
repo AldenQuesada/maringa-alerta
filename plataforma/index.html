@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101720">
+<title>Admin Geral · Sistema Integrado de Gestão de Crise</title>
+<link rel="stylesheet" href="./style.css?v=admin-1">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="./" aria-label="Página inicial da Administração Geral"><span class="logo">S<span>•</span></span><span><strong>SISTEMA INTEGRADO DE GESTÃO DE CRISE</strong><small>Administração Geral da Plataforma</small></span></a>
+  <div class="top-links"><span class="context">Brasil <span>›</span> Todos os estados <span>›</span> Todas as prefeituras</span><button type="button" id="session-button" class="session-button">Admin Geral <span id="session-status">· demonstração</span></button></div>
+</header>
+<div class="shell">
+  <aside class="sidebar" aria-label="Administração da plataforma">
+    <div class="caption">GESTÃO CENTRAL</div>
+    <nav id="navigation">
+      <a href="#dashboard" data-page="dashboard">Visão geral</a>
+      <a href="#municipios" data-page="municipios">Prefeituras</a>
+      <a href="#territorios" data-page="territorios">Georreferenciamento</a>
+    </nav>
+    <div class="sidebar-bottom"><strong>Escopo global</strong><p>Nenhuma Prefeitura tem permissão para criar outro município.</p><p class="muted">Protótipo local. Autenticação e isolamento reais exigem backend.</p></div>
+  </aside>
+  <main class="content" id="main" tabindex="-1">
+    <section class="screen" id="screen"></section>
+  </main>
+</div>
+<div id="notification" role="status" aria-live="polite" hidden></div>
+<script src="../gestao/dados.js?v=gestao-5"></script>
+<script src="./modelo.js?v=admin-1"></script>
+<script src="./app.js?v=admin-1"></script>
+</body>
+</html>
