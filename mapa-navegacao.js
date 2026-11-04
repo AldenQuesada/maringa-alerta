@@ -5,59 +5,61 @@
 (function (global) {
   "use strict";
 
-  // Extremos aproximados do contorno municipal, com base na malha do IBGE.
-  // Fonte de referência: https://www.teraserv.com.br/ferramentas/coordenadas-de-municipios/pr/maringa
-  // O contorno continua retangular; não representa a divisa poligonal legal.
+  // Limites de deslocamento amplos para toda a região de Maringá.
+  // Retângulo de navegação aproximado: não é a fronteira municipal oficial.
   const AREA_MARINGA = Object.freeze([
-    Object.freeze([-23.5583, -52.1001]),
-    Object.freeze([-23.2540, -51.8358])
+    Object.freeze([-23.578, -52.123]),
+    Object.freeze([-23.235, -51.813])
   ]);
-  const PADDING = 32; // folga visual nas quatro bordas da visão geral
+  // Para a vista inicial, a referência são as seis zonas efetivamente desenhadas.
+  const PADDING = 48;
 
-  function instalar({ map, L, aoRestaurar }) {
+  function instalar({ map, L, zonas, aoRestaurar }) {
     if (!map || !L || !map.zoomControl || typeof map.zoomControl.getContainer !== "function") {
       throw new TypeError("Mapa Leaflet com controle de zoom obrigatório.");
     }
-    const limites = L.latLngBounds(AREA_MARINGA);
+    if (!Array.isArray(zonas) || !zonas.length || !zonas.every(z => Array.isArray(z) && z.length >= 3)) {
+      throw new TypeError("É necessário informar os polígonos de todas as zonas da vista geral.");
+    }
+
+    const limitesMunicipio = L.latLngBounds(AREA_MARINGA);
+    const limitesVisaoGeral = L.latLngBounds(zonas.flat());
     let zoomGeralAnterior = null;
 
-    // false: calcula o zoom em que TODO o município cabe DENTRO da tela.
-    // true faria o inverso e foi a causa do corte da parte norte.
+    function margem() {
+      const tamanho = map.getSize();
+      return Math.max(16, Math.min(PADDING, Math.floor(Math.min(tamanho.x, tamanho.y) * 0.09)));
+    }
+
     function zoomMinimo() {
-      const zoom = map.getBoundsZoom(limites, false, L.point(PADDING * 2, PADDING * 2));
-      return Number.isFinite(zoom) ? Math.max(0, zoom) : Math.max(0, map.getMinZoom());
+      const p = margem();
+      // false: exige que TODAS as zonas caibam dentro do mapa, com borda visível.
+      const requerido = map.getBoundsZoom(limitesVisaoGeral, false, L.point(p * 2, p * 2));
+      return Number.isFinite(requerido) ? Math.max(0, requerido) : 0;
     }
 
-    function limitesDeNavegacao(zoomGeral) {
-      // A própria tela pode ser mais larga/alta que a área municipal,
-      // principalmente no celular. Incluímos a vista geral nos limites
-      // para evitar reposicionamento/corte causado por setMaxBounds.
-      const centro = map.project(limites.getCenter(), zoomGeral);
-      const meiaTela = map.getSize().divideBy(2);
-      const noroeste = map.unproject(centro.subtract(meiaTela), zoomGeral);
-      const sudeste = map.unproject(centro.add(meiaTela), zoomGeral);
-      return limites.pad(0.12).extend(noroeste).extend(sudeste).pad(0.03);
-    }
-
-    function adequarLimites({ recenter = false, animate = false } = {}) {
-      const estavaNaVisaoGeral = zoomGeralAnterior !== null &&
-        Math.abs(map.getZoom() - zoomGeralAnterior) < 0.01;
-      const novoZoomGeral = zoomMinimo();
-      zoomGeralAnterior = novoZoomGeral;
+    function enquadrar({ animate = false } = {}) {
+      const p = margem();
+      // Sem maxBounds durante o fit para impedir que uma trava anterior
+      // mova o centro e corte Vila Esperança ao norte.
+      map.setMaxBounds(null);
+      map.setMinZoom(0);
+      map.fitBounds(limitesVisaoGeral, { padding: [p, p], animate });
+      const atual = map.getZoom();
+      zoomGeralAnterior = atual;
+      map.setMinZoom(atual);
+      // A trava não pode ser menor que a área realmente visível no zoom geral.
+      // Ao aproximar o mapa, permite explorar o restante de Maringá.
+      map.setMaxBounds(limitesMunicipio.pad(0.04).extend(map.getBounds().getNorthWest())
+        .extend(map.getBounds().getSouthEast()).pad(0.02));
       map.options.maxBoundsViscosity = 1;
-      map.setMaxBounds(limitesDeNavegacao(novoZoomGeral));
-      map.setMinZoom(novoZoomGeral);
-      if (recenter || estavaNaVisaoGeral) {
-        // fitBounds também ajusta o centro para abarcar norte, sul, leste e oeste.
-        map.fitBounds(limites, { padding: [PADDING, PADDING], animate });
-      }
     }
 
-    adequarLimites({ recenter: true });
+    enquadrar();
 
     function restaurar() {
       if (typeof aoRestaurar === "function") aoRestaurar();
-      adequarLimites({ recenter: true, animate: true });
+      enquadrar({ animate: true });
     }
 
     // O terceiro comando pertence ao mesmo bloco + / − do Leaflet.
@@ -82,9 +84,17 @@
       }
     });
 
-    map.on("resize", () => adequarLimites());
+    map.on("resize", () => {
+      // O zoom detalhado é preservado; apenas o modo vista geral
+      // é reenquadrado quando a área útil do mapa muda.
+      if (zoomGeralAnterior !== null && Math.abs(map.getZoom() - zoomGeralAnterior) < 0.01) {
+        enquadrar();
+      } else {
+        map.setMaxBounds(limitesMunicipio.pad(0.04));
+      }
+    });
 
-    return { restaurar, limites, zoomMinimo, botao };
+    return { restaurar, limites: limitesVisaoGeral, zoomMinimo, botao };
   }
 
   const api = { instalar, AREA_MARINGA };
