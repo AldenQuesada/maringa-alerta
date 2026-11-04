@@ -329,7 +329,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   .floatwin{width:85vw;right:8px}
 }
 </style>
-<link rel="stylesheet" href="prototipo.css?v=evento-7">
+<link rel="stylesheet" href="prototipo.css?v=evento-8">
 <link rel="stylesheet" href="sessao.css?v=sessoes-2">
 <link rel="stylesheet" href="mapa-navegacao.css?v=mapa-2">
 <link rel="stylesheet" href="gestao/acoes-cabecalho.css?v=acoes-2">
@@ -394,7 +394,10 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         <div class="legend">
           <div><i style="background:var(--red)"></i> Ocorrência ativa</div>
           <div><i style="background:var(--accent)"></i> Atendimento em andamento</div>
-          <div><i style="background:var(--blue)"></i> Voluntário cadastrado</div>
+          <div><i style="background:#2ecf78"></i> Colaborador no local</div>
+          <div><i style="background:#ffc93c"></i> Colaborador a caminho</div>
+          <div><i style="background:#ff5959"></i> Colaborador com saída registrada</div>
+          <div><i style="background:#92a1b2"></i> Situação não informada</div>
           <div><i style="background:var(--yellow);border-radius:2px"></i> Limite de zona</div>
           <button id="heat-toggle" style="margin-top:7px;width:100%;font-family:var(--mono);font-size:10.5px;background:var(--panel-2);color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:5px;cursor:pointer">🔥 Mapa de gravidade: desligado</button>
         </div>
@@ -841,8 +844,8 @@ function rebuildHeat(){
   heatLayer.setLatLngs(pontos);
 }
 
-function volIcon(aoVivo=false){
-  return L.divIcon({className:'vol-marker',html:`<div class="vol-dot${aoVivo?' vol-live':''}"></div>`,iconSize:[24,24],iconAnchor:[12,12]});
+function volIcon(aoVivo=false,status='indefinido'){
+  return L.divIcon({className:'vol-marker',html:`<div class="vol-dot pessoa-${status}${aoVivo?' vol-live':''}"></div>`,iconSize:[24,24],iconAnchor:[12,12]});
 }
 function ocIcon(status){
   const color = STATUS_COLOR[status] || STATUS_COLOR.ativa;
@@ -1032,8 +1035,20 @@ function pontoPessoa(p){
   if(p.checkin_status==='presente'&&p.checkin_lat!==''&&p.checkin_lng!==''&&Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180) return [lat,lng];
   return null;
 }
+function statusPessoaMapa(p){
+  const participacoes=ocorrencias.flatMap(o=>o.participacoes||[]).filter(x=>x.voluntarioId===p.id);
+  if(participacoes.some(x=>x.status==='no_local') || p.checkin_status==='presente') return ['local','No local · chegada registrada'];
+  if(participacoes.some(x=>x.status==='em_caminho') || p.checkin_status==='em_caminho') return ['caminho','A caminho · deslocamento confirmado'];
+  if(p.checkin_status==='finalizado'||participacoes.some(x=>x.status==='concluida')) return ['fora','Fora da obra · saída registrada'];
+  return ['indefinido','Situação não informada'];
+}
+function textoMarcadorPessoa(p){
+  const [,status]=statusPessoaMapa(p);
+  return `<strong>${escHtml(p.nome)}</strong><br>${escHtml([p.sub||p.ajuda,p.bairroOrigem||p.bairro||p.zona,status,p.demo?'Demonstração':''].filter(Boolean).join(' · '))}`;
+}
 function configurarMarcadorPessoa(marcador,p){
-  marcador.bindTooltip(`<strong>${escHtml(p.nome)}</strong><br>${escHtml([p.sub||p.ajuda,p.bairroOrigem||p.bairro||p.zona,p.demo?'Demonstração':''].filter(Boolean).join(' · '))}`,{direction:'top',offset:[0,-8]});
+  marcador.setIcon(volIcon(!!posicaoAtual(p.id),statusPessoaMapa(p)[0]));
+  marcador.bindTooltip(textoMarcadorPessoa(p),{direction:'top',offset:[0,-8]});
   marcador.on('click',()=>mostrarFicha(p.id));
   return marcador;
 }
@@ -1083,7 +1098,8 @@ function atualizarPontoAoVivo(id){
   if(!voluntario?.marker)return;
   const atual=posicaoAtual(id);
   voluntario.marker.setLatLng(atual?.pos||voluntario.pos);
-  voluntario.marker.setIcon(volIcon(!!atual));
+  voluntario.marker.setIcon(volIcon(!!atual,statusPessoaMapa(voluntario)[0]));
+  voluntario.marker.setTooltipContent(textoMarcadorPessoa(voluntario));
 }
 function pararLocalizacao(id){
   const atual=localizacoes.get(id);
@@ -2367,6 +2383,7 @@ function calcularTempos(o){
 
 function atualizarFluxo(){
   AlertaFluxo.sincronizarDisponibilidade(voluntarios,ocorrencias);
+  voluntarios.forEach(v=>atualizarPontoAoVivo(v.id));
   ocorrencias.forEach(o=>{
     calcularTempos(o);
     if(o.marker){o.marker.setIcon(ocIcon(o.status));refreshOcTooltip(o);}
