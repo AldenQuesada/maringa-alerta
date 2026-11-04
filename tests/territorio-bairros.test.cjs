@@ -40,10 +40,11 @@ test("os três mapas carregam a mesma camada de bairros",()=>{
  const mapaEvento=read("index.html");
  const mapas=read("mapas/index.html"),app=read("mapas/app.js");
  assert.match(mapaEvento,/dados-territoriais\/camadas-mapas.js/);
- assert.match(mapaEvento,/MaringaBairros.iniciar/);
+ assert.match(mapaEvento,/MaringaBairros.carregar/);
  assert.match(mapas,/\.\.\/dados-territoriais\/camadas-mapas.js/);
  assert.match(app,/MaringaBairros.iniciar/);
- assert.match(mapaEvento,/simulatedLayers:bairros.map/);
+ assert.match(mapaEvento,/Zona demonstrativa/);
+ assert.match(mapaEvento,/new URLSearchParams\(location.search\).get\('bairro'\)/);
 });
 test("o menu Bairros apresenta inventário, busca e três links por bairro",()=>{
  const admin=read("gestao/index.html"),ui=read("gestao/catalogo-bairros.js");
