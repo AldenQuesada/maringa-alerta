@@ -19,13 +19,13 @@ const COMPATIBILIDADE={
  "Alimentação":["FORNECER ALIMENTAÇÃO"],
  "Telhas e cobertura":["PEDREIRO","CARPINTEIRO","MATERIAL DE CONSTRUÇÃO","CAMIONETE","CAMINHÃO BASCULANTE"],
  "Apoio financeiro":[],
- "Abrigo e moradia":["AMBIENTE DE TRABALHO","CUIDADOR"],
- "Roupas e cobertores":["OUTRO"],
- "Medicamentos e saúde":["CUIDADOR","ATENDER PESSOAS COM NECESSIDADES ESPECIAIS"],
+ "Abrigo e moradia":[],
+ "Roupas e cobertores":[],
+ "Medicamentos e saúde":[],
  "Limpeza e remoção":["LIMPEZA","PÁ CARREGADEIRA","RETROESCAVADEIRA","BOBCAT","MOTOSSERRA COM OPERADOR"],
  "Material de construção":["MATERIAL DE CONSTRUÇÃO","PEDREIRO","CARPINTEIRO"],
  "Eletricidade e gerador":["ELETRICISTA","GERADOR"],
- "Água potável":["CAMIONETE","CAMINHÃO BASCULANTE"],
+ "Água potável":[],
  "Transporte":["CAMIONETE","CAMINHÃO BASCULANTE","CAMINHÃO GARRA"],
  "Cuidados especiais":["CUIDADOR","ATENDER PESSOAS COM NECESSIDADES ESPECIAIS"],
  "Laudos de prejuízos":["LAUDO","EMITIR LAUDOS DE PREJUÍZOS"],
@@ -65,6 +65,9 @@ function criar({armazenamento=root.localStorage,municipioId=null}={}) {
  function mobilizacoes(){return db.lista("mobilizacoes");}
  function apoios(){return db.lista("apoios");}
  function encontrarPessoa(tel) {return oferentes().find(x=>mesmoTelefone(x.telefone,tel))||null;}
+ function encontrarIdentidade(tel){
+  return encontrarPessoa(tel)||pedidos().find(x=>mesmoTelefone(x.telefone,tel))||null;
+ }
  function validarBase({nome,telefone:tel,endereco,tipo_pessoa}) {
   if(!String(nome||"").trim())throw Error("Informe o nome ou a razão social.");
   if(!["FÍSICA","JURÍDICA"].includes(tipo_pessoa))throw Error("Escolha pessoa física ou jurídica.");
@@ -100,7 +103,7 @@ function criar({armazenamento=root.localStorage,municipioId=null}={}) {
    .map(x=>x.colaborador);
  }
  function registrarPedido(dados) {
-  const pessoa=encontrarPessoa(dados.telefone);
+  const pessoa=encontrarIdentidade(dados.telefone);
   const base={...dados,nome:dados.nome||pessoa?.nome,tipo_pessoa:dados.tipo_pessoa||pessoa?.tipo_pessoa,
     endereco:dados.endereco||pessoa?.endereco,zona:dados.zona||pessoa?.zona};
   validarBase(base);
@@ -163,7 +166,7 @@ function criar({armazenamento=root.localStorage,municipioId=null}={}) {
   return {pedido:item,mensagem:msg,link:waLink(destino.telefone,msg),destino};
  }
  return {db,prefeitura,zonas,pontoDaZona,oferentes,pedidos,mobilizacoes,apoios,
-  encontrarPessoa,registrarColaborador,registrarPedido,compatíveis,registrarFase,acionarBrigada,
+  encontrarPessoa,encontrarIdentidade,registrarColaborador,registrarPedido,compatíveis,registrarFase,acionarBrigada,
   solicitarOutraPrefeitura,mensagemParaColaborador};
 }
 return {criar,ZONAS_MARINGA,COMPATIBILIDADE,norm,telefone,mesmoTelefone,waLink};
