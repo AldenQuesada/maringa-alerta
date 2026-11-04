@@ -335,6 +335,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <link rel="stylesheet" href="gestao/acoes-cabecalho.css?v=acoes-2">
 <link rel="stylesheet" href="cadastro-ocorrencia.css?v=3">
 <link rel="stylesheet" href="filtros-ocorrencias.css?v=1">
+<link rel="stylesheet" href="painel-eventos.css?v=1">
 </head>
 <body>
 <button id="menu-backdrop" class="menu-backdrop" aria-label="Fechar zonas e menus"></button>
@@ -350,11 +351,9 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
       <details id="territory-layers"><summary>Camadas do território</summary></details>
     </section>
     <div class="zone-list" id="zone-list"></div>
-    <section class="oc-filters" id="filtros-ocorrencias" aria-label="Filtros de ocorrências"></section>
     <div class="sidebar-head">
       <div class="sub">Comandos</div>
       <div class="sidebar-actions">
-        <button id="demo-new" class="sidebar-btn demo-primary">＋ Registrar ocorrência</button>
         <button id="open-fila" class="sidebar-btn">📋 Fila de atendimento</button>
         <button id="open-alertas" class="sidebar-btn alerta-btn">🌦 Alertas e prontidão</button>
         <button id="open-relatorio-evento" class="sidebar-btn">📊 Relatórios</button>
@@ -379,7 +378,8 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         <input id="event-search" type="search" placeholder="Buscar no mapa" aria-label="Buscar no mapa" aria-controls="event-results" aria-expanded="false">
         <div id="event-results" hidden></div>
       </div>
-      <label class="evento-filter">Evento <select id="filtro-evento" aria-label="Filtrar por evento"><option value="">Todos</option></select></label>
+      <button type="button" id="demo-new" class="header-register">+ Registrar ocorrência</button>
+      <button type="button" id="eventos-open" class="header-eventos" aria-controls="eventos-painel" aria-expanded="false">Eventos</button>
       <div class="zone-strip" id="zone-strip" style="display:none"></div>
       <div class="stats-row">
         <div class="stat red"><b id="kpi-ativas">0</b><span>Ativas</span></div>
@@ -398,6 +398,11 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
     <div class="main">
       <div class="mapwrap" id="mapwrap">
         <div id="map"></div>
+        <section id="eventos-painel" class="eventos-painel" aria-label="Filtros de eventos e ocorrências" hidden>
+          <header id="eventos-painel-head" class="eventos-painel-head"><strong>Eventos e filtros</strong><button type="button" id="eventos-close" aria-label="Fechar filtros de eventos" title="Fechar">×</button></header>
+          <div class="eventos-painel-body"><label class="evento-filter">Evento <select id="filtro-evento" aria-label="Filtrar por evento"><option value="">Todos</option></select></label>
+          <section class="oc-filters" id="filtros-ocorrencias" aria-label="Filtros de ocorrências"></section></div>
+        </section>
         <div class="legend">
           <div><i style="background:var(--red)"></i> Ocorrência ativa</div>
           <div><i style="background:var(--accent)"></i> Atendimento em andamento</div>
@@ -552,6 +557,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <script src="cadastro-ocorrencia-mapa.js?v=2"></script>
 <script src="fluxo-ajuda.js?v=sessoes-1"></script>
 <script src="filtros-ocorrencias.js?v=1"></script>
+<script src="painel-eventos.js?v=1"></script>
 <script src="sessao.js?v=sessoes-1"></script>
 <script src="sessao-ui.js?v=sessoes-2"></script>
 <script src="mapa-navegacao.js?v=mapa-4"></script>
@@ -2593,6 +2599,10 @@ filtroOcorrencias=FiltrosOcorrencias.montar({target:document.getElementById('fil
  obterDados:()=>({ocorrencias,tipos:[...tiposOcorrencia.map(x=>x.tipo),...gestao.lista('ocorrencias',tenantId).map(x=>x.nome)],
  organizacoes:['saude','emergencias','parceiros','equipes'].flatMap(modulo=>gestao.lista(modulo,tenantId).map(x=>({id:modulo+':'+x.id,nome:x.nome})))}),
  aoMudar:()=>atualizarRecorte()});
+document.getElementById('fil-toggle').click();
+PainelEventos.iniciar({painel:document.getElementById('eventos-painel'),barra:document.getElementById('eventos-painel-head'),
+ abrir:document.getElementById('eventos-open'),fechar:document.getElementById('eventos-close'),area:document.getElementById('mapwrap'),
+ aoAbrir:()=>filtroOcorrencias.atualizarOpcoes()});
 setInterval(()=>{const f=filtroOcorrencias.obter();if(f.horas||f.espera)atualizarRecorte();},30000);
 estadoPronto=true;
 saveAdminState();
