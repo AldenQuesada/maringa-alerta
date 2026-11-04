@@ -115,7 +115,8 @@ button:disabled{opacity:.45;cursor:not-allowed!important}
 #floatwin .floatwin-head{touch-action:none;flex:none}
 #floatwin .floatwin-body{min-height:0;max-height:none;padding:8px}
 #floatwin .person-section{padding:6px 0;border-bottom:1px solid var(--line);margin:4px 0 6px}
-#floatwin .person-territory{margin-bottom:8px}
+#floatwin .person-territory{padding:6px 0 10px}
+#floatwin .person-territory + .person-territory{border-top:1px solid var(--line)}
 #floatwin .person-territory h4{font-size:11px;margin:5px 0;color:var(--yellow)}
 #floatwin .person-toggle{min-height:0;padding:4px 6px;margin-bottom:2px}
 #floatwin .c-avatar{width:22px;height:22px;font-size:9px}

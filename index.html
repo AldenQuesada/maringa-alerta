@@ -329,7 +329,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   .floatwin{width:85vw;right:8px}
 }
 </style>
-<link rel="stylesheet" href="prototipo.css?v=evento-3">
+<link rel="stylesheet" href="prototipo.css?v=evento-4">
 <link rel="stylesheet" href="sessao.css?v=sessoes-2">
 <link rel="stylesheet" href="mapa-navegacao.css?v=mapa-2">
 <link rel="stylesheet" href="gestao/acoes-cabecalho.css?v=acoes-2">
@@ -1080,33 +1080,36 @@ function renderCollaborators(){
         </div></div>`:''}
     </div>`;
   };
-  const oficiais=pessoas.filter(p=>p.oficial);
-  const colaboradores=pessoas.filter(p=>!p.oficial);
-  const grupos=new Map();
-  const pessoasExibidas=new Set();
-  function adicionar(nome,p){
+  const selecionadas=areasSelecionadas();
+  const grupos=new Map(selecionadas.map(area=>[area.chave,{nome:area.nome,pessoas:[]}]));
+  pessoas.forEach(p=>{
+    const origem=normalizarTerritorio(p.bairroOrigem);
+    const direto=origem&&selecionadas.find(area=>[area.id,area.nome].some(valor=>normalizarTerritorio(valor)===origem));
+    const area=direto||selecionadas.find(area=>pertence(area,p.bairroOrigem));
+    if(area){
+      grupos.get(area.chave).pessoas.push(p);
+      return;
+    }
+    const bairro=areas.find(a=>a.tipoArea==='Bairro'&&a.id===p.bairroOrigem);
+    const nome=bairro?.nome||p.bairroOrigem||'Bairro a confirmar';
     const chave=normalizarTerritorio(nome);
     if(!grupos.has(chave)) grupos.set(chave,{nome,pessoas:[]});
-    const grupo=grupos.get(chave);
-    if(p&&!pessoasExibidas.has(p.id)){grupo.pessoas.push(p);pessoasExibidas.add(p.id);}
-  }
-  const nomeOrigem=p=>areas.find(a=>a.tipoArea==='Bairro' && a.id===p.bairroOrigem)?.nome || p.bairroOrigem || 'Bairro a confirmar';
-  if(selecao.size){
-    areasSelecionadas().forEach(area=>{
-      const origens=area.tipoArea==='Zona'?areas.filter(b=>b.tipoArea==='Bairro'&&b.zona&&[area.id,area.nome].some(id=>normalizarTerritorio(id)===normalizarTerritorio(b.zona))):[area];
-      origens.forEach(bairro=>{
-        adicionar(bairro.nome);
-        oficiais.filter(p=>pertence(bairro,p.bairroOrigem)).forEach(p=>adicionar(bairro.nome,p));
-      });
-    });
-  }else oficiais.forEach(p=>adicionar(nomeOrigem(p),p));
+    grupos.get(chave).pessoas.push(p);
+  });
   const papeis=Object.keys(PAPEL_LABEL);
   const ordem=p=>{const i=papeis.indexOf(p.papel||p.funcao);return i<0?papeis.length:i;};
-  document.getElementById('fw-count').textContent=colaboradores.length;
-  body.innerHTML=`<h3 class="person-section">Responsáveis da equipe</h3>${[...grupos.values()].map(grupo=>
-    `<section class="person-territory"><h4>${escHtml(grupo.nome)}</h4>${grupo.pessoas.sort((a,b)=>ordem(a)-ordem(b)).map(item).join('')||'<p>Equipe ainda sem responsáveis cadastrados.</p>'}</section>`
-  ).join('')||'<p>Nenhum responsável cadastrado neste recorte.</p>'}
-    <h3 class="person-section">Colaboradores · ${colaboradores.length}</h3>${colaboradores.map(item).join('')||'<p>Nenhum colaborador no recorte.</p>'}`;
+  document.getElementById('fw-count').textContent=pessoas.filter(p=>!p.oficial).length;
+  body.innerHTML=[...grupos.values()].map(grupo=>{
+    const oficiais=grupo.pessoas.filter(p=>p.oficial).sort((a,b)=>ordem(a)-ordem(b));
+    const colaboradores=grupo.pessoas.filter(p=>!p.oficial);
+    return `<section class="person-territory">
+      <h4>${escHtml(grupo.nome)}</h4>
+      <h3 class="person-section">Responsáveis da equipe</h3>
+      ${oficiais.map(item).join('')||'<p>Nenhum responsável cadastrado.</p>'}
+      <h3 class="person-section">Colaboradores · ${colaboradores.length}</h3>
+      ${colaboradores.map(item).join('')||'<p>Nenhum colaborador cadastrado.</p>'}
+    </section>`;
+  }).join('')||'<p>Nenhuma equipe no recorte.</p>';
   body.scrollTop=antes;
   body.querySelectorAll('[data-person]').forEach(botao=>botao.onclick=()=>{
     fichaAberta=fichaAberta===botao.dataset.person?null:botao.dataset.person;
