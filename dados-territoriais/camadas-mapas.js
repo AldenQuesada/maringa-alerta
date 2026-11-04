@@ -31,7 +31,14 @@ async function carregar(force=false){
     "GeoMaringá / Prefeitura de Maringá","municipal");}catch(_){}
   }
   if(!bairros){
-   bairros=infoFrom(await json(asset("maringa-bairros.geojson"),true),"Paraná Interativo / Paranacidade","estadual");
+   try{
+    bairros=infoFrom(await json(asset("maringa-bairros-ibge2022.geojson"),true),
+      "IBGE / Censo 2022 · Divisões intramunicipais","ibge2022");
+   }catch(_){}
+  }
+  if(!bairros){
+   bairros=infoFrom(await json(asset("maringa-bairros.geojson"),true),
+      "Paraná Interativo / Paranacidade (classificação numérica)","estadual");
   }
   if(manifest?.camadas?.["zonas-cartograficas"]?.status==="sucesso"){
    try{zonas=infoFrom(await json(asset("maringa-zonas-cartograficas.geojson"),true),
@@ -94,7 +101,7 @@ function iniciar({map,L,simulatedLayers=[]}){
   updateDemo();
   const count=control.getContainer()?.querySelector(".territory-count");
   if(count&&data){
-   const a=data.bairros.count,src=data.bairros.kind==="municipal"?"GeoMaringá":"Paraná Interativo";
+   const a=data.bairros.count,src=data.bairros.source;
    const z=data.zonas?data.zonas.count:"indisponível";
    count.textContent=a+" polígonos de bairros · "+src+" | Zonas cartográficas: "+z;
   }
@@ -147,8 +154,8 @@ function iniciar({map,L,simulatedLayers=[]}){
   const layers=target?.getLayers()||[];
   const shape=layers.find(x=>x.feature===found.f||x.feature?.id===found.f.id);
   if(!shape)return false;
-  if(kind==="bairros"&&!visibleB){visibleB=true;control.getContainer()?.querySelector('[name="bairros"]')?.click();}
-  if(kind==="zonas"&&!visibleZ){visibleZ=true;control.getContainer()?.querySelector('[name="zonas"]')?.click();}
+  if(kind==="bairros"&&!visibleB){visibleB=true;const cb=control.getContainer()?.querySelector('[name="bairros"]');if(cb)cb.checked=true;update();}
+  if(kind==="zonas"&&!visibleZ){visibleZ=true;const cb=control.getContainer()?.querySelector('[name="zonas"]');if(cb)cb.checked=true;update();}
   highlight(shape,found.f,kind);
   return true;
  }
