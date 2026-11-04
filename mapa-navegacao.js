@@ -42,9 +42,9 @@
       const p = margem();
       // Sem maxBounds durante o fit para impedir que uma trava anterior
       // mova o centro e corte Vila Esperança ao norte.
-      map.setMaxBounds(null);
+      map.setMaxBounds(L.latLngBounds([]));
       map.setMinZoom(0);
-      map.fitBounds(limitesVisaoGeral, { padding: [p, p], animate });
+      map.fitBounds(limitesVisaoGeral, { padding: [p, p], animate: false });
       const atual = map.getZoom();
       zoomGeralAnterior = atual;
       map.setMinZoom(atual);
