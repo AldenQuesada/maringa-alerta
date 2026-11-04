@@ -192,9 +192,9 @@ async function importOfficial(){
   }catch(e){errors.push("IBGE Malhas: "+e.message);log("Malha municipal",e.message,"error");}
   try{
    const all=[],known=new Set();let pages=0,stop=false,repeat=0,last="";
-   while(pages<90&&!stop){
-    const url=new URL(C.FONTES.cnes);url.searchParams.set("codigo_municipio",C.MUNICIPIO);
-    url.searchParams.set("status","1");url.searchParams.set("limit","20");url.searchParams.set("offset",String(pages*20));
+   while(pages<150&&!stop){
+    const url=new URL(C.FONTES.cnes);url.searchParams.set("codigo_municipio",C.MUNICIPIO.slice(0,6));
+    url.searchParams.set("status","1");url.searchParams.set("limit","20");url.searchParams.set("offset",String(pages));
     const data=await request(url.toString(),18000),parsed=C.unwrapCNES(data);
     const fingerprint=JSON.stringify(parsed.rows.slice(0,4).map(x=>C.pick(x,["codigo_cnes","CNES","nome_fantasia"])));
     if(fingerprint===last&&pages>0){repeat++;if(repeat>=1){errors.push("CNES repetiu a página: importação pode estar incompleta.");break;}}
@@ -206,7 +206,7 @@ async function importOfficial(){
     if(!parsed.rows.length||parsed.rows.length<20||parsed.total&&pages*20>=parsed.total)stop=true;
     if(pages%5===0){const info=$("mi-progress");if(info)info.textContent="CNES: "+pages+" páginas consultadas, "+all.length+" registros de Maringá identificados...";}
    }
-   if(pages>=90)errors.push("Limite de 90 páginas CNES atingido. Complete pelo CSV oficial.");
+   if(pages>=150)errors.push("Limite preventivo de 150 páginas CNES atingido. Complete pelo CSV oficial.");
    if(!all.length)throw Error("CNES não retornou estabelecimentos aproveitáveis de Maringá.");
    addStage("saude",all);log("CNES",all.length+" estabelecimentos recebidos em "+pages+" página(s), sujeitos a conferência.","ok");
   }catch(e){errors.push("CNES: "+e.message);log("CNES",e.message+" · alternativa: baixar CSV oficial e importar por arquivo.","error");}
@@ -265,12 +265,6 @@ async function saveAll(){
   renderTerritory();notify("Implantação salva: "+total+" registro(s).");
  }catch(e){log("Salvamento",e.message,"error");renderTerritory();notify("Falha: "+e.message);}
 }
-const REFS=[
- {nome:"Silvio Barros",cargo:"Prefeito de Maringá",orgao:"Prefeitura de Maringá",url:"https://www.gov.br/mdr/pt-br/noticias/governo-federal-mobilizado-para-ajudar-maringa"},
- {nome:"Vagner Mussio",cargo:"Secretário de Infraestrutura, Defesa Civil e Limpeza Urbana",orgao:"Prefeitura / Defesa Civil",url:"https://maringapost.com.br/2026/11/03/simepar-confirma-maringa-foi-atingida-por-um-tornado/"},
- {nome:"Coronel Elias de Oliveira",cargo:"Comandante regional do Corpo de Bombeiros",orgao:"Corpo de Bombeiros",url:"https://maringapost.com.br/2026/11/03/simepar-confirma-maringa-foi-atingida-por-um-tornado/"},
- {nome:"Coronel Ivan Ricardo Fernandes",cargo:"Coordenador executivo da Defesa Civil estadual",orgao:"Defesa Civil do Paraná",url:"https://www.defesacivil.pr.gov.br/Noticia/Governo-do-Parana-mobiliza-equipes-para-atender-cidades-atingidas-por-tempestades-e"}
-];
 const ROLE_OPTIONS=[["admin","Administrador municipal"],["responsavel","Responsável regional"],["substituto","Substituto"],["coordenador","Coordenador"],["operador","Operador"]];
 function renderRH(){
  if(!ctx)return;const people=ctx.db.lista("pessoas"),q=rhSearch.toLowerCase();
@@ -287,14 +281,13 @@ function renderRH(){
  (rows.length?rows.map(x=>'<tr><td><strong>'+esc(x.nome)+'</strong><small>'+esc(x.cargo||"")+'</small></td><td>'+esc([x.funcao,...(x.papeis||[])].filter(Boolean).join(", "))+'</td><td>'+esc(x.orgao||"—")+'</td><td>'+esc(x.zona||"Todas/sem zona")+'</td><td>'+esc(x.verificacao||"Pendente")+'</td><td><button type="button" data-rh-edit="'+esc(x.id)+'">Editar</button></td></tr>').join(""):'<tr><td class="mi-empty" colspan="6">Nenhuma pessoa cadastrada com os filtros atuais.</td></tr>')+
  '</tbody></table></section>'+
  '<section id="rh-editor" class="mi-review" hidden></section>'+
- '<section class="mi-sources"><strong>Referências públicas do Gabinete de Gestão Integrada · novembro de 2026</strong><p>Os nomes abaixo são informações publicadas; não são usuários do sistema e não receberão acesso automaticamente. Confirme cargo, órgão e atribuição antes de cadastrá-los.</p>'+
- REFS.map((x,i)=>'<div class="mi-reference"><span><strong>'+esc(x.nome)+'</strong> · '+esc(x.cargo)+' <a href="'+esc(x.url)+'" target="_blank" rel="noopener">Fonte ↗</a></span><button type="button" data-rh-ref="'+i+'">Usar como referência</button></div>').join("")+'</section>';
+ '<section class="mi-sources"><strong>Gabinete de crise: vinculação institucional</strong><p>Cadastre as pessoas responsáveis e confirme suas atribuições com o órgão público. Nomes encontrados em notícias não são adicionados automaticamente e não concedem autorização operacional.</p></section>';
  $("rh-new").onclick=()=>openRH(null);
  $("rh-role").onchange=e=>{rhRole=e.target.value;renderRH();};
  $("rh-zone").onchange=e=>{rhZone=e.target.value;renderRH();};
  $("rh-search").oninput=e=>{rhSearch=e.target.value;renderRH();$("rh-search")?.focus();};
  ctx.page.querySelectorAll("[data-rh-edit]").forEach(b=>b.onclick=()=>openRH(people.find(x=>x.id===b.dataset.rhEdit)));
- ctx.page.querySelectorAll("[data-rh-ref]").forEach(b=>b.onclick=()=>openRH(null,REFS[Number(b.dataset.rhRef)]));
+
 }
 function openRH(person=null,reference=null){
  const parent=$("rh-editor");if(!parent)return;rhEdit=person?.id||null;parent.hidden=false;
