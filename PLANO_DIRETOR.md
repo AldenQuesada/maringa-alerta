@@ -334,6 +334,28 @@ Os mapas possuem **responsabilidades diferentes**, com potencial de cruzamento p
 
 **Estado auditado:** consultar [AUDITORIA_SISTEMA_INTEGRADO_CRISE.md](AUDITORIA_SISTEMA_INTEGRADO_CRISE.md) para a matriz entre funcionalidades demonstrativas e integrações necessárias. O compromisso de produto é um Sistema Integrado de Gestão de Crise; o código estático de GitHub Pages não é infraestrutura operacional real.
 
+### 5.6 Correção canônica da navegação administrativa (04/11/2026)
+
+**Diretriz revisada expressamente pelo autor, prevalecendo sobre protótipos de menus anteriores:** não fragmentar a administração municipal em dezenas de cadastros independentes.
+
+**Cabeçalho administrativo: exatamente três botões claramente identificados e sempre visíveis:**
+
+1. **Mapa de Colaboradores** → abre o mapa independente de ofertas e capacidades por zona;
+2. **Mapa de Evento** → abre a aplicação operacional original, sem reescrever a interface aprovada;
+3. **Mapa da Ajuda** → abre o mapa independente das demandas de recuperação pós-evento.
+
+Os três botões ficam centralizados no cabeçalho do painel, sem esconder opções no celular. Cada um abre seu mapa *standalone*. O canto direito continua reservado à sessão da pessoa.
+
+**Sidebar esquerdo simplificado:** Visão geral; Prefeituras; Colaboradores; Pedidos de ajuda; Mobilização. Não criar menus individuais para **Responsável, Substituto, Coordenador, Operador, Administrador ou Integrante**. Eles são **papéis/linhas internas da ficha da Prefeitura**, na seção Responsáveis e hierarquia.
+
+**Prefeitura tem um único cadastro editável:** a pessoa escolhe Nova Prefeitura ou Editar Prefeitura. A mesma ficha contém identificação/IBGE/contatos, território e zonas, hierarquia e responsáveis, equipes e brigadas municipais, órgãos e instituições, infraestrutura e recursos, canais e regras. As seções podem ser expandidas, adicionadas e modificadas sem sair da ficha; um único **Salvar Prefeitura** confirma os dados. Os registros anteriores das coleções não são descartados ao reorganizar a interface. Toda informação permanece vinculada ao município.
+
+**Colaborador não é cadastrado manualmente na interface administrativa.** A entrada canônica é o WhatsApp de Maringá Unida, pela opção **Colaborador** da primeira mensagem. A administração apenas consulta as ofertas recebidas e acompanha disponibilidade, capacidade e zona. O fluxo **Receber ajuda** cria/atualiza a necessidade no Mapa da Ajuda. A mesma identidade pode realizar ambos os fluxos. O protótipo atual oferece simulador de conversa; **não alegar WhatsApp real** nem oferecer o formulário administrativo de colaborador como fluxo equivalente.
+
+**A operação não está no cadastro:** ativar brigada por zona parte do Mapa de Colaboradores; pedir cooperação a outra prefeitura parte do Mapa da Ajuda. O Mapa de Evento permanece dedicado a ocorrências, despacho e acompanhamento.
+
+**Estado de implementação:** o painel consolidado está em `gestao/painel-unificado.js`, `gestao/painel-unificado.css` e no formulário `gestao/index.html`; as coleções antigas são preservadas em `gestao/dados.js`. A persistência continua local ao navegador e não substitui o banco municipal multi-tenant necessário para uso real.
+
 ## 6. Hierarquia de módulos e interfaces
 
 ### 6.1 Cinco experiências distintas
