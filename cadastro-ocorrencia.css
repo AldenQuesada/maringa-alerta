@@ -1,0 +1,16 @@
+.cadastro-ocorrencia-modal{width:min(860px,96vw);max-height:94dvh}
+.cadastro-ocorrencia .modal-body{display:grid;gap:12px;overflow:auto}
+.cadastro-ocorrencia label{display:grid;gap:5px;color:var(--fg);font-size:12px}
+.cadastro-ocorrencia input:not([type=checkbox]),.cadastro-ocorrencia select,.cadastro-ocorrencia textarea{width:100%;padding:9px;color:var(--fg);background:var(--panel-2);border:1px solid var(--line);border-radius:5px}
+.cad-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#cad-oc-map{height:230px;min-height:180px;background:#1b2730}
+.cadastro-ocorrencia fieldset{border:1px solid var(--line);border-radius:6px;padding:10px}
+.cadastro-ocorrencia .cad-choice{display:flex;align-items:center;gap:6px;padding:4px}
+.cad-duplicate{padding:8px;border:1px solid var(--line);border-radius:6px;margin:6px 0}
+#cad-oc-error{color:#ff7777}
+@media(max-width:600px){.cad-grid{grid-template-columns:1fr}.cadastro-ocorrencia-modal{width:100%}}
+
+.evento-filter{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:11px}
+.evento-filter select{max-width:150px;color:var(--fg);background:var(--panel-2);border:1px solid var(--line);border-radius:5px;padding:6px}
+
+.cadastro-ocorrencia-aviso{padding:9px 15px;background:#123d2c;color:#b8f4ce;font-size:12px}
