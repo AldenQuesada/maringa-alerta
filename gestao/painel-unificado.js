@@ -60,7 +60,7 @@ function renderMunSwitch(){
  const select=$("municipio-switch");
  select.innerHTML=db.municipios().map(x=>'<option value="'+esc(x.id)+'">'+esc(x.nome)+" · "+esc(x.uf)+"</option>").join("");
  select.value=db.municipioAtivo()?.id||"";
- select.onchange=()=>{if(draft&&dirty&&!confirm("Descartar mudanças não salvas na prefeitura?")){select.value=db.municipioAtivo()?.id||"";return;}db.selecionarMunicipio(select.value);draft=null;editingId=null;dirty=false;render();};
+ select.onchange=()=>{if(draft&&dirty&&!confirm("Descartar mudanças não salvas na prefeitura?")){select.value=db.municipioAtivo()?.id||"";return;}db.selecionarMunicipio(select.value);draft=null;editingId=null;dirty=false;location.reload();};
 }
 function renderNav(){
  $("sidebar-nav").innerHTML=nav.map(g=>'<section class="nav-group"><h2 class="nav-group-title">'+g.title+'</h2>'+g.items.map(k=>'<a class="nav-item'+(page===k?" active":"")+'" href="#'+k+'" data-navigation="'+k+'" aria-current="'+(page===k?"page":"false")+'"><span class="nav-letter" aria-hidden="true">'+esc(titles[k].slice(0,1))+'</span><span class="nav-label">'+esc(titles[k])+'</span></a>').join("")+'</section>').join("");
@@ -227,10 +227,12 @@ function salvarFicha(e){
  if(activeEditor){toast("Conclua ou cancele a edição do item antes de salvar a Prefeitura.");return;}
  salvarCamposPrefeitura();
  try{
+  const anterior=db.municipioAtivo()?.id;
   const salvo=db.salvarFichaPrefeitura(draft,editingId);
   draft=null;editingId=null;activeEditor=null;dirty=false;openSections.clear();
   renderMunSwitch();render();toast("Prefeitura e estrutura salvas.");noScroll();
   if(salvo.lat===undefined)geolocalizarPrefeitura(salvo);
+  if(anterior!==salvo.id)location.reload();
  }catch(e){toast(e.message);}
 }
 async function geolocalizarPrefeitura(p){
@@ -324,4 +326,5 @@ if(globalThis.AlertaSessao&&globalThis.AlertaSessaoUI&&db.municipioAtivo()){
  }catch(_){$("session-anchor").textContent="Minha sessão";}
 }
 render();
+if(db.municipioAtivo()?.lat===undefined)geolocalizarPrefeitura(db.municipioAtivo());
 })();
