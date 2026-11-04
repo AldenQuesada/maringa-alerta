@@ -35,7 +35,7 @@ function bairrosUI(){
   div.querySelector(".mi-official-body").innerHTML=
    '<div class="mi-official-actions"><input id="mi-official-search" type="search" placeholder="Buscar bairro por nome ou código" aria-label="Buscar bairros oficiais">'+
    '<button id="mi-official-save" type="button">Importar base territorial oficial</button></div>'+
-   '<div class="mi-official-scroll"><table><thead><tr><th>Bairro</th><th>Zona operacional</th><th>Verificação</th><th>Mapa de Evento</th><th>Colaboradores</th><th>Ajuda</th><th>Ações</th></tr></thead>'+
+   '<div class="mi-official-scroll"><table><thead><tr><th>Bairro</th><th>Código</th><th>Zona operacional</th><th>Verificação</th><th>Mapa de Evento</th><th>Colaboradores</th><th>Ajuda</th><th>Ações</th></tr></thead>'+
    '<tbody id="mi-official-rows"></tbody></table></div>'+
    '<p class="mi-official-foot">Fonte: '+esc(layer.source)+'. '+sorted.length+' bairros no inventário. Os dados podem não cobrir alterações territoriais posteriores à fonte. Nenhuma área foi homologada aqui como zona de acionamento.</p>';
   const render=()=>{
@@ -47,7 +47,7 @@ function bairrosUI(){
     '<td><a href="'+esc(linkMapa(p.nome,"colaboradores"))+'" target="_blank" rel="noopener">Localizar ↗</a></td>'+
     '<td><a href="'+esc(linkMapa(p.nome,"ajuda"))+'" target="_blank" rel="noopener">Localizar ↗</a></td>'+
     '<td>'+(p.id?'<button type="button" data-edit="'+esc(p.id)+'">Editar</button>':'<span>Não importado</span>')+'</td></tr>').join("")||
-    '<tr><td colspan="7">Nenhum bairro corresponde à busca.</td></tr>';
+    '<tr><td colspan="8">Nenhum bairro corresponde à busca.</td></tr>';
   };
   render();$("mi-official-search").oninput=render;
   $("mi-official-save").onclick=()=>{
@@ -91,5 +91,6 @@ function run(){
  else token++;
 }
 globalThis.addEventListener("hashchange",()=>setTimeout(run,0));
+globalThis.addEventListener("gestao:bairros-atualizados",()=>setTimeout(run,0));
 run();
 })();
