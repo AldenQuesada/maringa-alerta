@@ -29,7 +29,7 @@ const ESQUEMAS={
  pessoas:{label:"Pessoas e hierarquia",singular:"Pessoa",collection:"usuarios",summary:"Cadastro integrado de pessoal, órgãos, papéis, zonas e substituições.",columns:["nome","funcao","orgao","zona"],fields:[F("nome","Nome e sobrenome","text",{required:true}),
   F("funcao","Função principal","select",{required:true,options:["admin","responsavel","substituto","coordenador","operador"]}),
   F("papeis","Outras funções","multi",{options:["admin","responsavel","substituto","coordenador","operador"]}),
-  F("orgao","Órgão ou instituição"),F("bairro","Bairro de origem"),F("zona","Zona operacional","zone"),F("cargo","Cargo"),F("especialidade","Área de responsabilidade"),
+  F("orgao","Órgão ou instituição"),F("estrutura_id","Estrutura vinculada ao Gabinete","structure"),F("bairro","Bairro de origem"),F("zona","Zona operacional","zone"),F("cargo","Cargo"),F("especialidade","Área de responsabilidade"),
   F("substituto_id","Substituto vinculado"),F("status","Situação","select",{options:["Pendente de validação","Ativo","Inativo"]}),
   F("verificacao","Verificação","select",{options:["Pendente","Validado","Rejeitado"]}),...CONTATO]},
 
@@ -50,9 +50,9 @@ const ESQUEMAS={
  F("empreendedores","Apoio para empreendedores","multi",{options:CATALOGOS.empreendedores}),F("materiais","Material / combustível","multi",{options:CATALOGOS.materiais}),
  F("outros","Especificar outros","textarea"),F("checkin_status","Estado do check-in","hidden"),F("checkin_bairro","Bairro do check-in","hidden"),F("checkin_em","Chegada registrada","hidden"),F("checkout_em","Saída registrada","hidden"),F("checkin_lat","Latitude do check-in","hidden"),F("checkin_lng","Longitude do check-in","hidden"),F("checkin_precisao","Precisão GPS","hidden"),F("checkin_fonte","Origem territorial","hidden"),F("checkin_tipo","Tipo de validação","hidden"),F("disponibilidade","Disponibilidade","select",{options:["Disponível","Indisponível","A combinar"]}),
  F("contribuicao","Observações da oferta","textarea")]},
-  saude:{label:"UBS e hospitais",singular:"Unidade de saúde",collection:"instituicoes",category:"Saúde",summary:"Serviços de saúde e unidades de referência.",columns:["nome","tipo","telefone"],fields:[F("nome","Nome oficial","text",{required:true}),F("tipo","Tipo","select",{options:["UBS","UPA","Hospital","Santa Casa","SAMU","Farmácia","Outro"]}),F("endereco","Endereço"),F("codigo_cnes","CNES"),F("servicos","Serviços e capacidade","textarea"),...GEO_FIELDS,...CONTATO]},
-  emergencias:{label:"Bombeiros e polícias",singular:"Unidade de emergência",collection:"instituicoes",category:"Emergência",summary:"Órgãos de socorro, segurança e defesa.",columns:["nome","tipo","telefone"],fields:[F("nome","Nome oficial","text",{required:true}),F("tipo","Tipo","select",{options:["Defesa Civil","Bombeiros","Polícia Militar","Polícia Civil","Guarda Municipal","Trânsito","Outro"]}),F("endereco","Endereço"),F("area","Área atendida"),...GEO_FIELDS,...CONTATO]},
-  parceiros:{label:"Órgãos e entidades",singular:"Instituição",collection:"instituicoes",category:"Parceiros",summary:"Concessionárias, entidades e serviços de apoio.",columns:["nome","tipo","telefone"],fields:[F("nome","Nome oficial","text",{required:true}),F("tipo","Tipo","select",{options:["Água","Energia","Telecomunicações","Obras","ONG","Universidade","Empresa","Transporte","Outro"]}),F("endereco","Endereço"),F("capacidade","Capacidades disponíveis","textarea"),...GEO_FIELDS,...CONTATO]},
+  saude:{label:"UBS e hospitais",singular:"Unidade de saúde",collection:"instituicoes",category:"Saúde",summary:"Serviços de saúde e unidades de referência.",columns:["nome","tipo","telefone"],fields:[F("nome","Nome oficial","text",{required:true}),F("tipo","Tipo","select",{options:["UBS","UPA","Hospital","Santa Casa","SAMU","Farmácia","Outro"]}),F("endereco","Endereço"),F("codigo_cnes","CNES"),F("servicos","Serviços e capacidade","textarea"),F("responsavel_id","Representante no Gabinete de Crise","person"),...GEO_FIELDS,...CONTATO]},
+  emergencias:{label:"Bombeiros e polícias",singular:"Unidade de emergência",collection:"instituicoes",category:"Emergência",summary:"Órgãos de socorro, segurança e defesa.",columns:["nome","tipo","telefone"],fields:[F("nome","Nome oficial","text",{required:true}),F("tipo","Tipo","select",{options:["Defesa Civil","Bombeiros","Polícia Militar","Polícia Civil","Guarda Municipal","Trânsito","Outro"]}),F("endereco","Endereço"),F("area","Área atendida"),F("responsavel_id","Representante no Gabinete de Crise","person"),...GEO_FIELDS,...CONTATO]},
+  parceiros:{label:"Órgãos e entidades",singular:"Instituição",collection:"instituicoes",category:"Parceiros",summary:"Concessionárias, entidades e serviços de apoio.",columns:["nome","tipo","telefone"],fields:[F("nome","Nome oficial","text",{required:true}),F("tipo","Tipo","select",{options:["Água","Energia","Telecomunicações","Obras","ONG","Universidade","Empresa","Transporte","Outro"]}),F("endereco","Endereço"),F("capacidade","Capacidades disponíveis","textarea"),F("responsavel_id","Representante no Gabinete de Crise","person"),...GEO_FIELDS,...CONTATO]},
   veiculos:{label:"Veículos",singular:"Veículo",collection:"veiculos",summary:"Frota e transporte disponível.",columns:["identificacao","tipo","base","status"],fields:[F("identificacao","Identificação","text",{required:true}),F("tipo","Tipo"),F("placa","Placa"),F("capacidade","Capacidade"),F("base","Base"),F("status","Disponibilidade","select",{options:["Disponível","Em uso","Indisponível"]})]},
   equipamentos:{label:"Equipamentos",singular:"Equipamento",collection:"equipamentos",summary:"Equipamentos operacionais e sua disponibilidade.",columns:["nome","quantidade","localizacao"],fields:[F("nome","Equipamento","text",{required:true}),F("quantidade","Quantidade","number"),F("localizacao","Localização"),F("condicao","Condição"),F("responsavel","Responsável")]},
   estoques:{label:"Estoques",singular:"Item de estoque",collection:"estoques",summary:"Suprimentos físicos, localização e saldo.",columns:["nome","quantidade","unidade","base"],fields:[F("nome","Item","text",{required:true}),F("quantidade","Saldo atual","number"),F("unidade","Unidade"),F("base","Depósito"),F("validade","Validade","date")]},
@@ -80,11 +80,9 @@ const ESQUEMAS={
 };
 const GROUPS=[
  {label:"Início",items:["inicio"]},
- {label:"Prefeitura e território",items:["territorio","bairros","zonas","bases","riscos"]},
- {label:"Usuários e hierarquia",items:["pessoas"]},
+ {label:"Prefeitura",items:["territorio"]},
  {label:"Equipes e comunidade",items:["equipes","integrantes","voluntarios"]},
  {label:"Ajuda e mobilização",items:["solicitacoes","mobilizacoes","apoios"]},
- {label:"Rede de emergência",items:["saude","emergencias","parceiros"]},
  {label:"Infraestrutura e recursos",items:["veiculos","equipamentos","estoques","abrigos","pontos"]},
  {label:"Regras e comunicação",items:["ocorrencias","canais","regras"]}
 ];
