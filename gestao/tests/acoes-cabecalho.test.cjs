@@ -29,7 +29,7 @@ test("o cabeçalho preserva a sessão e todas as funções dos grupos não alter
  for(const name of ["equipes","integrantes","voluntarios","solicitacoes","mobilizacoes","apoios",
    "saude","emergencias","parceiros","veiculos","equipamentos","estoques","abrigos","pontos","ocorrencias","canais","regras"])
    assert.match(groups,new RegExp('"'+name+'"'),"Acesso preservado: "+name);
- for(const name of ["implantacao","bairros","pessoas"])
+ for(const name of ["territorio","bairros","pessoas"])
    assert.match(groups,new RegExp('"'+name+'"'),"Novo cadastro obrigatório: "+name);
  assert.doesNotMatch(groups,/"administradores"|"responsaveis"|"substitutos"|"coordenadores"|"operadores"/,
    "Os cinco papéis de RH devem usar um único menu Pessoas e Hierarquia");
