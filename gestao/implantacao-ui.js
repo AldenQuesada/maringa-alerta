@@ -299,6 +299,7 @@ function openRH(person=null,reference=null){
  parent.innerHTML='<h2>'+(person?"Editar pessoa":"Cadastrar pessoa")+'</h2><p class="mi-note">Cadastro local para gestão. Somente uma autenticação institucional futura poderá conceder acesso operacional.</p>'+
  '<form id="rh-form"><div class="mi-fields">'+
  [['nome','Nome completo','text'],['cargo','Cargo institucional','text'],['orgao','Órgão / unidade','text'],['zona','Zona operacional','text'],['telefone','Contato institucional','tel'],['email','E-mail','email']].map(([k,label,type])=>'<label>'+label+'<input name="'+k+'" type="'+type+'" value="'+esc(data[k]||"")+'"'+(k==="nome"?" required":"")+'></label>').join("")+
+ '<label>Estrutura representada no Gabinete<select name="estrutura_id"><option value="">Não vinculada</option>'+[...ctx.db.lista("saude"),...ctx.db.lista("emergencias"),...ctx.db.lista("parceiros")].map(x=>'<option value="'+esc(x.id)+'"'+(data.estrutura_id===x.id?' selected':'')+'>'+esc(x.nome)+'</option>').join("")+'</select></label>'+ 
  '<label>Função principal<select name="funcao" required><option value="">Selecionar</option>'+opts+'</select></label>'+
  '<label>Substituto responsável<select name="substituto_id"><option value="">Nenhum</option>'+substitutes.map(x=>'<option value="'+esc(x.id)+'"'+(x.id===data.substituto_id?" selected":"")+'>'+esc(x.nome)+'</option>').join("")+'</select></label>'+
  '<label>Situação<select name="status">'+["Pendente de validação","Ativo","Inativo"].map(x=>'<option'+(data.status===x?' selected':'')+'>'+x+'</option>').join("")+'</select></label>'+
