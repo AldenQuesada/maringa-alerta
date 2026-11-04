@@ -17,13 +17,6 @@ const warning='<div class="notice"><strong>Ambiente demonstrativo.</strong> Os d
 function badge(status){const value=status||"implantacao";return '<span class="status '+esc(value)+'">'+esc(value==="implantacao"?"Em implantação":value==="ativa"?"Ativa":value==="suspensa"?"Suspensa":value)+'</span>';}
 function renderNav(){
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===section));
- const active=central.sessaoAtiva();
- $("session-button").replaceChildren(document.createTextNode(active?"Encerrar Admin Geral ":"Iniciar Admin Geral "),Object.assign(document.createElement("span"),{id:"session-status",textContent:active?"· sessão local ativa":"· demonstração"}));
-}
-function renderGate(){
- $("screen").innerHTML=heading("Administração Geral da Plataforma","Crie e configure todos os municípios do Sistema Integrado de Gestão de Crise, independentemente de Maringá.")+
- warning+'<section class="panel"><div class="panel-head"><h2>Sessão do Administrador Geral</h2></div><div class="panel-body"><p>Esta entrada é uma <strong>demonstração de navegação</strong>. Não possui senha nem segurança de acesso; nenhum servidor é acionado. O banco seguro da plataforma ainda precisa ser provisionado.</p><button type="button" id="start-admin" class="btn primary">Iniciar sessão de demonstração</button></div></section>';
- $("start-admin").onclick=()=>{try{central.entrarDemonstracao();render();}catch(err){notice("Não foi possível abrir a Administração Geral: "+(err?.message||String(err)));}};
 }
 function current(){return central.municipios();}
 function stats(){
@@ -178,15 +171,10 @@ function render(){
  const p=location.hash.slice(1);
  section=["dashboard","municipios","territorios"].includes(p)?p:"dashboard";
  renderNav();
- if(!central.sessaoAtiva()){renderGate();return;}
  if(section==="dashboard")renderDashboard();
  else if(section==="municipios")renderMunicipios();
  else renderTerritorios();
 }
-$("session-button").onclick=()=>{
- if(central.sessaoAtiva()){central.sairDemonstracao();notice("Sessão demonstrativa encerrada.");render();}
- else{try{central.entrarDemonstracao();render();notice("Sessão demonstrativa iniciada. Sem autenticação real.");}catch(err){notice("Falha ao iniciar: "+(err?.message||String(err)));}}
-};
 window.addEventListener("hashchange",render);
 render();
 })();
