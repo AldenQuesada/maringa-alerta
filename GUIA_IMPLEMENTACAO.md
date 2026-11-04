@@ -1,63 +1,105 @@
 # Maringá Alerta — guia de implementação para o Codex
 
-Este documento descreve o estado atual do protótipo e especifica, com critério de aceite, tudo que falta construir. Foi escrito para quem vai continuar o desenvolvimento sem o contexto da conversa original. Leia o repositório antes de começar: o arquivo principal é `index.html`, uma página única (HTML + CSS + JS inline), sem build step, sem backend, publicada via GitHub Pages.
+Este documento acompanha a evolução do protótipo existente neste repositório. Ele preserva as funcionalidades e decisões anteriores e registra o fluxo simples definido por Alden para a próxima revisão. A interface continua em `index.html`, sem build step; a entrada de perfil é um componente em `entrada-perfil.js` e `entrada-perfil.css`, as regras de ajuda ficam em `fluxo-ajuda.js` e o cache do aplicativo em `sw.js`. A publicação permanece no GitHub Pages do mesmo projeto.
+
+**Estado desta revisão:** protótipo em validação, com dados e WhatsApp simulados. O checklist da seção 9 define o que verificar; itens não assinalados não são resultados de testes. O endereço publicado só incorpora alterações depois que a revisão chega à branch usada pelo Pages e o deploy termina.
 
 URL ao vivo: https://aldenquesada.github.io/maringa-alerta/
 Repositório: https://github.com/AldenQuesada/maringa-alerta
 
 ## 1. Contexto do projeto
 
-Maringá Alerta é um painel de resposta a emergências para a Prefeitura de Maringá (PR). A ideia operacional:
+Maringá Alerta é o protótipo de uma plataforma para diferentes prefeituras organizarem a participação cidadã antes, durante e depois de desastres. Maringá é a referência inicial; o produto real deve nascer multi-tenant. A ideia operacional permanece:
 
-1. Moradores que podem ajudar (motosserra, caminhão, mão de obra, roupas, comida, etc.) se cadastram mandando mensagem para um número de WhatsApp da prefeitura, dizendo em que podem ajudar.
-2. Quando acontece um evento climático grave, moradores reportam ocorrências pelo WhatsApp com foto e localização.
-3. O painel mostra essas ocorrências no mapa, identifica os voluntários cadastrados perto de cada uma e os convoca.
-4. Cada zona da cidade tem um responsável, um substituto e um coordenador, todos funcionários da prefeitura, que se deslocam até a ocorrência e coordenam a ajuda.
-5. Conforme as ocorrências são resolvidas, elas saem do mapa.
-6. No final, os colaboradores recebem reconhecimento público da prefeitura.
+1. Moradores se cadastram pelo WhatsApp da prefeitura e informam como podem ajudar: motosserra, caminhão, mão de obra, alimentos, roupas, transporte e outras capacidades.
+2. Moradores relatam ocorrências pelo WhatsApp, podendo enviar texto, foto e localização. O cadastro de voluntário não é requisito para relatar um problema.
+3. **Uma ocorrência confirmada dispara automaticamente o acionamento.** O sistema consulta os guards previamente cadastrados, seleciona pessoas próximas, compatíveis e disponíveis e avisa o responsável da região em paralelo.
+4. Cada zona tem responsável, substituto e coordenador. Essa estrutura informa quem recebe avisos e acompanha o campo; ninguém precisa aprovar cada convite para o fluxo normal começar.
+5. A pessoa que foi ajudar confirma **“Cheguei”** e depois **“Terminei”** pelo WhatsApp. Não há aceite obrigatório, foto obrigatória, prova de contribuição, nota de qualidade ou validação de supervisor.
+6. O término libera aquela participação. Se ainda houver ajuda necessária, a ocorrência continua aberta; quando as condições cadastradas de conclusão estiverem satisfeitas, o sistema a resolve e retira seu marcador do mapa ativo.
+7. O sistema pode convidar a pessoa para outra ocorrência compatível. Agradecimentos e relatórios usam os registros já existentes, sem exigir outra tarefa do voluntário. Reconhecimento público continua como funcionalidade, com participação opcional.
 
-Importante: este protótipo não tem backend real. Toda a "comunicação por WhatsApp" é simulada no front-end (textos de banner, geração periódica de eventos aleatórios). Antes de ir para produção, isso precisa ser substituído por integração real com a API do WhatsApp Business (ou um provedor como Twilio, Z-API, Evolution API) e um banco de dados real. Este guia cobre apenas a evolução do protótipo visual e funcional; a integração de backend é um projeto separado e deve ser tratada como tal.
+**Configuração antes; execução automática durante.** Compatibilidade, disponibilidade, quantidade necessária, responsáveis e prevenção de conflitos são regras internas. Um convite enviado não conta como presença. Atividades incompatíveis com voluntariado comum seguem o encaminhamento especializado configurado, também sem uma fila de aprovação da ajuda.
+
+Esta etapa continua sendo um protótipo: nenhum convite ou aviso sai de verdade pelo WhatsApp, nenhum serviço de emergência é despachado pelo sistema e os dados usados para demonstrar a operação são fictícios. A simulação local de **Maringá** e **Município Exemplo** permite revisar a troca de prefeitura e a separação de registros no navegador. Ela não implementa autenticação, autorização ou isolamento seguro entre municípios.
+
+O protótipo deve ficar claro e navegável antes da implantação real. Depois, os mesmos fluxos passam a usar backend, banco e API oficial do WhatsApp Business ou provedor que opere por essa API. O backend faz parte do produto multi-prefeitura; não deve ser planejado como um projeto independente das regras operacionais. A integração real deverá preservar a experiência simples já validada aqui.
 
 ## 2. Convenção de nomenclatura: "zonas", não "bairros"
 
-Decisão tomada nesta conversa: o protótipo usa o termo **zona** para as áreas de cobertura, não "bairro". Motivo: não existe fonte oficial (prefeitura, IBGE) confirmando o número exato de bairros de Maringá; os números encontrados em buscas divergem demais para serem confiáveis (de poucas regiões a centenas, provavelmente contando loteamentos comerciais). Usar "zona" evita a aparência de estar afirmando uma divisão administrativa real que não foi verificada.
+Decisão mantida: o protótipo usa o termo **zona** para as áreas de cobertura. Os nomes atuais servem à demonstração; os retângulos desenhados no mapa não foram homologados como limites administrativos oficiais. A implantação de cada prefeitura deverá receber suas geometrias e nomenclatura. Não apresentar o desenho atual como uma delimitação oficial de bairros.
 
-Ação pendente: renomear no código e na interface todas as ocorrências de "bairro" para "zona" (variável `bairros`, textos `Bairro`, `bairro`, classes como `.bairro-label`, `.zi-count`, etc.). Isso é um find-and-replace cuidadoso, não uma reescrita de lógica. As 6 zonas atuais (Zona 7, Jardim Alvorada, Conjunto Requião, Jardim Universo, Vila Esperança, Centro Cívico) podem continuar com esses nomes como rótulos de zona, ou ser renumeradas como "Zona 1" a "Zona 6" se a Alden preferir; perguntar antes de decidir isso, não assumir.
+Na interface, manter **zona**. Os identificadores legados `bairros`, `bairro` e `.bairro-label` ainda podem existir internamente; uma renomeação posterior deve migrar também os dados salvos e todas as referências, sem quebrar o protótipo. Preservar os seis rótulos de Maringá: Zona 7, Jardim Alvorada, Conjunto Requião, Jardim Universo, Vila Esperança e Centro Cívico. O Município Exemplo usa nomes de zonas próprios sobre a mesma base cartográfica de demonstração; não atribuir validade geográfica oficial a essa configuração.
 
 ## 3. Arquitetura atual (ler o código real antes de alterar)
 
-Quase tudo vive em `index.html`. A única exceção é `sw.js` (service worker, seção 5bis.3), que precisa ser um arquivo próprio na raiz do site por exigência da própria API de Service Worker do navegador — não pode ser inline.
+O projeto permanece simples e sem etapa de build:
+
+| Arquivo | Responsabilidade |
+|---|---|
+| `index.html` | Interface, Leaflet, cadastros, painéis, adaptação do fluxo de ajuda, conversas e persistência local da demonstração |
+| `prototipo.css` | Ajustes de layout, controles da demonstração, menu móvel e conversa de chegada/término |
+| `entrada-perfil.js` | Componente reutilizável da janela de entrada e troca de perfil: interface, foco e eventos, sem armazenamento ou autenticação |
+| `entrada-perfil.css` | Estilos restritos ao componente de entrada, com tipografia legível e adaptação ao espaço disponível |
+| `fluxo-ajuda.js` | Regras de seleção, chegada, término, disponibilidade e prioridade; sem DOM, envio externo ou banco real |
+| `sw.js` | Cache do shell do aplicativo, com rede primeiro e fallback adequado ao tipo de recurso |
+| `tests/fluxo-ajuda.test.cjs` | Verificações do núcleo de regras em Node, incluindo concorrência lógica e repetição de ações |
+| `tests/integracao-fluxo.test.cjs` | Verificações do acionamento automático da equipe quando há voluntários insuficientes |
+
+### Contratos de reuso
+
+`AlertaEntrada.criar({ overlay, zonas, onEscolher, onFechar })` cria o componente de entrada e retorna:
+
+| Método | Responsabilidade |
+|---|---|
+| `abrir(perfilAtual)` | Abrir a janela com o contexto do perfil atual e gerenciar o foco da interface |
+| `fechar()` | Fechar a janela e cuidar do foco, sem gravar ou trocar o perfil por conta própria |
+| `definirZonas(zonas)` | Atualizar as opções de zona usadas pelo componente |
+
+O componente comunica a escolha e o fechamento pelos callbacks `onEscolher` e `onFechar`. Ele não conhece `localStorage`, `sessionStorage`, autenticação, backend ou a prefeitura ativa. `index.html` continua sendo o adaptador que fornece as zonas, aplica a escolha e mantém a sessão local por prefeitura. Fechar sem escolher preserva o perfil atual; na primeira entrada, o adaptador continua em modo visualização.
+
+`fluxo-ajuda.js` também permanece independente da UI: recebe os dados e aplica as regras de ajuda. A interface e as futuras integrações reutilizam essas regras, sem copiar lógica para os botões ou acoplar o núcleo ao componente de entrada.
 
 Dentro de `index.html`:
-- CSS no `<head>`, com tokens de cor em `:root` (`--bg`, `--panel`, `--fg`, `--red`, `--blue`, `--green`, `--yellow`, `--accent`).
-- Mapa com Leaflet 1.9.4 (via cdnjs), tiles do OpenStreetMap padrão (`tile.openstreetmap.org`, sem necessidade de chave de API), com um filtro CSS (`invert + hue-rotate`) em `.leaflet-tile-pane` para dar o visual escuro. Não trocar para tiles que exigem API key (CartoDB `basemaps.cartocdn.com` já causou esse problema uma vez: parou de carregar sem aviso claro).
-- Estruturas de dados principais, todas em memória (arrays JS, recriadas a cada reload da página):
-  - `bairros` (renomear para `zonas`): array de objetos com `nome`, `center`, `poly` (polígono lat/lng), `equipamentos`, `equipe` (`responsavel`, `substituto`, `coordenador`, cada um com `nome`, `cargo`, `pos`, `ultimoPing`, `tel`).
-  - `ocorrencias`: array de objetos com `id`, `tipo`, `icone`, `bairro` (nome da zona), `pos`, `reportadoEm` (timestamp), `tempoEstimado`, `status` (`"ativa"` ou `"resolvida"`), `responsavel`, `fotoTag`, `voluntariosProx` (ids), `marker` (referência Leaflet).
-  - `voluntarios`: array de objetos com `id`, `nome`, `ajuda`, `bairro`, `pos`, `ativo` (bool), `marker`.
-  - `activeZone`: string (nome da zona) ou `null` (= "Todas as zonas").
-- Camadas Leaflet separadas: `ocLayer` (ocorrências), `volLayer` (voluntários), `officialLayer` (responsável/substituto/coordenador da zona ativa).
-- UI: sidebar esquerda com lista de zonas (clicável, isola a zona no mapa), barra superior que mostra o evento (modo "Todas") ou a zona ativa com os 3 cartões de equipe (modo zona), painel lateral direito com detalhe da ocorrência ou da zona, janela flutuante arrastável com lista de colaboradores (voluntários).
-- Toda geração de dados é simulada: `gerarOcorrencia()` cria ocorrências aleatórias a cada ~7s se houver menos de 14 ativas; `setInterval` de 20s simula pings de localização dos responsáveis via WhatsApp.
 
-Antes de editar qualquer função, use Ctrl+F / grep para achar todos os lugares onde ela é chamada. O arquivo é longo (quase 800 linhas) mas é um único arquivo; não fragmente em múltiplos arquivos sem necessidade real, a menos que vá crescer muito mais.
+- CSS no `<head>`, com tokens de cor em `:root` (`--bg`, `--panel`, `--fg`, `--red`, `--blue`, `--green`, `--yellow`, `--accent`).
+- Mapa com Leaflet 1.9.4 e tiles do OpenStreetMap usados pelo protótipo, com filtro CSS para o visual escuro. Preservar zoom, arrasto, tooltips, polígonos e camadas existentes. A disponibilidade do mapa depende também dos recursos externos; não substituir o provedor sem verificar a configuração necessária.
+- `bairros`: zonas com `nome`, `center`, `poly`, `equipamentos` e `equipe` (`responsavel`, `substituto`, `coordenador`). Cada pessoa da equipe tem identificador, nome, cargo, posição, horário e contato de demonstração.
+- `ocorrencias`: fatos confirmados ou históricos, com protocolo, tipo, zona, posição, gravidade, responsabilidade e estado. `confirmado: true` indica a confirmação da ocorrência que permite o acionamento; `confirmadoEm` continua representando a primeira chegada ao local. Não confundir os dois.
+- `o.participacoes`: registros individuais de convite, chegada e término, vinculados por `voluntarioId`. Os estados principais são `convidado`, `no_local` e `concluida`. O núcleo também trata recusa; a conversa desta revisão demonstra os dois comandos Cheguei e Terminei. `voluntariosProx` permanece como compatibilidade para as telas antigas, sem servir de prova de presença.
+- `voluntarios`: cadastro, contribuições, zona, preferências e disponibilidade. `ativo` é derivado das reservas/participações; encerrar uma ajuda não pode liberar uma pessoa que ainda tenha vínculo ativo incompatível.
+- `activeZone`: nome da zona ou `null` para todas. As camadas Leaflet continuam separadas em `ocLayer`, `volLayer` e `officialLayer`.
+- UI preservada: sidebar de zonas e módulos, barra de contexto, painel lateral de ocorrência/zona e janela arrastável de colaboradores. O menu também deve ser acessível no celular.
+- A demonstração permite criar um cenário de teste e pausar a geração periódica aleatória. Dados meteorológicos, posições e mensagens continuam simulados e identificados como tal.
+
+### Persistência e inicialização
+
+A simulação guarda registros de operação, participações e mensagens no navegador, em contexto separado por prefeitura. Ao recarregar, restaurar o estado existente; só gerar dados iniciais quando não houver uma simulação salva. Preservar protocolos e `idCounter`.
+
+Salvar somente dados serializáveis. Referências Leaflet (`marker`, `polyLayer`) não entram no JSON: são reconstruídas ao restaurar a página, assim como a ligação entre a ocorrência e o responsável atual da zona. A criação/restauração inicial fica depois da declaração das estruturas de mensagens, auditoria e alertas, evitando usar essas estruturas antes da inicialização.
+
+Essa persistência serve à revisão do protótipo no mesmo navegador. Não sincroniza dispositivos e não oferece proteção entre usuários. Na implementação real, os guards e as reservas serão executados no backend com escopo de prefeitura e transações consistentes.
+
+Antes de alterar uma função, localizar suas definições e chamadas com `rg`. Preservar a estrutura existente e separar novas regras somente quando isso facilitar a validação; não introduzir framework ou build tool apenas para organizar esta revisão.
 
 ## 4. Funcionalidades já implementadas (não refazer, só evoluir)
 
-Os três itens abaixo foram implementados nesta sessão, direto no protótipo, e já estão no `index.html` publicado. A descrição detalhada de cada um continua nas subseções 4.1 a 4.3 porque explica o raciocínio e os nomes de campo usados; não é mais um pedido pendente, é a documentação do que existe.
+As funcionalidades abaixo fazem parte do protótipo existente e devem ser preservadas. Esta revisão simplifica o atendimento e corrige sua lógica, mantendo os módulos, os cadastros, o mapa e os recursos já aprovados. A publicação e a validação desta revisão seguem as seções 7 e 9.
 
-### 4.1 Confirmação de presença na área + contador de tempo até resolução (implementado)
+### 4.1 Chegada e término pelo WhatsApp simulado
 
-Cada ocorrência agora tem três timestamps: `reportadoEm`, `confirmadoEm` (null até a presença ser confirmada) e `resolvidoEm` (null até resolver). O `status` evoluiu de um booleano implícito para três estados: `"ativa"` (aguardando equipe) → `"em_atendimento"` (presença confirmada, equipe no local) → `"resolvida"`.
+O acionamento começa com uma ocorrência confirmada. `AlertaFluxo.ativar()` seleciona pessoas compatíveis, próximas e disponíveis; a adaptação de interface registra os convites e o aviso ao responsável regional. Os guards impedem participação simultânea incompatível e respeitam a configuração territorial. Riscos que exigem recurso especializado recebem encaminhamento de demonstração, sem mobilizar um voluntário comum para a intervenção.
 
-No painel de ocorrência (`openOcorrencia`, por volta da linha 700 do `index.html`):
-- Em `"ativa"`: mostra só o botão "Confirmar presença na área" (`#presence-btn`). Não há botão de resolver ainda; isso é deliberado, para refletir que a equipe precisa chegar antes de poder encerrar.
-- Ao confirmar presença: seta `confirmadoEm = Date.now()`, muda `status` para `"em_atendimento"`, atualiza o ícone do marcador no mapa (cor âmbar, `STATUS_COLOR.em_atendimento`) e re-renderiza o painel.
-- Em `"em_atendimento"`: mostra dois campos, "Tempo até chegada" (fixo, calculado como `confirmadoEm - reportadoEm`) e "Em atendimento há" (`#live-atendimento`, atualizado a cada 5 segundos por um `setInterval` global que verifica `currentPanelOcId`), além do botão "Marcar como resolvida" (`#resolve-btn`).
-- Ao resolver: seta `resolvidoEm`, `tempoChegada`, `tempoAtendimento` e `tempoReal` (soma dos dois), libera os voluntários mobilizados, remove o marcador do mapa, dispara o banner de reconhecimento e atualiza KPIs, lista de zonas, colaboradores e heatmap.
-- O ícone do marcador (`ocIcon(status)`) e o tooltip (`refreshOcTooltip(o)`) mudam de cor e texto conforme o status, usando a variável CSS `--oc` no elemento `.oc-pulse`.
+O voluntário tem apenas duas confirmações obrigatórias na atividade:
 
-Isso já está feito. Se for evoluir: considerar permitir que mais de uma pessoa da equipe (substituto, coordenador) confirme presença separadamente, em vez de um único campo `confirmadoEm` para a ocorrência toda; hoje o modelo assume que a confirmação é da ocorrência, não de uma pessoa específica.
+- **Cheguei:** `AlertaFluxo.chegar()` registra a presença daquela pessoa. A primeira chegada preenche `confirmadoEm` e a ocorrência passa a `em_atendimento`.
+- **Terminei:** `AlertaFluxo.terminar()` conclui aquela participação. A disponibilidade é recalculada; o sistema pode oferecer outra ajuda próxima e compatível. Nenhum supervisor precisa validar a contribuição.
+
+A ocorrência mantém `reportadoEm`, `confirmadoEm` e `resolvidoEm`. Ela só é resolvida quando as participações/necessidades previstas estiverem concluídas e não houver pendência técnica que mantenha o atendimento aberto. **O término de uma pessoa não encerra automaticamente o trabalho das demais.**
+
+Ao resolver a ocorrência, calcular `tempoChegada`, `tempoAtendimento` e `tempoReal` para manter a compatibilidade dos KPIs, relatórios e página pública. Retirar o marcador do mapa ativo, mantendo o histórico consultável. Durante o atendimento, o marcador continua no mapa; selecionar outra zona e voltar não pode fazê-lo desaparecer.
+
+Após cada confirmação, atualizar pelo mesmo caminho o estado, marcadores, tooltips, KPIs, lista de zonas, colaboradores, heatmap e painéis abertos. O sistema registra horários e agradece automaticamente. Duplo clique ou repetição de mensagem não pode produzir duas chegadas, dois términos ou liberação incorreta.
 
 ### 4.2 Mapa de gravidade de ocorrências (implementado)
 
@@ -89,150 +131,200 @@ Adicionado um modal de administração (botão "⚙ Administração" na sidebar 
 - **Equipes da prefeitura**: um cadastro novo, independente dos responsáveis, representando equipes de campo com recursos físicos (`equipesPrefeitura`, cada item com `nome`, `zona`, `recursos` — lista de `{tipo, qtd, emUso}` —, `membros`, `status`). Dá para editar, remover e adicionar equipes (campo de recursos aceita texto livre tipo "Motosserra x2, Caminhão x1", convertido para a estrutura). A tabela mostra quanto cada equipe tem disponível vs. em uso, e sinaliza em vermelho quando a zona tem ocorrência ativa mas a equipe não tem recurso livre ("sem equip. livre") — essa é a resposta operacional a "estatísticas do que cada equipe tem, o que falta".
 - **Colaboradores**: lista somente leitura dos voluntários cadastrados via WhatsApp (não dá para cadastrar colaborador aqui de propósito, porque a entrada real é pelo número de WhatsApp; o botão "Simular cadastro via WhatsApp" no mapa continua sendo a porta de entrada). Dá para remover um cadastro.
 
-Persistência: tudo que é editado no modal de administração é salvo em `localStorage` (chave `maringa_admin_v1`, funções `saveAdminState()` / `loadAdminState()`), então sobrevive a um F5 na mesma máquina/navegador. Isso não é um banco de dados real nem sincroniza entre dispositivos; é um atalho de protótipo. Quando a integração com backend acontecer, essa camada de `localStorage` deve ser substituída por chamadas de API, mantendo as mesmas funções de leitura/escrita como ponto único de troca.
+Persistência: `saveAdminState()` e `loadAdminState()` continuam sendo os pontos de leitura/gravação dos dados administrativos. A revisão usa contexto local por prefeitura e deve preservar as edições já salvas no contexto de Maringá durante a migração das chaves legadas. Os colaboradores e os dados de operação fazem parte da persistência da simulação. Isso não é um banco real nem sincroniza dispositivos; a futura API substituirá essa camada mantendo os contratos do produto.
 
-## 4.5 Relatório final obrigatório antes de resolver uma ocorrência (implementado)
+## 4.5 Fotos e relatório da ocorrência como recursos opcionais
 
-O fluxo de uma ocorrência em `"em_atendimento"` mudou: clicar em "Marcar como resolvida" não resolve mais direto, abre um formulário (`#report-form`) que exige:
-- foto da situação atual (`input type="file"`, lida com `FileReader` e guardada como data URL em `o.relatorio.fotoAtual`);
-- foto da situação final (mesma mecânica, `o.relatorio.fotoFinal`);
-- o que ficou pendente (textarea, `o.relatorio.pendencias`, com "Nenhuma" como padrão se vazio);
-- quem preencheu (select com responsável/substituto/coordenador da zona, `o.relatorio.preenchidoPor`).
+O relatório e os anexos permanecem disponíveis, mas **não são requisito para a pessoa dizer “Terminei”**. A exigência anterior de duas fotos foi retirada do fluxo de conclusão. Não pedir justificativa para concluir sem foto.
 
-Só depois de enviar as duas fotos (validação simples, sem elas o formulário mostra erro e não resolve) a ocorrência vira `"resolvida"`. O relatório preenchido fica visível depois, ao reabrir a ocorrência resolvida (as fotos aparecem como miniaturas). Como o marcador sai do mapa ao resolver, o acesso de volta às ocorrências resolvidas é pela lista "Resolvidas recentes" no rodapé da sidebar (`renderResumo`, até 5 mais recentes do escopo atual), que abre o painel de detalhe normalmente.
+O recurso opcional conserva os dados úteis:
 
-As ocorrências de histórico (seedadas no carregamento da página, que representam eventos de antes da sessão atual) não têm relatório, de propósito — não faria sentido inventar fotos para elas — e aparecem como "sem relatório" na lista.
+- foto da situação atual (`o.relatorio.fotoAtual`), quando enviada;
+- foto da situação final (`o.relatorio.fotoFinal`), quando enviada;
+- observações e pendências (`o.relatorio.pendencias`);
+- identificação de quem adicionou o registro (`o.relatorio.preenchidoPor`);
+- escolha de exibir os anexos na visão pública (`o.relatorio.fotosPublicas`), desmarcada por padrão.
 
-## 4.6 Chat interno simulando WhatsApp (implementado)
+A interface deve aceitar nenhuma foto, uma foto ou duas fotos, renderizando somente os anexos existentes. Salvar o registro opcional não deve alterar indevidamente as participações nem criar uma segunda autorização para o encerramento. Necessidades ainda abertas continuam sendo acompanhadas; o voluntário não fica preso ao atendimento para preencher a documentação.
 
-Botão "💬 Chat interno" na sidebar abre um modal com lista de contatos (todos os funcionários internos + todos os colaboradores cadastrados, função `chatContatos()`) e uma conversa por contato. É puramente front-end: `chatHistorico` é um objeto em memória (`{idDoContato: [mensagens]}`), não persiste entre reloads e não envia nada de verdade. Ao enviar uma mensagem, o sistema simula uma resposta automática do contato depois de 1,4 a 3 segundos, sorteada de uma lista de frases plausíveis (`respostasAuto`). Serve para demonstrar a experiência de coordenação, não é uma integração real com a API do WhatsApp — isso seria um projeto de backend separado (ver seção 1).
+As ocorrências resolvidas continuam acessíveis em “Resolvidas recentes”, no rodapé da sidebar (`renderResumo`). O histórico de demonstração pode não ter anexos ou relatório. Essa ausência não indica contribuição insuficiente nem falha de quem ajudou.
+
+## 4.6 Chat interno e fluxo de ajuda pelo WhatsApp simulado
+
+O Chat interno preserva a lista de funcionários e colaboradores (`chatContatos()`) e as conversas por contato em `chatHistorico`. A simulação de ajuda permite acompanhar um convite e enviar **Cheguei** e **Terminei** com contexto explícito de pessoa e ocorrência. Os avisos ao responsável regional chegam automaticamente; não dependem de ele abrir o chat ou aprovar a mobilização.
+
+As confirmações invocam as regras de `fluxo-ajuda.js` e atualizam a operação. Uma resposta aleatória do chat interno não pode confirmar presença, concluir uma ajuda ou representar a decisão real de alguém. Mensagens e participações são preservadas na simulação local, sem envio externo.
+
+Ao receber uma resposta atrasada, atualizar apenas a conversa à qual ela pertence; não renderizar a resposta de um contato na conversa de outro que o usuário abriu depois. Um convite novo após o término é uma oferta de ajuda, não uma transferência forçada para outra ocorrência.
+
+A integração real usará o canal oficial, webhooks e registros no backend. O protótipo demonstra o comportamento e a interface, sem conta conectada ou disparo verdadeiro pelo WhatsApp.
 
 ## 4.7 Distâncias reais entre pontos (implementado)
 
-As distâncias que antes eram números aleatórios (`Math.floor(rnd(150,900))+"m"`) agora são calculadas de verdade com `map.distance(latlngA, latlngB)` do Leaflet (distância geodésica em metros). Isso está em dois lugares: cada voluntário mobilizado no painel de ocorrência mostra a distância real até o ponto da ocorrência, e o cartão do responsável no mesmo painel mostra a distância real entre a posição atual dele (que já era simulada via ping de WhatsApp) e a ocorrência. Função auxiliar: `fmtDist(metros)`, que mostra em metros até 999m e em km com uma decimal a partir de 1000m.
+As distâncias são calculadas com `map.distance(latlngA, latlngB)` do Leaflet (distância geodésica em metros) sobre posições de demonstração. O cálculo não representa tempo de deslocamento nem verificação de rota segura. Isso está em dois lugares: cada voluntário mobilizado no painel de ocorrência mostra a distância real até o ponto da ocorrência, e o cartão do responsável no mesmo painel mostra a distância real entre a posição atual dele (que já era simulada via ping de WhatsApp) e a ocorrência. Função auxiliar: `fmtDist(metros)`, que mostra em metros até 999m e em km com uma decimal a partir de 1000m.
 
 Ainda não implementado: distância equipe-da-prefeitura ↔ ocorrência (as equipes de recursos, seção 4.4, não têm posição própria no mapa ainda, só a zona; adicionar um campo `pos` a cada equipe seria o próximo passo natural se isso for necessário).
 
-## 5. Backlog aprovado (ordem sugerida, mas a Alden decide prioridade final)
+## 5. Backlog aprovado (preservado, com prioridade definida por Alden)
 
-Estas foram propostas e aprovadas em conversa anterior. Implementar depois dos itens da seção 4, ou intercalado se fizer sentido técnico.
+Estas funcionalidades foram aprovadas anteriormente e continuam no escopo. A simplificação do atendimento muda as regras de interação, sem descartar seus objetivos. Antes de implementar um item, conferir o que já existe nesta revisão para evitar mecanismos duplicados.
 
 1. **Timeline da ocorrência**: histórico visual de etapas (reportada → equipe avisada → presença confirmada → resolvida) com o horário de cada uma, dentro do painel de detalhe. Com os campos `reportadoEm`, `confirmadoEm`, `resolvidoEm` já propostos na seção 4.1, isso é principalmente um componente de UI que lê esses três timestamps e desenha uma linha do tempo vertical ou horizontal.
 2. **Log/chat simulado do WhatsApp**: ~~dentro do painel de ocorrência...~~ — **implementado como o Chat interno (seção 4.6)**, de forma mais ampla do que o item original pedia: não é só dentro do painel de ocorrência, é um módulo próprio que conversa com qualquer funcionário ou colaborador, inclusive os avisos de alerta meteorológico (seção 5bis.9) e de SLA (seção 5bis.4) chegam por lá.
 3. **Heatmap de densidade por horário**: evolução de "onde as ocorrências se concentraram" ao longo do tempo do evento, não só o instante atual. Pode reaproveitar a camada de heatmap da seção 4.2, adicionando um controle de tempo (slider) que filtra ocorrências por janela de horário.
 4. **Exportar relatório do evento**: ~~gerar um resumo (zona por zona...)~~ — **superado pela seção 5bis.10**, que entrega isso (resumo por zona, ranking de colaboradores, impressão via `window.print()`) com mais dados ainda, incluindo o cruzamento com a prontidão pré-evento. Não reimplementar; só evoluir o relatório que já existe (`renderRelatorioEvento`) se faltar algo.
 5. **Modo replay do evento**: acelerar o tempo para assistir como as ocorrências surgiram e foram resolvidas ao longo do evento todo, útil para apresentações e para pós-mortem. Requer guardar um log de eventos (criação, confirmação, resolução) com timestamp e reproduzir em escala de tempo acelerada.
-6. **Alerta quando ocorrência nova surge perto de um responsável**: quando uma nova ocorrência é gerada dentro de um raio pequeno da posição atual de um responsável/coordenador que está em campo, disparar um destaque visual ou som (respeitando que autoplay de som só funciona depois de interação do usuário na página).
-7. **Ranking de colaboradores**: pontuação por tempo de resposta, quantidade de ajudas prestadas, para alimentar o reconhecimento público ("ato oficial da prefeitura"). Fonte de dados: quantas vezes um voluntário apareceu em `voluntariosProx` de ocorrências resolvidas, e com que rapidez.
+6. **Alerta quando ocorrência nova surge perto de um responsável**: o aviso automático ao responsável regional integra o acionamento. Preservar a evolução de destaque visual ou som para proximidade de quem está em campo, sem tornar sua resposta uma aprovação obrigatória; o som depende da interação prévia permitida pelo navegador.
+7. **Reconhecimento e ranking de colaboradores**: preservar o recurso com contagens simples de chegada e término informados. Convites enviados são mostrados separadamente e não contam como presença. Não criar nota de qualidade, prova de contribuição ou pontuação por rapidez; a publicação do nome é opcional. O agradecimento usa as duas confirmações já feitas, sem nova etapa para o voluntário.
 
-## 5bis. Visão de gestão de desastres — implementado nesta sessão
+## 5bis. Módulos de gestão de desastres preservados
 
-A seção 5bis original listava dez lacunas de arquitetura ("pensando como gestão de desastres, não como gestor de tela") como recomendação, sem código. A Alden pediu para implementar tudo, em sequência, direto no protótipo, e isso foi feito. Esta seção documenta o que existe de verdade no `index.html` para cada um dos dez itens, incluindo o que é simulação de protótipo versus o que precisaria de trabalho real de backend/segurança antes de qualquer uso em produção. **Nenhum destes substitui autenticação, backend ou política jurídica reais — são demonstrações funcionais da ideia, não a implementação final.**
+Os dez módulos a seguir pertencem ao protótipo existente e continuam disponíveis. Esta seção incorpora a revisão do fluxo de ajuda e distingue demonstração de implementação real. Cadastro, veículo, combustível, alertas, mapa, status público, equipes, administração e relatórios permanecem no produto. O protótipo permite revisar a experiência; não certifica uma operação municipal real.
 
-### 5bis.1 — Triagem e priorização automática (implementado)
+### 5bis.1 — Triagem e priorização automática
 
-Botão "📋 Fila de prioridade" na sidebar abre uma lista de todas as ocorrências abertas (ativas ou em atendimento) ordenada por `calcPrioridade(o)`: gravidade × 100, mais até 2 pontos por minuto de espera (limitado a 60 min), mais 10 pontos se a responsabilidade é pública, menos 150 pontos se já tem equipe confirmada no local (porque já está sendo atendida). Clicar num item da fila abre o painel de detalhe daquela ocorrência direto. A fila respeita a zona selecionada (mostra só a zona ativa, ou todas se "Todas as zonas" estiver selecionado).
+O botão “Fila de prioridade” mantém a lista de ocorrências abertas, incluindo as que já estão em atendimento. A classe de gravidade domina a ordenação; tempo de espera ordena ocorrências dentro da classe. Uma ocorrência média antiga não ultrapassa automaticamente uma ocorrência grave por acumular pontos, e a chegada de alguém não reduz por si só o risco registrado.
 
-### 5bis.2 — Controle de acesso por papel (implementado, simulado — não é segurança real)
+`calcPrioridade(o)` usa a regra do núcleo de ajuda. A responsabilidade pública, privada ou mista permanece visível para encaminhamento e organização, sem reduzir mecanicamente a prioridade de um risco grave em propriedade privada. O texto explicativo da fila deve acompanhar essa regra e não manter a fórmula antiga.
 
-Ao abrir a página, um modal pede para escolher um papel: **Administrador geral** (acesso total), **Responsável de uma zona** (escolhe a zona num select) ou **Modo visualização** (sem poder agir). A escolha fica em `sessionStorage` (chave `maringa_role`), não em servidor, e não há senha nem verificação real de identidade — é uma simulação de UX para mostrar como o sistema se comportaria com RBAC, não RBAC de verdade. Com base no papel:
-- `canAdmin()`, `canActZone(zona)` e `isViewOnly()` controlam o que aparece: o botão "🔒 Log de auditoria" só existe para admin geral; o botão "⚙ Administração" desaparece em modo visualização; dentro da Administração, um responsável só vê e edita a sua própria zona (funcionários e equipes de outras zonas ficam ocultos, e os botões de criar/remover equipe desaparecem — só admin geral cria ou remove).
-- No painel de ocorrência, se `!canActZone(o.bairro)`, os botões de confirmar presença / resolver / acionar serviço oficial ficam desabilitados e aparece um aviso explicando o motivo.
-- Qualquer pessoa com acesso ao DevTools do navegador consegue burlar isso (é só JavaScript no cliente). Antes de qualquer piloto real com a prefeitura, isso precisa de autenticação de verdade (login com senha ou SSO) e checagem de permissão no backend, não só no front-end.
+### 5bis.2 — Entrada e troca de perfil (simuladas)
 
-### 5bis.3 — Modo offline / baixa conectividade (implementado parcialmente)
+A janela “Quem está entrando?” permite revisar o protótipo como administrador, responsável de uma zona ou visualizador. Ela usa `entrada-perfil.js` e `entrada-perfil.css`, com o contrato da seção 3. A escolha continua sendo uma simulação de perfil, sem autenticação real.
 
-Um `sw.js` (service worker) cacheia o arquivo principal (`index.html`) na primeira visita, então o app abre mesmo sem internet depois disso (cache-first com fallback pro próprio `index.html`). Um banner fixo no rodapé do mapa aparece quando `navigator.onLine` é falso e desaparece quando a conexão volta. Mensagens do chat interno enviadas offline entram numa fila (`localStorage`, chave `maringa_fila_offline_v1`) e são "reenviadas" (dentro da simulação) quando o evento `online` dispara.
+O componente tem largura máxima de 640 px, textos e controles entre 14 e 17 px e título de 26 px. Seus estilos ficam restritos à própria janela. No celular, a seleção de zona e a ação correspondente se empilham; em telas baixas, a área interna permite rolagem para que todos os controles continuem acessíveis.
 
-Limitação clara: só o chat tem fila offline. O envio do relatório final (que depende de arquivos de foto escolhidos pelo usuário, via `<input type="file">`) não é enfileirado — se a conexão cair no meio do envio do relatório, ele se perde, porque arquivos não sobrevivem a um reload e persistir um `File` inteiro em `localStorage` (teria que ser convertido pra base64) ficaria pesado demais para esse protótipo. Se isso for pra produção, o caminho certo é IndexedDB para guardar os arquivos binários da fila offline, não `localStorage`.
+O botão X, Escape e a ação de cancelar fecham a janela preservando o perfil atual. Se a pessoa fechar a primeira entrada sem escolher, o protótipo segue em modo visualização. O indicador **Trocar perfil** permite reabrir a janela. O adaptador em `index.html` mantém a sessão da prefeitura ativa e não deve apagá-la apenas para abrir a troca de perfil.
 
-### 5bis.4 — Alerta de SLA / escalonamento (implementado)
+A hierarquia de perfis não cria uma fila de aprovações do atendimento. Acionamento, aviso regional e processamento das confirmações seguem as regras já configuradas. O voluntário não recebe pedidos de permissão a cada chegada ou término.
 
-Um `setInterval` de 15 segundos verifica todas as ocorrências `"ativa"` com `gravidade===3` (alta). Se o tempo de espera (`minutosDesde(o.reportadoEm)`) passar de `SLA_LIMITE_MIN` (hoje 2 minutos — ajustado para o relógio acelerado do protótipo; num evento real isso seria configurável, algo como 20 a 30 minutos) e a ocorrência ainda não tiver sido escalada (`o._escalado`), o sistema injeta uma mensagem de alerta no chat do coordenador da zona e mostra um banner vermelho no mapa. Cada ocorrência só escala uma vez (`o._escalado = true` evita repetição).
+Como as regras atuais rodam no navegador, elas podem ser alteradas por quem controla o cliente. Na implantação real, identidade, autorização e isolamento por prefeitura serão conferidos no servidor em cada operação, sem aumentar os passos do voluntário.
 
-### 5bis.5 — Log de auditoria imutável (implementado)
+### 5bis.3 — Modo offline / baixa conectividade (parcial)
 
-Implementado como uma cadeia de hash simples: cada entrada (`{ts, ator, acao, detalhe, prev, hash}`) guarda o hash SHA-256 (via `crypto.subtle.digest`, nativo do navegador) do seu próprio conteúdo concatenado com o hash da entrada anterior. A função `auditPush(ator, acao, detalhe)` é chamada em: confirmar presença, enviar relatório final, acionar serviço oficial, editar ou criar ou remover funcionário/equipe na Administração, remover cadastro de colaborador, e emitir alerta meteorológico. O modal "🔒 Log de auditoria" tem um botão "Verificar integridade" que recalcula a cadeia inteira e aponta a primeira entrada que não bate — e um botão "⚠ Simular adulteração (demo)" que edita a primeira entrada sem recalcular o hash, só para provar visualmente que a verificação pega a adulteração.
+`sw.js` usa rede primeiro para evitar que uma versão antiga continue aparecendo durante a evolução do protótipo. A versão v4 do cache do shell próprio inclui a interface, os estilos, o núcleo de regras e os arquivos `entrada-perfil.js` e `entrada-perfil.css`. Quando houver falha de rede, usar o recurso correspondente em cache; o fallback para `index.html` é apropriado a navegação, não a pedidos de JavaScript ou imagem.
 
-Isso é tamper-evident (mostra que algo foi alterado), não tamper-proof (não impede a alteração): como tudo roda no navegador do próprio usuário e o log vive em `localStorage`, qualquer pessoa com acesso ao DevTools pode editar o array `auditLog` E recalcular os hashes corretamente, escondendo o rastro — porque o código que recalcula os hashes também está exposto no cliente. Um log de auditoria de verdade precisa rodar no servidor, fora do controle de quem está sendo auditado.
+O banner de conectividade permanece. A fila de mensagens do chat pode ser reprocessada dentro da simulação quando a conexão voltar, sem perder mensagens porque a conversa ainda não foi recriada em memória e sem duplicar o efeito de uma confirmação.
 
-### 5bis.6 — Privacidade dos dados de moradores (implementado como política + flag, não como automação)
+Persistência local não equivale a WhatsApp offline nem garante o funcionamento de todas as dependências externas, dos tiles ou de outro dispositivo. Arquivos apenas selecionados num campo de upload não sobrevivem a uma recarga; registros e anexos efetivamente salvos dependem do espaço disponível no navegador. Isso não impede o voluntário de concluir sua participação sem anexos.
 
-O formulário de relatório final (seção 4.5) ganhou um checkbox "Permitir que o morador veja estas fotos na página pública de status", desmarcado por padrão, com um texto de política ao lado ("fotos ficam arquivadas por 90 dias, usadas só para atendimento e prestação de contas"). O valor vai para `o.relatorio.fotosPublicas` e é respeitado pela página pública (seção 5bis.7): só mostra as fotos se a flag estiver marcada. Os 90 dias são só o texto da política mostrada na tela — nada no código apaga fotos depois desse prazo, porque isso exigiria um job agendado no servidor, que este protótipo (sem backend) não tem como rodar.
+A implementação real precisará de armazenamento e sincronização próprios para os dados que devam sobreviver à falta de conexão, além da fila de integração no servidor. O escopo de continuidade deve ser testado separadamente da simples abertura do HTML.
 
-### 5bis.7 — Página pública de status (implementado)
+### 5bis.4 — Alerta de espera e escalonamento (simulado)
 
-Rota por hash: `#status` esconde o painel interno (`#app-view`) e mostra uma página separada (`#status-view`) com um campo de busca por protocolo. Cada ocorrência recebe um `protocolo` tipo `MA-10042` no momento em que é criada (`gerarOcorrencia`). A busca não expõe nome de responsável, telefone, nem localização de ninguém — só o tipo de ocorrência, a zona, uma linha do tempo de três passos (recebida / equipe confirmou presença / atendimento concluído) e, se a ocorrência foi resolvida e a flag `fotosPublicas` estiver marcada, as duas fotos do relatório. Tem um botão "👁 Ver status público (demo)" na sidebar interna só para facilitar a demonstração; numa implantação real, esse link sairia direto na mensagem de WhatsApp enviada ao morador, não dentro do painel interno.
+O protótipo verifica ocorrências ativas de gravidade alta ainda sem chegada e avisa o coordenador da zona quando a espera alcança o limite de demonstração (`SLA_LIMITE_MIN`). O banner e a mensagem interna mostram a situação. O campo `_escalado` evita repetir o mesmo aviso indefinidamente.
 
-### 5bis.8 — Ponte com serviços oficiais de emergência (implementado)
+Esse acompanhamento é automático e não suspende os convites enquanto aguarda aprovação. Os prazos, contatos e alternativas de atendimento serão configuração de cada prefeitura. O valor curto do protótipo não é um SLA operacional proposto, e o aviso simulado não confirma que um órgão externo recebeu ou assumiu o atendimento.
 
-No painel de qualquer ocorrência com `gravidade===3` (alta) e ainda não resolvida, aparece uma caixa vermelha com links `tel:192` (SAMU), `tel:193` (Bombeiros) e `tel:199` (Defesa Civil) — como é um site normal fora de qualquer sandbox de artifact, esses links de fato abrem o discador no celular. Tem um botão "Marcar que já acionei um serviço oficial" que pede (via `prompt()`) qual serviço foi chamado e grava `o.acionamentoOficial = {servico, quando}`, registrado também no log de auditoria.
+### 5bis.5 — Histórico e cadeia de auditoria local
+
+O módulo conserva a cadeia de hashes das entradas (`ts`, `ator`, `acao`, `detalhe`, `prev`, `hash`) e a função `auditPush()`. A gravação precisa ser sequencial para que duas ações próximas não usem acidentalmente o mesmo hash anterior. Chegadas, términos, acionamentos e edições relevantes alimentam esse histórico automaticamente.
+
+O botão de verificar integridade recalcula a cadeia; a simulação de adulteração continua disponível para demonstrar o efeito de alterar uma entrada sem recalcular os hashes. A interface deve descrever esse teste como verificação local, sem afirmar que o navegador torna o histórico imutável.
+
+O cliente pode alterar dados e recalcular toda a cadeia. Na implementação real, o registro deve ser preservado no servidor e protegido de forma adequada. O voluntário não precisa preencher um relatório para produzir a trilha do atendimento.
+
+### 5bis.6 — Exibição de fotos e dados de demonstração
+
+O registro opcional de fotos mantém a escolha “Permitir que o morador veja estas fotos na página pública de status”, desmarcada por padrão. `o.relatorio.fotosPublicas` controla a exibição na visão pública. A ausência de fotos não impede término, relatório consolidado ou reconhecimento.
+
+Isso é uma demonstração de apresentação, não proteção de arquivos: o protótipo carrega dados no cliente. Textos antigos sobre guardar fotos por 90 dias não implementam exclusão automática. A implantação deverá definir finalidade, acesso, retenção e descarte de cada tipo de dado; não transformar um prazo escrito na interface em promessa de funcionalidade.
+
+### 5bis.7 — Página pública de status (visão simulada)
+
+A rota `#status` esconde o painel interno e mostra a busca por protocolo, como `MA-10042`. A visão do morador apresenta tipo, zona e andamento, com fotos apenas quando existirem e estiverem marcadas para exibição. O link de demonstração permite voltar ao painel; na implantação real, o acompanhamento será entregue ao morador pelo canal correspondente.
+
+Essa separação é visual: os dados ainda estão no mesmo aplicativo do navegador. Não confundir o que a tela deixa de mostrar com segurança real. A implementação real precisará de uma projeção pública adequada e controle de acesso ao acompanhamento individual.
+
+### 5bis.8 — Encaminhamento para equipes e serviços competentes
+
+O painel conserva os contatos de emergência e a possibilidade de registrar que um serviço foi acionado. Um link `tel:` abre o discador quando suportado; uma anotação manual registra o que foi informado. Nenhum dos dois comprova despacho ou atendimento pelo serviço externo.
+
+Na revisão, os guards encaminham os tipos de risco incompatíveis com voluntários comuns para a equipe competente de demonstração. A interface pode simular chegada e término dessa equipe, deixando clara a origem simulada. O responsável regional recebe aviso sem aprovar cada etapa. Na implantação real, contatos e integrações precisam corresponder à cobertura e às competências cadastradas de cada município.
 
 ### 5bis.9 — Alertas meteorológicos e pré-ativação ("o cérebro") (implementado)
 
-Este foi pedido separadamente pela Alden como a peça central: saber com quem a prefeitura pode contar *antes* da crise, não só depois que a ocorrência chega. Antes de implementar, foi feita uma verificação: **não existe hoje um endpoint público e documentado do INMET para avisos ativos.** Nenhuma integração real foi feita — ver seção 6 (fontes reais) antes de tentar conectar isso a um provedor de verdade.
+Este módulo atende ao objetivo de saber com quem a prefeitura pode contar *antes* da crise. Os alertas e as respostas usados aqui são simulados. A ausência de integração homologada neste protótipo não prova inexistência de fonte oficial disponível. A etapa real deverá verificar a documentação e as condições de acesso das fontes candidatas da seção 6.
 
 O que foi construído, simulado, seguindo o mesmo padrão usado para o WhatsApp no resto do protótipo:
+
 - Botão "🌦 Alertas & Prontidão" abre um modal com duas abas. **Alertas ativos**: lista os alertas emitidos (`alertasClimaticos`), cada um com fonte (INMET/SIMEPAR/Defesa Civil PR, sorteada), tipo, nível (amarelo/laranja/vermelho), zonas afetadas e janela de horas; um botão "🔔 Simular novo alerta" gera um novo.
 - Ao gerar um alerta, `dispararPreAtivacao(alerta)` roda a parte que importa: para cada funcionário e colaborador das zonas afetadas, registra um status `"pendente"` em `prontidao[alertaId][pessoaId]`, injeta uma mensagem no chat interno dessa pessoa perguntando se ela estará disponível, e depois de 3 a 12 segundos (simulando o tempo real de alguém responder um WhatsApp) sorteia uma resposta: confirmado (55%), indisponível (27%) ou sem resposta (18%).
 - Aba **Prontidão por zona** mostra, para cada zona com alerta ativo, uma barra de progresso (confirmados em verde, indisponíveis em vermelho, sem resposta em cinza) e a lista de pessoas com seus status — essa é a resposta direta a "saber com quem podemos contar antes da crise".
 - Zonas com alerta em vigor (`zonasComAlertaAtivo()`, calculado por `emitidoEm + janelaHoras`) ficam marcadas no mapa com a borda laranja tremulante em vez da amarela padrão, e com um ícone 🌦 na lista de zonas da sidebar.
 
-### 5bis.10 — Relatório pós-evento analítico (implementado)
+### 5bis.10 — Relatório pós-evento analítico
 
-Botão "📊 Relatório do evento" na sidebar (distinto do relatório por ocorrência da seção 4.5, que é operacional). Agrega: total de ocorrências, resolvidas, ainda abertas, tempo médio geral, total de colaboradores cadastrados, e o percentual de prontidão confirmada somando todas as respostas registradas em `prontidao` (seção 5bis.9) — ligando o antes (prontidão) com o depois (desempenho real). Tem uma tabela de desempenho por zona (total/resolvidas/abertas/tempo médio) e um ranking dos colaboradores que mais foram mobilizados em ocorrências resolvidas (conta aparições em `voluntariosProx`), que é a base de dados para o reconhecimento oficial da prefeitura. Botão "🖨 Imprimir / salvar PDF" chama `window.print()` com uma folha `@media print` dedicada que esconde todo o resto da página e imprime só o relatório.
+O relatório consolidado permanece no botão “Relatório do evento”, separado dos anexos opcionais de cada ocorrência. Ele agrega ocorrências totais, resolvidas e abertas, tempos registrados, colaboradores cadastrados e prontidão, além do resumo por zona.
+
+Contar separadamente convites enviados, chegadas e participações concluídas. `voluntariosProx` sozinho não informa quantas pessoas compareceram. O reconhecimento usa os registros já enviados, sem avaliação de qualidade, comprovante adicional ou competição por rapidez. Dados de prontidão e participação são indicadores da simulação, sem alegação de efeito causal ou atendimento real.
+
+“Imprimir / salvar PDF” continua usando `window.print()` e a folha `@media print` dedicada. Preservar essa exportação e seus resumos; novas regras de cálculo devem ser refletidas nos rótulos das tabelas.
 
 ## 5ter. Cadastro conversacional de voluntário via WhatsApp (implementado)
 
-O botão "📲 Simular cadastro via WhatsApp" não gera mais um voluntário aleatório instantâneo; abre um modal de chat que reproduz, pergunta por pergunta, o fluxo real que a Alden especificou para o cadastro por WhatsApp. É uma máquina de estados simples (`cadastroPassos`, `cadastroState`, `cadastroResponder`) que valida cada resposta antes de avançar.
+O botão "📲 Simular cadastro via WhatsApp" não gera mais um voluntário aleatório instantâneo; abre um modal de chat que reproduz, pergunta por pergunta, o fluxo de cadastro especificado por Alden para o cadastro por WhatsApp. É uma máquina de estados simples (`cadastroPassos`, `cadastroState`, `cadastroResponder`) que valida cada resposta antes de avançar.
 
 Perguntas, na ordem:
+
 1. **Nome e sobrenome** (texto livre).
 2. **CPF** — validado de verdade com o algoritmo de dígito verificador (`validaCPF`), não só o formato; se o CPF não bate, a conversa pede de novo antes de avançar.
 3. **Endereço** (texto livre, guardado como está — sem geocodificação real).
 4. **Zona** — lista numerada das 6 zonas, a pessoa escolhe pelo número (continua a convenção "zona" da seção 2; isso também resolve a zona de forma confiável, já que geocodificar o endereço de texto livre não é viável neste protótipo).
 5. **Como pode contribuir** — lista numerada de 10 opções (`tiposContribuicao`: motosserra, caminhão/transporte de carga, transporte de pessoas, mão de obra, comida, roupas/cobertores, gerador, resgate de animais, primeiros socorros, abrigo temporário); aceita múltipla escolha digitando os números separados por vírgula (ex.: `1,4,6`), exatamente como pedido.
-6. **Preferência de alerta** — antes do evento, durante, só depois, ou todas as fases (`alertaPreferencia`). Hoje esse campo é só guardado; ainda não há lógica que filtra quem recebe aviso de acordo com essa preferência (ver limitação abaixo).
-7. **Disposição para outra zona** — só a própria zona ou qualquer zona de Maringá (`disponibilidadeZona`). Isso não é decorativo: `gerarOcorrencia()` agora usa esse campo — quando uma zona tem menos de 4 colaboradores cadastrados, a mobilização busca também voluntários de outras zonas que marcaram "qualquer zona", ordenados pela distância real até a ocorrência.
+6. **Preferência de alerta** — antes do evento, durante, só depois, ou todas as fases (`alertaPreferencia`). O núcleo de acionamento deve respeitar a fase compatível; o comportamento de pré-ativação também precisa ser conferido no checklist da revisão.
+7. **Disposição para outra zona** — só a própria zona ou outras zonas da mesma prefeitura (`disponibilidadeZona`). O acionamento respeita essa preferência ao buscar pessoas compatíveis e disponíveis, ordenadas pela distância calculada. Não vincular recursos de outra prefeitura apenas por estarem próximos.
 8. **Veículo próprio** — texto livre ou "não". Se a pessoa tem veículo, uma pergunta extra aparece:
-9. **Reembolso de combustível** — só perguntado se a pessoa disse que tem veículo; sim (reembolso) ou não (doação do combustível), espelhando a regra original da Alden ("se o dono pede reembolso, a prefeitura repõe; se não pede, vira doação").
-10. **Consentimento LGPD** — pergunta obrigatória antes de salvar qualquer dado; se a pessoa não concorda, o cadastro é descartado e nada é salvo (nem nome, nem CPF). Isso é novo em relação ao que foi pedido, acrescentado porque CPF é dado pessoal sensível sob a LGPD e nenhum outro lugar do protótipo até agora coletava um identificador real de pessoa.
+9. **Reembolso de combustível** — só perguntado se a pessoa disse que tem veículo; sim (reembolso) ou não (doação do combustível), espelhando a regra original de Alden ("se o dono pede reembolso, a prefeitura repõe; se não pede, vira doação").
+10. **Confirmação do cadastro e preferência de uso dos dados** — preserva a etapa de confirmação existente no protótipo. A recusa impede concluir o cadastro; não afirmar que todo conteúdo digitado foi apagado da conversa ou do navegador sem implementar e verificar isso. As finalidades, bases legais e informações necessárias para o cadastro real serão definidas na implantação. Essa etapa de preparação não reaparece a cada ajuda, chegada ou término.
 
-Ao final, o sistema calcula `itensQueFaltamNaZona(zona)` (nova função: compara quantos colaboradores daquela zona já oferecem cada tipo essencial — `itensEssenciaisZona`, com mínimos definidos por tipo — contra o mínimo desejado) e manda uma mensagem de encerramento com: confirmação do cadastro, nome e telefone do responsável e do coordenador da zona, e o que está faltando na zona com um convite para encaminhar o número para outra pessoa que possa cobrir aquilo. Isso é a "sugestão dinâmica" pedida. O mesmo cálculo de falta aparece em dois outros lugares para ficar visível sem precisar reabrir o cadastro: na faixa superior quando uma zona está selecionada (`updateZoneStrip`) e na aba Colaboradores da Administração, que agora abre com um resumo por zona antes da tabela de pessoas.
+Ao final, o sistema calcula `itensQueFaltamNaZona(zona)` (função que compara quantos colaboradores daquela zona já oferecem cada tipo essencial — `itensEssenciaisZona`, com mínimos definidos por tipo — contra o mínimo desejado) e manda uma mensagem de encerramento com: confirmação do cadastro, nome e telefone do responsável e do coordenador da zona, e o que está faltando na zona com um convite para encaminhar o número para outra pessoa que possa cobrir aquilo. Isso é a "sugestão dinâmica" pedida. O mesmo cálculo de falta aparece em dois outros lugares para ficar visível sem precisar reabrir o cadastro: na faixa superior quando uma zona está selecionada (`updateZoneStrip`) e na aba Colaboradores da Administração, que agora abre com um resumo por zona antes da tabela de pessoas.
 
-Dados guardados por voluntário (campos novos no objeto, em `voluntarios[]`): `cpf`, `endereco`, `contribuicoes` (array de tipos), `alertaPreferencia`, `disponibilidadeZona`, `temVeiculo`, `tipoVeiculo`, `aceitaReembolso`, `consentimentoLGPD`, `cadastradoEm`. O CPF nunca aparece em texto puro na interface — toda exibição usa `maskCPF()` (mostra só os 3 dígitos do meio e os 2 finais, ex. `***.***.456-78`), inclusive na aba de Administração.
+Dados do cadastro em `voluntarios[]`: `cpf`, `endereco`, `contribuicoes`, `alertaPreferencia`, `disponibilidadeZona`, `temVeiculo`, `tipoVeiculo`, `aceitaReembolso`, `consentimentoLGPD` e `cadastradoEm`, além do contexto de prefeitura usado na revisão. A tabela administrativa usa `maskCPF()`. A conversa pode conter o texto digitado; mascarar uma tabela não elimina os dados do cliente. Usar somente dados fictícios para revisar esse cadastro.
 
-Os voluntários "de histórico" (gerados automaticamente ao carregar a página, para o protótipo não abrir vazio) ganharam os mesmos campos com valores sintéticos neutros (`cpf:null`, `endereco:null`, `consentimentoLGPD:true`) só para o resto do código não quebrar ao ler esses campos — eles não passaram pelo fluxo de cadastro de verdade, e isso é intencional: não faria sentido inventar CPF de gente que não existe.
+Os voluntários de demonstração (gerados na primeira inicialização de um contexto sem estado salvo, para o protótipo não abrir vazio) ganharam os mesmos campos com valores sintéticos neutros (`cpf:null`, `endereco:null`, `consentimentoLGPD:true`) só para o resto do código não quebrar ao ler esses campos — eles não passaram pelo fluxo de cadastro de verdade, e isso é intencional: não faria sentido inventar CPF de gente que não existe.
 
 **Limitações para quem for evoluir isso:**
-- A preferência de alerta (`alertaPreferencia`) é coletada mas não filtra nada ainda — hoje o módulo de pré-ativação (seção 5bis.9) avisa todo mundo da zona afetada por um alerta, independente da preferência escolhida no cadastro. Se isso importa, o ponto de entrada certo é dentro de `dispararPreAtivacao()`.
-- O CPF é validado matematicamente (dígito verificador) mas não é verificado contra nenhuma base real — dois CPFs matematicamente válidos e diferentes podem pertencer à mesma pessoa cadastrada duas vezes; não há deduplicação.
+
+- Conferir a preferência de alerta em todos os pontos de entrada: acionamento de ocorrência e `dispararPreAtivacao()`. A aplicação em um desses caminhos não comprova a aplicação no outro.
+- A validação de dígitos do CPF não confirma identidade ou titularidade. A existência de um cadastro não comprova competência para uma atividade especializada; esse requisito pertence ao guard configurado para o tipo de recurso.
 - `itensEssenciaisZona` tem valores de mínimo escolhidos de forma razoável mas arbitrária (não vieram de nenhum padrão oficial de defesa civil); antes de qualquer uso real, isso merece revisão com quem entende a operação de verdade.
 
-## 6. Fontes reais para integração futura de alertas meteorológicos (pesquisado nesta sessão, não implementado)
+## 6. Fontes candidatas para integração futura de alertas
 
-Antes de simular o módulo da seção 5bis.9, foi feita uma busca para não inventar um endpoint que não existe. Resultado: não há documentação oficial de um endpoint público do INMET para avisos ativos. Os caminhos reais identificados, cada um com uma ressalva:
+O protótipo não tem uma fonte de alertas homologada. As opções já relacionadas neste guia permanecem como candidatas a avaliar na implantação. Confirmar cobertura, atualização, formato, licença, disponibilidade e condições de acesso na documentação oficial antes de conectar o produto.
 
-- **Google Weather API / Public Alerts** — endpoint que devolve alertas para uma latitude/longitude, agregando várias fontes incluindo INMET e o CENAD (Centro Nacional de Gerenciamento de Riscos e Desastres). Exige chave de API própria do Google e é um intermediário (não é o INMET direto); ver [documentação em português](https://developers.google.com/maps/documentation/weather/weather-alerts?hl=pt-br).
-- **INMET-API-REST** (projeto de terceiros no GitHub, não oficial) — [repositório](https://github.com/Felipeandradee/INMET-API-REST). A busca não trouxe detalhe se ele cobre avisos/alertas ou só dados de estações; teria que ser inspecionado diretamente antes de confiar nele para algo crítico.
-- **Portal oficial do INMET** (`portal.inmet.gov.br`) — não foi possível confirmar nesta busca se há documentação de API de avisos ali; é o primeiro lugar a checar antes de qualquer integração, em vez de usar um endpoint não documentado encontrado por fora.
-- **SIMEPAR** (Sistema Meteorológico do Paraná) — é a fonte institucional mais relevante para Maringá especificamente, mas historicamente opera por convênio com prefeituras/órgãos públicos, não como API pública aberta para qualquer desenvolvedor. Precisa de contato institucional direto, não só leitura de documentação.
-- **CEMADEN** (Centro Nacional de Monitoramento e Alertas de Desastres Naturais) — cobre risco geo-hidrológico (deslizamento, alagamento), mais focado em monitoramento de risco do que previsão meteorológica; também tende a ser acesso institucional, não API pública simples.
+| Candidato | O que verificar |
+|---|---|
+| [Google Weather API — alertas](https://developers.google.com/maps/documentation/weather/weather-alerts?hl=pt-br) | Cobertura útil por município, fontes, atribuição, credenciais e custos |
+| Portal e catálogos oficiais do INMET | Interfaces, feeds e formatos oficialmente disponíveis e adequados ao caso de uso |
+| SIMEPAR | Dados e condições institucionais ou técnicas para as prefeituras atendidas |
+| CEMADEN | Dados de risco relevantes, cobertura territorial e condições de integração |
+| [INMET-API-REST, projeto de terceiros](https://github.com/Felipeandradee/INMET-API-REST) | Escopo, manutenção e origem dos dados; não apresentar como API oficial nem assumir adequação operacional |
 
-Recomendação: antes de substituir a simulação da seção 5bis.9 por uma integração real, (1) checar a documentação oficial do INMET diretamente no portal, (2) se não houver nada público e direto, avaliar a Google Weather API como ponte (mais rápida de integrar, mas com custo de API key e dependência de terceiro) versus abrir contato institucional com o SIMEPAR (mais lento, mas é a fonte certa para uma prefeitura do Paraná). Essa decisão depende de prazo e de quem na prefeitura consegue abrir esse contato — não é uma decisão só técnica.
+A etapa de pesquisa deverá documentar o que foi efetivamente verificado. Falha em acessar uma página ou ausência de integração no repositório não demonstram que uma fonte oficial inexiste. Até a homologação, os nomes e mensagens de fontes exibidos no protótipo devem permanecer identificados como simulação.
 
-## 7. Como publicar (processo já em uso, manter)
+## 7. Como revisar e publicar no mesmo projeto
 
-```
-cd ~/maringa-alerta
-git add -A
-git commit -m "mensagem clara do que mudou"
+O projeto continua no repositório `AldenQuesada/maringa-alerta`, com o endereço https://aldenquesada.github.io/maringa-alerta/. Não criar outro site para substituir este protótipo.
+
+Preparar alterações em uma branch de trabalho, comparar com a base atual e preservar mudanças recentes, inclusive as do service worker. A revisão deve mostrar quais fluxos mudaram e quais verificações foram executadas. A correção da entrada será integrada ao protótipo ao finalizar a verificação. Quando a revisão chegar à branch publicada, o GitHub Pages atualizará o mesmo endereço; acompanhar o resultado do deploy antes de afirmar que a atualização está no ar.
+
+### Verificações técnicas desta revisão
+
+- Verificar a sintaxe do JavaScript inline de `index.html`, de `fluxo-ajuda.js`, de `entrada-perfil.js` e de `sw.js`.
+- Executar os testes do núcleo e do acionamento com `node --test tests/*.test.cjs`.
+- Percorrer o roteiro da seção 9 e registrar os resultados realmente obtidos, incluindo limites da verificação.
+- Conferir que o service worker usa o cache v4 e inclui `entrada-perfil.js` e `entrada-perfil.css`, além dos demais arquivos do shell, sem devolver HTML como fallback de JavaScript ou CSS.
+
+O projeto permanece sem etapa de build. O fluxo Git já utilizado continua válido, com os arquivos efetivamente alterados selecionados para commit:
+
+```bash
+git add index.html fluxo-ajuda.js prototipo.css entrada-perfil.js entrada-perfil.css sw.js GUIA_IMPLEMENTACAO.md tests/
+git commit -m "Simplificar o fluxo de ajuda no protótipo"
 git push
 ```
 
-O GitHub Pages já está ativo no repositório, branch `main`, raiz `/`. Qualquer push em `main` atualiza https://aldenquesada.github.io/maringa-alerta/ automaticamente em 1 a 2 minutos. Não é necessário repetir a configuração de Pages; ela já foi feita via `gh api repos/AldenQuesada/maringa-alerta/pages`.
-
-Antes de cada push, verificar a sintaxe do JavaScript inline (por exemplo, extraindo o bloco `<script>...</script>` e rodando `node --check` nele, como já foi feito nesta sessão) para não publicar uma página quebrada.
+Na branch de trabalho, `git push` envia a revisão; isso não equivale a publicar a branch principal. Evitar sobrescrever mudanças de outra pessoa ou afirmar que um teste passou apenas porque a página abriu.
 
 ## 8. O que não fazer
 
@@ -240,7 +332,82 @@ Antes de cada push, verificar a sintaxe do JavaScript inline (por exemplo, extra
 - Não fragmentar o projeto em build tools (webpack, bundlers, frameworks de frontend) sem necessidade comprovada; o ponto forte do protótipo atual é não precisar de nada além de um navegador e um `git push`.
 - Não inventar dados de funcionários públicos reais. Todos os nomes de responsáveis/substitutos/coordenadores no protótipo são fictícios, criados para fins de demonstração; isso deve continuar assim até que a prefeitura forneça uma lista real de servidores para substituir.
 - Não remover a separação entre a geração de dados simulados (toda a lógica de `gerarOcorrencia`, `gerarVoluntarios`, pings de WhatsApp) e a lógica de UI; quando a integração real com WhatsApp/backend acontecer, essa separação vai facilitar trocar "dados simulados" por "dados reais vindos de uma API" sem reescrever a interface inteira.
-- Não apresentar o controle de acesso por papel (seção 5bis.2) nem o log de auditoria (seção 5bis.5) como segurança real em qualquer material para a prefeitura ou para fora deste repositório. Os dois são simulações de front-end, fáceis de burlar por qualquer pessoa com o DevTools do navegador aberto. Isso é adequado para demonstrar a ideia, não para proteger dados reais de servidores ou moradores.
+- Não apresentar perfis, cadeia local de auditoria ou troca de prefeitura do protótipo como segurança real. São demonstrações de comportamento no navegador; a proteção efetiva será implementada no backend.
 - Não inventar nem supor que existe uma integração real com INMET/SIMEPAR/CEMADEN (seção 5bis.9). O que existe hoje é simulado; antes de conectar a uma fonte real, confirme a documentação oficial da fonte escolhida (não um endpoint encontrado sem fonte primária) e esteja preparado para precisar de acordo institucional, não de uma chamada HTTP simples.
-- Não usar CPF real de ninguém para testar o cadastro conversacional (seção 5ter), nem salvar CPFs de teste em qualquer lugar fora deste navegador local. O protótipo valida o formato matematicamente mas não tem nenhuma proteção de segurança real para dado sensível (ele fica em `localStorage`/memória do navegador, sem criptografia); antes de qualquer uso real, CPF precisa de backend com criptografia em repouso e controle de acesso de verdade, não só o `maskCPF()` que hoje só esconde na tela.
-- Ao editar o arquivo inline `<script>` deste `index.html` (ele tem mais de 2000 linhas e vários template literals aninhados, principalmente na página pública de status e no relatório do evento), rode uma verificação de sintaxe antes de publicar — por exemplo, extrair o conteúdo das tags `<script>` para um arquivo `.js` separado e rodar `node --check` nele. Um backtick de template literal fora do lugar já quebrou essa página uma vez nesta sessão (ver histórico de commits) e só foi pego por esse tipo de verificação.
+- Não usar CPF ou outros dados pessoais reais para testar o cadastro. A máscara na tela e o armazenamento local não substituem os controles que serão definidos para o produto real.
+- Ao editar o arquivo inline `<script>` deste `index.html` (ele tem mais de 2000 linhas e vários template literals aninhados, principalmente na página pública de status e no relatório do evento), rode uma verificação de sintaxe antes de publicar — por exemplo, extrair o conteúdo das tags `<script>` para um arquivo `.js` separado e rodar `node --check` nele. O histórico do projeto contém uma falha causada por um backtick de template literal fora do lugar; preservar essa verificação antes de publicar.
+
+## 9. Roteiro de revisão do protótipo
+
+Usar dados fictícios. As caixas abaixo são critérios a verificar, não resultados já obtidos.
+
+### Teste da entrada e troca de perfil
+
+1. Abrir a janela em desktop e conferir título, textos, opções de perfil e seleção de zona legíveis, com largura máxima de 640 px.
+2. Repetir com larguras de **390 px** e **320 px**. Conferir o empilhamento da zona e de sua ação, ausência de corte horizontal e acesso aos controles por rolagem em altura baixa.
+3. Percorrer os controles com Tab e Shift+Tab, observar o foco visível e fechar por Escape. Conferir também o botão X e a ação de cancelar.
+4. Fechar uma primeira entrada sem escolha e verificar a continuação em modo visualização. Depois escolher um perfil, usar **Trocar perfil** e cancelar: o perfil já selecionado deve permanecer.
+5. Escolher outro perfil, voltar ao painel e recarregar. Conferir a sessão local da prefeitura ativa; alternar de prefeitura e voltar não deve misturar os perfis dos contextos.
+
+### Teste do fluxo principal
+
+1. Abrir a configuração de Maringá e manter a geração aleatória pausada para acompanhar um caso sem interferência.
+2. Criar uma ocorrência de teste confirmada, como distribuição de água e alimentos. Ver os convites compatíveis e o aviso automático ao responsável da zona, sem aprovação intermediária.
+3. Abrir o WhatsApp simulado de uma pessoa convidada e confirmar **Cheguei**. Conferir a presença individual, o horário e o marcador da ocorrência em atendimento.
+4. Confirmar **Terminei** para essa pessoa. Conferir a liberação daquela participação e, quando existir, o convite para outra ajuda. Se houver outra pessoa ou necessidade em andamento, a ocorrência original deve continuar aberta.
+5. Concluir as demais participações necessárias. Acompanhar o encerramento automático e o agradecimento, sem foto, relatório ou nota obrigatória. Depois, abrir o histórico e experimentar os anexos opcionais.
+6. Recarregar a página e verificar a continuidade. Alternar para Município Exemplo, criar um registro de teste e voltar a Maringá para conferir a separação local dos contextos.
+
+### Critérios para considerar esta revisão pronta para avaliação
+
+- [ ] O fluxo principal funciona apenas com chegada e término, sem aceite prévio obrigatório.
+- [ ] Uma ocorrência confirmada gera convites e aviso regional automaticamente; convite enviado e presença aparecem como estados diferentes.
+- [ ] A mesma pessoa não recebe alocações incompatíveis simultâneas, e repetir uma confirmação não duplica seu efeito.
+- [ ] O término individual preserva o trabalho das demais pessoas e as pendências da ocorrência.
+- [ ] Risco incompatível com voluntário comum segue o encaminhamento especializado de demonstração.
+- [ ] Ocorrências em atendimento continuam visíveis ao filtrar zonas; encerradas continuam consultáveis no histórico.
+- [ ] Fotos, relatório, veículo, combustível, cadastros, equipes, alertas, prontidão, chat, fila, mapa e status público continuam acessíveis.
+- [ ] O menu abre e fecha no celular; os botões principais podem ser usados por toque e teclado.
+- [ ] A janela de entrada é legível em desktop, 390 px e 320 px; todos os controles continuam acessíveis em altura baixa.
+- [ ] Tab e Shift+Tab percorrem os controles com foco visível; X, Escape e cancelar fecham sem alterar o perfil atual.
+- [ ] Fechar a primeira entrada mantém o modo visualização; trocar, voltar e recarregar preservam a sessão da prefeitura correspondente.
+- [ ] Recarregar preserva a operação, participações e conversas; trocar de prefeitura mantém os registros no contexto correspondente.
+- [ ] As preferências de fase e zona são respeitadas nos pontos de acionamento e pré-ativação.
+- [ ] As regras do núcleo passam nos testes, e os resultados da revisão de interface ficam registrados.
+- [ ] O usuário consegue percorrer e ajustar a experiência antes da construção da versão real.
+
+### O que pertence à implementação real
+
+A revisão do protótipo não equivale à conclusão destes itens:
+
+| Área | Implementação posterior necessária |
+|---|---|
+| Multi-tenancy real | Identidade, autorização no servidor e isolamento de banco, arquivos, filas e demais superfícies por prefeitura |
+| Coordenação real | Guards persistidos no banco, reservas transacionais, processamento idempotente e dados compartilhados entre dispositivos |
+| Comunicação | WhatsApp oficial conectado, recebimento de mensagens e confirmações por webhooks, rastreamento e contingência |
+| Dados operacionais | Responsáveis, contatos, geometrias, capacidades e fontes oficiais definidos com cada município |
+| Continuidade e operação | Persistência durável, sincronização, restauração, observabilidade e validação operacional do escopo implantado |
+
+A implementação real deve conservar os mesmos dois passos de quem ajuda. A complexidade necessária à operação fica nas regras e nos serviços do sistema, sem acrescentar burocracia ao voluntário.
+
+
+### Verificações já executadas no fluxo de ajuda
+
+- Os 16 testes passaram com `node --test tests/*.test.cjs`. Cobrem confirmação prévia, compatibilidade, preferência/zona, duas ocorrências usando os mesmos candidatos, chegada/término repetidos, término parcial, próximo convite, insuficiência de recursos, pendência técnica, encaminhamento especializado e contextos municipais distintos. A regressão de capacidade parcial foi verificada: o adaptador aciona a equipe uma única vez quando faltam voluntários, e a conclusão respeita ambas as ordens de término entre equipe e voluntário.
+- A sintaxe do JavaScript inline e dos arquivos JavaScript foi conferida, e `git diff --check` não encontrou erros de espaços no diff.
+- Na prévia local, uma ocorrência de distribuição recebeu dois convites e aviso regional. O primeiro término não encerrou a segunda participação; o segundo concluiu a ocorrência sem fotos nem aprovação. Após recarregar, a consulta pública encontrou o mesmo protocolo resolvido.
+- O contexto Município Exemplo não encontrou o protocolo de Maringá. Ao voltar, a simulação de Maringá foi recuperada.
+- O encaminhamento especializado foi testado com deslizamento: nenhum voluntário comum foi convocado; chegada e término da equipe de demonstração encerraram o atendimento.
+- O menu e a conversa foram percorridos em uma prévia com largura de 390 px. Isso verifica o layout responsivo, sem substituir testes em aparelhos físicos.
+- O provedor de tiles exibiu bloqueio de acesso na prévia de navegador usada para revisão. Marcadores e operações do painel funcionaram; o carregamento do fundo cartográfico nessa prévia ficou limitado. O provedor existente foi preservado. Esse resultado não comprova indisponibilidade do endereço publicado para outros navegadores.
+
+Os itens do checklist continuam sendo critérios de revisão do conjunto. Não interpretar os testes acima como homologação de produção, validação completa de todos os módulos, teste de isolamento real entre tenants ou confirmação da publicação no GitHub Pages.
+
+### Verificação da correção de entrada
+
+- No desktop, a janela mediu 640 px de largura e aproximadamente 631 px de altura, com título de 26 px e nomes dos perfis de 17 px.
+- Fechar a primeira entrada abriu o painel em visualização. A escolha de administrador liberou o menu correspondente. A escolha de responsável por Centro Cívico permaneceu após recarregar.
+- Reabrir e cancelar com Escape preservou o perfil e devolveu o foco a Trocar perfil. Tab e Shift+Tab permaneceram no diálogo. A ida à consulta pública e o retorno conservaram a sessão.
+- Em largura de 390 px, a janela mediu 366 px de largura, ficou inteira na tela e empilhou região e ação. A escolha de administrador fechou a janela e manteve o menu móvel utilizável.
+- Em uma prévia de 320 × 568 px, a janela mediu 296 × 544 px, sem transbordamento horizontal, com rolagem interna e botão de fechar dentro da tela. A última interação dessa prévia foi interrompida por indisponibilidade da ferramenta de navegador; não equivale a teste em aparelho físico.
+- Os resultados acima são da prévia local. A publicação deve ser confirmada separadamente pelo deploy do GitHub Pages.
