@@ -62,7 +62,7 @@ test("o controlador seleciona o bairro por nome e aceita deep links",()=>{
  assert.match(src,/name="selecionar-bairro"/);
  assert.match(src,/focus\(select.value\)/);
  assert.match(src,/new URLSearchParams\(location.search\).get\("bairro"\)/);
- assert.match(src,/GeoMaringá\/ Prefeitura de Maringá/);
+ assert.ok(src.includes("GeoMaringá / Prefeitura de Maringá"));
 });
 test("carregador usa IBGE preferencialmente quando GeoMaringá não responde",async()=>{
  const source=read("dados-territoriais/camadas-mapas.js");
