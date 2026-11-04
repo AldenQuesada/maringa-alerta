@@ -331,6 +331,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 }
 </style>
 <link rel="stylesheet" href="prototipo.css">
+<link rel="stylesheet" href="entrada-perfil.css">
 </head>
 <body>
 <button id="menu-backdrop" class="menu-backdrop" aria-label="Fechar zonas e menus"></button>
@@ -437,21 +438,30 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   </div>
 </div>
 
-<div class="modal-overlay" id="role-overlay" hidden>
-  <div class="modal" id="role-modal" style="max-width:420px">
-    <div class="modal-head"><h2>Quem está acessando?</h2></div>
-    <div class="modal-body">
-      <div style="font-size:11.5px;color:var(--muted);margin-bottom:14px">Isto é uma simulação de controle de acesso para o protótipo — não é autenticação real. Escolha um papel para ver o sistema do ponto de vista dele.</div>
-      <div class="admin-new-form" style="flex-direction:column;align-items:stretch;gap:10px">
-        <button class="admin-btn primary" data-role="admin" style="padding:10px">⚙ Administrador geral (acesso total)</button>
-        <div style="display:flex;gap:8px">
-          <select id="role-zona" style="flex:1"></select>
-          <button class="admin-btn primary" data-role="responsavel" style="padding:10px;white-space:nowrap">👤 Responsável desta zona</button>
+<div class="modal-overlay entrada-overlay" id="role-overlay" hidden>
+  <section class="modal entrada-dialog" id="role-modal" role="dialog" aria-modal="true" aria-labelledby="entrada-title" aria-describedby="entrada-description" tabindex="-1">
+    <header class="entrada-head">
+      <div><div class="entrada-brand" id="entrada-municipio">MARINGÁ ALERTA</div><h2 id="entrada-title">Quem está entrando?</h2></div>
+      <button type="button" class="entrada-close" data-entry-close aria-label="Fechar e continuar no painel" title="Fechar e continuar">✕</button>
+    </header>
+    <div class="entrada-body">
+      <p id="entrada-description">Escolha como deseja acessar o painel.</p>
+      <div class="entrada-options">
+        <button type="button" class="entrada-choice" data-entry-role="admin">
+          <span class="entrada-icon" aria-hidden="true">⚙</span><span><strong>Administrador geral</strong><small>Acompanhar todas as regiões e gerenciar as equipes.</small></span><span class="entrada-arrow" aria-hidden="true">→</span>
+        </button>
+        <div class="entrada-region">
+          <div class="entrada-region-title"><span class="entrada-icon" aria-hidden="true">👤</span><span><strong>Responsável regional</strong><small>Acompanhar as ocorrências da sua região.</small></span></div>
+          <label for="role-zona">Sua região</label>
+          <div class="entrada-region-controls"><select id="role-zona" data-entry-zone></select><button type="button" class="entrada-enter" data-entry-role="responsavel">Entrar como responsável</button></div>
         </div>
-        <button class="admin-btn" data-role="visualizacao" style="padding:10px">👁 Modo visualização (sem edição)</button>
+        <button type="button" class="entrada-choice" data-entry-role="visualizacao">
+          <span class="entrada-icon" aria-hidden="true">◉</span><span><strong>Apenas visualizar</strong><small>Explorar o mapa e acompanhar os atendimentos.</small></span><span class="entrada-arrow" aria-hidden="true">→</span>
+        </button>
       </div>
     </div>
-  </div>
+    <footer class="entrada-footer">Ambiente de demonstração · dados simulados</footer>
+  </section>
 </div>
 
 <div id="status-view" hidden>
@@ -563,6 +573,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   </section>
 </div>
 <script src="fluxo-ajuda.js"></script>
+<script src="entrada-perfil.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <script>
@@ -771,7 +782,8 @@ let ocorrencias = [], voluntarios = [], idCounter = 1;
 let activeZone = null; // null = Todos
 let currentRole = null; // controle de acesso simulado; populado logo abaixo, antes do roteamento por hash
 try{ currentRole = JSON.parse(sessionStorage.getItem(storageKey('role')) || 'null'); }catch(e){ currentRole = null; }
-if(!currentRole) currentRole={tipo:'admin'};
+if(!currentRole || !['admin','responsavel','visualizacao'].includes(currentRole.tipo) || (currentRole.tipo==='responsavel'&&!bairros.some(b=>b.nome===currentRole.zona))) currentRole=null;
+let entradaPerfil=null;
 
 /* ---------- mapa ---------- */
 const map = L.map('map', { zoomControl:true, attributionControl:true }).setView(MARINGA_CENTER, 13);
@@ -2016,7 +2028,10 @@ function applyRoute(){
   document.getElementById('app-view').hidden = isStatus;
   document.getElementById('status-view').hidden = !isStatus;
   if(isStatus) document.getElementById('status-resultado').innerHTML = '';
-  if(!isStatus && !currentRole) document.getElementById('role-overlay').hidden = false;
+  if(entradaPerfil){
+    if(isStatus)entradaPerfil.fechar();
+    else if(!currentRole)entradaPerfil.abrir(null);
+  }
 }
 window.addEventListener('hashchange', applyRoute);
 applyRoute();
@@ -2113,9 +2128,6 @@ function canAdmin(){ return !!currentRole && currentRole.tipo==='admin'; }
 function canActZone(zona){ return !!currentRole && (currentRole.tipo==='admin' || (currentRole.tipo==='responsavel' && currentRole.zona===zona)); }
 function isViewOnly(){ return !currentRole || currentRole.tipo==='visualizacao'; }
 
-const roleOverlay = document.getElementById('role-overlay');
-document.getElementById('role-zona').innerHTML = bairros.map(b=>`<option value="${escHtml(b.nome)}">${escHtml(b.nome)}</option>`).join('');
-
 function applyRolePermissions(){
   document.getElementById('open-audit').style.display = canAdmin() ? '' : 'none';
   document.getElementById('open-admin').style.display = isViewOnly() ? 'none' : '';
@@ -2123,22 +2135,37 @@ function applyRolePermissions(){
   const label = !currentRole ? '' : currentRole.tipo==='admin' ? 'Administrador geral'
     : currentRole.tipo==='responsavel' ? `Responsável · ${currentRole.zona}`
     : 'Modo visualização';
-  badge.innerHTML = currentRole ? `<span>👤 ${escHtml(label)}</span><a href="#" id="role-trocar">trocar</a>` : '';
+  badge.innerHTML = currentRole ? `<span>👤 ${escHtml(label)}</span><a href="#" id="role-trocar">Trocar perfil</a>` : '';
   const trocar = document.getElementById('role-trocar');
-  if(trocar) trocar.onclick = (e)=>{ e.preventDefault(); sessionStorage.removeItem(storageKey('role')); currentRole=null; roleOverlay.hidden=false; applyRolePermissions(); };
+  if(trocar) trocar.onclick = (e)=>{ e.preventDefault(); entradaPerfil.abrir(currentRole); };
 }
 
-document.querySelectorAll('#role-modal [data-role]').forEach(btn=>{
-  btn.onclick = ()=>{
-    const tipo = btn.dataset.role;
-    currentRole = tipo==='responsavel' ? { tipo, zona: document.getElementById('role-zona').value } : { tipo };
-    try{ sessionStorage.setItem(storageKey('role'), JSON.stringify(currentRole)); }catch(e){}
-    roleOverlay.hidden = true;
-    applyRolePermissions();
-  };
+function selecionarPerfilDemo(perfil){
+  currentRole=perfil;
+  try{sessionStorage.setItem(storageKey('role'),JSON.stringify(perfil));}catch(e){}
+  applyRolePermissions();
+  if(currentPanelOcId){const o=ocorrencias.find(x=>x.id===currentPanelOcId);if(o)openOcorrencia(o);}
+  if(!document.getElementById('admin-overlay').hidden){
+    if(isViewOnly())document.getElementById('admin-overlay').hidden=true;
+    else renderAdminBody();
+  }
+  if(!canAdmin())document.getElementById('audit-overlay').hidden=true;
+  queueMicrotask(()=>{
+    const menu=document.getElementById('mobile-menu');
+    const destino=menu.getClientRects().length?menu:document.getElementById('role-trocar');
+    destino?.focus({preventScroll:true});
+  });
+}
+
+document.getElementById('entrada-municipio').textContent=tenantConfig.marca;
+entradaPerfil=AlertaEntrada.criar({
+  overlay:document.getElementById('role-overlay'),
+  zonas:bairros.map(b=>b.nome),
+  onEscolher:selecionarPerfilDemo,
+  onFechar:()=>{if(!currentRole)selecionarPerfilDemo({tipo:'visualizacao'});}
 });
-if(!currentRole && location.hash!=='#status') roleOverlay.hidden = false;
 applyRolePermissions();
+applyRoute();
 
 document.getElementById('heat-toggle').onclick = (e)=>{
   heatOn = !heatOn;
@@ -2430,7 +2457,7 @@ function iniciarControlesDemo(){
   document.querySelectorAll('.sidebar-actions button,.sidebar-actions a').forEach(el=>el.addEventListener('click',fecharMenuMobile));
   document.addEventListener('keydown',e=>{
     if(e.key!=='Escape')return;
-    fecharMenuMobile();document.querySelectorAll('.modal-overlay:not([hidden])').forEach(el=>{el.hidden=true;});
+    fecharMenuMobile();document.querySelectorAll('.modal-overlay:not([hidden]):not(#role-overlay)').forEach(el=>{el.hidden=true;});
   });
   atualizarControlesDemo();
   window.addEventListener('beforeunload',salvarPrototipo);

@@ -1,6 +1,6 @@
 # Maringá Alerta — guia de implementação para o Codex
 
-Este documento acompanha a evolução do protótipo existente neste repositório. Ele preserva as funcionalidades e decisões anteriores e registra o fluxo simples definido por Alden para a próxima revisão. A interface continua em `index.html`, sem build step; as regras de ajuda ficam em `fluxo-ajuda.js` e o cache do aplicativo em `sw.js`. A publicação permanece no GitHub Pages do mesmo projeto.
+Este documento acompanha a evolução do protótipo existente neste repositório. Ele preserva as funcionalidades e decisões anteriores e registra o fluxo simples definido por Alden para a próxima revisão. A interface continua em `index.html`, sem build step; a entrada de perfil é um componente em `entrada-perfil.js` e `entrada-perfil.css`, as regras de ajuda ficam em `fluxo-ajuda.js` e o cache do aplicativo em `sw.js`. A publicação permanece no GitHub Pages do mesmo projeto.
 
 **Estado desta revisão:** protótipo em validação, com dados e WhatsApp simulados. O checklist da seção 9 define o que verificar; itens não assinalados não são resultados de testes. O endereço publicado só incorpora alterações depois que a revisão chega à branch usada pelo Pages e o deploy termina.
 
@@ -39,10 +39,26 @@ O projeto permanece simples e sem etapa de build:
 |---|---|
 | `index.html` | Interface, Leaflet, cadastros, painéis, adaptação do fluxo de ajuda, conversas e persistência local da demonstração |
 | `prototipo.css` | Ajustes de layout, controles da demonstração, menu móvel e conversa de chegada/término |
+| `entrada-perfil.js` | Componente reutilizável da janela de entrada e troca de perfil: interface, foco e eventos, sem armazenamento ou autenticação |
+| `entrada-perfil.css` | Estilos restritos ao componente de entrada, com tipografia legível e adaptação ao espaço disponível |
 | `fluxo-ajuda.js` | Regras de seleção, chegada, término, disponibilidade e prioridade; sem DOM, envio externo ou banco real |
 | `sw.js` | Cache do shell do aplicativo, com rede primeiro e fallback adequado ao tipo de recurso |
 | `tests/fluxo-ajuda.test.cjs` | Verificações do núcleo de regras em Node, incluindo concorrência lógica e repetição de ações |
 | `tests/integracao-fluxo.test.cjs` | Verificações do acionamento automático da equipe quando há voluntários insuficientes |
+
+### Contratos de reuso
+
+`AlertaEntrada.criar({ overlay, zonas, onEscolher, onFechar })` cria o componente de entrada e retorna:
+
+| Método | Responsabilidade |
+|---|---|
+| `abrir(perfilAtual)` | Abrir a janela com o contexto do perfil atual e gerenciar o foco da interface |
+| `fechar()` | Fechar a janela e cuidar do foco, sem gravar ou trocar o perfil por conta própria |
+| `definirZonas(zonas)` | Atualizar as opções de zona usadas pelo componente |
+
+O componente comunica a escolha e o fechamento pelos callbacks `onEscolher` e `onFechar`. Ele não conhece `localStorage`, `sessionStorage`, autenticação, backend ou a prefeitura ativa. `index.html` continua sendo o adaptador que fornece as zonas, aplica a escolha e mantém a sessão local por prefeitura. Fechar sem escolher preserva o perfil atual; na primeira entrada, o adaptador continua em modo visualização.
+
+`fluxo-ajuda.js` também permanece independente da UI: recebe os dados e aplica as regras de ajuda. A interface e as futuras integrações reutilizam essas regras, sem copiar lógica para os botões ou acoplar o núcleo ao componente de entrada.
 
 Dentro de `index.html`:
 
@@ -171,17 +187,21 @@ O botão “Fila de prioridade” mantém a lista de ocorrências abertas, inclu
 
 `calcPrioridade(o)` usa a regra do núcleo de ajuda. A responsabilidade pública, privada ou mista permanece visível para encaminhamento e organização, sem reduzir mecanicamente a prioridade de um risco grave em propriedade privada. O texto explicativo da fila deve acompanhar essa regra e não manter a fórmula antiga.
 
-### 5bis.2 — Controle de acesso por papel (simulado)
+### 5bis.2 — Entrada e troca de perfil (simuladas)
 
-A escolha de perfil permite revisar a interface como administrador, responsável de uma zona ou visualizador. Os controles administrativos e de atuação por zona continuam úteis para demonstrar a organização; não representam autenticação real.
+A janela “Quem está entrando?” permite revisar o protótipo como administrador, responsável de uma zona ou visualizador. Ela usa `entrada-perfil.js` e `entrada-perfil.css`, com o contrato da seção 3. A escolha continua sendo uma simulação de perfil, sem autenticação real.
 
-A hierarquia de perfis não deve criar uma fila de aprovações do atendimento. Acionamento, aviso regional e processamento das confirmações seguem as regras já configuradas. O voluntário não recebe pedidos de permissão a cada chegada ou término.
+O componente tem largura máxima de 640 px, textos e controles entre 14 e 17 px e título de 26 px. Seus estilos ficam restritos à própria janela. No celular, a seleção de zona e a ação correspondente se empilham; em telas baixas, a área interna permite rolagem para que todos os controles continuem acessíveis.
+
+O botão X, Escape e a ação de cancelar fecham a janela preservando o perfil atual. Se a pessoa fechar a primeira entrada sem escolher, o protótipo segue em modo visualização. O indicador **Trocar perfil** permite reabrir a janela. O adaptador em `index.html` mantém a sessão da prefeitura ativa e não deve apagá-la apenas para abrir a troca de perfil.
+
+A hierarquia de perfis não cria uma fila de aprovações do atendimento. Acionamento, aviso regional e processamento das confirmações seguem as regras já configuradas. O voluntário não recebe pedidos de permissão a cada chegada ou término.
 
 Como as regras atuais rodam no navegador, elas podem ser alteradas por quem controla o cliente. Na implantação real, identidade, autorização e isolamento por prefeitura serão conferidos no servidor em cada operação, sem aumentar os passos do voluntário.
 
 ### 5bis.3 — Modo offline / baixa conectividade (parcial)
 
-`sw.js` usa rede primeiro para evitar que uma versão antiga continue aparecendo durante a evolução do protótipo. O shell próprio inclui a interface e o núcleo de regras. Quando houver falha de rede, usar o recurso correspondente em cache; o fallback para `index.html` é apropriado a navegação, não a pedidos de JavaScript ou imagem.
+`sw.js` usa rede primeiro para evitar que uma versão antiga continue aparecendo durante a evolução do protótipo. A versão v4 do cache do shell próprio inclui a interface, os estilos, o núcleo de regras e os arquivos `entrada-perfil.js` e `entrada-perfil.css`. Quando houver falha de rede, usar o recurso correspondente em cache; o fallback para `index.html` é apropriado a navegação, não a pedidos de JavaScript ou imagem.
 
 O banner de conectividade permanece. A fila de mensagens do chat pode ser reprocessada dentro da simulação quando a conexão voltar, sem perder mensagens porque a conversa ainda não foi recriada em memória e sem duplicar o efeito de uma confirmação.
 
@@ -287,19 +307,19 @@ A etapa de pesquisa deverá documentar o que foi efetivamente verificado. Falha 
 
 O projeto continua no repositório `AldenQuesada/maringa-alerta`, com o endereço https://aldenquesada.github.io/maringa-alerta/. Não criar outro site para substituir este protótipo.
 
-Preparar alterações em uma branch de trabalho, comparar com a base atual e preservar mudanças recentes, inclusive as do service worker. A revisão deve mostrar quais fluxos mudaram e quais verificações foram executadas. Quando a revisão for integrada à branch publicada, o GitHub Pages atualizará o mesmo endereço; acompanhar o resultado do deploy antes de afirmar que a atualização está no ar.
+Preparar alterações em uma branch de trabalho, comparar com a base atual e preservar mudanças recentes, inclusive as do service worker. A revisão deve mostrar quais fluxos mudaram e quais verificações foram executadas. A correção da entrada será integrada ao protótipo ao finalizar a verificação. Quando a revisão chegar à branch publicada, o GitHub Pages atualizará o mesmo endereço; acompanhar o resultado do deploy antes de afirmar que a atualização está no ar.
 
 ### Verificações técnicas desta revisão
 
-- Verificar a sintaxe do JavaScript inline de `index.html`, de `fluxo-ajuda.js` e de `sw.js`.
+- Verificar a sintaxe do JavaScript inline de `index.html`, de `fluxo-ajuda.js`, de `entrada-perfil.js` e de `sw.js`.
 - Executar os testes do núcleo e do acionamento com `node --test tests/*.test.cjs`.
 - Percorrer o roteiro da seção 9 e registrar os resultados realmente obtidos, incluindo limites da verificação.
-- Conferir que o service worker inclui o novo arquivo próprio e usa uma nova versão de cache, sem devolver HTML como fallback de JavaScript.
+- Conferir que o service worker usa o cache v4 e inclui `entrada-perfil.js` e `entrada-perfil.css`, além dos demais arquivos do shell, sem devolver HTML como fallback de JavaScript ou CSS.
 
 O projeto permanece sem etapa de build. O fluxo Git já utilizado continua válido, com os arquivos efetivamente alterados selecionados para commit:
 
 ```bash
-git add index.html fluxo-ajuda.js prototipo.css sw.js GUIA_IMPLEMENTACAO.md tests/
+git add index.html fluxo-ajuda.js prototipo.css entrada-perfil.js entrada-perfil.css sw.js GUIA_IMPLEMENTACAO.md tests/
 git commit -m "Simplificar o fluxo de ajuda no protótipo"
 git push
 ```
@@ -321,6 +341,14 @@ Na branch de trabalho, `git push` envia a revisão; isso não equivale a publica
 
 Usar dados fictícios. As caixas abaixo são critérios a verificar, não resultados já obtidos.
 
+### Teste da entrada e troca de perfil
+
+1. Abrir a janela em desktop e conferir título, textos, opções de perfil e seleção de zona legíveis, com largura máxima de 640 px.
+2. Repetir com larguras de **390 px** e **320 px**. Conferir o empilhamento da zona e de sua ação, ausência de corte horizontal e acesso aos controles por rolagem em altura baixa.
+3. Percorrer os controles com Tab e Shift+Tab, observar o foco visível e fechar por Escape. Conferir também o botão X e a ação de cancelar.
+4. Fechar uma primeira entrada sem escolha e verificar a continuação em modo visualização. Depois escolher um perfil, usar **Trocar perfil** e cancelar: o perfil já selecionado deve permanecer.
+5. Escolher outro perfil, voltar ao painel e recarregar. Conferir a sessão local da prefeitura ativa; alternar de prefeitura e voltar não deve misturar os perfis dos contextos.
+
 ### Teste do fluxo principal
 
 1. Abrir a configuração de Maringá e manter a geração aleatória pausada para acompanhar um caso sem interferência.
@@ -340,6 +368,9 @@ Usar dados fictícios. As caixas abaixo são critérios a verificar, não result
 - [ ] Ocorrências em atendimento continuam visíveis ao filtrar zonas; encerradas continuam consultáveis no histórico.
 - [ ] Fotos, relatório, veículo, combustível, cadastros, equipes, alertas, prontidão, chat, fila, mapa e status público continuam acessíveis.
 - [ ] O menu abre e fecha no celular; os botões principais podem ser usados por toque e teclado.
+- [ ] A janela de entrada é legível em desktop, 390 px e 320 px; todos os controles continuam acessíveis em altura baixa.
+- [ ] Tab e Shift+Tab percorrem os controles com foco visível; X, Escape e cancelar fecham sem alterar o perfil atual.
+- [ ] Fechar a primeira entrada mantém o modo visualização; trocar, voltar e recarregar preservam a sessão da prefeitura correspondente.
 - [ ] Recarregar preserva a operação, participações e conversas; trocar de prefeitura mantém os registros no contexto correspondente.
 - [ ] As preferências de fase e zona são respeitadas nos pontos de acionamento e pré-ativação.
 - [ ] As regras do núcleo passam nos testes, e os resultados da revisão de interface ficam registrados.
@@ -360,7 +391,7 @@ A revisão do protótipo não equivale à conclusão destes itens:
 A implementação real deve conservar os mesmos dois passos de quem ajuda. A complexidade necessária à operação fica nas regras e nos serviços do sistema, sem acrescentar burocracia ao voluntário.
 
 
-### Verificação executada nesta revisão
+### Verificações já executadas no fluxo de ajuda
 
 - Os 16 testes passaram com `node --test tests/*.test.cjs`. Cobrem confirmação prévia, compatibilidade, preferência/zona, duas ocorrências usando os mesmos candidatos, chegada/término repetidos, término parcial, próximo convite, insuficiência de recursos, pendência técnica, encaminhamento especializado e contextos municipais distintos. A regressão de capacidade parcial foi verificada: o adaptador aciona a equipe uma única vez quando faltam voluntários, e a conclusão respeita ambas as ordens de término entre equipe e voluntário.
 - A sintaxe do JavaScript inline e dos arquivos JavaScript foi conferida, e `git diff --check` não encontrou erros de espaços no diff.
@@ -371,3 +402,12 @@ A implementação real deve conservar os mesmos dois passos de quem ajuda. A com
 - O provedor de tiles exibiu bloqueio de acesso na prévia de navegador usada para revisão. Marcadores e operações do painel funcionaram; o carregamento do fundo cartográfico nessa prévia ficou limitado. O provedor existente foi preservado. Esse resultado não comprova indisponibilidade do endereço publicado para outros navegadores.
 
 Os itens do checklist continuam sendo critérios de revisão do conjunto. Não interpretar os testes acima como homologação de produção, validação completa de todos os módulos, teste de isolamento real entre tenants ou confirmação da publicação no GitHub Pages.
+
+### Verificação da correção de entrada
+
+- No desktop, a janela mediu 640 px de largura e aproximadamente 631 px de altura, com título de 26 px e nomes dos perfis de 17 px.
+- Fechar a primeira entrada abriu o painel em visualização. A escolha de administrador liberou o menu correspondente. A escolha de responsável por Centro Cívico permaneceu após recarregar.
+- Reabrir e cancelar com Escape preservou o perfil e devolveu o foco a Trocar perfil. Tab e Shift+Tab permaneceram no diálogo. A ida à consulta pública e o retorno conservaram a sessão.
+- Em largura de 390 px, a janela mediu 366 px de largura, ficou inteira na tela e empilhou região e ação. A escolha de administrador fechou a janela e manteve o menu móvel utilizável.
+- Em uma prévia de 320 × 568 px, a janela mediu 296 × 544 px, sem transbordamento horizontal, com rolagem interna e botão de fechar dentro da tela. A última interação dessa prévia foi interrompida por indisponibilidade da ferramenta de navegador; não equivale a teste em aparelho físico.
+- Os resultados acima são da prévia local. A publicação deve ser confirmada separadamente pelo deploy do GitHub Pages.
