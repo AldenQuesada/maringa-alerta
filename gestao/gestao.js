@@ -90,7 +90,7 @@ function tabelaLinhas(){
  const count=$("table-count");if(count)count.textContent=list.length+" "+plural;
  const tbody=$("table-body");if(!tbody)return;
  if(!list.length){
-  tbody.innerHTML='<tr><td colspan="'+(def.columns.length+1)+'"><div class="empty-state">'+icon(icons[atual])+'<h3>'+(pesquisa?"Nenhum resultado":"Nenhum cadastro ainda")+'</h3><p>'+(pesquisa?"Altere os termos da busca.":"Adicione o primeiro registro para começar.")+'</p>'+(pesquisa?"":'<button type="button" class="btn btn-primary" data-new="'+esc(atual)+'">'+icon("plus")+'Novo cadastro</button>')+'</div></td></tr>';
+  tbody.innerHTML='<tr><td colspan="'+(def.columns.length+1)+'"><div class="empty-state">'+icon(icons[atual])+'<h3>'+(pesquisa?"Nenhum resultado":"Nenhum cadastro ainda")+'</h3><p>'+(pesquisa?"Altere os termos da busca.":"Adicione o primeiro registro para começar.")+'</p>'+""+'</div></td></tr>';
   return;
  }
  tbody.innerHTML=list.map(item=>'<tr>'+def.columns.map(c=>'<td>'+esc(item[c]===0?0:item[c]||"—")+'</td>').join("")+
@@ -116,26 +116,19 @@ function mapaPreview(){
 function renderTerritorioMunicipal(){
  const p=db.municipioAtivo();
  if(!p){PAGE.innerHTML=topo("Município indisponível","O Admin Geral ainda não provisionou este município.");return;}
- const obras=[
-  ["Bairros","bairros"],["Zonas operacionais","zonas"],["Bases de apoio","bases"],["Áreas de risco","riscos"],
-  ["Unidades de saúde","saude"],["Bombeiros e polícias","emergencias"],["Órgãos e concessionárias","parceiros"]
- ];
- PAGE.innerHTML=topo("Território de "+p.nome,
-  "Município provisionado pelo Admin Geral. Identificação e malha geográfica não podem ser alteradas por este painel.")+
- '<section class="section-card"><header class="section-card-head"><h2>Identificação municipal</h2></header><div class="section-card-body">'+
- '<div class="hierarchy"><div class="hierarchy-step"><strong>Brasil</strong><small>País · BR</small></div><div class="hierarchy-arrow">↓</div>'+
- '<div class="hierarchy-step"><strong>'+esc(p.estado||p.uf)+'</strong><small>Estado · '+esc(p.uf)+'</small></div><div class="hierarchy-arrow">↓</div>'+
- '<div class="hierarchy-step"><strong>'+esc(p.nome)+'</strong><small>IBGE '+esc(p.codigo_ibge)+'</small></div></div>'+
- '<p class="page-subtitle">Situação: '+esc(p.status==="ativa"?"Ativa":p.status==="suspensa"?"Suspensa":"Em implantação")+
- '. Fonte territorial: '+esc(p.fonte_geo||"Cadastro inicial do Admin Geral")+
- '. Somente o Admin Geral cria Prefeituras e atualiza sua georreferência inicial.</p></div></section>'+
- '<section class="section-card"><header class="section-card-head"><h2>Cadastros territoriais</h2></header><div class="section-card-body">'+
- obras.map(([name,id])=>'<div class="overview-entry"><div><strong>'+esc(name)+'</strong><p>'+db.lista(id).length+' registro(s) neste município</p></div><a class="mini-action" href="#'+id+'">Abrir '+icon("chevron")+'</a></div>').join("")+
- '</div></section>'+mapaPreview()+
- '<p class="page-subtitle">Consulta local de demonstração; a identidade real e o isolamento por município dependem de autenticação e autorização no servidor.</p>';
+ const atalhos=[["Bairros","bairros"],["Zonas operacionais","zonas"]];
+ const outros=[["Bases de apoio","bases"],["Áreas de risco","riscos"],["Unidades de saúde","saude"],["Bombeiros e polícias","emergencias"],["Órgãos e concessionárias","parceiros"]];
+ const linhas=itens=>itens.map(([name,id])=>'<div class="overview-entry"><div><strong>'+esc(name)+'</strong><p>'+db.lista(id).length+' registro(s) neste município</p></div><a class="mini-action" href="#'+id+'">Abrir '+icon("chevron")+'</a></div>').join("");
+ PAGE.innerHTML=topo("Prefeitura de "+p.nome,"Gestão municipal das zonas, bairros, equipes e serviços. Identificação institucional e georreferenciamento inicial pertencem ao Admin Geral.")+
+ '<section class="section-card"><header class="section-card-head"><h2>Bairros e zonas operacionais</h2></header><div class="section-card-body">'+linhas(atalhos)+'</div></section>'+
+ '<section class="section-card"><header class="section-card-head"><h2>Infraestrutura e instituições</h2></header><div class="section-card-body">'+linhas(outros)+'</div></section>'+mapaPreview();
 }
 function renderModulo(){
  const d=D.ESQUEMAS[atual];
+ if(atual==="bairros"){
+  PAGE.innerHTML=topo("Bairros","Inventário territorial e vínculos com as zonas operacionais. Utilize Novo cadastro para incluir um bairro.");
+  return; // O catálogo de bairros é o único inventário visível, montado pelo adaptador territorial existente.
+ }
  PAGE.innerHTML=topo(d.label,d.summary,atual)+
  '<section class="table-shell"><div class="table-toolbar"><label class="search-field">'+icon("search")+'<input id="table-search" type="search" placeholder="Buscar cadastro" aria-label="Buscar cadastros" autocomplete="off"></label><span id="table-count" class="table-count"></span></div>'+
  '<div class="table-scroll"><table><thead><tr>'+d.columns.map(c=>'<th scope="col">'+esc(d.fields.find(f=>f.key===c)?.label||c)+'</th>').join("")+'<th scope="col" style="text-align:right">Ações</th></tr></thead><tbody id="table-body"></tbody></table></div></section>'+
