@@ -267,7 +267,7 @@ function excluir(id){
  const item=db.registro(atual,id);if(!item)return;
  const label=item.nome||item.identificacao||"este registro";
  if(!confirm('Excluir "'+label+'"?'))return;
- try{const anterior=db.municipioAtivo()?.id;db.excluir(atual,id);if(atual==="prefeituras"){renderMunicipios();if(anterior!==db.municipioAtivo()?.id){location.reload();return;}}render();toast("Cadastro excluído.");}catch(e){toast(e.message);}
+ try{const anterior=db.municipioAtivo()?.id;db.excluir(atual,id);if(atual==="prefeituras"){renderMunicipios();if(anterior!==db.municipioAtivo()?.id){location.reload();return;}}render();if(atual==="bairros")window.dispatchEvent(new Event("gestao:bairros-atualizados"));toast("Cadastro excluído.");}catch(e){toast(e.message);}
 }
 FORM.addEventListener("submit",e=>{
  e.preventDefault();const modulo=atual;
@@ -279,7 +279,7 @@ FORM.addEventListener("submit",e=>{
   const novo=!edicao;
   fecharDrawer();
   if(modulo==="prefeituras")renderMunicipios();
-  render();toast("Cadastro salvo.");
+  render();if(modulo==="bairros")window.dispatchEvent(new Event("gestao:bairros-atualizados"));toast("Cadastro salvo.");
   if(novo&&modulo==="prefeituras")geocodificarPrefeitura(item);
  }catch(err){$("form-error").textContent=err.message;}
 });
