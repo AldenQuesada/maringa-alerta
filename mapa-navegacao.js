@@ -36,7 +36,7 @@
       const meiaTela = map.getSize().divideBy(2);
       const noroeste = map.unproject(centro.subtract(meiaTela), zoomGeral);
       const sudeste = map.unproject(centro.add(meiaTela), zoomGeral);
-      return limites.pad(0.12).extend(noroeste).extend(sudeste);
+      return limites.pad(0.12).extend(noroeste).extend(sudeste).pad(0.03);
     }
 
     function adequarLimites({ recenter = false, animate = false } = {}) {
