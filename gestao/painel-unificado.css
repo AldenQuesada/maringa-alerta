@@ -95,3 +95,22 @@
 .sticky-actions>span{width:100%}
 .sticky-actions .btn{flex:1}
 }
+
+/* Sidebar de cadastro: todos os acessos recuperados; cada atalho abre
+   a seção correspondente da ÚNICA ficha da Prefeitura. */
+.sidebar-nav{padding:12px 10px 22px}
+.sidebar-group{margin:0 0 4px;border-radius:8px}
+.sidebar-group>summary.nav-group-title{display:flex;align-items:center;justify-content:space-between;gap:6px;list-style:none;margin:0;padding:12px 10px 8px;color:#8fa4bb;font-size:10px;font-weight:800;letter-spacing:.085em;cursor:pointer;border-radius:7px;user-select:none}
+.sidebar-group>summary.nav-group-title::-webkit-details-marker{display:none}
+.sidebar-group>summary.nav-group-title::after{content:"›";font-size:18px;font-weight:450;line-height:0.7;color:#9daab9;transition:transform .15s ease}
+.sidebar-group[open]>summary.nav-group-title::after{transform:rotate(90deg)}
+.sidebar-group>summary.nav-group-title:hover{background:#1a2839;color:#d5e1ed}
+.sidebar-group .nav-group{margin:0 0 8px;padding:0}
+.sidebar-group .nav-item{margin:2px 0;min-height:35px;font-size:12px;padding:8px 10px}
+.sidebar-group .nav-item.active{color:#ffd183;background:#222f3c;border-color:#675028}
+.sidebar-group [data-navigation]:focus-visible{outline:2px solid #ffbd53;outline-offset:-2px}
+.subcollection[data-collection]{scroll-margin-top:24px}
+@media(max-width:850px){
+ .sidebar-group>summary.nav-group-title{padding:12px 9px 8px}
+ .sidebar-group .nav-item{min-height:39px;font-size:12px}
+}
