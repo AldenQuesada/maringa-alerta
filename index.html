@@ -329,7 +329,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   .floatwin{width:85vw;right:8px}
 }
 </style>
-<link rel="stylesheet" href="prototipo.css?v=evento-8">
+<link rel="stylesheet" href="prototipo.css?v=evento-9">
 <link rel="stylesheet" href="sessao.css?v=sessoes-2">
 <link rel="stylesheet" href="mapa-navegacao.css?v=mapa-2">
 <link rel="stylesheet" href="gestao/acoes-cabecalho.css?v=acoes-2">
@@ -1127,14 +1127,15 @@ function renderCollaborators(){
   const antes=body.scrollTop;
   const item=p=>{
     const aberto=fichaAberta===p.id;
+    const [situacao,descricaoSituacao]=statusPessoaMapa(p);
     const telefone=String(p.telefone||p.tel||'').replace(/[^+\d]/g,'');
     const email=String(p.email||'');
     const contato=telefone?`tel:${telefone}`:/^[^\s@]+@[^\s@]+$/.test(email)?`mailto:${encodeURIComponent(email)}`:'';
     return `<div class="person-card"${aberto?' id="ficha-pessoa"':''}>
       <button type="button" class="collab-row person-toggle" data-person="${escHtml(p.id)}" aria-expanded="${aberto}">
         <span class="c-avatar">${escHtml(initials(p.nome))}</span><span class="c-info"><span class="c-name">${escHtml(p.nome)}</span>
-        <span class="c-meta">${escHtml([p.sub,p.bairroOrigem,p.demo?'Demonstração':''].filter(Boolean).join(' · '))}</span></span>
-        <span class="c-status">${escHtml(p.disponibilidade||'')}</span>
+        <span class="c-meta">${escHtml([p.sub,p.bairroOrigem].filter(Boolean).join(' · '))}</span></span>
+        <span class="person-status-dot pessoa-${situacao}" title="${escHtml(descricaoSituacao)}" aria-label="${escHtml(descricaoSituacao)}" role="img"></span>
       </button>
       ${aberto?`<div class="person-details">
         <div>${escHtml([p.cargo,p.orgao,p.sub,p.bairroOrigem].filter(Boolean).join(' · '))}</div>
