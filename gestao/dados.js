@@ -94,17 +94,20 @@ function criar(armazenamento=global.localStorage,options={}){
  const accessMode=scopedId?"municipal":"plataforma";
  function carregar(){let bruto=null;try{bruto=JSON.parse(armazenamento.getItem(CHAVE)||"null")}catch(_){}const base=novoEstado();if(bruto&&bruto.version===1){for(const k of COLLECTIONS)base[k]=Array.isArray(bruto[k])?bruto[k]:base[k];base.municipioAtivo=bruto.municipioAtivo||"maringa";}if(!base.prefeituras.some(x=>x.id===base.municipioAtivo))base.municipioAtivo=base.prefeituras[0]?.id||"";for(const p of base.prefeituras){if(!p.status)p.status=p.id==="maringa"?"ativa":"implantacao";if(!p.paisId)p.paisId="BR";if(!p.pais)p.pais="Brasil";}return base;}
  let estado=carregar();
+ function refresh(){estado=carregar();}
  function salvar(){try{armazenamento.setItem(CHAVE,JSON.stringify(estado))}catch(e){throw new Error("Não foi possível salvar os dados neste navegador.")}}
  function municipioCorrente(){return scopedId||estado.municipioAtivo;}
- function municipios(){return estado.prefeituras.filter(x=>!scopedId||x.id===scopedId).slice().sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"))}
- function municipioAtivo(){return estado.prefeituras.find(x=>x.id===municipioCorrente())||null}
+ function municipios(){refresh();return estado.prefeituras.filter(x=>!scopedId||x.id===scopedId).slice().sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"))}
+ function municipioAtivo(){refresh();return estado.prefeituras.find(x=>x.id===municipioCorrente())||null}
  function selecionarMunicipio(id){
+  refresh();
   if(scopedId&&id!==scopedId)throw new Error("Município fora do escopo municipal.");
   if(!estado.prefeituras.some(x=>x.id===id))throw new Error("Município não encontrado.");
   if(!scopedId){estado.municipioAtivo=id;salvar();}
   return municipioAtivo();
  }
  function lista(modulo,id=municipioCorrente()){
+  refresh();
   const m=ESQUEMAS[modulo];if(!m)throw new Error("Cadastro desconhecido.");
   return estado[m.collection].filter(x=>m.collection==="prefeituras"?(!scopedId||x.id===scopedId):x.municipioId===(scopedId||id))
    .filter(x=>!m.role||x.funcao===m.role||(Array.isArray(x.papeis)&&x.papeis.includes(m.role))).filter(x=>!m.category||x.categoria===m.category)
@@ -112,6 +115,7 @@ function criar(armazenamento=global.localStorage,options={}){
  }
  function registro(modulo,id){return lista(modulo).find(x=>x.id===id)||null}
  function gravar(modulo,form,id){
+  refresh();
   const m=ESQUEMAS[modulo];if(!m)throw new Error("Cadastro desconhecido.");
   if(scopedId&&m.collection==="prefeituras")throw new Error("Somente o Admin Geral pode criar ou alterar Prefeituras.");
   const atual=id?registro(modulo,id):null;if(id&&!atual)throw new Error("Registro não encontrado neste município.");
@@ -126,9 +130,10 @@ function criar(armazenamento=global.localStorage,options={}){
   if(!atual){estado[m.collection].push(item)}else{const idx=estado[m.collection].findIndex(x=>x.id===id);estado[m.collection][idx]=item}
   salvar();return item;
  }
- function atualizarGeo(id,geo){if(scopedId)throw new Error("Georreferenciamento inicial pertence ao Admin Geral.");const p=estado.prefeituras.find(x=>x.id===id);if(!p)return null;for(const k of ["lat","lng","zoom","bbox","limite_geojson","fonte_geo","geo_atualizado","pais","paisId","estado","codigo_uf"]){if(geo[k]!==undefined)p[k]=geo[k]}salvar();return p;}
+ function atualizarGeo(id,geo){refresh();if(scopedId)throw new Error("Georreferenciamento inicial pertence ao Admin Geral.");const p=estado.prefeituras.find(x=>x.id===id);if(!p)return null;for(const k of ["lat","lng","zoom","bbox","limite_geojson","fonte_geo","geo_atualizado","pais","paisId","estado","codigo_uf"]){if(geo[k]!==undefined)p[k]=geo[k]}salvar();return p;}
 
  function importarLote(modulo,rows,{modo="revisado"}={}){
+  refresh();
   const permitido=new Set(["bairros","zonas","bases","riscos","pontos","saude","emergencias","parceiros"]);
   if(!permitido.has(modulo))throw new Error("Coleção não permitida para importação.");
   if(!Array.isArray(rows)||rows.length>5000)throw new Error("Lote inválido ou maior que 5.000 registros.");
@@ -171,6 +176,7 @@ function criar(armazenamento=global.localStorage,options={}){
   try{salvar();return stats}catch(e){estado=anterior;throw e}
  }
  function implantarPacote(pacote){
+  refresh();
   if(scopedId)throw new Error("Implantação territorial inicial pertence ao Admin Geral.");
   if(estado.municipioAtivo!=="maringa"||municipioAtivo()?.codigo_ibge!=="4115200")throw new Error("Implantação automática disponível somente para Maringá.");
   if(!pacote||typeof pacote!=="object")throw new Error("Pacote de importação inválido.");
@@ -193,6 +199,7 @@ function criar(armazenamento=global.localStorage,options={}){
   return {totais,municipio:municipioAtivo()};
  }
  function excluir(modulo,id){
+  refresh();
   const m=ESQUEMAS[modulo];if(scopedId&&m?.collection==="prefeituras")throw new Error("Somente Admin Geral pode excluir Prefeituras.");
   const old=registro(modulo,id);if(!old)return false;
   if(m.collection==="prefeituras"&&estado.prefeituras.length===1)throw new Error("É necessário manter pelo menos uma prefeitura.");
@@ -202,6 +209,7 @@ function criar(armazenamento=global.localStorage,options={}){
   salvar();return true;
  }
  function estadoVisivel(){
+  refresh();
   if(!scopedId)return JSON.parse(JSON.stringify(estado));
   const result=JSON.parse(JSON.stringify(estado));result.municipioAtivo=scopedId;
   for(const k of COLLECTIONS){
