@@ -2099,6 +2099,9 @@ function isViewOnly(){ return !currentRole || currentRole.tipo==='visualizacao';
 function applyRolePermissions(){
   document.getElementById('open-audit').style.display = canAdmin() ? '' : 'none';
   document.getElementById('open-admin').style.display = isViewOnly() ? 'none' : '';
+  document.getElementById('demo-new').disabled = isViewOnly();
+  document.getElementById('demo-auto').disabled = !canAdmin();
+  document.getElementById('demo-reset').disabled = !canAdmin();
 }
 function selecionarPerfilDemo(perfil) {
   currentRole = perfil && ['admin','responsavel','visualizacao'].includes(perfil.tipo)
@@ -2389,11 +2392,14 @@ function iniciarControlesDemo(){
   const seletor=document.getElementById('demo-tenant');seletor.value=tenantId;
   seletor.onchange=()=>{salvarPrototipo();const url=new URL(location.href);url.searchParams.set('prefeitura',seletor.value);url.hash='';location.assign(url.href);};
   document.getElementById('demo-new').onclick=()=>{
-    const o=gerarOcorrencia({zona:activeZone||bairros[0].nome,tipo:tiposOcorrencia.find(t=>t.tipo==='Distribuição de água e alimentos')});
+    const zona=activeZone||(currentRole.tipo==='responsavel'?currentRole.zona:bairros[0].nome);
+    if(!canActZone(zona))return;
+    const o=gerarOcorrencia({zona,tipo:tiposOcorrencia.find(t=>t.tipo==='Distribuição de água e alimentos')});
     atualizarFluxo();openOcorrencia(o);fecharMenuMobile();
   };
-  document.getElementById('demo-auto').onclick=()=>{autoSimulation=!autoSimulation;atualizarControlesDemo();salvarPrototipo();};
+  document.getElementById('demo-auto').onclick=()=>{if(!canAdmin())return;autoSimulation=!autoSimulation;atualizarControlesDemo();salvarPrototipo();};
   document.getElementById('demo-reset').onclick=()=>{
+    if(!canAdmin())return;
     if(!confirm(`Reiniciar somente os dados de demonstração de ${tenantConfig.nome}? Os outros municípios serão mantidos.`))return;
     estadoPronto=false;
     ['operacao','audit','offline'].forEach(k=>localStorage.removeItem(storageKey(k)));
