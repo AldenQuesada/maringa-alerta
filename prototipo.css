@@ -57,7 +57,6 @@ button:disabled{opacity:.45;cursor:not-allowed!important}
  .sidebar-head{flex:none}.zone-list{min-height:180px;flex:none}.sidebar-footer{flex:none}
  .topbar{gap:10px;min-height:64px;padding:10px 12px;align-items:center}
  .evento{white-space:normal;font-size:10px;line-height:1.6}.zone-strip{min-width:0}.zs-title{font-size:13px}
- .floatwin{width:240px;max-height:42vh;top:66px!important;right:10px!important}.floatwin-body{max-height:28vh}
  .register-fab{font-size:10px;max-width:90%;bottom:12px;left:10px;right:auto}
  .timescale{font-size:9px;max-width:calc(100% - 64px);gap:6px;flex-wrap:wrap}.timescale b{font-size:10px}
  .modal-overlay{padding:10px}.modal{max-height:94dvh}.modal-body{overflow:auto}
@@ -111,9 +110,9 @@ button:disabled{opacity:.45;cursor:not-allowed!important}
 #event-results button:hover,#event-results button:focus-visible{background:var(--panel-2)}
 #topbar .stats-row{margin-left:0;gap:4px}
 #topbar #header-actions .ma-action-label{display:none}
-#floatwin{position:relative;top:auto;right:auto;width:clamp(245px,24vw,330px);flex:none;max-height:none;align-self:stretch;border-radius:0;border-width:0 0 0 1px;box-shadow:none}
-#floatwin.minimized{width:auto}
-#floatwin .floatwin-head{cursor:default}
+#floatwin{position:absolute;top:8px;right:12px;width:clamp(245px,24vw,330px);max-width:calc(100% - 16px);height:calc(100% - 60px);max-height:none}
+#floatwin.minimized{height:auto;width:auto}
+#floatwin .floatwin-head{touch-action:none;flex:none}
 #floatwin .floatwin-body{min-height:0;max-height:none;padding:8px}
 #floatwin .person-section{padding:6px 0;border-bottom:1px solid var(--line);margin:4px 0 6px}
 #floatwin .person-territory{margin-bottom:8px}
@@ -122,8 +121,7 @@ button:disabled{opacity:.45;cursor:not-allowed!important}
 #floatwin .c-avatar{width:22px;height:22px;font-size:9px}
 #floatwin .floatwin-min{font-size:11px}
 @media(max-width:860px){
- #floatwin{position:absolute;inset:0 0 0 auto!important;width:min(100%,360px)}
- #floatwin.minimized{bottom:auto!important;width:auto}
+ #floatwin{width:min(320px,calc(100% - 24px))}
  .event-search{max-width:none}
 }
 #floatwin .person-territory p{font-size:11px;color:var(--muted)}
