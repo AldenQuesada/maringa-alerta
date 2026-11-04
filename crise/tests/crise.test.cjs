@@ -28,11 +28,12 @@ test("cadastro no mesmo telefone atualiza sem duplicar a identidade de colaborad
  const y=core.registrarColaborador(pessoa("Ana Teste","(44) 99999-0003"));
  assert.equal(x.id,y.id);assert.equal(core.oferentes().length,1);
 });
-test("a mesma pessoa colaboradora pode receber ajuda sem refazer cadastro",()=>{
+test("a mesma pessoa pode pedir ajuda sem ser designada para atender a si própria",()=>{
  const {core}=novo();const p=core.registrarColaborador(pessoa("Ana Teste","44999990004",{ajudas:["FORNECER ALIMENTAÇÃO"]}));
  const d=core.registrarPedido({telefone:p.telefone,necessidade:"Alimentação"});
- assert.equal(d.pedido.nome,p.nome);assert.equal(d.pedido.status,"Encaminhada");
- assert.equal(d.pedido.atribuido_a,p.id);
+ assert.equal(d.pedido.nome,p.nome);assert.equal(d.pedido.status,"Aguardando");
+ assert.equal(d.pedido.atribuido_a,"");
+ assert.equal(d.indicados.length,0);
 });
 test("pedido financeiro fica aguardando e não cria transferência",()=>{
  const {core}=novo();core.registrarColaborador(pessoa("Empresa Teste","44999990005",{tipo_pessoa:"JURÍDICA",maquinas:["MATERIAL DE CONSTRUÇÃO"]}));
@@ -80,4 +81,18 @@ test("dados municipais não vazam para a prefeitura de outro tenant local",()=>{
 test("nenhum canal WhatsApp real é usado no core",()=>{
  const {core}=novo();const out=core.acionarBrigada("Zona 7");
  assert.equal(out.destinatarios.length,0);assert.ok(out.mensagem.includes("MARINGÁ UNIDA"));
+});
+
+test("uma pessoa que precisa de ajuda encontra outro colaborador, mas não a si mesma",()=>{
+ const {core}=novo();
+ core.registrarColaborador(pessoa("Solicitante","44999990020",{ajudas:["FORNECER ALIMENTAÇÃO"]}));
+ const outro=core.registrarColaborador(pessoa("Fornecedor","44999990021",{ajudas:["FORNECER ALIMENTAÇÃO"]}));
+ const pedido=core.registrarPedido({telefone:"44999990020",necessidade:"Alimentação"});
+ assert.equal(pedido.pedido.atribuido_a,outro.id);
+});
+test("urgência crítica não é automaticamente encaminhada ao colaborador comum",()=>{
+ const {core}=novo();core.registrarColaborador(pessoa("Fornecedor","44999990022",{ajudas:["FORNECER ALIMENTAÇÃO"]}));
+ const pedido=core.registrarPedido({...pessoa("Solicitante","44999990023"),necessidade:"Alimentação",urgencia:"Crítica"});
+ assert.equal(pedido.pedido.status,"Aguardando");assert.equal(pedido.indicados.length,0);
+ assert.match(pedido.aviso,/190/);
 });
