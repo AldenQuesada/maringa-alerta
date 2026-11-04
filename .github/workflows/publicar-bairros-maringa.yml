@@ -6,6 +6,7 @@ on:
       - feat/bairros-oficiais-nos-tres-mapas-20261104
     paths:
       - scripts/atualizar-bairros-maringa.py
+      - scripts/atualizar-camadas-municipais.py
       - .github/workflows/publicar-bairros-maringa.yml
   workflow_dispatch:
 
@@ -25,6 +26,8 @@ jobs:
           python-version: '3.12'
       - name: Consultar fonte geográfica oficial
         run: python scripts/atualizar-bairros-maringa.py
+      - name: Consultar bairro e zonas GeoMaringá
+        run: python scripts/atualizar-camadas-municipais.py
       - name: Validar arquivo gerado
         run: |
           python - <<'PY'
@@ -39,7 +42,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dados-territoriais/maringa-bairros.geojson dados-territoriais/maringa-bairros-fonte.json
+          git add dados-territoriais/maringa-*.geojson dados-territoriais/maringa-*-fonte.json
           if git diff --cached --quiet; then
             echo "Arquivo sem diferenças."
           else
