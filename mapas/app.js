@@ -92,8 +92,44 @@ function dadosFiltrados(){
  });
 }
 const caps=x=>[x.ajudas,x.maquinas,x.empreendedores,x.materiais].flatMap(v=>Array.isArray(v)?v:typeof v==="string"?v.split(/[;,]/):[]).filter(Boolean);
+function renderEquipePorBairro(xs){
+ const el=$("results");
+ const grupos=new Map();
+ for(const pessoa of xs){const bairro=String(pessoa.bairro||pessoa.zona||"Bairro não informado").trim();if(!grupos.has(bairro))grupos.set(bairro,[]);grupos.get(bairro).push(pessoa);}
+ if(!xs.length){el.innerHTML='<div class="empty">Não há colaboradores cadastrados neste filtro.</div>';return;}
+ el.innerHTML=[...grupos.entries()].map(([bairro,pessoas])=>{
+  const presentes=pessoas.filter(x=>x.checkin_status==="presente"&&String(x.checkin_bairro||"").localeCompare(bairro,"pt-BR",{sensitivity:"base"})===0).length;
+  const perc=Math.round(presentes*100/pessoas.length);
+  return '<section class="team-bairro"><header><strong>'+esc(bairro)+'</strong><small>Colab: '+pessoas.length+' · Ativ: '+presentes+' · '+perc+'%</small></header>'+
+   '<div class="team-progress"><span style="width:'+perc+'%"></span></div>'+
+   pessoas.map(x=>'<div class="team-member"><div><b>'+esc(x.nome||"Colaborador")+'</b><small>'+esc(x.checkin_status==="presente"?"Presente · GPS autodeclarado":x.checkin_status==="finalizado"?"Saída registrada":"Aguardando chegada")+'</small></div>'+
+    (x.checkin_status==="presente"?'<button type="button" data-saida="'+esc(x.id)+'">Registrar saída</button>':
+    '<button type="button" data-checkin="'+esc(x.id)+'"'+(bairro==="Bairro não informado"?' disabled title="Cadastre o bairro antes"':'')+'>Check-in GPS</button>')+
+    '</div>').join("")+'</section>';
+ }).join("")+'<p class="presence-note">Check-in local experimental: exige permissão GPS, precisão de até 100 m e polígono de bairro compatível. Não comprova identidade nem sincroniza entre dispositivos.</p>';
+ el.querySelectorAll("[data-checkin]").forEach(b=>b.onclick=()=>void iniciarCheckin(b.dataset.checkin,b));
+ el.querySelectorAll("[data-saida]").forEach(b=>b.onclick=()=>{
+  try{app.registrarSaida(b.dataset.saida);render();alertar("Saída registrada neste navegador.");}catch(err){alertar(err.message);}
+ });
+}
+async function iniciarCheckin(id,button){
+ const pessoa=app.oferentes().find(x=>x.id===id);
+ const bairro=String(pessoa?.bairro||pessoa?.zona||"").trim();
+ if(!bairro){alertar("Cadastre o bairro de origem do colaborador.");return;}
+ if(!navigator.geolocation){alertar("Geolocalização indisponível neste dispositivo.");return;}
+ button.disabled=true;button.textContent="Validando GPS...";
+ try{
+  const dados=await globalThis.MaringaBairros?.carregar();
+  const f=dados?.bairros?.features?.find(x=>String(x.properties?.nome||"").localeCompare(bairro,"pt-BR",{sensitivity:"base"})===0);
+  if(!f)throw Error("Bairro não encontrado na malha territorial. Confira o cadastro; não foi registrado check-in.");
+  const coords=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(p=>resolve(p.coords),reject,{enableHighAccuracy:true,maximumAge:0,timeout:20000}));
+  app.registrarCheckin({colaboradorId:id,bairro,lat:coords.latitude,lng:coords.longitude,precisao:coords.accuracy,geometry:f.geometry,origem:dados.bairros.source});
+  render();alertar("Check-in registrado no bairro "+bairro+" neste navegador.");
+ }catch(err){alertar("Check-in não confirmado: "+(err.message||"GPS indisponível"));button.disabled=false;button.textContent="Check-in GPS";}
+}
 function renderCards(xs) {
  const el=$("results");$("list-count").textContent=xs.length+" registro"+(xs.length===1?"":"s");
+ if(TIPO==="colaboradores"){renderEquipePorBairro(xs);return;}
  if(!xs.length){el.innerHTML='<div class="empty">Nenhum registro neste filtro.<p>Cadastre pelo WhatsApp simulado ou use a Gestão para adicionar dados.</p><a class="btn" href="../atendimento/" target="_blank" rel="noopener">Abrir atendimento</a></div>';return;}
  el.innerHTML=xs.map((x,i)=>{
   const tags=TIPO==="ajuda"?(x.status||"Aguardando"):(x.tipo_pessoa||"Colaborador");
@@ -132,10 +168,10 @@ function counters(xs){
  $("metric-two").textContent=zonas;
  $("metric-three").textContent=TIPO==="ajuda"?
   all.filter(x=>x.status==="Aguardando").length:
-  all.filter(x=>x.disponibilidade!=="Indisponível").length;
+  all.filter(x=>x.checkin_status==="presente"&&x.checkin_bairro&&String(x.checkin_bairro).localeCompare(String(x.bairro||x.zona||""),"pt-BR",{sensitivity:"base"})===0).length;
  $("metric-one-label").textContent=TIPO==="ajuda"?"Pedidos":"Colaboradores";
  $("metric-two-label").textContent="Zonas com registros";
- $("metric-three-label").textContent=TIPO==="ajuda"?"Aguardando":"Disponíveis";
+ $("metric-three-label").textContent=TIPO==="ajuda"?"Aguardando":"Check-ins GPS";
 }
 function setOutput(html){const el=$("command-output");if(el)el.innerHTML=html;}
 function comandoBrigadas(){
