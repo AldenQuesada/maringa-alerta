@@ -7,6 +7,7 @@ on:
     paths:
       - scripts/atualizar-bairros-maringa.py
       - scripts/atualizar-camadas-municipais.py
+      - scripts/atualizar-bairros-ibge2022.py
       - .github/workflows/publicar-bairros-maringa.yml
   workflow_dispatch:
 
@@ -24,8 +25,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Instalar leitor de shapefile IBGE
+        run: python -m pip install pyshp==2.3.1
       - name: Consultar fonte geográfica oficial
         run: python scripts/atualizar-bairros-maringa.py
+      - name: Extrair bairros do IBGE 2022
+        run: python scripts/atualizar-bairros-ibge2022.py
       - name: Consultar bairro e zonas GeoMaringá
         run: python scripts/atualizar-camadas-municipais.py
       - name: Validar arquivo gerado
@@ -46,6 +51,8 @@ jobs:
           if git diff --cached --quiet; then
             echo "Arquivo sem diferenças."
           else
-            git commit -m "Adicionar polígonos dos bairros de Maringá da fonte estadual"
-            git push
+            git commit -m "Atualizar geometrias de bairros IBGE/Paraná e diagnóstico GeoMaringá"
+            git fetch origin "${GITHUB_REF_NAME}"
+            git rebase "origin/${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
