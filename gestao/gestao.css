@@ -45,3 +45,33 @@
 #page:has(.pref-tabs)>.section-card{margin-bottom:17px}
 @media(max-width:1000px){.pref-details,.pref-member-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.pref-details,.pref-member-grid{grid-template-columns:1fr}.pref-tab{padding:10px}.pref-tabs{margin-bottom:15px}}
+
+/* Abas da Prefeitura ocupam apenas a altura disponível: rolagem interna ao painel. */
+.content:has(.pref-tabs){overflow:hidden}
+.page:has(.pref-tabs){
+ height:100%;max-height:100%;min-height:0;
+ display:flex;flex-direction:column;
+ padding-top:14px;padding-bottom:0;
+}
+.page:has(.pref-tabs)>.heading-row,
+.page:has(.pref-tabs)>.mi-head{
+ flex:0 0 auto;margin:0 0 8px;align-items:center;
+}
+.page:has(.pref-tabs) .heading-row .eyebrow{display:none}
+.page:has(.pref-tabs) .page-title{font-size:clamp(21px,2vw,27px);margin:0 0 3px}
+.page:has(.pref-tabs) .page-subtitle{font-size:12px;line-height:1.35}
+.page:has(.pref-tabs)>.pref-tabs{
+ flex:0 0 auto;padding:0 0 5px;margin:0 0 9px;
+}
+.page:has(.pref-tabs) .pref-tab{padding:9px 12px}
+.pref-tab-body{
+ flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
+ padding:0 2px 20px 0;overscroll-behavior:contain;
+ scrollbar-color:#3a4b5e transparent;
+}
+.pref-tab-body>.section-card{margin-bottom:14px}
+@media(max-width:850px){
+ .page:has(.pref-tabs){padding-top:10px;padding-bottom:0}
+ .page:has(.pref-tabs)>.pref-tabs{margin-bottom:8px}
+ .page:has(.pref-tabs)>.heading-row,.page:has(.pref-tabs)>.mi-head{margin-bottom:7px}
+}
