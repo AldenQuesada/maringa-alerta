@@ -5,40 +5,61 @@
 (function (global) {
   "use strict";
 
+  // Limites de deslocamento amplos para toda a região de Maringá.
+  // Retângulo de navegação aproximado: não é a fronteira municipal oficial.
   const AREA_MARINGA = Object.freeze([
     Object.freeze([-23.578, -52.123]),
     Object.freeze([-23.235, -51.813])
   ]);
-  const ZOOM_INICIAL = 13;
+  // Para a vista inicial, a referência são as seis zonas efetivamente desenhadas.
+  const PADDING = 48;
 
-  function instalar({ map, L, centro = [-23.4205, -51.9333], zoom = ZOOM_INICIAL, aoRestaurar }) {
+  function instalar({ map, L, zonas, aoRestaurar }) {
     if (!map || !L || !map.zoomControl || typeof map.zoomControl.getContainer !== "function") {
       throw new TypeError("Mapa Leaflet com controle de zoom obrigatório.");
     }
-    const limites = L.latLngBounds(AREA_MARINGA);
-    const destino = L.latLng(centro);
+    if (!Array.isArray(zonas) || !zonas.length || !zonas.every(z => Array.isArray(z) && z.length >= 3)) {
+      throw new TypeError("É necessário informar os polígonos de todas as zonas da vista geral.");
+    }
 
-    // Máxima resistência ao arrastar para além dos limites; impede zoom-out excessivo.
-    map.options.maxBoundsViscosity = 1;
-    map.setMaxBounds(limites);
+    const limitesMunicipio = L.latLngBounds(AREA_MARINGA);
+    const limitesVisaoGeral = L.latLngBounds(zonas.flat());
+    let zoomGeralAnterior = null;
+
+    function margem() {
+      const tamanho = map.getSize();
+      return Math.max(16, Math.min(PADDING, Math.floor(Math.min(tamanho.x, tamanho.y) * 0.09)));
+    }
 
     function zoomMinimo() {
-      const requerido = map.getBoundsZoom(limites, true);
-      return Math.max(zoom, Number.isFinite(requerido) ? Math.ceil(requerido) : zoom);
-    }
-    function adequarLimites() {
-      const minimo = zoomMinimo();
-      map.setMinZoom(minimo);
-      if (map.getZoom() < minimo) map.setZoom(minimo, { animate: false });
+      const p = margem();
+      // false: exige que TODAS as zonas caibam dentro do mapa, com borda visível.
+      const requerido = map.getBoundsZoom(limitesVisaoGeral, false, L.point(p * 2, p * 2));
+      return Number.isFinite(requerido) ? Math.max(0, requerido) : 0;
     }
 
-    adequarLimites();
-    map.setView(destino, Math.max(zoom, map.getMinZoom()), { animate: false });
+    function enquadrar({ animate = false } = {}) {
+      const p = margem();
+      // Sem maxBounds durante o fit para impedir que uma trava anterior
+      // mova o centro e corte Vila Esperança ao norte.
+      map.setMaxBounds(L.latLngBounds([]));
+      map.setMinZoom(0);
+      map.fitBounds(limitesVisaoGeral, { padding: [p, p], animate: false });
+      const atual = map.getZoom();
+      zoomGeralAnterior = atual;
+      map.setMinZoom(atual);
+      // A trava não pode ser menor que a área realmente visível no zoom geral.
+      // Ao aproximar o mapa, permite explorar o restante de Maringá.
+      map.setMaxBounds(limitesMunicipio.pad(0.04).extend(map.getBounds().getNorthWest())
+        .extend(map.getBounds().getSouthEast()).pad(0.02));
+      map.options.maxBoundsViscosity = 1;
+    }
+
+    enquadrar();
 
     function restaurar() {
       if (typeof aoRestaurar === "function") aoRestaurar();
-      adequarLimites();
-      map.setView(destino, Math.max(zoom, map.getMinZoom()), { animate: true });
+      enquadrar({ animate: true });
     }
 
     // O terceiro comando pertence ao mesmo bloco + / − do Leaflet.
@@ -63,12 +84,20 @@
       }
     });
 
-    map.on("resize", adequarLimites);
+    map.on("resize", () => {
+      // O zoom detalhado é preservado; apenas o modo vista geral
+      // é reenquadrado quando a área útil do mapa muda.
+      if (zoomGeralAnterior !== null && Math.abs(map.getZoom() - zoomGeralAnterior) < 0.01) {
+        enquadrar();
+      } else {
+        map.setMaxBounds(limitesMunicipio.pad(0.04));
+      }
+    });
 
-    return { restaurar, limites, zoomMinimo, botao };
+    return { restaurar, limites: limitesVisaoGeral, zoomMinimo, botao };
   }
 
-  const api = { instalar, AREA_MARINGA, ZOOM_INICIAL };
+  const api = { instalar, AREA_MARINGA };
   global.AlertaMapaNavegacao = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : window);

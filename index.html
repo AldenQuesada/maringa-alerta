@@ -549,7 +549,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <script src="fluxo-ajuda.js?v=sessoes-1"></script>
 <script src="sessao.js?v=sessoes-1"></script>
 <script src="sessao-ui.js?v=sessoes-2"></script>
-<script src="mapa-navegacao.js?v=mapa-1"></script>
+<script src="mapa-navegacao.js?v=mapa-3"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <script>
@@ -766,8 +766,18 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 // Mantém navegação dentro da área de Maringá sem interferir na seleção de ocorrências.
 const navegacaoMapa = window.AlertaMapaNavegacao.instalar({
-  map, L, centro: MARINGA_CENTER, zoom: 13,
-  aoRestaurar: () => { if (activeZone !== null) selectZone(null); }
+  map, L, zonas:bairros.map(b=>b.poly),
+  aoRestaurar: () => {
+    if (activeZone !== null) {
+      activeZone = null;
+      renderZoneList();
+      applyZoneVisibility();
+      updateZoneStrip();
+      updateKpis();
+      renderOfficialMarkers();
+      rebuildHeat();
+    }
+  }
 });
 
 bairros.forEach(b=>{
@@ -908,7 +918,7 @@ function selectZone(nome){
   rebuildHeat();
   if(window.innerWidth<=860) fecharMenuMobile();
   if(nome===null){
-    map.setView(MARINGA_CENTER, 13);
+    navegacaoMapa.restaurar();
   } else {
     const b = bairros.find(x=>x.nome===nome);
     if(b) map.fitBounds(L.latLngBounds(b.poly), {padding:[40,40]});
