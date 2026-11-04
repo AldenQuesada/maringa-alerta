@@ -36,7 +36,7 @@ const ICONS={
 };
 const icon=(id,css="")=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="'+css+'" aria-hidden="true">'+(ICONS[id]||ICONS.list)+'</svg>';
 const icons={territorio:"layers",implantacao:"pin",bairros:"layers",pessoas:"users",solicitacoes:"list",mobilizacoes:"bell",apoios:"building",inicio:"dashboard",prefeituras:"building",zonas:"layers",bases:"pin",riscos:"shield",administradores:"shield",responsaveis:"user",substitutos:"user",coordenadores:"users",operadores:"user",equipes:"wrench",integrantes:"users",voluntarios:"users",saude:"hospital",emergencias:"siren",parceiros:"building",veiculos:"truck",equipamentos:"wrench",estoques:"box",abrigos:"hospital",pontos:"pin",ocorrencias:"list",canais:"bell",regras:"shield"};
-let atual="inicio",pesquisa="",edicao=null,ultimoFoco=null,toastTimer=null;
+let atual="inicio",pesquisa="",edicao=null,ultimoFoco=null,toastTimer=null,geoTipo="bairros",drawerModulo=null;
 const cidadesPorUf=new Map();
 const municipio=db.municipioAtivo();
 function renderMunicipios(){
@@ -113,7 +113,7 @@ function mapaPreview(){
  }
  return '<aside class="geo-panel"><div class="geo-head">Mapa · '+esc(p.nome)+'</div>'+mapa+'<div class="hint">A vista do município é independente do Mapa Operacional.</div></aside>';
 }
-const PREF_TABS=[["territorio","Gerais"],["bairros","Bairros"],["zonas","Zonas"],["estruturas","Estruturas"],["pessoas","Gabinete de Crise"],["bases","Bases"],["riscos","Riscos"]];
+const PREF_TABS=[["territorio","Gerais"],["geoterritorialidade","Geoterritorialidade"],["estruturas","Estruturas"],["pessoas","Gabinete de Crise"],["bases","Bases"],["riscos","Riscos"]];
 const STRUCT_MODULES=[["saude","Saúde"],["emergencias","Emergência e segurança"],["parceiros","Órgãos e concessionárias"]];
 const PREF_SECTIONS=new Set([...PREF_TABS.map(x=>x[0]),...STRUCT_MODULES.map(x=>x[0])]);
 function renderPrefTabs(){
@@ -149,6 +149,25 @@ function renderEstruturas(){
   '</div></section>';
  }).join("");
 }
+function renderGeoterritorialidade(){
+ const tipo=geoTipo;
+ PAGE.innerHTML=topo("Geoterritorialidade","Cadastro territorial único. Escolha Bairro ou Zona Operacional e gerencie os registros na mesma área.")+
+ '<section class="section-card geo-workspace"><div class="section-card-body">'+
+ '<div class="geo-controls"><label for="geo-type">Tipo de território<select id="geo-type"><option value="bairros"'+(tipo==="bairros"?" selected":"")+'>Bairro</option><option value="zonas"'+(tipo==="zonas"?" selected":"")+'>Zona operacional</option></select></label>'+
+ '<button type="button" class="btn btn-primary" data-geo-new>+ Novo cadastro</button></div>'+
+ '<div id="geo-content" class="geo-content"></div></div></section>';
+ $("geo-type").onchange=e=>{geoTipo=e.target.value;renderGeoterritorialidade();renderPrefTabs();};
+ if(tipo==="bairros"){
+  const target=$("geo-content");
+  target.innerHTML='<p class="pref-note">Carregando inventário territorial...</p>';
+  window.dispatchEvent(new Event("gestao:geo-render"));
+ }else{
+  const records=db.lista("zonas"),target=$("geo-content");
+  target.innerHTML='<div class="geo-list"><table><thead><tr><th>Zona operacional</th><th>Tipo</th><th>Responsável</th><th>Verificação</th><th>Ações</th></tr></thead><tbody>'+
+   (records.length?records.map(x=>'<tr><td><strong>'+esc(x.nome)+'</strong></td><td>'+esc(x.tipo||"—")+'</td><td>'+esc(x.responsavel||"Não atribuído")+'</td><td>'+esc(x.verificacao||"Pendente")+'</td><td><button class="row-action" data-geo-edit="'+esc(x.id)+'">Editar</button> <button class="row-action danger" data-geo-delete="'+esc(x.id)+'">Excluir</button></td></tr>').join(""):'<tr><td colspan="5">Nenhuma zona operacional cadastrada.</td></tr>')+
+   '</tbody></table></div>';
+ }
+}
 function renderModulo(){
  const d=D.ESQUEMAS[atual];
  if(atual==="bairros"){
@@ -171,11 +190,12 @@ function render(){
   return;
  }
  const hash=decodeURIComponent(location.hash.replace(/^#/,""))||"inicio";
- const adjusted=hash==="prefeituras"||hash==="implantacao"?"territorio":hash;
- const proximo=adjusted==="inicio"||adjusted==="estruturas"||Object.hasOwn(D.ESQUEMAS,adjusted)?adjusted:"inicio";
+ const adjusted=hash==="prefeituras"||hash==="implantacao"?"territorio":hash==="bairros"||hash==="zonas"?"geoterritorialidade":hash;
+ if(hash==="bairros"||hash==="zonas")geoTipo=hash;
+ const proximo=adjusted==="inicio"||adjusted==="estruturas"||adjusted==="geoterritorialidade"||Object.hasOwn(D.ESQUEMAS,adjusted)?adjusted:"inicio";
  if(proximo!==atual)pesquisa="";
  atual=proximo;
- document.title=(atual==="inicio"?"Gestão":atual==="estruturas"?"Estruturas":D.ESQUEMAS[atual].label)+" | Maringá Alerta";
+ document.title=(atual==="inicio"?"Gestão":atual==="estruturas"?"Estruturas":atual==="geoterritorialidade"?"Geoterritorialidade":D.ESQUEMAS[atual].label)+" | Maringá Alerta";
  renderNav();
  if(atual==="inicio")renderInicio();
  else if(atual==="territorio")renderTerritorioMunicipal();
@@ -184,6 +204,7 @@ function render(){
   else PAGE.innerHTML=topo("Implantação indisponível","Não foi possível carregar o módulo territorial.");
  }
  else if(atual==="estruturas")renderEstruturas();
+ else if(atual==="geoterritorialidade")renderGeoterritorialidade();
  else renderModulo();
  if(PREF_SECTIONS.has(atual))renderPrefTabs();
 }
@@ -203,10 +224,11 @@ function campoHTML(f,valor){
  const list=f.type==="city"?' list="ibge-cidades" autocomplete="off"':"";
  return '<div class="field">'+label+'<input id="'+id+'" name="'+esc(f.key)+'" type="'+type+'" value="'+v+'"'+required+attr+list+'></div>';
 }
-function abrirDrawer(id=null){
- if(atual==="inicio")return;
- const def=D.ESQUEMAS[atual];
- const item=id?db.registro(atual,id):null;
+function abrirDrawer(id=null,modulo=atual){
+ if(modulo==="inicio")return;
+ drawerModulo=modulo;
+ const def=D.ESQUEMAS[modulo];
+ const item=id?db.registro(modulo,id):null;
  if(id&&!item)return;
  edicao=id;
  ultimoFoco=document.activeElement;
@@ -214,7 +236,7 @@ function abrirDrawer(id=null){
  $("drawer-title").textContent=(id?"Editar ":"Novo cadastro · ")+def.singular;
  $("cadastro-campos").innerHTML=def.fields.map(f=>campoHTML(f,item?.[f.key])).join("")+(atual==="prefeituras"?'<datalist id="ibge-cidades"></datalist>':"");
  const bairro=$("field-bairro");
- if(bairro&&(atual==="pessoas"||atual==="voluntarios")){
+ if(bairro&&(modulo==="pessoas"||modulo==="voluntarios")){
   bairro.required=true;
   bairro.setAttribute("list","bairros-origem");
   const lista=document.createElement("datalist");
@@ -232,7 +254,7 @@ function abrirDrawer(id=null){
  }
  $("form-error").textContent="";
  DRAWER.hidden=false;
- if(atual==="prefeituras"){
+ if(modulo==="prefeituras"){
   $("field-uf").addEventListener("change",()=>{ $("field-nome").value="";$("field-codigo_ibge").value="";carregarIBGE($("field-uf").value); });
   $("field-nome").addEventListener("change",()=>atualizarCodigoIBGE());
   if($("field-uf").value)carregarIBGE($("field-uf").value);
@@ -240,7 +262,7 @@ function abrirDrawer(id=null){
  $("cadastro-campos").querySelector("input,select,textarea")?.focus();
 }
 function fecharDrawer(){
- DRAWER.hidden=true;edicao=null;
+ DRAWER.hidden=true;edicao=null;drawerModulo=null;
  const foco=ultimoFoco;ultimoFoco=null;
  if(foco?.isConnected&&foco.focus)foco.focus({preventScroll:true});
 }
@@ -298,7 +320,7 @@ function excluir(id){
  try{const anterior=db.municipioAtivo()?.id;db.excluir(atual,id);if(atual==="prefeituras"){renderMunicipios();if(anterior!==db.municipioAtivo()?.id){location.reload();return;}}render();if(atual==="bairros")window.dispatchEvent(new Event("gestao:bairros-atualizados"));toast("Cadastro excluído.");}catch(e){toast(e.message);}
 }
 FORM.addEventListener("submit",e=>{
- e.preventDefault();const modulo=atual;
+ e.preventDefault();const modulo=drawerModulo||atual;
  const data={};
  for(const [k,v] of new FormData(FORM).entries()){if(Object.hasOwn(data,k))data[k]=[].concat(data[k],v);else data[k]=v;}
  for(const f of D.ESQUEMAS[modulo].fields)if(f.type==="multi")data[f.key]=Array.isArray(data[f.key])?data[f.key]:data[f.key]?[data[f.key]]:[];
@@ -313,6 +335,20 @@ FORM.addEventListener("submit",e=>{
 });
 PAGE.addEventListener("click",e=>{
  const novo=e.target.closest("[data-new]"),edit=e.target.closest("[data-edit]"),del=e.target.closest("[data-delete]");
+ if(atual==="geoterritorialidade"){
+  const add=e.target.closest("[data-geo-new]"),geoEdit=e.target.closest("[data-geo-edit]"),geoDel=e.target.closest("[data-geo-delete]");
+  if(add){abrirDrawer(null,geoTipo);return;}
+  if(geoEdit){abrirDrawer(geoEdit.dataset.geoEdit,geoTipo);return;}
+  if(geoDel){
+   const id=geoDel.dataset.geoDelete;
+   const record=db.registro(geoTipo,id);
+   if(record&&confirm('Excluir "'+record.nome+'"?')){
+    try{db.excluir(geoTipo,id);render();toast("Cadastro excluído.");}catch(err){toast(err.message);}
+   }
+   return;
+  }
+  if(edit&&geoTipo==="bairros"){abrirDrawer(edit.dataset.edit,"bairros");return;}
+ }
  if(novo){e.preventDefault();if(atual==="inicio")location.hash="#"+novo.dataset.new;else abrirDrawer();return;}
  if(edit){abrirDrawer(edit.dataset.edit);return;}
  if(del){excluir(del.dataset.delete);return;}
