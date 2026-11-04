@@ -32,7 +32,7 @@ const ICONS={
   chevron:'<path d="m9 18 6-6-6-6"/>'
 };
 const icon=(id,css="")=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="'+css+'" aria-hidden="true">'+(ICONS[id]||ICONS.list)+'</svg>';
-const icons={inicio:"dashboard",prefeituras:"building",zonas:"layers",bases:"pin",riscos:"shield",administradores:"shield",responsaveis:"user",substitutos:"user",coordenadores:"users",operadores:"user",equipes:"wrench",integrantes:"users",voluntarios:"users",saude:"hospital",emergencias:"siren",parceiros:"building",veiculos:"truck",equipamentos:"wrench",estoques:"box",abrigos:"hospital",pontos:"pin",ocorrencias:"list",canais:"bell",regras:"shield"};
+const icons={solicitacoes:"list",mobilizacoes:"bell",apoios:"building",inicio:"dashboard",prefeituras:"building",zonas:"layers",bases:"pin",riscos:"shield",administradores:"shield",responsaveis:"user",substitutos:"user",coordenadores:"users",operadores:"user",equipes:"wrench",integrantes:"users",voluntarios:"users",saude:"hospital",emergencias:"siren",parceiros:"building",veiculos:"truck",equipamentos:"wrench",estoques:"box",abrigos:"hospital",pontos:"pin",ocorrencias:"list",canais:"bell",regras:"shield"};
 let atual="inicio",pesquisa="",edicao=null,ultimoFoco=null,toastTimer=null;
 const cidadesPorUf=new Map();
 const municipio=db.municipioAtivo();
@@ -64,7 +64,9 @@ function renderInicio(){
   ["Zonas operacionais","Organizar a cobertura e vincular responsáveis.","zonas"],
   ["Usuários e hierarquia","Cadastrar administradores, responsáveis e coordenadores.","administradores"],
   ["Equipes e instituições","Organizar equipes, hospitais e serviços de emergência.","equipes"],
-  ["Recursos e comunicação","Configurar equipamentos, abrigos e canais.","equipamentos"]
+  ["Recursos e comunicação","Configurar equipamentos, abrigos e canais.","equipamentos"],
+  ["Ajuda pós-evento","Gerenciar solicitações por zona.","solicitacoes"],
+  ["Brigadas e prefeituras","Mobilizar zonas e solicitar apoio a outros municípios.","mobilizacoes"]
  ];
  PAGE.innerHTML=topo("Painel de gestão","Cadastros e recursos para organizar a atuação de cada prefeitura.")+
  '<div class="dashboard-grid">'+resumoCard("Prefeituras",db.municipios().length,"building","Municípios cadastrados")+resumoCard("Zonas",numero("zonas"),"layers","Na prefeitura selecionada")+resumoCard("Equipes",numero("equipes"),"users","Recuperação e apoio")+resumoCard("Instituições",numero("saude")+numero("emergencias")+numero("parceiros"),"hospital","Serviços cadastrados")+'</div>'+
@@ -75,11 +77,12 @@ function renderInicio(){
  '<div class="hierarchy-step"><strong>Responsáveis e coordenadores</strong><small>Zonas, substituições e equipes</small></div><div class="hierarchy-arrow">↓</div>'+
  '<div class="hierarchy-step"><strong>Equipes e instituições</strong><small>Recursos, contatos e capacidade operacional</small></div>'+
  '</div></div></section></div>';
+ PAGE.innerHTML+='<section class="section-card crisis-links"><div class="section-card-body"><strong>Três mapas integrados</strong><p class="page-subtitle">O Mapa de Evento preserva a aplicação original. O Mapa de Colaboradores mostra as capacidades cadastradas; o Mapa da Ajuda mostra demandas pós-evento.</p><div class="heading-actions"><a class="btn" href="../index.html" target="_blank" rel="noopener">Mapa de Evento</a><a class="btn" href="../mapas/?tipo=colaboradores" target="_blank" rel="noopener">Mapa de Colaboradores</a><a class="btn" href="../mapas/?tipo=ajuda" target="_blank" rel="noopener">Mapa da Ajuda</a><a class="btn btn-primary" href="../atendimento/" target="_blank" rel="noopener">Testar atendimento WhatsApp</a></div></div></section>';
 }
 function tabelaLinhas(){
  if(atual==="inicio")return;
  const def=D.ESQUEMAS[atual],all=db.lista(atual);
- const list=all.filter(x=>Object.values(x).some(v=>typeof v==="string"&&v.toLocaleLowerCase("pt-BR").includes(pesquisa.toLocaleLowerCase("pt-BR"))));
+ const list=all.filter(x=>Object.values(x).some(v=>(typeof v==="string"||Array.isArray(v))&&String(v).toLocaleLowerCase("pt-BR").includes(pesquisa.toLocaleLowerCase("pt-BR"))));
  const plural=list.length===1?"registro":"registros";
  const count=$("table-count");if(count)count.textContent=list.length+" "+plural;
  const tbody=$("table-body");if(!tbody)return;
@@ -130,6 +133,9 @@ function render(){
 function campoHTML(f,valor){
  const id="field-"+f.key,v=esc(valor??""),required=f.required?' required':"";
  const label='<label for="'+id+'">'+esc(f.label)+(f.required?' <span class="required">*</span>':"")+'</label>';
+ if(f.type==="hidden")return '<input type="hidden" id="'+id+'" name="'+esc(f.key)+'" value="'+v+'">';
+ if(f.type==="multi"){const current=Array.isArray(valor)?valor:String(valor||"").split(";").map(x=>x.trim()).filter(Boolean);
+ return '<fieldset class="field multi-field"><legend>'+esc(f.label)+'</legend><div class="multi-choices">'+(f.options||[]).map(opt=>'<label class="multi-option"><input type="checkbox" name="'+esc(f.key)+'" value="'+esc(opt)+'"'+(current.includes(opt)?' checked':'')+'/><span>'+esc(opt)+'</span></label>').join("")+'</div></fieldset>';}
  if(f.type==="textarea")return '<div class="field">'+label+'<textarea id="'+id+'" name="'+esc(f.key)+'"'+required+'>'+v+'</textarea></div>';
  if(f.type==="select"||f.type==="uf"||f.type==="zone"||f.type==="team"){
   const options=f.type==="uf"?D.UFS:f.type==="zone"?db.lista("zonas").map(x=>x.nome):f.type==="team"?db.lista("equipes").map(x=>x.nome):f.options||[];
@@ -219,7 +225,9 @@ function excluir(id){
 }
 FORM.addEventListener("submit",e=>{
  e.preventDefault();const modulo=atual;
- const data=Object.fromEntries(new FormData(FORM).entries());
+ const data={};
+ for(const [k,v] of new FormData(FORM).entries()){if(Object.hasOwn(data,k))data[k]=[].concat(data[k],v);else data[k]=v;}
+ for(const f of D.ESQUEMAS[modulo].fields)if(f.type==="multi")data[f.key]=Array.isArray(data[f.key])?data[f.key]:data[f.key]?[data[f.key]]:[];
  try{
   const item=db.gravar(modulo,data,edicao);
   const novo=!edicao;

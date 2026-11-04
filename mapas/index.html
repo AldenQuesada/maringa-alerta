@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b111b">
+<title>Mapas · Maringá Unida</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="./style.css?v=crise-1">
+</head>
+<body>
+<div class="layout">
+ <header class="top">
+  <div class="brand"><a class="brand-link" href="../gestao/" title="Voltar à Gestão">M<span class="brand-dot">•</span></a><div class="brand-name"><strong>MARINGÁ ALERTA</strong><small>Sistema Integrado de Gestão de Crise</small></div></div>
+  <nav class="maps-nav" aria-label="Trocar de mapa">
+   <a href="../index.html" target="_blank" rel="noopener noreferrer">Evento <span aria-hidden="true">↗</span></a>
+   <a id="nav-colaboradores" href="?tipo=colaboradores">Colaboradores</a>
+   <a id="nav-ajuda" href="?tipo=ajuda">Ajuda</a>
+  </nav>
+  <div class="actions"><a href="../atendimento/" target="_blank" rel="noopener noreferrer">Simular WhatsApp</a><a class="manage-link" href="../gestao/">Gestão</a></div>
+ </header>
+ <main class="workspace">
+  <div class="map-area">
+   <div id="map" role="application" aria-label="Mapa por zonas"></div>
+   <div class="map-info"><span class="signal"></span><span id="map-label">Mapa</span><small>Dados locais de demonstração · sem envio real</small></div>
+   <div class="map-legend"><span><i class="color-collab"></i>Colaboradores</span><span><i class="color-help"></i>Pedidos</span><span>Marcadores por zona</span></div>
+  </div>
+  <aside class="sidebar">
+   <header class="panel-heading"><p class="eyebrow" id="eyebrow">MAPA</p><h1 id="title">Colaboradores</h1><p id="subtitle">Capacidades disponíveis por zona.</p></header>
+   <div class="municipio"><label for="municipio">Prefeitura</label><select id="municipio"></select></div>
+   <section class="stats" aria-label="Indicadores">
+    <div><span id="metric-one">0</span><small id="metric-one-label">Cadastros</small></div><div><span id="metric-two">0</span><small id="metric-two-label">Zonas</small></div><div><span id="metric-three">0</span><small id="metric-three-label">Disponíveis</small></div>
+   </section>
+   <section class="filters" aria-label="Filtros">
+    <label for="zona">Zona</label><select id="zona"><option value="">Todas as zonas</option></select>
+    <label for="filtro" id="filtro-label">Tipo de colaborador</label><select id="filtro"></select>
+    <label for="busca">Buscar por tipo de ajuda</label><input id="busca" type="search" placeholder="Alimentos, telhas, limpeza...">
+   </section>
+   <div class="list-heading"><strong id="list-title">Registros</strong><span id="list-count">0</span></div>
+   <div class="results" id="results" aria-live="polite"></div>
+   <section class="command" id="command">
+    <h2 id="command-title">Ações de coordenação</h2>
+    <div id="command-content"></div>
+   </section>
+  </aside>
+ </main>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="../gestao/dados.js?v=gestao-2"></script>
+<script src="../crise/core.js?v=crise-1"></script>
+<script src="./app.js?v=crise-1"></script>
+</body>
+</html>
