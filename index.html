@@ -332,6 +332,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 </style>
 <link rel="stylesheet" href="prototipo.css?v=sessoes-1">
 <link rel="stylesheet" href="sessao.css?v=sessoes-2">
+<link rel="stylesheet" href="mapa-navegacao.css?v=mapa-1">
 </head>
 <body>
 <button id="menu-backdrop" class="menu-backdrop" aria-label="Fechar zonas e menus"></button>
@@ -548,6 +549,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <script src="fluxo-ajuda.js?v=sessoes-1"></script>
 <script src="sessao.js?v=sessoes-1"></script>
 <script src="sessao-ui.js?v=sessoes-2"></script>
+<script src="mapa-navegacao.js?v=mapa-1"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <script>
@@ -762,6 +764,11 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution:'&copy; OpenStreetMap contributors',
   subdomains:'abc', maxZoom:19
 }).addTo(map);
+// Mantém navegação dentro da área de Maringá sem interferir na seleção de ocorrências.
+const navegacaoMapa = window.AlertaMapaNavegacao.instalar({
+  map, L, centro: MARINGA_CENTER, zoom: 13,
+  aoRestaurar: () => { if (activeZone !== null) selectZone(null); }
+});
 
 bairros.forEach(b=>{
   b.polyLayer = L.polygon(b.poly, {
