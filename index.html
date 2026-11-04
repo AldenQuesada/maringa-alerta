@@ -1037,6 +1037,7 @@ function pessoasPainel(){
 let fichaAberta=null;
 const marcadoresPessoas=new Map();
 function mostrarFicha(id){
+  if(currentPanelOcId) document.getElementById('panel-close').click();
   fichaAberta=id;
   const painel=document.getElementById('floatwin-body');
   if(painel.hidden || document.getElementById('floatwin').classList.contains('minimized')) document.getElementById('floatwin-min').click();
