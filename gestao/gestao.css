@@ -75,3 +75,22 @@
  .page:has(.pref-tabs)>.pref-tabs{margin-bottom:8px}
  .page:has(.pref-tabs)>.heading-row,.page:has(.pref-tabs)>.mi-head{margin-bottom:7px}
 }
+
+/* Geoterritorialidade: um fluxo com dois tipos, sem duplicação de cadastro. */
+.geo-workspace{min-height:0}
+.geo-workspace>.section-card-body{padding:15px 17px}
+.geo-controls{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:11px;flex-wrap:wrap}
+.geo-controls label{display:flex;flex-direction:column;gap:5px;color:#a9bcce;font-size:11px;font-weight:650;min-width:220px}
+.geo-controls select{min-height:40px;background:#162637;color:#e9f1f8;border:1px solid #425b72;border-radius:8px;padding:8px 12px}
+.geo-content{min-height:0}
+.geo-content .mi-official-catalog{margin-top:0}
+.geo-content .mi-official-scroll{height:clamp(320px,calc(100dvh - 420px),750px);max-height:none}
+.geo-list{overflow:auto;max-height:calc(100dvh - 365px);border:1px solid #30445b;border-radius:8px}
+.geo-list th{position:sticky;top:0;z-index:1}
+.geo-list td .row-action{margin-right:5px}
+@media(max-width:700px){
+ .geo-controls{align-items:stretch}
+ .geo-controls label,.geo-controls button{width:100%}
+ .geo-list{max-height:calc(100dvh - 350px)}
+ .geo-content .mi-official-scroll{height:clamp(300px,calc(100dvh - 420px),650px)}
+}
