@@ -4,13 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101720">
+<meta name="application-version" content="admin-geral-20261104-5">
 <title>Admin Geral · Sistema Integrado de Gestão de Crise</title>
 <link rel="stylesheet" href="./style.css?v=admin-1">
 </head>
 <body>
 <header class="topbar">
   <a class="brand" href="./" aria-label="Página inicial da Administração Geral"><span class="logo">S<span>•</span></span><span><strong>SISTEMA INTEGRADO DE GESTÃO DE CRISE</strong><small>Administração Geral da Plataforma</small></span></a>
-  <div class="top-links"><span class="context">Brasil <span>›</span> Todos os estados <span>›</span> Todas as prefeituras</span><span class="context">Cadastro central de prefeituras</span></div>
+  <div class="top-links"><span class="context">Brasil <span>›</span> Todos os estados <span>›</span> Todas as prefeituras</span><span class="context">Cadastro central de prefeituras · v5</span></div>
 </header>
 <div class="shell">
   <aside class="sidebar" aria-label="Administração da plataforma">
@@ -23,12 +24,15 @@
     <div class="sidebar-bottom"><strong>Escopo global</strong><p>Nenhuma Prefeitura tem permissão para criar outro município.</p><p class="muted">Protótipo local. Autenticação e isolamento reais exigem backend.</p></div>
   </aside>
   <main class="content" id="main" tabindex="-1">
-    <section class="screen" id="screen"></section>
+    <section class="screen" id="screen">
+      <div class="heading"><div><div class="kicker">ADMIN GERAL · TODO O SISTEMA</div><h1>Prefeituras cadastradas</h1><p>Brasil › Paraná › Maringá</p></div></div>
+      <section class="panel"><div class="panel-head"><h2>Maringá / PR</h2><span>Ativa · IBGE 4115200</span></div><div class="panel-body"><p>Prefeitura já presente no cadastro inicial do sistema.</p><a class="btn primary" href="../gestao/?municipio=maringa">Abrir Prefeitura de Maringá</a></div></section>
+    </section>
   </main>
 </div>
 <div id="notification" role="status" aria-live="polite" hidden></div>
 <script src="../gestao/dados.js?v=gestao-6"></script>
 <script src="./modelo.js?v=admin-3"></script>
-<script src="./app.js?v=admin-4"></script>
+<script src="./app.js?v=admin-5"></script>
 </body>
 </html>
