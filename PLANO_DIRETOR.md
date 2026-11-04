@@ -349,6 +349,20 @@ Os mapas possuem **responsabilidades diferentes**, com potencial de cruzamento p
 
 **Estado atual:** demonstração estática em GitHub Pages, no navegador. As fontes remotas podem falhar por indisponibilidade, CORS ou limite; o fallback por arquivo público é mantido. Não constitui cadastro municipal homologado, GIS oficial, banco compartilhado ou sistema de emergência em produção.
 
+### 5.7 Bairros georreferenciados nos três mapas (04/11/2026)
+
+A disponibilização pública da fonte municipal de 2026 e da malha de bairros do Censo 2022 deve ser tratada de forma distinta:
+
+- **Bairros (dados verificáveis):** o projeto inclui arquivo local versionado com **113 feições e 113 nomes distintos**, derivados do ZIP de bairros do IBGE Censo 2022 para a UF Paraná e filtrados por município 4115200. A extração preserva o código do bairro, nome e geometria poligonal, corrigindo a codificação UTF-8.
+- **Paraná Interativo:** camada estadual adicional com 50 feições e muitos rótulos numéricos; fica como fallback identificado, não como inventário mais recente.
+- **GeoMaringá / Prefeitura:** o catálogo de QGIS lista camadas "Bairro" e "Zonas", mas os endpoints municipais retornaram timeout na execução de 04/11/2026. Enquanto não se obtiverem e validarem geometrias desse serviço, o sistema não pode afirmar que todos os bairros e zonas municipais de 2026 foram homologados.
+
+**Visualização automática:** Mapa de Evento, Mapa de Colaboradores e Mapa da Ajuda carregam diretamente o arquivo territorial versionado. A interface contém busca/lista completa, escolha de bairro, realce de polígono, referência da fonte e opção para mostrar/ocultar zonas simuladas. A tela `Gestão → Bairros` exibe automaticamente a lista com ligações de localização nos três mapas; `Gestão → Zonas` mostra a condição das seis zonas demonstrativas. Os cadastros continuam editáveis e a importação local para a coleção de bairros depende de ação explícita do operador.
+
+**Separação obrigatória:** bairro censitário, bairro municipal, zona cartográfica, zona operacional e área de risco são entidades distintas. Não vincular automaticamente bairros às zonas de despacho, nem alterar a mecânica aprovada do Mapa de Evento. Zonas operacionais precisam de delimitação e validação da Defesa Civil; não criar falsos polígonos oficiais.
+
+**Estado operacional:** geometria dos bairros IBGE 2022 carregável automaticamente no protótipo. Persistência de cadastros continua local e a infraestrutura não representa um serviço compartilhado em produção municipal.
+
 ## 6. Hierarquia de módulos e interfaces
 
 ### 6.1 Cinco experiências distintas
