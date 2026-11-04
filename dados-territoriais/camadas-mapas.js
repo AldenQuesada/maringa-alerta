@@ -51,7 +51,7 @@ async function carregar(force=false){
 function iniciar({map,L,simulatedLayers=[]}){
  if(!map||!L)throw Error("Mapa Leaflet obrigatório");
  const control=L.control({position:"topleft"});
- let layerB=null,layerZ=null,selected=null,visibleB=true,visibleZ=false,showDemo=false,isDestroyed=false,data=null;
+ let layerB=null,layerZ=null,selected=null,visibleB=true,visibleZ=false,showDemo=true,isDestroyed=false,data=null;
  const cover=L.layerGroup().addTo(map);
  function find(name){
   const needle=String(name||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
@@ -114,7 +114,7 @@ function iniciar({map,L,simulatedLayers=[]}){
   '<datalist id="territory-list"></datalist>'+
   '<div class="territory-options"><label><input type="checkbox" name="bairros" checked> Bairros (polígonos)</label>'+
   '<label><input type="checkbox" name="zonas"> Zonas cartográficas</label>'+
-  '<label><input type="checkbox" name="demo"> 6 zonas operacionais demonstrativas</label></div>'+
+  '<label><input type="checkbox" name="demo" checked> 6 zonas operacionais demonstrativas</label></div>'+
   '<small class="territory-count">Aguardando fonte territorial</small>';
   L.DomEvent.disableClickPropagation(box);L.DomEvent.disableScrollPropagation(box);
   box.querySelector('[name="bairros"]').onchange=e=>{visibleB=e.target.checked;update();};
