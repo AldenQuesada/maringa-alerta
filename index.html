@@ -864,7 +864,7 @@ function gerarVoluntarios(){
       const pos = randPointInBox(b.poly);
       const ajuda = i===0?'Comida':i===1?'Mão de obra':pick(tiposAjuda);
       const v = {
-        id:"v"+(idCounter++), tenantId, nome:pick(nomesVol), ajuda, contribuicoes:[ajuda], bairro:b.nome, pos, ativo:false,
+        demo:true, id:"v"+(idCounter++), tenantId, nome:pick(nomesVol), ajuda, contribuicoes:[ajuda], bairro:b.nome, pos, ativo:false,
         cpf:null, endereco:null, alertaPreferencia:'todos',
         disponibilidadeZona: Math.random()<0.5 ? 'qualquer_zona' : 'somente_minha',
         temVeiculo:false, tipoVeiculo:null, aceitaReembolso:null, consentimentoLGPD:true,
@@ -1040,6 +1040,17 @@ function statusPessoaMapa(p){
   if(participacoes.some(x=>x.status==='no_local') || p.checkin_status==='presente') return ['local','No local · chegada registrada'];
   if(participacoes.some(x=>x.status==='em_caminho') || p.checkin_status==='em_caminho') return ['caminho','A caminho · deslocamento confirmado'];
   if(p.checkin_status==='finalizado'||participacoes.some(x=>x.status==='concluida')) return ['fora','Fora da obra · saída registrada'];
+  const ficticio=p.demo===true && (p.oficial || (p.cpf==null && p.endereco==null));
+  if(ficticio){
+    const numero=Number(String(p.id).replace(/\D/g,''));
+    if(Number.isFinite(numero)){
+      return [
+        ['local','No local · situação simulada'],
+        ['caminho','A caminho · situação simulada'],
+        ['fora','Fora da obra · situação simulada']
+      ][numero%3];
+    }
+  }
   return ['indefinido','Situação não informada'];
 }
 function textoMarcadorPessoa(p){
@@ -1098,8 +1109,9 @@ function atualizarPontoAoVivo(id){
   if(!voluntario?.marker)return;
   const atual=posicaoAtual(id);
   voluntario.marker.setLatLng(atual?.pos||voluntario.pos);
-  voluntario.marker.setIcon(volIcon(!!atual,statusPessoaMapa(voluntario)[0]));
-  voluntario.marker.setTooltipContent(textoMarcadorPessoa(voluntario));
+  const pessoa={...voluntario,demo:voluntario.cpf==null&&voluntario.endereco==null};
+  voluntario.marker.setIcon(volIcon(!!atual,statusPessoaMapa(pessoa)[0]));
+  voluntario.marker.setTooltipContent(textoMarcadorPessoa(pessoa));
 }
 function pararLocalizacao(id){
   const atual=localizacoes.get(id);
@@ -1119,7 +1131,9 @@ function colaboradorAtivo(id){
   if(pessoa?.id.startsWith('cad:')) return pessoa.checkin_status==='presente'&&normalizarTerritorio(pessoa.checkin_bairro)===normalizarTerritorio(pessoa.bairroOrigem);
   const atual=posicaoAtual(id);
   const ocorrencia=atual&&ocorrencias.find(o=>o.id===atual.ocorrenciaId);
-  return !!ocorrencia?.participacoes?.some(p=>p.voluntarioId===id&&p.status==='no_local'&&p.checkInGPS);
+  if(ocorrencia?.participacoes?.some(p=>p.voluntarioId===id&&p.status==='no_local'&&p.checkInGPS)) return true;
+  const [situacao,descricao]=pessoa?statusPessoaMapa(pessoa):[];
+  return situacao==='local'&&descricao==='No local · situação simulada';
 }
 function renderCollaborators(){
   const body=document.getElementById('floatwin-body');
@@ -1185,12 +1199,12 @@ function renderCollaborators(){
     const ativos=colaboradores.filter(p=>colaboradorAtivo(p.id)).length;
     const percentual=colaboradores.length?Math.round(100*ativos/colaboradores.length):0;
     return `<section class="person-territory">
-      <h4>${escHtml(grupo.nome)} <span class="equipe-kpis" title="Ativos: colaboradores com check-in presente no bairro ou chegada validada com GPS nesta sessão.">Colab: ${colaboradores.length} · Act: ${ativos} · ${percentual}%</span></h4>
+      <h4>${escHtml(grupo.nome)} <span class="equipe-kpis" title="Ativos incluem presenças registradas e, para cadastros fictícios, situações simuladas.">Colab: ${colaboradores.length} · Act: ${ativos} · ${percentual}%</span></h4>
       <h3 class="person-section">Responsáveis da equipe</h3>
       ${oficiais.map(item).join('')||'<p>Nenhum responsável cadastrado.</p>'}
       <h3 class="person-section">Colaboradores · ${colaboradores.length}</h3>
       ${colaboradores.map(item).join('')||'<p>Nenhum colaborador cadastrado.</p>'}
-      <p class="equipe-nota">Act: presença registrada ou check-in GPS ativo.</p>
+      <p class="equipe-nota">Act: presença registrada e situações simuladas.</p>
     </section>`;
   }).join('')||'<p>Nenhuma equipe no recorte.</p>';
   body.scrollTop=antes;
@@ -2605,7 +2619,7 @@ function restaurarPrototipo(){
   idCounter=dados.idCounter||1;if(Number.isFinite(dados.eventStart))eventStart=dados.eventStart;
   voluntarios=dados.voluntarios.map(v=>{
     const marker=L.marker(v.pos,{icon:volIcon(),title:v.nome}).addTo(volLayer);
-    configurarMarcadorPessoa(marker,v);
+    configurarMarcadorPessoa(marker,{...v,demo:v.cpf==null&&v.endereco==null});
     return {...v,tenantId,marker};
   });
   ocorrencias=dados.ocorrencias.map(item=>{
