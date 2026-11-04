@@ -334,6 +334,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <link rel="stylesheet" href="mapa-navegacao.css?v=mapa-2">
 <link rel="stylesheet" href="gestao/acoes-cabecalho.css?v=acoes-2">
 <link rel="stylesheet" href="cadastro-ocorrencia.css?v=3">
+<link rel="stylesheet" href="filtros-ocorrencias.css?v=1">
 </head>
 <body>
 <button id="menu-backdrop" class="menu-backdrop" aria-label="Fechar zonas e menus"></button>
@@ -349,17 +350,19 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
       <details id="territory-layers"><summary>Camadas do território</summary></details>
     </section>
     <div class="zone-list" id="zone-list"></div>
+    <section class="oc-filters" id="filtros-ocorrencias" aria-label="Filtros de ocorrências"></section>
     <div class="sidebar-head">
       <div class="sub">Comandos</div>
       <div class="sidebar-actions">
         <button id="demo-new" class="sidebar-btn demo-primary">＋ Registrar ocorrência</button>
-        <button id="open-relatorio-evento" class="sidebar-btn">📊 Relatório do evento</button>
-        <button id="open-fila" class="sidebar-btn">📋 Fila de prioridade</button>
-        <button id="open-audit" class="sidebar-btn">🔒 Log de auditoria</button>
-        <button id="open-alertas" class="sidebar-btn alerta-btn">🌦 Alertas &amp; Prontidão</button>
-        <button id="open-admin" class="sidebar-btn">⚙ Administração</button>
-        <button id="open-chat" class="sidebar-btn">💬 Chat interno</button>
-        <a href="#status" id="open-status-publico" class="sidebar-btn" style="text-decoration:none;display:block;color:var(--muted)">👁 Ver status público</a>
+        <button id="open-fila" class="sidebar-btn">📋 Fila de atendimento</button>
+        <button id="open-alertas" class="sidebar-btn alerta-btn">🌦 Alertas e prontidão</button>
+        <button id="open-relatorio-evento" class="sidebar-btn">📊 Relatórios</button>
+        <details class="sidebar-more"><summary>Mais opções</summary>
+          <button id="open-audit" class="sidebar-btn">🔒 Log de auditoria</button>
+          <button id="open-admin" class="sidebar-btn">⚙ Administração</button>
+          <a href="#status" id="open-status-publico" class="sidebar-btn" style="text-decoration:none;display:block;color:var(--muted)">👁 Ver status público</a>
+        </details>
       </div>
       
       <div class="saved-hint" id="demo-save-status" role="status" hidden></div>
@@ -382,9 +385,10 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         <div class="stat red"><b id="kpi-ativas">0</b><span>Ativas</span></div>
         <div class="stat green"><b id="kpi-resolvidas">0</b><span>Resolvidas</span></div>
         <div class="stat blue"><b id="kpi-voluntarios">0</b><span>Voluntários</span></div>
-        <div class="stat"><b id="kpi-tempo">—</b><span>Tempo médio</span></div>
+        <div class="stat"><b id="kpi-tempo">—</b><span>Tempo de conclusão</span></div>
       </div>
       <div class="topbar-right">
+      <button type="button" id="open-chat" aria-label="Abrir chat interno" title="Chat interno">💬</button>
       <div id="header-actions" class="header-actions" data-municipio="maringa" data-mapas="./mapas/" role="group" aria-label="Ações rápidas"></div>
       <div class="session-anchor" id="session-anchor"></div>
       </div>
@@ -397,6 +401,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         <div class="legend">
           <div><i style="background:var(--red)"></i> Ocorrência ativa</div>
           <div><i style="background:var(--accent)"></i> Atendimento em andamento</div>
+          <div><i style="background:var(--green)"></i> Ocorrência resolvida (histórico)</div>
           <div><i style="background:#2ecf78"></i> Colaborador no local</div>
           <div><i style="background:#ffc93c"></i> Colaborador a caminho</div>
           <div><i style="background:#ff5959"></i> Colaborador com saída registrada</div>
@@ -561,6 +566,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <script src="cadastro-ocorrencia.js?v=3"></script>
 <script src="cadastro-ocorrencia-mapa.js?v=2"></script>
 <script src="fluxo-ajuda.js?v=sessoes-1"></script>
+<script src="filtros-ocorrencias.js?v=1"></script>
 <script src="sessao.js?v=sessoes-1"></script>
 <script src="sessao-ui.js?v=sessoes-2"></script>
 <script src="mapa-navegacao.js?v=mapa-4"></script>
@@ -747,7 +753,7 @@ const GRAV_LABEL = {1:"Baixa", 2:"Média", 3:"Alta"};
 const GRAV_COLOR = {1:"#8b9aad", 2:"#f2c230", 3:"#ff3b3b"};
 const RESP_LABEL = {publica:"Pública", privada:"Privada", mista:"Mista"};
 const RESP_COLOR = {publica:"#3ba7ff", privada:"#b06bff", mista:"#2ecf78"};
-const STATUS_COLOR = {ativa:"#ff3b3b", em_atendimento:"#ffb020"};
+const STATUS_COLOR = {ativa:"#ff3b3b", em_atendimento:"#ffb020", resolvida:"#2ecf78"};
 function sortGravidade(base){
   const r = Math.random();
   const g = base + (r<0.15?-1:r>0.85?1:0);
@@ -786,6 +792,9 @@ const areas = [...areasCadastradas,...bairros.map(b=>({
 const camadasVisiveis={Bairro:true,'Zona cartográfica':false,'Zona demonstrativa':true};
 let eventoAtivo='';
 const noEvento=o=>!eventoAtivo||o.eventoId===eventoAtivo;
+let filtroOcorrencias=null;
+const noFiltro=o=>!filtroOcorrencias||filtroOcorrencias.corresponde(o);
+const ocorrenciaVisivel=o=>noRecorte(o.bairro)&&noEvento(o)&&noFiltro(o);
 const selecao = new Set();
 const areasPorChave=new Map(areas.map(area=>[area.chave,area]));
 const areasSelecionadas=()=>[...selecao].map(chave=>areasPorChave.get(chave));
@@ -846,7 +855,7 @@ let heatOn = false;
 
 function rebuildHeat(){
   const pontos = ocorrencias
-    .filter(o=> (o.status==='ativa'||o.status==='em_atendimento') && noRecorte(o.bairro) && noEvento(o))
+    .filter(o=> (o.status==='ativa'||o.status==='em_atendimento') && ocorrenciaVisivel(o))
     .map(o=> [o.pos[0], o.pos[1], o.gravidade/3]);
   heatLayer.setLatLngs(pontos);
 }
@@ -943,7 +952,7 @@ function renderZoneList(){
   const focado = zoneListEl.contains(document.activeElement) ? document.activeElement.dataset.area : null;
   const busca=normalizarTerritorio(document.getElementById('territory-search').value);
   const alertas=zonasComAlertaAtivo();
-  const abertas=ocorrencias.filter(o=>noEvento(o)&&(o.status==='ativa'||o.status==='em_atendimento'));
+  const abertas=ocorrencias.filter(o=>noEvento(o)&&noFiltro(o)&&(o.status==='ativa'||o.status==='em_atendimento'));
   const visiveis=areas.filter(area=>selecao.has(area.chave)||normalizarTerritorio(area.nome).includes(busca));
   zoneListEl.innerHTML = `<button type="button" class="zone-item todos ${selecao.size?'':'active'}" data-area="" aria-pressed="${!selecao.size}">Todo o município</button>
     ${!areasCadastradas.length?'<p class="territory-hint">Áreas de demonstração. Importe o cadastro municipal em Gestão.</p>':''}
@@ -978,7 +987,7 @@ function atualizarRecorte(){
   updateKpis();
   renderOfficialMarkers();
   rebuildHeat();
-  if(currentPanelOcId && !ocorrencias.some(o=>o.id===currentPanelOcId && noRecorte(o.bairro))) document.getElementById('panel-close').click();
+  if(currentPanelOcId && !ocorrencias.some(o=>o.id===currentPanelOcId && ocorrenciaVisivel(o))) document.getElementById('panel-close').click();
   if(!filaOverlay.hidden) renderFila();
   if(!relatorioOverlay.hidden) renderRelatorioEvento();
   if(!alertasOverlay.hidden) renderAlertasBody();
@@ -1000,8 +1009,10 @@ function applyZoneVisibility(){
     else area.layer.remove();
   });
   ocorrencias.forEach(o=>{
+    const historico=filtroOcorrencias?.obter().situacoes.includes('resolvida');
+    if(!o.marker&&o.status==='resolvida'&&historico&&o.pos){o.marker=L.marker(o.pos,{icon:ocIcon(o.status)});o.marker.on('click',()=>openOcorrencia(o));refreshOcTooltip(o);}
     if(!o.marker)return;
-    const show=noRecorte(o.bairro)&&noEvento(o)&&(o.status==='ativa'||o.status==='em_atendimento');
+    const show=ocorrenciaVisivel(o)&&(o.status!=='resolvida'||historico);
     const has=ocLayer.hasLayer(o.marker);
     if(show&&!has)o.marker.addTo(ocLayer);
     if(!show&&has)ocLayer.removeLayer(o.marker);
@@ -1146,15 +1157,17 @@ function renderCollaborators(){
   const body=document.getElementById('floatwin-body');
   const pessoas=pessoasPainel();
   const antes=body.scrollTop;
+  const comFiltro=filtroOcorrencias&&filtroOcorrencias.descricao()!=='Sem filtros de ocorrência';
+  const pessoasEmOcorrencias=new Set(comFiltro?ocorrencias.filter(ocorrenciaVisivel).flatMap(o=>(o.participacoes||[]).map(p=>p.voluntarioId)):[]);
   const item=p=>{
     const aberto=fichaAberta===p.id;
     const [situacao,descricaoSituacao]=statusPessoaMapa(p);
     const telefone=String(p.telefone||p.tel||'').replace(/[^+\d]/g,'');
     const email=String(p.email||'');
     const contato=telefone?`tel:${telefone}`:/^[^\s@]+@[^\s@]+$/.test(email)?`mailto:${encodeURIComponent(email)}`:'';
-    return `<div class="person-card"${aberto?' id="ficha-pessoa"':''}>
+    return `<div class="person-card${pessoasEmOcorrencias.has(p.id)?' filter-participante':''}"${aberto?' id="ficha-pessoa"':''}>
       <button type="button" class="collab-row person-toggle" data-person="${escHtml(p.id)}" aria-expanded="${aberto}">
-        <span class="c-avatar">${escHtml(initials(p.nome))}</span><span class="c-info"><span class="c-name">${escHtml(p.nome)}</span>
+        <span class="c-avatar">${escHtml(initials(p.nome))}</span><span class="c-info"><span class="c-name">${escHtml(p.nome)}${pessoasEmOcorrencias.has(p.id)?' · em ocorrência filtrada':''}</span>
         <span class="c-meta">${escHtml([p.sub,p.bairroOrigem].filter(Boolean).join(' · '))}</span></span>
         <span class="person-status-dot pessoa-${situacao}" title="${escHtml(descricaoSituacao)}" aria-label="${escHtml(descricaoSituacao)}" role="img"></span>
       </button>
@@ -1534,7 +1547,7 @@ function cadastroFinalizar(){
 }
 
 function updateKpis(){
-  const ocList = ocorrencias.filter(o=> noRecorte(o.bairro)&&noEvento(o));
+  const ocList = ocorrencias.filter(ocorrenciaVisivel);
   const volList = pessoasPainel().filter(p=>!p.oficial);
   const abertas = ocList.filter(o=>o.status==='ativa'||o.status==='em_atendimento');
   const resolvidas = ocList.filter(o=>o.status==='resolvida');
@@ -1553,7 +1566,7 @@ function renderResumo(abertas){
   abertas.forEach(o=>{ porGrav[o.gravidade]++; porResp[o.responsabilidade]++; });
 
   const resolvidas = ocorrencias
-    .filter(o=> o.status==='resolvida' && noRecorte(o.bairro) && noEvento(o))
+    .filter(o=> o.status==='resolvida' && ocorrenciaVisivel(o))
     .sort((a,c)=> (c.resolvidoEm||0) - (a.resolvidoEm||0))
     .slice(0,5);
 
@@ -1792,7 +1805,7 @@ function renderFila(){
   const body = document.getElementById('fila-body');
   const lista = ocorrencias
     .filter(o=> o.status==='ativa'||o.status==='em_atendimento')
-    .filter(o=> noRecorte(o.bairro)&&noEvento(o))
+    .filter(ocorrenciaVisivel)
     .map(o=>({o, score:calcPrioridade(o)}))
     .sort((a,c)=>c.score-a.score);
   body.innerHTML = `
@@ -1804,7 +1817,7 @@ function renderFila(){
           <div class="fi-title">${o.icone} ${escHtml(o.tipo)} · ${escHtml(o.bairro)}</div>
           <div class="fi-meta">${GRAV_LABEL[o.gravidade]} gravidade · ${RESP_LABEL[o.responsabilidade]} · ${o.status==='ativa'?`aguardando há ${minutosDesde(o.reportadoEm)}min`:'em atendimento'}</div>
         </div>
-        <div class="fila-score">score ${score}</div>
+        <div class="fila-score">${GRAV_LABEL[o.gravidade]}</div>
       </div>
     `).join('') || '<div style="color:var(--muted);font-size:12px">Nenhuma ocorrência em aberto nesta visão.</div>'}
   `;
@@ -2233,10 +2246,13 @@ relatorioOverlay.addEventListener('click', e=>{ if(e.target===relatorioOverlay) 
 
 function renderRelatorioEvento(){
   const body = document.getElementById('relatorio-body');
-  const filtradas=ocorrencias.filter(o=>noRecorte(o.bairro)&&noEvento(o));
+  const filtradas=ocorrencias.filter(ocorrenciaVisivel);
   const resolvidas=filtradas.filter(o=>o.status==='resolvida');
   const ativas=filtradas.filter(o=>o.status==='ativa'||o.status==='em_atendimento');
-  const tempoMedioGeral = resolvidas.length ? Math.round(resolvidas.reduce((s,o)=>s+o.tempoReal,0)/resolvidas.length) : 0;
+  const comChegada=filtradas.filter(o=>Number.isFinite(o.confirmadoEm)&&Number.isFinite(o.reportadoEm));
+  const tempoResposta=comChegada.length?Math.round(comChegada.reduce((s,o)=>s+Math.max(0,o.confirmadoEm-o.reportadoEm),0)/comChegada.length/60000):null;
+  const comDuracao=resolvidas.filter(o=>Number.isFinite(o.tempoReal));
+  const tempoMedioGeral=comDuracao.length?Math.round(comDuracao.reduce((s,o)=>s+o.tempoReal,0)/comDuracao.length):null;
 
   const porZona = (selecao.size?areasSelecionadas():areas).map(b=>{
     const ocz = filtradas.filter(o=>pertence(b,o.bairro));
@@ -2257,12 +2273,12 @@ function renderRelatorioEvento(){
   const pctProntidao = totalProntos ? Math.round(totalConf/totalProntos*100) : null;
 
   body.innerHTML = `
-    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Gerado em ${new Date().toLocaleString('pt-BR')} · ${escHtml(tenantConfig.nome)} · ${escHtml(recorteLabel())} · ${escHtml(document.getElementById('filtro-evento').selectedOptions[0]?.textContent||'Todos')} · evento de demonstração. Consolidado automaticamente a partir dos registros do protótipo.</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Gerado em ${new Date().toLocaleString('pt-BR')} · ${escHtml(tenantConfig.nome)} · ${escHtml(recorteLabel())} · ${escHtml(document.getElementById('filtro-evento').selectedOptions[0]?.textContent||'Todos')} · ${escHtml(filtroOcorrencias?.descricao()||'Sem filtros de ocorrência')} · evento de demonstração. Consolidado automaticamente a partir dos registros do protótipo.</div>
     <div class="rel-grid">
       <div class="rel-tile"><b>${filtradas.length}</b><span>Ocorrências totais</span></div>
       <div class="rel-tile"><b>${resolvidas.length}</b><span>Resolvidas</span></div>
       <div class="rel-tile"><b>${ativas.length}</b><span>Ainda abertas</span></div>
-      <div class="rel-tile"><b>${tempoMedioGeral||'—'}min</b><span>Tempo médio de resposta</span></div>
+      <div class="rel-tile"><b>${tempoResposta===null?'—':tempoResposta+'min'}</b><span>Tempo médio até chegada</span></div><div class="rel-tile"><b>${tempoMedioGeral===null?'—':tempoMedioGeral+'min'}</b><span>Tempo médio até conclusão</span></div>
       <div class="rel-tile"><b>${pessoasPainel().filter(p=>!p.oficial).length}</b><span>Colaboradores cadastrados</span></div>
       <div class="rel-tile"><b>${pctProntidao!==null?pctProntidao+'%':'—'}</b><span>Prontidão confirmada pré-evento</span></div>
     </div>
@@ -2761,6 +2777,11 @@ bairros.forEach(b=>{
 
 
 }
+filtroOcorrencias=FiltrosOcorrencias.montar({target:document.getElementById('filtros-ocorrencias'),
+ obterDados:()=>({ocorrencias,tipos:[...tiposOcorrencia.map(x=>x.tipo),...gestao.lista('ocorrencias',tenantId).map(x=>x.nome)],
+ organizacoes:['saude','emergencias','parceiros','equipes'].flatMap(modulo=>gestao.lista(modulo,tenantId).map(x=>({id:modulo+':'+x.id,nome:x.nome})))}),
+ aoMudar:()=>atualizarRecorte()});
+setInterval(()=>{const f=filtroOcorrencias.obter();if(f.horas||f.espera)atualizarRecorte();},30000);
 estadoPronto=true;
 saveAdminState();
 atualizarFluxo();
