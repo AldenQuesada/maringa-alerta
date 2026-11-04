@@ -87,6 +87,7 @@ function criar({armazenamento=root.localStorage,municipioId=null}={}) {
   return db.gravar("voluntarios",campos,existente?.id||null);
  }
  function pontuacaoOferta(pedido,voluntario) {
+  if(pedido.telefone&&mesmoTelefone(pedido.telefone,voluntario.telefone))return -1;
   if(voluntario.disponibilidade==="Indisponível")return -1;
   const candidatas=COMPATIBILIDADE[pedido.necessidade]||[];
   if(!candidatas.length)return -1; // "Outros" e ajuda financeira pedem verificação.
@@ -109,18 +110,19 @@ function criar({armazenamento=root.localStorage,municipioId=null}={}) {
   validarBase(base);
   if(!D.CATALOGOS.necessidades.includes(base.necessidade))throw Error("Escolha o tipo de ajuda.");
   // Não criar fluxo de pagamento/dinheiro direto. Requer referência institucional.
-  const preview={necessidade:base.necessidade,zona:base.zona};
-  const matches=compatíveis(preview);
+  const preview={necessidade:base.necessidade,zona:base.zona,telefone:base.telefone};
+  // Pedidos críticos ficam com a autoridade competente; nunca atribuir automaticamente a voluntários.
+  const matches=base.urgencia==="Crítica"?[]:compatíveis(preview);
   const atribuido=matches[0]||null;
   const result=db.gravar("solicitacoes",{
    nome:String(base.nome).trim(),tipo_pessoa:base.tipo_pessoa,telefone:String(base.telefone).trim(),
    endereco:String(base.endereco).trim(),zona:String(base.zona||"").trim(),
    necessidade:base.necessidade,descricao:String(base.descricao||"").trim(),urgencia:base.urgencia||"Normal",
    status:atribuido?"Encaminhada":"Aguardando",atribuido_a:atribuido?.id||"",
-   criado_em:new Date().toISOString()
+   evento_referencia:String(base.evento_referencia||"").trim(),criado_em:new Date().toISOString()
   });
   return {pedido:result,indicados:matches,mensagemPreparada:atribuido?mensagemParaColaborador(result):null,
-   aviso:atribuido?"Há colaborador compatível no cadastro; mensagem apenas preparada na simulação.":"A solicitação está aguardando disponibilidade/triagem."};
+   aviso:base.urgencia==="Crítica"?"Pedido prioritário para avaliação por equipe competente. Em risco imediato, contate 190, 192 ou 193.":atribuido?"Há colaborador compatível no cadastro; mensagem apenas preparada na simulação.":"A solicitação está aguardando disponibilidade/triagem."};
  }
  function mensagemParaColaborador(pedido){
   const p=prefeitura();
