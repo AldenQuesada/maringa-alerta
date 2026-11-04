@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
-const app=MaringaCrise.criar();
+const app=MaringaCrise.criar({municipioId:sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa",escopoMunicipal:true});
 const catalogos=AlertaGestaoDados.CATALOGOS;
 const history=$("history"),options=$("options"),form=$("reply-form"),input=$("reply");
 let identity=null,role=null,answers={},steps=[],index=0,current=null;
