@@ -1,22 +1,4 @@
-# Estrutura administrativa vigente · correção de 04/11/2026
-
-O painel principal usa `index.html` + `painel-unificado.js` + `painel-unificado.css`. A versão anterior `gestao.js` permanece apenas para histórico, **não é carregada pela página**.
-
-**Cabeçalho central, sempre três botões:** Mapa de Colaboradores / Mapa de Evento / Mapa da Ajuda. Todos abrem aplicações independentes; o Mapa de Evento original continua em `../index.html` sem alterações.
-
-**Sidebar:** Visão geral, Prefeituras, Colaboradores, Pedidos de ajuda e Mobilização.
-
-**Nova Prefeitura / Editar Prefeitura:** uma única ficha, com seções internas de território; responsáveis e hierarquia; equipes municipais; instituições e serviços; recursos; configurações. Não existe menu para cadastrar separadamente administrador, responsável, substituto, coordenador ou operador. O salvamento integral ocorre uma vez pelo botão **Salvar Prefeitura** (`dados.js: salvarFichaPrefeitura`) e preserva ofertas e pedidos já recebidos.
-
-**Colaboradores:** a tela é de **consulta**, sem Novo/Editar. O cadastro é feito pelo fluxo Maringá Unida no WhatsApp (no presente, `../atendimento/` é uma **simulação local**, não integrada à API oficial). Pedidos de ajuda seguem o mesmo princípio.
-
-**Mobilização:** as ações estão nos mapas, não em uma lista de cadastros fragmentados. As mensagens externas e a cooperação real entre municípios dependem de backend e conectores oficiais.
-
-**Validação:** `node --test gestao/tests/*.test.cjs crise/tests/*.test.cjs tests/*.test.cjs`. Esta reorganização não deve modificar `../index.html`, `../fluxo-ajuda.js`, nem o mapa de navegação aprovado.
-
----
-
-# Histórico de versões do Painel de Gestão
+# Painel de gestão do Maringá Alerta
 
 ## Separação estabelecida
 
