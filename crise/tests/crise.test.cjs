@@ -74,7 +74,7 @@ test("após encaminhamento, colaborador só confirma Cheguei e Terminei",()=>{
  assert.equal(core.registrarFase(p.id,"Terminei").status,"Atendida");
 });
 test("brigada reúne colaboradores e equipes da zona em um clique, mas não envia automaticamente",()=>{
- const {core}=novo();core.registrarColaborador(pessoa("Fornecedor","44999990012",{ajudas:["LIMPEZA"]}));
+ const {core}=novo();core.db.gravar("zonas",{nome:"Zona 7",tipo:"Zona numerada"});core.registrarColaborador(pessoa("Fornecedor","44999990012",{ajudas:["LIMPEZA"]}));
  core.db.gravar("equipes",{nome:"Equipe municipal",zona:"Zona 7",telefone:"44999990013"});
  const out=core.acionarBrigada("Zona 7","Teste de mobilização");
  assert.equal(out.destinatarios.length,2);assert.equal(out.mobilizacao.status,"Preparada");
@@ -95,7 +95,7 @@ test("dados municipais não vazam para a prefeitura de outro tenant local",()=>{
  assert.equal(outra.oferentes().length,0);assert.equal(outra.pedidos().length,0);
 });
 test("nenhum canal WhatsApp real é usado no core",()=>{
- const {core}=novo();const out=core.acionarBrigada("Zona 7");
+ const {core}=novo();core.db.gravar("zonas",{nome:"Zona 7",tipo:"Zona numerada"});const out=core.acionarBrigada("Zona 7");
  assert.equal(out.destinatarios.length,0);assert.ok(out.mensagem.includes("REDE MUNICIPAL"));
 });
 
