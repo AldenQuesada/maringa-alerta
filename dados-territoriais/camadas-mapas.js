@@ -25,7 +25,19 @@ async function carregar(force=false){
  if(memory&&!force)return memory;
  memory=(async()=>{
   let manifest=null;try{manifest=await json(asset("maringa-municipal-fonte.json"));}catch(_){}
-  let bairros=null,zonas=null;
+  let bairros=null,zonas=null,zonasNumeradas=null;
+  try{
+   const estadual=await json(asset("maringa-bairros.geojson"),true);
+   const grupos=new Map();
+   for(const f of estadual.features || []){
+    const nome=String(f.properties?.nome || "").trim();
+    if(!/^\d+$/.test(nome) || !["Polygon","MultiPolygon"].includes(f.geometry?.type))continue;
+    const numero=Number(nome), coordenadas=f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
+    if(!grupos.has(numero))grupos.set(numero,{type:"Feature",id:"paranainterativo-zona-"+numero,properties:{id:"paranainterativo-zona-"+numero,nome:"Zona "+numero},geometry:{type:"MultiPolygon",coordinates:[]}});
+    grupos.get(numero).geometry.coordinates.push(...coordenadas);
+   }
+   if(grupos.size)zonasNumeradas=infoFrom({type:"FeatureCollection",features:[...grupos.values()]} ,"Paraná Interativo / Paranacidade · camada Bairro", "estadual-numerada");
+  }catch(_){}
   if(manifest?.camadas?.["bairros-municipais"]?.status==="sucesso"){
    try{bairros=infoFrom(await json(asset("maringa-bairros-municipais.geojson"),true),
     "GeoMaringá / Prefeitura de Maringá","municipal");}catch(_){}
@@ -44,7 +56,7 @@ async function carregar(force=false){
    try{zonas=infoFrom(await json(asset("maringa-zonas-cartograficas.geojson"),true),
     "GeoMaringá / Prefeitura de Maringá","cartografica");}catch(_){}
   }
-  return {bairros,zonas,manifest};
+  return {bairros,zonas,zonasNumeradas,manifest};
  })().catch(err=>{memory=null;throw err;});
  return memory;
 }

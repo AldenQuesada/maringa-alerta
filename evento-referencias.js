@@ -40,7 +40,7 @@
       detalhes.append(resumo);
       const corpo = doc.createElement('div');
       corpo.className = 'evento-referencia-corpo';
-      String(evento.referencias).split(/\r?\n/).map(linha => linha.trim()).filter(Boolean).forEach(linha => {
+      String(evento.referencias || '').split(/\r?\n/).map(linha => linha.trim()).filter(Boolean).forEach(linha => {
         const paragrafo = doc.createElement('p');
         const partes = linha.match(/^([^:]{2,100}):\s+(.+)$/);
         if (partes && !partes[1].includes('http')) {
@@ -51,6 +51,11 @@
         } else preencherTexto(doc, paragrafo, linha);
         corpo.append(paragrafo);
       });
+      if (!evento.referencias) {
+        const aviso = doc.createElement('p');
+        aviso.textContent = 'Nenhuma informação adicional cadastrada.';
+        corpo.append(aviso);
+      }
       const fonte = linkSeguro(doc, evento.url_fonte, 'Consultar fonte principal');
       if (fonte) corpo.append(fonte);
       detalhes.append(corpo);
