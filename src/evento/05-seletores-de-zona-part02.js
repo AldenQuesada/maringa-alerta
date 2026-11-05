@@ -69,9 +69,11 @@ function renderOfficialMarkers(){
 }
 
 function atualizarCadastroMapa(){
-  renderOfficialMarkers();
-  renderCollaborators();
-  updateKpis();
+  // A Gestão é a fonte dos cadastros: atualiza os eventos e as opções dos
+  // filtros junto dos recursos e equipes ao retornar ao mapa ou mudar outra aba.
+  atualizarFiltroEventos();
+  filtroOcorrencias?.atualizarOpcoes();
+  atualizarRecorte();
   montarMarcadoresPublicos();
 }
 window.addEventListener('storage',e=>{
