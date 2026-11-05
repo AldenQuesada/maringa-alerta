@@ -18,13 +18,15 @@ test("todos os bundles publicados correspondem byte a byte aos módulos de orige
   assert.equal(file(bundle.target),rebuilt,"Bundle divergiu: "+bundle.target);
  }
 });
-test("Mapa de Evento carrega CSS e JS externos sem segundo runtime paralelo",()=>{
- const html=file("index.html");
- assert.match(html,/<link rel="stylesheet" href="evento\/style.css\?v=modular-1"/);
- assert.match(html,/<script src="evento\/app.js\?v=modular-1"><\/script>/);
+test("Mapa de Evento carrega CSS e JS externos versionados e com cache correspondente",()=>{
+ const html=file("index.html"),sw=file("sw.js");
+ const script=html.match(/<script src="evento\/app\.js\?v=([^"]+)"><\/script>/);
+ const stylesheet=html.match(/<link rel="stylesheet" href="evento\/style\.css\?v=([^"]+)">/);
+ assert.ok(script&&stylesheet,"Bundle e estilos externos");
+ assert.equal(script[1],stylesheet[1],"Mesmo release para os recursos do mapa");
+ assert.ok(sw.includes("evento/app.js?v="+script[1]),"Service Worker contém runtime atual");
+ assert.ok(sw.includes("evento/style.css?v="+stylesheet[1]),"Service Worker contém CSS atual");
  assert.doesNotMatch(html,/<style\b|<script>\s*\(async function/);
- assert.match(file("sw.js"),/evento\/app.js\?v=modular-1/);
- assert.match(file("sw.js"),/evento\/style.css\?v=modular-1/);
 });
 test("a modularização não cria armazenamento nem páginas canônicas alternativas",()=>{
  const outputs=manifest.bundles.map(x=>x.target);
