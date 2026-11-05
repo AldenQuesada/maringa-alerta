@@ -18,6 +18,18 @@ test("cadastro PF com múltiplas ajudas e maquinário",()=>{
  const p=core.registrarColaborador(pessoa("Ana Teste","44999990001",{ajudas:["FORNECER ALIMENTAÇÃO","LIMPEZA"],maquinas:["MOTOSSERRA COM OPERADOR"]}));
  assert.deepEqual(p.ajudas,["FORNECER ALIMENTAÇÃO","LIMPEZA"]);assert.equal(p.maquinas[0],"MOTOSSERRA COM OPERADOR");
 });
+test("novas capacidades e logística preservam o cadastro de colaborador único",()=>{
+ const {core}=novo();
+ assert.ok(Dados.CATALOGOS.ajudas.includes("INFLUENCIADORES E DIVULGAÇÃO DE NOTÍCIAS"));
+ assert.ok(Dados.CATALOGOS.ajudas.includes("OPERADOR DE DRONE"));
+ const registrado=core.registrarColaborador(pessoa("Apoiador","44999990189",{
+  ajudas:["INFLUENCIADORES E DIVULGAÇÃO DE NOTÍCIAS","OPERADOR DE DRONE","FORNECER ALIMENTAÇÃO"],
+  forma_entrega_doacao:"Consigo entregar no centro de acolhimento/coleta mais próximo"
+ }));
+ assert.equal(registrado.forma_entrega_doacao,"Consigo entregar no centro de acolhimento/coleta mais próximo");
+ assert.ok(core.oferentes()[0].ajudas.includes("OPERADOR DE DRONE"));
+ assert.equal(core.oferentes().length,1);
+});
 test("cadastro PJ com apoio a empreendedores",()=>{
  const {core}=novo();
  const p=core.registrarColaborador(pessoa("Empresa Teste","44999990002",{tipo_pessoa:"JURÍDICA",empreendedores:["ESPAÇO EM FREEZER PARA PERECÍVEIS"],maquinas:["MATERIAL DE CONSTRUÇÃO"]}));
