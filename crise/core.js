@@ -109,7 +109,7 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
   validarBase(dados);
   const existente=encontrarPessoa(dados.telefone);
   const campos={...(existente||{}),nome:String(dados.nome).trim(),tipo_pessoa:dados.tipo_pessoa,
-    endereco:String(dados.endereco).trim(),telefone:String(dados.telefone).trim(),
+    endereco:String(dados.endereco).trim(),telefone:String(dados.telefone).trim(),email:String(dados.email||existente?.email||"").trim(),
     zona:String(dados.zona||existente?.zona||"").trim(),bairro:String(dados.bairro||existente?.bairro||"").trim(),
     ajudas:array(dados.ajudas),maquinas:array(dados.maquinas),empreendedores:array(dados.empreendedores),
     materiais:array(dados.materiais),forma_entrega_doacao:String(dados.forma_entrega_doacao||"").trim(),outros:String(dados.outros||"").trim(),
@@ -147,7 +147,7 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
   const result=db.gravar("solicitacoes",{
    nome:String(base.nome).trim(),tipo_pessoa:base.tipo_pessoa,telefone:String(base.telefone).trim(),
    endereco:String(base.endereco).trim(),zona:String(base.zona||"").trim(),
-   necessidade:base.necessidade,descricao:String(base.descricao||"").trim(),urgencia:base.urgencia||"Normal",
+   necessidade:base.necessidade,descricao:String(base.descricao||"").trim(),urgencia:base.urgencia||"Normal",modo_recebimento:String(base.modo_recebimento||"").trim(),
    status:atribuido?"Encaminhada":"Aguardando",atribuido_a:atribuido?.id||"",
    evento_referencia:String(base.evento_referencia||"").trim(),criado_em:new Date().toISOString()
   });
