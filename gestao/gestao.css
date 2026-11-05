@@ -94,3 +94,36 @@
  .geo-list{max-height:calc(100dvh - 350px)}
  .geo-content .mi-official-scroll{height:clamp(300px,calc(100dvh - 420px),650px)}
 }
+
+/* Prefeitura: cadastros em tabelas, uma ação padrão no topo de todas as abas. */
+.page:has(.pref-tabs) .heading-row{margin-bottom:8px;gap:12px}
+.page:has(.pref-tabs) .heading-actions{margin-left:auto}
+.page:has(.pref-tabs) .heading-actions .btn-primary{min-width:142px}
+.page:has(.pref-tabs) .page-title{font-size:23px}
+.page:has(.pref-tabs) .pref-tabs{gap:4px;margin-bottom:8px}
+.page:has(.pref-tabs) .pref-tab{font-size:12px;padding:10px 16px}
+.pref-tab-body>.table-shell{margin-bottom:12px}
+.pref-tab-body:has(.pref-canonical-table){display:flex;flex-direction:column;overflow:hidden;padding-bottom:10px}
+.pref-canonical-table{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.pref-canonical-table>.table-toolbar{flex:0 0 auto;padding:10px 14px;justify-content:flex-start;gap:12px}
+.pref-canonical-table>.table-toolbar .table-count{margin-left:auto}
+.pref-canonical-table>.table-scroll{flex:1;min-height:0;overflow:auto;scrollbar-color:#41556c transparent}
+.pref-canonical-table>.table-scroll thead th{position:sticky;top:0;z-index:2}
+.pref-canonical-table th,.pref-canonical-table td{padding:12px 14px}
+.pref-canonical-table th:last-child,.pref-canonical-table td:last-child{text-align:right}
+.pref-table-select{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-weight:650;flex:none}
+.pref-table-select select{min-height:40px;min-width:170px;padding:8px 11px;border-radius:8px;border:1px solid #3a5066;background:#132232;color:var(--fg)}
+.pref-general>.table-toolbar,.pref-cabinet>.table-toolbar{padding:10px 14px}
+.pref-general th,.pref-general td,.pref-cabinet th,.pref-cabinet td{padding:11px 14px}
+.pref-tab-body:has(.pref-cabinet){overflow:auto}
+.pref-cabinet{min-height:160px}
+.pref-cabinet .table-scroll{max-height:calc(100dvh - 440px)}
+@media(max-width:700px){
+ .page:has(.pref-tabs) .heading-row{align-items:stretch}
+ .page:has(.pref-tabs) .heading-actions .btn-primary{min-width:124px}
+ .pref-canonical-table>.table-toolbar{gap:7px}
+ .pref-table-select{width:100%;justify-content:space-between}
+ .pref-table-select select{flex:1;min-width:0}
+ .pref-canonical-table .search-field{flex:1;min-width:180px}
+ .pref-cabinet .table-scroll{max-height:calc(100dvh - 470px)}
+}
