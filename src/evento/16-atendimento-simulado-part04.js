@@ -65,7 +65,7 @@ if(recuperacao.estado==='bloqueado'){
   return;
 }
 if(recuperacao.estado==='restauravel'){restaurarPrototipo(recuperacao.dados);ultimaSerializacao=recuperacao.original;}
-if(recuperacao.estado==='vazio'){
+if(recuperacao.estado==='vazio'&&demoMode){
 gerarVoluntarios();
 for(let i=0;i<5;i++) gerarOcorrencia();
 gerarOcorrencia({zona:bairros[0].nome,tipo:tiposOcorrencia[0]});
@@ -79,7 +79,7 @@ bairros.forEach(b=>{
     const reportado = Date.now()-Math.floor(rnd(60,230))*60000;
     const numIdHist = idCounter++;
     ocorrencias.push({
-      id:"oc"+numIdHist, protocolo:tenantConfig.prefixo+"-"+String(10000+numIdHist).slice(-5), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos: randPointInBox(b.poly),
+      id:"oc"+numIdHist, demo:true, protocolo:tenantConfig.prefixo+"-"+String(10000+numIdHist).slice(-5), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos: randPointInBox(b.poly),
       gravidade: sortGravidade(t.gravBase), responsabilidade: pick(t.resp),
       reportadoEm: reportado, confirmadoEm: reportado+tChegada*60000, resolvidoEm: reportado+(tChegada+tAtend)*60000,
       status:"resolvida", tempoChegada:tChegada, tempoAtendimento:tAtend, tempoReal: tChegada+tAtend,

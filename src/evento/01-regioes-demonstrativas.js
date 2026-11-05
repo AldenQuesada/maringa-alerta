@@ -1,5 +1,5 @@
 /* ---------- zonas de demonstração sobre o mapa de Maringá ---------- */
-const equipePool = [
+const equipePool = demoMode ? [
   {nome:"Marcos Teixeira", cargo:"Vereador"},
   {nome:"Fernanda Lopes", cargo:"Secretária de Assistência Social"},
   {nome:"Ricardo Bittencourt", cargo:"Chefe de Defesa Civil"},
@@ -18,13 +18,13 @@ const equipePool = [
   {nome:"Mariana Esteves", cargo:"Subsecretária de Saúde"},
   {nome:"Rogério Villela", cargo:"Coordenador de Campo"},
   {nome:"Daniela Freitas", cargo:"Vereadora"},
-];
+]:[];
 let equipeCursor = 0;
 function nextEquipe(){ return equipePool[(equipeCursor++) % equipePool.length]; }
 
-const equipamentosPool = ["2 motosserras","1 caminhão basculante","1 retroescavadeira","Kit de resgate","Gerador móvel","1 caminhão-pipa","Equipe de eletricistas","Ambulância de apoio"];
+const equipamentosPool = demoMode ? ["2 motosserras","1 caminhão basculante","1 retroescavadeira","Kit de resgate","Gerador móvel","1 caminhão-pipa","Equipe de eletricistas","Ambulância de apoio"]:[];
 
-const bairros = [
+const bairros = demoMode ? [
   { nome:"Zona 7", center:[-23.3995,-51.9395],
     poly:[[-23.392,-51.950],[-23.392,-51.930],[-23.408,-51.930],[-23.408,-51.950]] },
   { nome:"Jardim Alvorada", center:[-23.3870,-51.9120],
@@ -37,7 +37,7 @@ const bairros = [
     poly:[[-23.374,-51.962],[-23.374,-51.941],[-23.392,-51.941],[-23.392,-51.962]] },
   { nome:"Centro Cívico", center:[-23.4225,-51.9365],
     poly:[[-23.415,-51.946],[-23.415,-51.927],[-23.430,-51.927],[-23.430,-51.946]] },
-];
+]:[];
 let funcIdCursor = 1;
 const PAPEL_LABEL = { responsavel:"Responsável", substituto:"Substituto", coordenador:"Coordenador" };
 bairros.forEach(b=>{

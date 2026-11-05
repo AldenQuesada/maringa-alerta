@@ -1,6 +1,7 @@
 
 (async function(){
 "use strict";
+const demoMode=new URLSearchParams(location.search).get('demo')==='1';
 const tenantId='maringa';
 const tenantConfig={nome:'Maringá',marca:'MARINGÁ ALERTA',prefixo:'MA'};
 const storageKey=nome=>`alerta_prototipo_v2_${tenantId}_${nome}`;
@@ -8,7 +9,7 @@ const storageKey=nome=>`alerta_prototipo_v2_${tenantId}_${nome}`;
 
 
 /* ---------- zonas de demonstração sobre o mapa de Maringá ---------- */
-const equipePool = [
+const equipePool = demoMode ? [
   {nome:"Marcos Teixeira", cargo:"Vereador"},
   {nome:"Fernanda Lopes", cargo:"Secretária de Assistência Social"},
   {nome:"Ricardo Bittencourt", cargo:"Chefe de Defesa Civil"},
@@ -27,13 +28,13 @@ const equipePool = [
   {nome:"Mariana Esteves", cargo:"Subsecretária de Saúde"},
   {nome:"Rogério Villela", cargo:"Coordenador de Campo"},
   {nome:"Daniela Freitas", cargo:"Vereadora"},
-];
+]:[];
 let equipeCursor = 0;
 function nextEquipe(){ return equipePool[(equipeCursor++) % equipePool.length]; }
 
-const equipamentosPool = ["2 motosserras","1 caminhão basculante","1 retroescavadeira","Kit de resgate","Gerador móvel","1 caminhão-pipa","Equipe de eletricistas","Ambulância de apoio"];
+const equipamentosPool = demoMode ? ["2 motosserras","1 caminhão basculante","1 retroescavadeira","Kit de resgate","Gerador móvel","1 caminhão-pipa","Equipe de eletricistas","Ambulância de apoio"]:[];
 
-const bairros = [
+const bairros = demoMode ? [
   { nome:"Zona 7", center:[-23.3995,-51.9395],
     poly:[[-23.392,-51.950],[-23.392,-51.930],[-23.408,-51.930],[-23.408,-51.950]] },
   { nome:"Jardim Alvorada", center:[-23.3870,-51.9120],
@@ -46,7 +47,7 @@ const bairros = [
     poly:[[-23.374,-51.962],[-23.374,-51.941],[-23.392,-51.941],[-23.392,-51.962]] },
   { nome:"Centro Cívico", center:[-23.4225,-51.9365],
     poly:[[-23.415,-51.946],[-23.415,-51.927],[-23.430,-51.927],[-23.430,-51.946]] },
-];
+]:[];
 let funcIdCursor = 1;
 const PAPEL_LABEL = { responsavel:"Responsável", substituto:"Substituto", coordenador:"Coordenador" };
 bairros.forEach(b=>{
@@ -213,10 +214,10 @@ for(const [grupo,tipoArea] of [[fontesPublicas?.zonasNumeradas,'Zona'],[fontesPu
     areasCadastradas.push({id,nome,tipoArea,chave:'publico:'+tipoArea+':'+(id||nome),geojson:feature.geometry,fonte:grupo.source});
   });
 }
-const areas = [...areasCadastradas,...bairros.map(b=>({
+const areas = [...areasCadastradas,...(demoMode?bairros.map(b=>({
   nome:b.nome,chave:'demo:'+b.nome,tipoArea:'Zona demonstrativa',demo:b
-}))];
-const camadasVisiveis={Zona:true,Bairro:true,'Zona cartográfica':false,'Zona demonstrativa':true};
+})):[])];
+const camadasVisiveis={Zona:true,Bairro:true,'Zona cartográfica':false,'Zona demonstrativa':demoMode};
 let eventoAtivo=new URLSearchParams(location.search).get('evento')||'';
 let eventosCache=[];const eventosMunicipio=()=>eventosCache;
 let abriuEventoDaUrl=false;
@@ -328,7 +329,7 @@ function gerarOcorrencia(config={}){
   const t = config.tipo||pick(tiposOcorrencia);
   const numId = idCounter++;
   const o = {
-    id:"oc"+numId, tenantId, confirmado:true, protocolo:tenantConfig.prefixo+"-"+String(10000+numId).slice(-5), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos,
+    id:"oc"+numId, tenantId, demo:true, confirmado:true, protocolo:tenantConfig.prefixo+"-"+String(10000+numId).slice(-5), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos,
     gravidade: sortGravidade(t.gravBase), responsabilidade: pick(t.resp),
     reportadoEm: Date.now() - Math.floor(rnd(0,5))*60000,
     confirmadoEm:null, resolvidoEm:null,
@@ -472,8 +473,8 @@ function pessoasMunicipio(){
       .map(p=>({...p,id:'rh:'+p.id,oficial:true,sub:[p.funcao,...(Array.isArray(p.papeis)?p.papeis:[])].map(papel=>PAPEL_LABEL[papel]||papel).join(' · ')})),
     ...cadastro.lista('voluntarios',tenantId).map(p=>({...p,id:'cad:'+p.id,
       sub:[...['ajudas','maquinas','empreendedores','materiais'].flatMap(chave=>Array.isArray(p[chave])?p[chave]:[]),p.contribuicao].filter(Boolean).join(', ')})),
-    ...todosFuncionarios().map(p=>({...p,oficial:true,sub:PAPEL_LABEL[p.papel],demo:true})),
-    ...voluntarios.map(v=>({...v,zona:v.bairro,sub:(v.contribuicoes||[v.ajuda]).join(', '),demo:true,disponibilidade:estadoPessoa(v.id)}))
+    ...(demoMode?todosFuncionarios().map(p=>({...p,oficial:true,sub:PAPEL_LABEL[p.papel],demo:true})):[]),
+    ...(demoMode?voluntarios.map(v=>({...v,zona:v.bairro,sub:(v.contribuicoes||[v.ajuda]).join(', '),demo:true,disponibilidade:estadoPessoa(v.id)})):[])
   ].map(p=>({...p,bairroOrigem:p.bairro||p.zona}));
 }
 function pontoPessoa(p){
@@ -2034,7 +2035,7 @@ if(recuperacao.estado==='bloqueado'){
   return;
 }
 if(recuperacao.estado==='restauravel'){restaurarPrototipo(recuperacao.dados);ultimaSerializacao=recuperacao.original;}
-if(recuperacao.estado==='vazio'){
+if(recuperacao.estado==='vazio'&&demoMode){
 gerarVoluntarios();
 for(let i=0;i<5;i++) gerarOcorrencia();
 gerarOcorrencia({zona:bairros[0].nome,tipo:tiposOcorrencia[0]});
@@ -2048,7 +2049,7 @@ bairros.forEach(b=>{
     const reportado = Date.now()-Math.floor(rnd(60,230))*60000;
     const numIdHist = idCounter++;
     ocorrencias.push({
-      id:"oc"+numIdHist, protocolo:tenantConfig.prefixo+"-"+String(10000+numIdHist).slice(-5), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos: randPointInBox(b.poly),
+      id:"oc"+numIdHist, demo:true, protocolo:tenantConfig.prefixo+"-"+String(10000+numIdHist).slice(-5), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos: randPointInBox(b.poly),
       gravidade: sortGravidade(t.gravBase), responsabilidade: pick(t.resp),
       reportadoEm: reportado, confirmadoEm: reportado+tChegada*60000, resolvidoEm: reportado+(tChegada+tAtend)*60000,
       status:"resolvida", tempoChegada:tChegada, tempoAtendimento:tAtend, tempoReal: tChegada+tAtend,
