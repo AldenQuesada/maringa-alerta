@@ -59,10 +59,10 @@ function startMenu(){
  ]);
 }
 function abrirPraSomar(){
- bot("Programa de Apoio Social e Mobilização Voluntária de Maringá\n\n“Onde a boa vontade se transforma em ação”\n\nUnindo:\nEmpresas 🤝 Voluntários 🤝 Entidades\n\nVamos registrar como você pode contribuir?",false,{
+ bot("Programa de Apoio Social e Mobilização Voluntária de Maringá\n\n“Onde a boa vontade se transforma em ação”\n\nUnindo:\nEmpresas 🤝 Voluntários 🤝 Entidades\n\nPara começar, qual é seu nome completo ou razão social?",false,{
   src:"../assets/pra-somar-original.webp",alt:"Identidade visual do Pra Somar enviada para a demonstração",titulo:"Pra Somar · Mobilização voluntária"
  });
- optionsSimple([["Continuar cadastro",()=>start("colaborador"),"submit"],["Voltar ao início",()=>startMenu(),"secondary"]]);
+ start("colaborador",true); // O nome já foi perguntado na mensagem com a imagem; sem etapa intermediária.
 }
 const BENS=new Set(["FORNECER ALIMENTAÇÃO","MATERIAL DE CONSTRUÇÃO","COMBUSTÍVEL"]);
 const BENS_DEMANDA=new Set(["Alimentação","Telhas e cobertura","Roupas e cobertores","Medicamentos e saúde","Material de construção","Água potável"]);
@@ -73,7 +73,6 @@ function identificarCampos(papel){
  if(papel!=="relato"&&!identity?.tipo_pessoa)b.push({key:"tipo_pessoa",q:"Você é pessoa física ou jurídica?",kind:"single",opts:["FÍSICA","JURÍDICA"],required:true});
  if(papel!=="relato"&&!identity?.endereco)b.push({key:"endereco",q:"Informe seu endereço. Ele ficará reservado à equipe de atendimento.",kind:"text",required:true});
  if(!identity?.telefone)b.push({key:"telefone",q:"Qual é seu telefone com DDD?",kind:"tel",required:true});
- if(papel==="colaborador"&&!identity?.email)b.push({key:"email",q:"Qual é seu e-mail?",kind:"email",required:true});
  return b;
 }
 // Não exigir que o cidadão saiba a zona: usa somente vínculos territoriais já cadastrados.
@@ -113,9 +112,10 @@ function definirSteps(papel){
   {key:"foto",q:"Envie uma foto da ocorrência, se for seguro fotografar. Você também pode concluir sem foto.",kind:"photo"}
  ];
 }
-function start(papel){
+function start(papel,nomeJaPerguntado=false){
  form.onsubmit=responderEtapa;role=papel;answers=identity?{...identity}:{};steps=definirSteps(papel);index=0;current=null;arquivosFoto=null;
- const texto=papel==="colaborador"?"Obrigado por se disponibilizar! Uma pessoa ou empresa pode oferecer vários tipos de apoio.":papel==="solicitacao"?"Vamos registrar o que você precisa. Seus dados de contato e endereço não serão publicados.":"Vamos registrar a ocorrência em poucos passos. Em risco imediato, ligue 190, 192 ou 193. Não se aproxime de fios, árvores instáveis ou estruturas danificadas.";
+ if(papel==="colaborador" && nomeJaPerguntado){proxima(true);return;}
+ const texto=papel==="solicitacao"?"Vamos registrar o que você precisa. Seus dados de contato e endereço não serão publicados.":"Vamos registrar a ocorrência em poucos passos. Em risco imediato, ligue 190, 192 ou 193. Não se aproxime de fios, árvores instáveis ou estruturas danificadas.";
  bot(texto);proxima();
 }
 function gravarResposta(valor,exibicao=null){
@@ -143,7 +143,7 @@ function interpretarEscolhaMultipla(texto,pergunta){
   return {erro:'"'+pergunta.exclusive+'" não pode ser combinada com outras respostas. Informe apenas o seu número.'};
  return {opcoes};
 }
-function proxima(){
+function proxima(perguntaJaExibida=false){
  clear();
  while(index<steps.length&&steps[index].quando&&!steps[index].quando(answers))index++;
  if(index>=steps.length){mostrarRevisao();return;}
@@ -152,7 +152,7 @@ function proxima(){
   const lista=current.opts.map((opcao,i)=>(i+1)+". "+opcao).join("\n");
   const nenhuma=current.required?"":"\n0. Nenhuma das opções";
   msg(current.q+"\n\n"+lista+nenhuma+
-    "\n\nDigite os números separados por vírgula. Exemplo: 1, 3, 5."+
+    "\n\nVocê pode escolher mais de uma opção. Digite os números separados por vírgula. Exemplo: 1, 3, 5."+
     (current.required?"":" Se nenhuma se aplica, digite 0."));
   form.hidden=false;
   $("compose-placeholder").hidden=true;
@@ -173,12 +173,12 @@ function proxima(){
   if(arquivosFoto)photoPreview.textContent="Foto selecionada: "+arquivosFoto.nome;
   button("Continuar sem foto",()=>gravarResposta(null,"Sem foto nesta demonstração"),"secondary");
  }else{
-  msg(current.q);
+  if(!perguntaJaExibida)msg(current.q);
   form.hidden=false;$("compose-placeholder").hidden=true;
-  input.type=current.kind==="tel"?"tel":current.kind==="email"?"email":"text";
-  input.inputMode=current.kind==="tel"?"tel":current.kind==="email"?"email":"text";
+  input.type=current.kind==="tel"?"tel":"text";
+  input.inputMode=current.kind==="tel"?"tel":"text";
   input.value=answers[current.key]||"";input.required=!!current.required;
-  input.placeholder=current.kind==="tel"?"(44) 99999-9999":current.kind==="email"?"voce@exemplo.com":"Digite sua resposta";
+  input.placeholder=current.kind==="tel"?"(44) 99999-9999":"Digite sua resposta";
   if(current.optional)button("Pular esta pergunta",()=>gravarResposta("","Prefiro não informar"),"secondary");
   input.focus();
  }
