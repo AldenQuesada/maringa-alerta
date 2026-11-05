@@ -124,39 +124,59 @@ function gravarResposta(valor,exibicao=null){
  const exib=exibicao??(Array.isArray(valor)?(valor.join(" · ")||"Nenhuma opção selecionada"):String(valor||"Prefiro não informar"));
  msg(exib,true);index++;proxima();
 }
+// Uma única escolha usa botões; múltiplas usam números digitados no chat.
+function interpretarEscolhaMultipla(texto,pergunta){
+ const entrada=String(texto||"").trim().replace(/\s+e\s+/gi,",");
+ const partes=entrada.split(/[,;\s]+/).filter(Boolean);
+ if(!partes.length || partes.some(parte=>!/^\d+$/.test(parte)))
+  return {erro:"Digite somente os números das opções, separados por vírgula. Exemplo: 1, 3, 5."};
+ const indices=[...new Set(partes.map(Number))];
+ if(indices.includes(0)){
+  if(indices.length!==1 || pergunta.required)
+   return {erro:"A opção 0 (nenhuma) deve ser enviada sozinha e só vale para perguntas opcionais."};
+  return {opcoes:[]};
+ }
+ if(indices.some(n=>n<1||n>pergunta.opts.length))
+  return {erro:"Escolha apenas números da lista, entre 1 e "+pergunta.opts.length+"."};
+ const opcoes=indices.map(n=>pergunta.opts[n-1]);
+ if(pergunta.exclusive&&opcoes.includes(pergunta.exclusive)&&opcoes.length>1)
+  return {erro:'"'+pergunta.exclusive+'" não pode ser combinada com outras respostas. Informe apenas o seu número.'};
+ return {opcoes};
+}
 function proxima(){
- clear();while(index<steps.length&&steps[index].quando&&!steps[index].quando(answers))index++;
+ clear();
+ while(index<steps.length&&steps[index].quando&&!steps[index].quando(answers))index++;
  if(index>=steps.length){mostrarRevisao();return;}
- current=steps[index];msg(current.q);
- if(current.kind==="single"){
+ current=steps[index];
+ if(current.kind==="multi"){
+  const lista=current.opts.map((opcao,i)=>(i+1)+". "+opcao).join("\n");
+  const nenhuma=current.required?"":"\n0. Nenhuma das opções";
+  msg(current.q+"\n\n"+lista+nenhuma+
+    "\n\nDigite os números separados por vírgula. Exemplo: 1, 3, 5."+
+    (current.required?"":" Se nenhuma se aplica, digite 0."));
+  form.hidden=false;
+  $("compose-placeholder").hidden=true;
+  input.type="text";
+  input.inputMode="text"; // O teclado precisa permitir vírgulas e espaços entre os números.
+  input.placeholder=current.required?"Ex.: 1, 3":"Ex.: 1, 3 ou 0";
+  input.required=true;
+  input.value=Array.isArray(answers[current.key])?
+   answers[current.key].map(opcao=>current.opts.indexOf(opcao)+1).filter(n=>n>0).join(", "):"";
+  input.focus();
+ }else if(current.kind==="single"){
+  msg(current.q);
   current.opts.forEach(opt=>button(opt,()=>{clear();gravarResposta(opt);}));
- }else if(current.kind==="multi"){
-  const selected=new Set(Array.isArray(answers[current.key])?answers[current.key]:[]);
-  const controles=new Map();
-  const atualizar=()=>{for(const [opt,b] of controles){b.classList.toggle("selected",selected.has(opt));b.setAttribute("aria-pressed",String(selected.has(opt)));}};
-  current.opts.forEach(opt=>{
-   const b=button((selected.has(opt)?"✓ ":"")+opt,()=>{
-    if(selected.has(opt))selected.delete(opt);else{
-     if(current.exclusive){if(opt===current.exclusive)selected.clear();else selected.delete(current.exclusive);}
-     selected.add(opt);
-    }
-    for(const [x,el] of controles)el.textContent=(selected.has(x)?"✓ ":"")+x;
-    atualizar();
-   });
-   controles.set(opt,b);
-  });
-  atualizar();
-  button("Continuar com minhas escolhas",()=>{
-   if(current.required&&!selected.size){msg("Escolha pelo menos uma opção para continuar.",false,true);return;}
-   gravarResposta([...selected]);
-  },"submit");
  }else if(current.kind==="photo"){
-  uploadArea.hidden=false;photoPreview.hidden=!arquivosFoto;
+  msg(current.q);
+  uploadArea.hidden=false;
+  photoPreview.hidden=!arquivosFoto;
   if(arquivosFoto)photoPreview.textContent="Foto selecionada: "+arquivosFoto.nome;
   button("Continuar sem foto",()=>gravarResposta(null,"Sem foto nesta demonstração"),"secondary");
  }else{
+  msg(current.q);
   form.hidden=false;$("compose-placeholder").hidden=true;
   input.type=current.kind==="tel"?"tel":current.kind==="email"?"email":"text";
+  input.inputMode=current.kind==="tel"?"tel":current.kind==="email"?"email":"text";
   input.value=answers[current.key]||"";input.required=!!current.required;
   input.placeholder=current.kind==="tel"?"(44) 99999-9999":current.kind==="email"?"voce@exemplo.com":"Digite sua resposta";
   if(current.optional)button("Pular esta pergunta",()=>gravarResposta("","Prefiro não informar"),"secondary");
