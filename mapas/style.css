@@ -35,3 +35,6 @@ select,input,textarea{background:#0d1724;border:1px solid #3c5065;color:var(--fg
 
 .canonical-result{cursor:default}
 .canonical-actions{flex-wrap:wrap}
+
+.filter-toggle{display:flex!important;align-items:center;gap:9px;color:var(--fg)!important;cursor:pointer;font-weight:650!important}
+.filter-toggle input{width:16px!important;min-height:16px!important;margin:0;accent-color:var(--accent)}

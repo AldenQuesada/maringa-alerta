@@ -43,7 +43,7 @@ function municipSelector(){
  };
 }
 function zoneSelect(){
- opts($("zona"),[...new Set([...app.zonas(),...INVENTARIO.registros(app.db).map(x=>x.zona).filter(Boolean)])].sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true})),filtroZona,'<option value="">Todas as zonas</option>');
+ opts($("zona"),[...new Set([...app.zonas(),...nomesZonasOficiais,...INVENTARIO.registros(app.db).map(x=>x.zona).filter(Boolean)])].sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true})),filtroZona,'<option value="">Todas as zonas</option>');
  $("zona").value=filtroZona;
 }
 function configurarCamadas(){
@@ -66,34 +66,20 @@ const map=L.map("map",{zoomControl:true,zoomSnap:0,zoomDelta:.5}).setView([-23.4
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
  maxZoom:18,subdomains:"abc",attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
-const shapes=[
- ["Zona 7",[[-23.392,-51.950],[-23.392,-51.930],[-23.408,-51.930],[-23.408,-51.950]]],
- ["Jardim Alvorada",[[-23.380,-51.922],[-23.380,-51.902],[-23.396,-51.902],[-23.396,-51.922]]],
- ["Conjunto Requião",[[-23.428,-51.966],[-23.428,-51.946],[-23.446,-51.946],[-23.446,-51.966]]],
- ["Jardim Universo",[[-23.435,-51.933],[-23.435,-51.913],[-23.452,-51.913],[-23.452,-51.933]]],
- ["Vila Esperança",[[-23.374,-51.962],[-23.374,-51.941],[-23.392,-51.941],[-23.392,-51.962]]],
- ["Centro Cívico",[[-23.415,-51.946],[-23.415,-51.927],[-23.430,-51.927],[-23.430,-51.946]]]
-];
 const poligonos=L.layerGroup().addTo(map);
 const marcadores=L.layerGroup().addTo(map);
 function renderMunicipio(){
- $("map-label").textContent=nomeTipo+" · "+app.prefeitura()?.nome;
- zoneSelect();
+ $("map-label").textContent=nomeTipo+" · "+(app.prefeitura()?.nome||"Município");
  poligonos.clearLayers();
- if(app.prefeitura()?.id==="maringa"){
-  for(const [nome,pts] of shapes) {
-   const pol=L.polygon(pts,{color:"#ebb236",weight:1.5,opacity:.85,fillColor:"#efb642",fillOpacity:.06,dashArray:"6 5"});
-   pol.on("click",()=>{filtroZona=nome;$("zona").value=nome;render();});
-   pol.bindTooltip(nome,{direction:"center",permanent:true,className:"zone-tooltip"});
-   pol.addTo(poligonos);
-  }
-  const bounds=L.latLngBounds(shapes.flatMap(x=>x[1]));
-  map.fitBounds(bounds,{padding:[30,30],maxZoom:13});
- }else{
-  const p=app.prefeitura(),lat=Number(p?.lat),lng=Number(p?.lng);
-  if(Number.isFinite(lat)&&Number.isFinite(lng)&&p.lat!==undefined)map.setView([lat,lng],11);
- }
- setTimeout(()=>map.invalidateSize(),100);
+ const p=app.prefeitura(),lat=Number(p?.lat),lng=Number(p?.lng);
+ if(p?.limite_geojson){
+  try{
+   const geo=typeof p.limite_geojson==="string"?JSON.parse(p.limite_geojson):p.limite_geojson;
+   const bounds=L.geoJSON(geo).getBounds();
+   if(bounds?.isValid())map.fitBounds(bounds,{padding:[24,24],maxZoom:12});
+  }catch(_){}
+ }else if(p?.lat!==undefined&&p?.lng!==undefined&&Number.isFinite(lat)&&Number.isFinite(lng))map.setView([lat,lng],12);
+ zoneSelect();setTimeout(()=>map.invalidateSize(),100);
 }
 function dadosFiltrados(){
  const inventario=INVENTARIO.registros(app.db);

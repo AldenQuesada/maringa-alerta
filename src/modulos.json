@@ -79,6 +79,7 @@
       "target": "mapas/app.js",
       "sources": [
         "src/mapas/00-alertar.js",
+        "src/mapas/00-camadas.js",
         "src/mapas/01-render-equipe-por-bairro.js",
         "src/mapas/02-counters.js"
       ]

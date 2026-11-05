@@ -69,21 +69,23 @@ function comandoPrefeituras(){
 }
 function render(){
  const xs=dadosFiltrados();
- renderCards(xs);renderMarkers(xs);counters(xs);
+ renderCards(xs);renderMarkers(xs);counters(xs);renderUnidadesMunicipais();
  if(camadaAtual==="principal"){
   $("command").hidden=false;
   if(TIPO==="ajuda")comandoPrefeituras();else comandoBrigadas();
  }else $("command").hidden=true;
 }
+$("mostrar-unidades").onchange=e=>{mostrarUnidades=e.target.checked;render();};
 $("camada").onchange=()=>{camadaAtual=$("camada").value;filtroClasse="";texto="";$("busca").value="";configurarCamadas();render();};
 $("zona").onchange=()=>{filtroZona=$("zona").value;render();};
 $("filtro").onchange=()=>{filtroClasse=$("filtro").value;render();};
 $("busca").oninput=()=>{texto=$("busca").value;render();};
 window.addEventListener("storage",event=>{if(event.key===AlertaGestaoDados.CHAVE)location.reload();});
 municipSelector();renderMunicipio();configurarCamadas();render();
+void carregarZonasOficiais();
 const fontesPublicas=["../dados-territoriais/maringa-bases-riscos-publicos.json","../dados-territoriais/maringa-abrigos-publicos.json"];
 void Promise.allSettled(fontesPublicas.map(url=>AlertaImportacaoPublica.carregar(app.db,{url}))).then(()=>{configurarCamadas();render();});
 window.addEventListener("focus",()=>{configurarCamadas();render();});
 if(app.prefeitura()?.id==="maringa"&&globalThis.MaringaBairros)
- territorio=MaringaBairros.iniciar({map,L,simulatedLayers:poligonos.getLayers()});
+ territorio=MaringaBairros.iniciar({map,L});
 })();
