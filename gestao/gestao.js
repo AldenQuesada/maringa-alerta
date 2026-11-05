@@ -63,10 +63,10 @@ function resumoCard(nome,valor,icone,nota){
 function renderInicio(){
  const numero=tipo=>db.lista(tipo).length;
  const entradas=[
-  ["Território municipal","Consultar limites, bairros, zonas e instalações do município provisionado.","territorio"],
-  ["Zonas operacionais","Organizar a cobertura e vincular responsáveis.","zonas"],
-  ["Pessoas e hierarquia","Vincular responsáveis, substitutos e operadores a órgãos e zonas.","pessoas"],
-  ["Equipes e instituições","Organizar equipes, hospitais e serviços de emergência.","equipes"],
+  ["Gerais","Dados institucionais e membros do Gabinete de Crise.","territorio"],
+  ["Geoterritorialidade","Consultar e cadastrar zonas numeradas e bairros.","geoterritorialidade"],
+  ["Estruturas","Cadastrar unidades e seus representantes do Gabinete de Crise.","estruturas"],
+  ["Equipes","Organizar equipes e recursos municipais.","equipes"],
   ["Recursos e comunicação","Configurar equipamentos, abrigos e canais.","equipamentos"],
   ["Ajuda pós-evento","Gerenciar solicitações por zona.","solicitacoes"],
   ["Brigadas e prefeituras","Mobilizar zonas e solicitar apoio a outros municípios.","mobilizacoes"]
@@ -153,7 +153,7 @@ async function importarUnidadesCNES(){
    const linhas=doc.unidades.filter(x=>x.grupo===grupo).map(x=>({nome:x.nome,tipo:x.tipo,codigo_cnes:x.codigo_cnes,externalId:"cnes:"+x.codigo_cnes,fonte:"CNES · Ministério da Saúde",url_fonte:doc.url_fonte,verificacao:"Em conferência"}));
    if(linhas.length)db.importarLote(grupo,linhas);
   }
-  if(atual==="estruturas")render();
+  if(atual==="estruturas"||atual==="inicio")render();
  }catch(err){toast("Não foi possível importar unidades do CNES: "+err.message);}
 }
 function renderEstruturas(){
@@ -424,6 +424,7 @@ if(globalThis.AlertaSessao&&globalThis.AlertaSessaoUI&&db.municipioAtivo()){
  }catch(error){$("session-anchor").textContent="Minha sessão";}
 }
 render();
+void importarUnidadesCNES();
 // Ao trocar para uma prefeitura nova, tentar localizar seu mapa automaticamente.
 const prefeituraInicial=db.municipioAtivo();
 // Georreferenciamento inicial exclusivo da Administração Geral.
