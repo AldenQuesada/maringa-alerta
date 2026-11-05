@@ -3,6 +3,12 @@ function responderEtapa(e){
  if(!current)return;
  const valor=input.value.trim();
  if(current.required&&!valor){input.focus();return;}
+ if(current.kind==="multi"){
+  const resultado=interpretarEscolhaMultipla(valor,current);
+  if(resultado.erro){msg(resultado.erro,false,true);input.focus();return;}
+  gravarResposta(resultado.opcoes,valor);
+  return;
+ }
  if(current.key==="telefone"||current.key==="consulta_telefone"||current.key==="fase_telefone"){
   const n=MaringaCrise.telefone(valor);
   if(n.length<10||n.length>13){msg("Informe um telefone válido com DDD.",false,true);input.focus();return;}
