@@ -148,3 +148,70 @@ test("link do simulador permanece único e recursos mudam versão quando o códi
  assert.match(sw,/simulador \? \{ cache: "no-store" \}/);
  assert.match(sw,/if \(simulador\) return new Response/,"não redirecionar o chat para o mapa offline");
 });
+
+
+test("cadastro de colaborador segue somente campos e ordem do formulário aprovado",()=>{
+ const vm=require("node:vm");
+ const inicio=chat.indexOf("function definirSteps(papel){");
+ const fim=chat.indexOf("function start(papel",inicio);
+ assert.ok(inicio>=0&&fim>inicio);
+ const trecho=chat.slice(inicio,fim);
+ const preparar=[
+  "const catalogos="+JSON.stringify(Dados.CATALOGOS)+";",
+  'const BENS=new Set(["FORNECER ALIMENTAÇÃO","MATERIAL DE CONSTRUÇÃO","COMBUSTÍVEL"]);',
+  'const ofereceBens=a=>["ajudas","maquinas","materiais"].some(k=>(a[k]||[]).some(x=>BENS.has(x)));',
+  'const identificarCampos=()=>[{key:"nome",kind:"text",required:true},{key:"tipo_pessoa",kind:"single",required:true,opts:["FÍSICA","JURÍDICA"]},{key:"endereco",kind:"text",required:true},{key:"telefone",kind:"tel",required:true}];',
+  trecho,
+  "definirSteps;"
+ ].join("\n");
+ const definirSteps=vm.runInNewContext(preparar);
+ const fluxo=definirSteps("colaborador");
+ assert.deepEqual(Array.from(fluxo.map(s=>s.key)),[
+  "nome","tipo_pessoa","endereco","telefone",
+  "ajudas","maquinas","empreendedores","outros","materiais","forma_entrega_doacao"
+ ]);
+ assert.equal(fluxo.length,10);
+ assert.equal(fluxo.some(s=>s.key==="email"||s.key==="disponibilidade"||s.key==="zona"),false);
+ assert.equal(fluxo.find(s=>s.key==="tipo_pessoa").kind,"single");
+ for(const grupo of ["ajudas","maquinas","empreendedores","materiais"])assert.equal(fluxo.find(s=>s.key===grupo).kind,"multi");
+ const ajudas=Array.from(fluxo.find(s=>s.key==="ajudas").opts);
+ assert.deepEqual(ajudas,[
+  "FORNECER ALIMENTAÇÃO","ATENDER PESSOAS COM NECESSIDADES ESPECIAIS","CUIDADOR","LIMPEZA",
+  "PEDREIRO","METALÚRGICO","CARPINTEIRO","OPERADOR DE MOTOSSERRA","ELETRICISTA",
+  "LAUDO","EMITIR LAUDOS DE PREJUÍZOS","OUTRO",
+  "INFLUENCIADORES E DIVULGAÇÃO DE NOTÍCIAS","OPERADOR DE DRONE"
+ ]);
+ assert.equal(fluxo.find(s=>s.key==="maquinas").opts.length,13);
+ assert.deepEqual(Array.from(fluxo.find(s=>s.key==="empreendedores").opts),[
+  "ESPAÇO EM FREEZER PARA PERECÍVEIS","AMBIENTE DE TRABALHO","OUTRO"
+ ]);
+ assert.deepEqual(Array.from(fluxo.find(s=>s.key==="materiais").opts),["MATERIAL DE CONSTRUÇÃO","COMBUSTÍVEL"]);
+ const outros=fluxo.find(s=>s.key==="outros");
+ assert.equal(outros.required,true);
+ assert.equal(outros.quando({ajudas:["OUTRO"],maquinas:[],empreendedores:[]}),true);
+ assert.equal(outros.quando({ajudas:[],maquinas:["OUTRO"],empreendedores:[]}),true);
+ assert.equal(outros.quando({ajudas:[],maquinas:[],empreendedores:["OUTRO"]}),true);
+ assert.equal(outros.quando({ajudas:[],maquinas:[],empreendedores:[]}),false);
+ const entrega=fluxo.find(s=>s.key==="forma_entrega_doacao");
+ assert.equal(entrega.kind,"single");
+ assert.deepEqual(Array.from(entrega.opts),[
+  "Preciso que retirem no meu endereço",
+  "Consigo entregar no centro de acolhimento mais próximo"
+ ]);
+ assert.equal(entrega.quando({ajudas:["FORNECER ALIMENTAÇÃO"]}),true);
+ assert.equal(entrega.quando({maquinas:["MATERIAL DE CONSTRUÇÃO"]}),true);
+ assert.equal(entrega.quando({materiais:["COMBUSTÍVEL"]}),true);
+ assert.equal(entrega.quando({ajudas:["OPERADOR DE DRONE"],maquinas:[],materiais:[]}),false);
+ assert.doesNotMatch(trecho,/outros_ajudas|outros_maquinas|outros_empreendedores/);
+});
+test("resumo de colaborador permite confirmar ou corrigir sem terceira etapa",()=>{
+ const inicio=chat.indexOf("function mostrarRevisao(){");
+ const fim=chat.indexOf("function responderEtapa(",inicio);
+ const revisao=chat.slice(inicio,fim);
+ assert.ok(revisao.includes('outros:"Especificar outros"'));
+ assert.ok(revisao.includes('if(role!=="colaborador")acoes.push('));
+ const conclusao=chat.slice(chat.indexOf('if(role==="colaborador"){',fim),chat.indexOf('}else if(role==="solicitacao"){',fim));
+ assert.match(conclusao,/const outros=String\(answers\.outros\|\|""\)\.trim\(\)/);
+ assert.match(conclusao,/new Set\(\[resultado\.ajudas/);
+ assert.doesNotMatch(conclusao,/answers\.outros_ajudas|answers\.outros_maquinas/);
+});
