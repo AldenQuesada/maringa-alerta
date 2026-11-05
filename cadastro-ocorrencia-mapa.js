@@ -5,11 +5,11 @@ function instalar(ctx){
   const {tenantId,tenantConfig,areas,tiposOcorrencia,map,ocLayer,MARINGA_CENTER,
     normalizarTerritorio,pertence,canActZone,responsavelDaOcorrencia,ocIcon,
     refreshOcTooltip,salvarPrototipo,acionarAjuda,atualizarFluxo,atualizarFiltroEventos,
-    openOcorrencia,fecharMenuMobile,obterOcorrencias,proximoId,reverterId,setEventoFiltro}=ctx;
+    openOcorrencia,fecharMenuMobile,obterOcorrencias,proximoId,reverterId,setEventoFiltro,obterEventoSelecionado}=ctx;
   const db=()=>AlertaGestaoDados.criar(undefined,{municipioId:tenantId});
   const tipos=()=>{
     const cadastrados=db().lista('ocorrencias',tenantId).map(x=>({tipo:x.nome,icone:'📍',gravBase:x.prioridade==='Alta'?3:x.prioridade==='Baixa'?1:x.prioridade==='Média'?2:null,resp:[]}));
-    return [...cadastrados,...tiposOcorrencia.filter(t=>!cadastrados.some(c=>normalizarTerritorio(c.tipo)===normalizarTerritorio(t.tipo)))];
+    return cadastrados;
   };
   const organizacoes=()=>['saude','emergencias','parceiros','equipes'].flatMap(modulo=>
     db().lista(modulo,tenantId).map(x=>({id:modulo+':'+x.id,nome:x.nome,zona:x.zona||x.bairro||'',modulo,registro:x})));
@@ -56,11 +56,7 @@ function instalar(ctx){
       else dados.zona=bairro;
       const item=db().gravar(categoria,dados);return categoria+':'+item.id;
     },
-    createEvent:(nome,tipo)=>{
-      if(db().lista('eventos',tenantId).some(e=>normalizarTerritorio(e.nome)===normalizarTerritorio(nome)))throw Error('Já existe um evento com este nome.');
-      const evento=db().gravar('eventos',{nome,tipo,status:'Em andamento',inicio:new Date().toISOString(),descricao:''});
-      atualizarFiltroEventos();return evento;
-    },
+    selectedEvent:()=>obterEventoSelecionado(),
     isWithinMunicipality:pos=>L.latLngBounds(window.AlertaMapaNavegacao.AREA_MARINGA).contains(pos),
     neighborhoods:()=>areas.filter(a=>a.tipoArea==='Bairro'||a.tipoArea==='Zona'||a.demo).filter((a,i,all)=>all.findIndex(x=>normalizarTerritorio(x.nome)===normalizarTerritorio(a.nome))===i).map(a=>({value:a.nome,label:a.nome})),
     neighborhood:pos=>CadastroOcorrencia.encontrarBairro(areas,pos),
@@ -91,6 +87,7 @@ function instalar(ctx){
     },
     save:async(d,acao)=>{
       if(!canActZone(d.bairro))throw Error('Seu perfil não pode registrar ocorrência neste bairro.');
+      if(!db().registro('eventos',d.evento))throw Error('Selecione um evento cadastrado na Gestão.');
       const tipo=tipos().find(t=>t.tipo===d.tipo);if(!tipo)throw Error('Tipo de ocorrência não disponível.');
       const selecionadas=organizacoes().filter(o=>d.organizacoes.includes(o.id)).map(o=>({id:o.id,nome:o.nome,status:'preparado'}));
       const equipesBairro=organizacoes().filter(o=>o.modulo==='equipes'&&equipeAtende(o.zona,d.bairro)&&o.registro.status!=='Indisponível');

@@ -16,13 +16,9 @@ function iniciar(api){
  <label>Tipo de ocorrência <span class="cad-select-add"><select name="tipo" required></select><button type="button" class="cad-add" data-add="tipo" aria-label="Adicionar tipo de ocorrência" title="Adicionar tipo de ocorrência">+</button></span></label>
  <label>Gravidade <select name="gravidade" required><option value="">Selecione a gravidade</option><option value="1">Baixa</option><option value="2">Média</option><option value="3">Alta</option></select></label>
  <label>Responsabilidade <select name="responsabilidade" required><option value="">Selecione a responsabilidade</option><option value="publica">Pública</option><option value="privada">Privada</option><option value="mista">Mista</option></select></label>
- <label>Evento relacionado <span class="cad-select-add"><select name="evento"><option value="">Nenhum evento relacionado</option></select><button type="button" class="cad-add" data-add="evento" aria-label="Adicionar evento" title="Adicionar evento">+</button></span></label>
+ <label>Evento relacionado <select name="evento" required><option value="">Selecione o evento cadastrado no Dashboard</option></select></label>
  </div>
  <div class="cad-add-panel" id="cad-add-tipo" hidden><div class="cad-grid"><label>Nome do tipo <input id="cad-tipo-nome" maxlength="160"></label><label>Prioridade padrão <select id="cad-tipo-prioridade"><option value="">Selecione</option><option>Baixa</option><option>Média</option><option>Alta</option></select></label></div><button type="button" id="cad-tipo-criar" class="admin-btn">Salvar tipo</button><p id="cad-tipo-status" role="status"></p></div>
- <div class="cad-add-panel" id="cad-add-evento" hidden>
- <div class="cad-grid"><label>Nome do evento <input id="cad-evento-nome" maxlength="160"></label><label>Tipo do evento <input id="cad-evento-tipo" maxlength="100" placeholder="Ex.: tempestade"></label></div>
- <button type="button" id="cad-evento-criar" class="admin-btn">Criar evento</button><p id="cad-evento-status" role="status"></p>
- </div>
  <label>Descrição <textarea name="descricao" rows="2" maxlength="2000"></textarea></label>
  <div class="cad-grid"><label>Pessoas afetadas <input name="afetados" type="number" min="0" max="100000"></label><label>Riscos observados <input name="riscos" maxlength="500"></label></div>
  </section>
@@ -151,23 +147,12 @@ function iniciar(api){
   overlay.querySelectorAll('.cad-add-panel').forEach(p=>p.hidden=true);overlay.querySelectorAll('[data-add],#cad-criterios-toggle').forEach(b=>b.setAttribute('aria-expanded','false'));overlay.querySelectorAll('.cad-add-panel [role=status]').forEach(p=>p.textContent='');duplicateAcknowledged=false;duplicateSignature='';overlay.querySelector('#cad-criterios').hidden=true;mostrarEtapa(0);
   error.textContent='';overlay.querySelector('#cad-oc-previews').replaceChildren();overlay.querySelector('#cad-oc-duplicates').replaceChildren();
   overlay.querySelector('#cad-oc-pos').textContent='Nenhum ponto selecionado.';
-  tipo.innerHTML=escOptions(api.types());form.elements.evento.innerHTML='<option value="">Nenhum evento relacionado</option>'+escOptions(api.events());bairro.innerHTML='<option value="">Selecione o bairro ou zona</option>'+escOptions(api.neighborhoods());
+  tipo.innerHTML=escOptions(api.types());form.elements.evento.innerHTML='<option value="">Selecione o evento cadastrado no Dashboard</option>'+escOptions(api.events());form.elements.evento.value=api.selectedEvent?.()||'';bairro.innerHTML='<option value="">Selecione o bairro ou zona</option>'+escOptions(api.neighborhoods());
   const now=new Date();const offset=now.getTimezoneOffset()*60000;form.elements.quando.value=new Date(now-offset).toISOString().slice(0,16);
   if(!map){map=L.map('cad-oc-map').setView(api.center,13);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);map.on('click',e=>marcar(e.latlng));}
   if(marker){map.removeLayer(marker);marker=null;} map.setView(api.center,13);setTimeout(()=>map.invalidateSize(),50);
   tipo.dispatchEvent(new Event('change'));tipo.focus();
  });
- overlay.querySelector('#cad-evento-criar').onclick=()=>{
-  const nome=overlay.querySelector('#cad-evento-nome').value.trim(),tipoEvento=overlay.querySelector('#cad-evento-tipo').value.trim();
-  const aviso=overlay.querySelector('#cad-evento-status');
-  if(!nome||!tipoEvento){aviso.textContent='Informe o nome e o tipo do evento.';return;}
-  try{
-   const evento=api.createEvent(nome,tipoEvento);
-   form.elements.evento.innerHTML='<option value="">Nenhum evento relacionado</option>'+escOptions(api.events());
-   form.elements.evento.value=evento.id;
-   aviso.textContent='Evento criado e selecionado.';
-  }catch(e){aviso.textContent=e.message;}
- };
  overlay.querySelector('#cad-oc-search').onclick=async ()=>{
   const endereco=form.elements.endereco.value.trim();if(!endereco){error.textContent='Informe o endereço para buscar.';return;}
   error.textContent='Buscando endereço…';
