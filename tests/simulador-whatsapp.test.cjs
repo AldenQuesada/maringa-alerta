@@ -11,7 +11,7 @@ test("interface de smartphone inclui reinício e apresentação do Pra Somar",()
  assert.match(page,/id="go-home"/);
  assert.match(page,/logoprefeituranova\.png/);
  assert.match(chat,/abrirPraSomar\(\)/);
- assert.match(chat,/assets\/pra-somar\.svg/);
+ assert.match(chat,/assets\/pra-somar-original\.webp/);
  assert.ok(fs.existsSync(path.join(root,"assets/pra-somar-original.webp")));
 });
 test("os três eixos e a consulta existem no mesmo atendimento",()=>{
