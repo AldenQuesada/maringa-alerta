@@ -17,7 +17,7 @@ test("mapa cadastra 5 pontos de coleta sem duplicar o cadastro da Prefeitura",()
  assert.equal(banco.lista("bases").filter(x=>x.tipo==="Centro de coleta de donativos").length,5);
  const app=read("evento/app.js");
  const begin=app.indexOf("const listarRecursosPublicos=()");
- const end=app.indexOf("function incluirTerritorio(territorio){",begin);
+ const end=app.indexOf("void Promise.allSettled(",begin);
  assert.ok(begin>=0&&end>begin);
  const script=app.slice(begin,end);
  const pins=[];
@@ -27,6 +27,7 @@ test("mapa cadastra 5 pontos de coleta sem duplicar o cadastro da Prefeitura",()
   marker:(location,opts)=>({bindPopup(html){this.html=html;return this},addTo(){pins.push({location,opts,html:this.html});return this}})
  };
  const scope={L,map:{},gestao:banco,tenantId:"maringa",escHtml:x=>String(x),encodeURIComponent,
+  INVENTARIO:require("../mapas/inventario.js"),filtrosMunicipais:{modulo:"todos",classe:"",busca:""},noRecorte:()=>true,mostrarUnidadesEvento:true,
   AlertaImportacaoPublica:{carregar:()=>Promise.resolve({novos:0})},buscaMapa:{value:""},
   console};
  vm.runInNewContext(script,scope);
@@ -55,5 +56,5 @@ test("bases sem coordenadas continuam consultáveis, sem pin fictício",()=>{
  assert.equal(sem.length,1);
  assert.match(sem[0].nome,/Vila Olímpica/);
  assert.ok(read("evento/app.js").includes("listarRecursosPublicos().map(r=>"));
- assert.ok(read("evento/app.js").includes("if(x.lat===undefined||x.lat===null"));
+ assert.ok(read("evento/app.js").includes("x.georreferenciado&&!x.privado"));
 });
