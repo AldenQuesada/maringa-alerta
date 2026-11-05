@@ -1,0 +1,78 @@
+{
+  "municipio_ibge": "4115200",
+  "data_referencia": "2026-11-04",
+  "descricao": "Referências públicas para preencher cadastros existentes de Bases e Riscos. Dados sujeitos a conferência. Não equivalem à homologação como base operacional, abrigo ativo ou área de risco atual.",
+  "bases": [
+    {
+      "nome": "Vila Olímpica — mobilização de voluntários",
+      "zona": "Zona 7",
+      "bairro": "",
+      "endereco": "Vila Olímpica (Complexo Esportivo Jaime Canet Júnior), Zona 7, Maringá/PR",
+      "observacoes": "Em 04/11/2026 a Prefeitura reuniu servidores voluntários na Vila Olímpica para organização de frentes de apoio. O espaço também foi preparado para acolhimento emergencial. Esta referência não confirma uma base permanente ou disponibilidade atual.",
+      "fonte": "Prefeitura de Maringá, reproduzida em Maringa.Com · 04/11/2026",
+      "url_fonte": "https://noticias.maringa.com/47652/prefeitura-de-maringa-registra-mais-de-450-voluntarios-em-acoes-de-suporte",
+      "externalId": "referencia-publica:base:vila-olimpica-20261104",
+      "verificacao": "Em conferência"
+    },
+    {
+      "nome": "SISMMar — ponto de apoio a doações",
+      "zona": "",
+      "bairro": "Vila Operária",
+      "endereco": "Avenida Paissandu, 465, Vila Operária, Maringá/PR",
+      "observacoes": "Ponto temporário de recebimento e triagem de água, alimentos e velas anunciado em 04/11/2026. Iniciativa do sindicato, com encaminhamento às equipes competentes; não é base permanente da Prefeitura.",
+      "fonte": "Maringá Post / SISMMar · 04/11/2026",
+      "url_fonte": "https://maringapost.com.br/2026/11/04/sindicato-dos-servidores-arrecada-doacoes-as-vitimas-do-tornado-em-maringa/",
+      "externalId": "referencia-publica:base:sismmar-doacoes-20261104",
+      "verificacao": "Em conferência"
+    },
+    {
+      "nome": "DSW Cowork Office — ponto de coleta",
+      "zona": "Zona 3",
+      "bairro": "",
+      "endereco": "Rua Néo Alves Martins, 2999, 10º andar, Zona 3, Maringá/PR",
+      "observacoes": "Ponto de coleta de água e produtos de limpeza divulgado em 04/11/2026 por organização privada. Disponibilidade e horários devem ser confirmados antes do acionamento.",
+      "fonte": "O Diário de Maringá / divulgação DSW · 04/11/2026",
+      "url_fonte": "https://odiariodemaringa.com.br/2026/11/04/dsw-campanha-arrecadacao-temporal-maringa/",
+      "externalId": "referencia-publica:base:dsw-coleta-20261104",
+      "verificacao": "Em conferência"
+    }
+  ],
+  "riscos": [
+    {
+      "nome": "Área histórica de atenção — Av. Sophia Rasgulaeff e entorno",
+      "zona": "",
+      "bairro": "Jardim Alvorada",
+      "categoria": "Alagamento",
+      "localizacao": "Av. Sophia Rasgulaeff, ruas Peru, Chile, Rio Itapemirim e Rio Madeira, Jardim Alvorada, Maringá/PR",
+      "descricao": "Área de atenção por alagamento citada no plano municipal de contingência, conforme levantamento de dados SISDC/Defesa Civil referente a 2015 e publicado em dissertação da UEM em 2016 (quadro 10). Registro histórico, não atesta persistência ou grau de risco atual; exige vistoria municipal.",
+      "fonte": "UEM / SISDC-PR, levantamento histórico 2015 (publicado em 2016)",
+      "url_fonte": "https://www.defesacivil.pr.gov.br/sites/defesa-civil/arquivos_restritos/files/documento/2018-12/JORGEINACIODASILVA.pdf",
+      "externalId": "referencia-publica:risco:sisdc2015-sophia",
+      "verificacao": "Em conferência"
+    },
+    {
+      "nome": "Área histórica de atenção — Colômbia / Rio São Francisco",
+      "zona": "",
+      "bairro": "Jardim Alvorada",
+      "categoria": "Alagamento",
+      "localizacao": "Rua Colômbia e Rua São Francisco, altura da Rua Rio das Antas, Jardim Alvorada, Maringá/PR",
+      "descricao": "Área histórica de alagamento descrita no quadro 10 do estudo baseado no plano municipal e em registros SISDC de 2015. O texto também se refere ao entorno da Rua 28 de Julho. A delimitação e a condição atual não foram verificadas.",
+      "fonte": "UEM / SISDC-PR, levantamento histórico 2015 (publicado em 2016)",
+      "url_fonte": "https://www.defesacivil.pr.gov.br/sites/defesa-civil/arquivos_restritos/files/documento/2018-12/JORGEINACIODASILVA.pdf",
+      "externalId": "referencia-publica:risco:sisdc2015-colombia-sao-francisco",
+      "verificacao": "Em conferência"
+    },
+    {
+      "nome": "Área histórica de atenção — Av. JK / Rua Jaracatiá",
+      "zona": "",
+      "bairro": "Vila Bosque",
+      "categoria": "Alagamento",
+      "localizacao": "Av. Juscelino Kubitschek de Oliveira com Rua Jaracatiá, Vila Bosque, Maringá/PR",
+      "descricao": "Área de atenção por alagamento associada ao fundo do Parque do Ingá, conforme estudo UEM/SISDC com registros de 2015. Não foram verificados limites do polígono nem grau de risco atual; necessita conferência.",
+      "fonte": "UEM / SISDC-PR, levantamento histórico 2015 (publicado em 2016)",
+      "url_fonte": "https://www.defesacivil.pr.gov.br/sites/defesa-civil/arquivos_restritos/files/documento/2018-12/JORGEINACIODASILVA.pdf",
+      "externalId": "referencia-publica:risco:sisdc2015-jk-jaracatia",
+      "verificacao": "Em conferência"
+    }
+  ]
+}
