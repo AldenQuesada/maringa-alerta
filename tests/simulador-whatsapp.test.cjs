@@ -42,14 +42,14 @@ test("a entrada cidadã oferece exatamente três fluxos canônicos",()=>{
 });
 test("o formulário não exige que o cidadão conheça a zona",()=>{
  const inicio=chat.indexOf("function definirSteps(papel)");
- const fim=chat.indexOf("function start(papel)",inicio);
+ const fim=chat.indexOf("function start(papel",inicio);
  const codigo=chat.slice(inicio,fim);
  assert.ok(inicio>0&&fim>inicio);
  assert.doesNotMatch(codigo, /key:"zona"/);
  assert.match(chat,/function zonaPeloEndereco\(/);
 });
 test("escolha única apresenta botões e múltipla apresenta lista numerada para digitar",()=>{
- const passo=chat.slice(chat.indexOf("function proxima(){"),chat.indexOf("function mostrarRevisao(){"));
+ const passo=chat.slice(chat.indexOf("function proxima("),chat.indexOf("function mostrarRevisao(){"));
  assert.match(passo,/current.kind==="single"/);
  assert.match(passo,/current.opts.forEach\(opt=>button\(opt/);
  assert.match(passo,/current.kind==="multi"/);
@@ -63,7 +63,7 @@ test("escolha única apresenta botões e múltipla apresenta lista numerada para
 test("números são validados e convertidos nas opções originais sem perder as duas categorias novas",()=>{
  const vm=require("node:vm");
  const inicio=chat.indexOf("function interpretarEscolhaMultipla(");
- const fim=chat.indexOf("function proxima(){",inicio);
+ const fim=chat.indexOf("function proxima(",inicio);
  assert.ok(inicio>=0&&fim>inicio,"parser numérico ausente");
  const interpretar=vm.runInNewContext(chat.slice(inicio,fim)+"\ninterpretarEscolhaMultipla;");
  const ajuda=Dados.CATALOGOS.ajudas;
