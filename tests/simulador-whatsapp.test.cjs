@@ -88,6 +88,23 @@ test("depois do nome o colaborador recebe agradecimento personalizado e dois bot
  assert.deepEqual(respostas.map(r=>r.valor),["FÍSICA","JURÍDICA"]);
  assert.deepEqual(respostas.map(r=>r.exibicao),["Pessoa física","Pessoa jurídica"]);
 });
+test("colaborador informa endereço no padrão brasileiro com exemplo e sem nova etapa",()=>{
+ const vm=require("node:vm");
+ const inicio=chat.indexOf("function identificarCampos(papel){");
+ const fim=chat.indexOf("function zonaPeloEndereco(",inicio);
+ const identificar=vm.runInNewContext("let identity=null;\n"+chat.slice(inicio,fim)+"\nidentificarCampos;");
+ const campos=identificar("colaborador");
+ assert.deepEqual(Array.from(campos.map(x=>x.key)),["nome","tipo_pessoa","endereco","telefone"]);
+ const endereco=campos.find(c=>c.key==="endereco");
+ assert.equal(endereco.kind,"text");
+ assert.equal(endereco.required,true);
+ assert.match(endereco.q,/Informe seu endereço seguindo este formato:/);
+ assert.match(endereco.q,/Rua ou avenida, número, complemento \(se houver\), bairro, cidade\/UF e CEP \(se souber\)/);
+ assert.match(endereco.q,/Av\. XV de Novembro, 701, Centro, Maringá\/PR, 87013-230/);
+ assert.match(endereco.q,/Se não houver número, escreva s\/n/);
+ assert.equal(identificar("solicitacao").find(x=>x.key==="endereco").q,"Qual é o endereço onde você precisa de ajuda?");
+ assert.equal(identificar("relato").some(x=>x.key==="endereco"),false);
+});
 test("o formulário não exige que o cidadão conheça a zona",()=>{
  const inicio=chat.indexOf("function definirSteps(papel)");
  const fim=chat.indexOf("function start(papel",inicio);
