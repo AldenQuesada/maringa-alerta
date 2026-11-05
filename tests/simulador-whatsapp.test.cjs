@@ -69,7 +69,7 @@ test("depois do nome o colaborador recebe agradecimento personalizado e dois bot
  assert.ok(inicio>=0&&fim>inicio);
  const mensagens=[],botoes=[],respostas=[];
  const ctx={
-  steps:[{key:"tipo_pessoa",kind:"single",q:"Você é pessoa física ou jurídica?",opts:["FÍSICA","JURÍDICA"]}],
+  steps:[{key:"tipo_pessoa",kind:"single",q:"Como você gostaria de se cadastrar?",opts:["FÍSICA","JURÍDICA"]}],
   index:0,current:null,answers:{nome:"Maria Silva"},role:"colaborador",
   clear:()=>{},msg:texto=>mensagens.push(texto),
   button:(texto,fn)=>botoes.push({texto,fn}),
@@ -80,6 +80,7 @@ test("depois do nome o colaborador recebe agradecimento personalizado e dois bot
  };
  const proxima=vm.runInNewContext(chat.slice(inicio,fim)+"\nproxima;",ctx);
  proxima();
+ assert.doesNotMatch(chat,/Você é pessoa física ou jurídica\?/,"pergunta antiga não pode reaparecer no bundle");
  assert.equal(mensagens.length,1);
  assert.equal(mensagens[0],"Muito obrigado, Maria Silva! Como você gostaria de se cadastrar?\n\n◾ Pessoa física\n◾ Pessoa jurídica\n\nToque em uma das opções abaixo. 👇");
  assert.deepEqual(botoes.map(b=>b.texto),["Pessoa física","Pessoa jurídica"]);
