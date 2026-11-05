@@ -44,7 +44,8 @@ test("Ser colaborador começa pelo nome na mensagem com a foto, sem outra introd
  const vm=require("node:vm");
  const img=chat.slice(chat.indexOf("function abrirPraSomar(){"),chat.indexOf("const BENS=new Set("));
  assert.match(img,/Pra Somar/);
- assert.match(img,/Para começar, qual é seu nome completo ou razão social\?/);
+ assert.match(img,/Qual é seu nome\?/);
+ assert.doesNotMatch(img,/nome completo|razão social/i);
  assert.match(img,/start\("colaborador",true\)/);
  assert.doesNotMatch(img,/Continuar cadastro/);
  const inicio=chat.indexOf("function identificarCampos(papel)");
