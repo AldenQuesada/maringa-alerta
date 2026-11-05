@@ -65,9 +65,13 @@ function abrirPraSomar(){
  start("colaborador",true); // O nome já foi perguntado na mensagem com a imagem; sem etapa intermediária.
 }
 const BENS=new Set(["FORNECER ALIMENTAÇÃO","MATERIAL DE CONSTRUÇÃO","COMBUSTÍVEL"]);
-const BENS_DEMANDA=new Set(["Alimentação","Telhas e cobertura","Roupas e cobertores","Medicamentos e saúde","Material de construção","Água potável"]);
 const ofereceBens=a=>["ajudas","maquinas","materiais"].some(k=>(a[k]||[]).some(x=>BENS.has(x)));
 function identificarCampos(papel){
+ if(papel==="solicitacao")return [
+  {key:"nome",q:"Qual é seu nome?",kind:"text",required:true},
+  {key:"endereco",q:"Qual é o endereço onde você precisa de ajuda?",kind:"text",required:true},
+  {key:"telefone",q:"Qual é seu telefone com DDD?",kind:"tel",required:true}
+ ];
  const b=[];
  if(!identity?.nome)b.push({key:"nome",q:papel==="relato"?"Qual é seu nome?":"Qual é seu nome completo ou razão social?",kind:"text",required:true});
  if(papel!=="relato"&&!identity?.tipo_pessoa)b.push({key:"tipo_pessoa",q:"Você é pessoa física ou jurídica?",kind:"single",opts:["FÍSICA","JURÍDICA"],required:true});
@@ -99,10 +103,7 @@ function definirSteps(papel){
   {key:"forma_entrega_doacao",q:"Como você disponibiliza sua doação?",kind:"single",opts:catalogos.formas_entrega_doacao,quando:ofereceBens}
  ];
  if(papel==="solicitacao")return [...base,
-  {key:"necessidade",q:"Do que você precisa neste momento?",kind:"single",opts:catalogos.necessidades,required:true},
-  {key:"descricao",q:"Quer contar mais detalhes da sua necessidade?",kind:"text",optional:true},
-  {key:"modo_recebimento",q:"Como você consegue receber a ajuda?",kind:"single",opts:["Posso retirar em um ponto de apoio","Preciso receber no endereço informado","A combinar"],quando:a=>BENS_DEMANDA.has(a.necessidade)},
-  {key:"urgencia",q:"Qual é a urgência da situação?",kind:"single",opts:["Normal","Alta","Crítica"],required:true}
+  {key:"descricao",q:"Do que você precisa? Descreva a ajuda que está solicitando.",kind:"text",required:true}
  ];
  return [...base,
   {key:"endereco_ocorrencia",q:"Qual é o endereço exato da ocorrência? Informe rua, número e referência.",kind:"text",required:true},
@@ -114,8 +115,8 @@ function definirSteps(papel){
 function start(papel,nomeJaPerguntado=false){
  form.onsubmit=responderEtapa;role=papel;answers=identity?{...identity}:{};steps=definirSteps(papel);index=0;current=null;arquivosFoto=null;
  if(papel==="colaborador" && nomeJaPerguntado){proxima(true);return;}
- const texto=papel==="solicitacao"?"Vamos registrar o que você precisa. Seus dados de contato e endereço não serão publicados.":"Vamos registrar a ocorrência em poucos passos. Em risco imediato, ligue 190, 192 ou 193. Não se aproxime de fios, árvores instáveis ou estruturas danificadas.";
- bot(texto);proxima();
+ if(papel==="solicitacao"){proxima();return;}
+ bot("Vamos registrar a ocorrência em poucos passos. Em risco imediato, ligue 190, 192 ou 193. Não se aproxime de fios, árvores instáveis ou estruturas danificadas.");proxima();
 }
 function gravarResposta(valor,exibicao=null){
  if(!current)return;
@@ -193,11 +194,11 @@ function mostrarRevisao(){
   bot("Selecione pelo menos um tipo de colaboração para concluir.",true);
   index=steps.findIndex(s=>s.key==="ajudas");proxima();return;
  }
- const labels={nome:"Nome",tipo_pessoa:"Pessoa",telefone:"Telefone",email:"E-mail",endereco:"Endereço",zona:"Zona",ajudas:"Ajuda a pessoas",maquinas:"Máquinas e equipamentos",empreendedores:"Empreendedores",materiais:"Materiais e combustível",forma_entrega_doacao:"Entrega da doação",disponibilidade:"Disponibilidade",necessidade:"Necessidade",descricao:"Detalhes",modo_recebimento:"Recebimento",urgencia:"Urgência",endereco_ocorrencia:"Local da ocorrência",pessoas_no_local:"Pessoas no local",necessidade_relato:"Descrição",foto:"Fotografia",outros:"Especificar outros",outros_ajudas:"Outros serviços",outros_maquinas:"Outros equipamentos",outros_empreendedores:"Outros apoios"};
+ const labels={nome:"Nome",tipo_pessoa:"Pessoa",telefone:"Telefone",email:"E-mail",endereco:"Endereço",zona:"Zona",ajudas:"Ajuda a pessoas",maquinas:"Máquinas e equipamentos",empreendedores:"Empreendedores",materiais:"Materiais e combustível",forma_entrega_doacao:"Entrega da doação",disponibilidade:"Disponibilidade",necessidade:"Necessidade",descricao:role==="solicitacao"?"Ajuda solicitada":"Detalhes",modo_recebimento:"Recebimento",urgencia:"Urgência",endereco_ocorrencia:"Local da ocorrência",pessoas_no_local:"Pessoas no local",necessidade_relato:"Descrição",foto:"Fotografia",outros:"Especificar outros",outros_ajudas:"Outros serviços",outros_maquinas:"Outros equipamentos",outros_empreendedores:"Outros apoios"};
  const linhas=Object.entries(answers).filter(([k,v])=>labels[k]&&v!==""&&v!=null&&(!Array.isArray(v)||v.length)).map(([k,v])=>labels[k]+": "+(Array.isArray(v)?v.join(", "):k==="foto"?"Imagem anexada":String(v)));
  bot("Confira suas informações antes de concluir:\n\n"+linhas.join("\n")+"\n\nEstá tudo correto?");
  const acoes=[["✓ Confirmar e concluir",()=>concluir(),"submit"],["✎ Corrigir respostas",()=>{index=0;bot("Vamos revisar suas respostas. As escolhas anteriores foram preservadas.");proxima();}]];
- if(role!=="colaborador")acoes.push(["Voltar ao início",()=>startMenu(),"secondary"]);
+ if(role==="relato")acoes.push(["Voltar ao início",()=>startMenu(),"secondary"]);
  optionsSimple(acoes);
 }
 function responderEtapa(e){
@@ -236,13 +237,13 @@ function concluir(){
     (resultado.forma_entrega_doacao?"\nDoação: "+resultado.forma_entrega_doacao:"")+
     "\n\nOs dados aparecem na Gestão e no Mapa de Colaboradores deste navegador. Nenhuma mensagem foi enviada a órgãos ou voluntários.");
   }else if(role==="solicitacao"){
-   const pedido=app.registrarPedido(answers).pedido;
+   // "Outro" é somente a classificação interna; a necessidade fica no texto original do cidadão.
+   const pedido=app.registrarPedido({...answers,necessidade:"Outro",descricao:String(answers.descricao||"").trim(),urgencia:"Não avaliada"}).pedido;
    registrarMudanca("solicitacoes",pedido);
-   identity={...identity,nome:pedido.nome,telefone:pedido.telefone,endereco:pedido.endereco,tipo_pessoa:pedido.tipo_pessoa,zona:pedido.zona};
-   bot("Pedido de ajuda registrado! ✅\n\nProtocolo de demonstração: "+protocolo("AJU",pedido.id)+
-    "\nSituação: "+pedido.status+".\nNecessidade: "+pedido.necessidade+
-    (pedido.modo_recebimento?"\nRecebimento: "+pedido.modo_recebimento:"")+
-    "\n\nVocê pode consultar a situação neste simulador. Casos críticos exigem avaliação das equipes responsáveis. Nenhuma ajuda foi mobilizada de verdade.");
+   identity={...identity,nome:pedido.nome,telefone:pedido.telefone,endereco:pedido.endereco,zona:pedido.zona};
+   bot("Seu pedido de ajuda foi registrado. ✅\n\nAjuda solicitada: "+pedido.descricao+
+    "\nSituação: "+pedido.status+
+    "\n\nO pedido aparece no Mapa da Ajuda deste navegador, sem divulgar seu endereço. Nenhuma mensagem real foi enviada.");
   }else if(role==="relato"){
    const registro=dados.gravar("relatos",{
     nome:String(answers.nome||"").trim(),

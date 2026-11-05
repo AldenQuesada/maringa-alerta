@@ -209,9 +209,30 @@ test("resumo de colaborador permite confirmar ou corrigir sem terceira etapa",()
  const fim=chat.indexOf("function responderEtapa(",inicio);
  const revisao=chat.slice(inicio,fim);
  assert.ok(revisao.includes('outros:"Especificar outros"'));
- assert.ok(revisao.includes('if(role!=="colaborador")acoes.push('));
+ assert.ok(revisao.includes('if(role==="relato")acoes.push('));
  const conclusao=chat.slice(chat.indexOf('if(role==="colaborador"){',fim),chat.indexOf('}else if(role==="solicitacao"){',fim));
  assert.match(conclusao,/const outros=String\(answers\.outros\|\|""\)\.trim\(\)/);
  assert.match(conclusao,/new Set\(\[resultado\.ajudas/);
  assert.doesNotMatch(conclusao,/answers\.outros_ajudas|answers\.outros_maquinas/);
+});
+
+test("Preciso de ajuda usa só nome, endereço, telefone e relato da necessidade",()=>{
+ const vm=require("node:vm");
+ const a=chat.indexOf("function identificarCampos(papel){");
+ const b=chat.indexOf("function zonaPeloEndereco(",a);
+ const c=chat.indexOf("function definirSteps(papel){");
+ const d=chat.indexOf("function start(papel",c);
+ assert.ok(a>=0&&b>a&&c>b&&d>c);
+ const definirSteps=vm.runInNewContext("let identity=null;\n"+chat.slice(a,b)+chat.slice(c,d)+"\ndefinirSteps;");
+ const passos=definirSteps("solicitacao");
+ assert.deepEqual(Array.from(passos.map(x=>x.key)),["nome","endereco","telefone","descricao"]);
+ assert.ok(passos.every(x=>x.kind==="text"||x.kind==="tel"));
+ assert.ok(passos.every(x=>x.required));
+ assert.doesNotMatch(chat.slice(c,d),/key:"urgencia"|key:"modo_recebimento"/);
+ const inicio=chat.slice(chat.indexOf("function start(papel"),chat.indexOf("function gravarResposta("));
+ assert.match(inicio,/if\(papel==="solicitacao"\)\{proxima\(\);return;\}/,"a primeira mensagem já pergunta o nome");
+ const conclusao=chat.slice(chat.indexOf('}else if(role==="solicitacao"){'),chat.indexOf('}else if(role==="relato"){'));
+ assert.match(conclusao,/necessidade:"Outro",descricao:String\(answers\.descricao\|\|""\)\.trim\(\)/);
+ assert.match(conclusao,/urgencia:"Não avaliada"/);
+ assert.doesNotMatch(conclusao,/Você pode consultar a situação neste simulador/);
 });

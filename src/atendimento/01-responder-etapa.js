@@ -34,13 +34,13 @@ function concluir(){
     (resultado.forma_entrega_doacao?"\nDoação: "+resultado.forma_entrega_doacao:"")+
     "\n\nOs dados aparecem na Gestão e no Mapa de Colaboradores deste navegador. Nenhuma mensagem foi enviada a órgãos ou voluntários.");
   }else if(role==="solicitacao"){
-   const pedido=app.registrarPedido(answers).pedido;
+   // "Outro" é somente a classificação interna; a necessidade fica no texto original do cidadão.
+   const pedido=app.registrarPedido({...answers,necessidade:"Outro",descricao:String(answers.descricao||"").trim(),urgencia:"Não avaliada"}).pedido;
    registrarMudanca("solicitacoes",pedido);
-   identity={...identity,nome:pedido.nome,telefone:pedido.telefone,endereco:pedido.endereco,tipo_pessoa:pedido.tipo_pessoa,zona:pedido.zona};
-   bot("Pedido de ajuda registrado! ✅\n\nProtocolo de demonstração: "+protocolo("AJU",pedido.id)+
-    "\nSituação: "+pedido.status+".\nNecessidade: "+pedido.necessidade+
-    (pedido.modo_recebimento?"\nRecebimento: "+pedido.modo_recebimento:"")+
-    "\n\nVocê pode consultar a situação neste simulador. Casos críticos exigem avaliação das equipes responsáveis. Nenhuma ajuda foi mobilizada de verdade.");
+   identity={...identity,nome:pedido.nome,telefone:pedido.telefone,endereco:pedido.endereco,zona:pedido.zona};
+   bot("Seu pedido de ajuda foi registrado. ✅\n\nAjuda solicitada: "+pedido.descricao+
+    "\nSituação: "+pedido.status+
+    "\n\nO pedido aparece no Mapa da Ajuda deste navegador, sem divulgar seu endereço. Nenhuma mensagem real foi enviada.");
   }else if(role==="relato"){
    const registro=dados.gravar("relatos",{
     nome:String(answers.nome||"").trim(),

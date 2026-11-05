@@ -51,6 +51,22 @@ test("a mesma pessoa pode pedir ajuda sem ser designada para atender a si própr
  assert.equal(d.pedido.atribuido_a,"");
  assert.equal(d.indicados.length,0);
 });
+test("pedido cidadão aceita necessidade livre sem perguntar pessoa física/jurídica",()=>{
+ const {core}=novo();
+ core.registrarColaborador(pessoa("Apoiador teste","44999990240",{ajudas:["FORNECER ALIMENTAÇÃO"]}));
+ const pedido=core.registrarPedido({
+  nome:"Morador teste",endereco:"Rua das Flores, 50",telefone:"44999990241",
+  necessidade:"Outro",descricao:"Preciso de telhas para reparar o teto após o temporal",
+  urgencia:"Não avaliada"
+ }).pedido;
+ assert.equal(pedido.tipo_pessoa,"");
+ assert.equal(pedido.descricao,"Preciso de telhas para reparar o teto após o temporal");
+ assert.equal(pedido.necessidade,"Outro");
+ assert.equal(pedido.urgencia,"Não avaliada");
+ assert.equal(pedido.status,"Aguardando");
+ assert.equal(pedido.atribuido_a,"");
+ assert.equal(core.pedidos().length,1);
+});
 test("pedido financeiro fica aguardando e não cria transferência",()=>{
  const {core}=novo();core.registrarColaborador(pessoa("Empresa Teste","44999990005",{tipo_pessoa:"JURÍDICA",maquinas:["MATERIAL DE CONSTRUÇÃO"]}));
  const d=core.registrarPedido({...pessoa("Solicitante","44999990006"),necessidade:"Apoio financeiro"});
