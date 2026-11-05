@@ -44,7 +44,8 @@ test("escolha única apresenta botões e múltipla apresenta lista numerada para
  assert.ok(passo.includes('current.opts.map((opcao,i)=>(i+1)+". "'),"lista numerada ausente");
  assert.match(passo,/input.inputMode="text"/);
  assert.match(passo,/form.hidden=false/);
- const responder=chat.slice(chat.indexOf("function responderEtapa("),chat.indexOf("form.onsubmit=responderEtapa;"));
+ const ini=chat.indexOf("function responderEtapa(");
+ const responder=chat.slice(ini,chat.indexOf("form.onsubmit=responderEtapa;",ini));
  assert.match(responder,/interpretarEscolhaMultipla\(valor,current\)/);
 });
 test("números são validados e convertidos nas opções originais sem perder as duas categorias novas",()=>{
