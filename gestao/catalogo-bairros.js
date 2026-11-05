@@ -7,7 +7,7 @@
 const $=id=>document.getElementById(id);
 const D=globalThis.AlertaGestaoDados;
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const norm=x=>String(x??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR").replace(/\s+/g," ").trim();
+const norm=x=>String(x??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR").replace(/\s+/g," ").trim().replace(/^zona\s*0*(\d+)$/,(_,n)=>"zona "+Number(n));
 const db=()=>D.criar(undefined,{municipioId:sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa"});
 let zonasPromise=null,bairrosPromise=null,token=0;
 let referencias=new Map();
@@ -16,7 +16,7 @@ function zonasOficiais(){
  const p=db().municipioAtivo();
  if(!p||p.id!=="maringa")return Promise.resolve([]);
  const url="https://servicodados.ibge.gov.br/api/v1/localidades/municipios/"+encodeURIComponent(p.codigo_ibge)+"/subdistritos";
- zonasPromise=fetch(url,{cache:"force-cache"}).then(r=>{if(!r.ok)throw Error("Consulta IBGE indisponível");return r.json();}).then(rows=>{
+ zonasPromise=fetch(url,{cache:"force-cache"}).then(r=>{if(!r.ok)throw Error("Consulta IBGE indisponível");return r.json();}).catch(()=>fetch("https://servicodados.ibge.gov.br/api/v1/localidades/distritos/411520005/subdistritos",{cache:"force-cache"}).then(r=>{if(!r.ok)throw Error("Consulta IBGE indisponível");return r.json();})).then(rows=>{
   if(!Array.isArray(rows))throw Error("Resposta territorial inválida");
   return rows.filter(x=>/^zona\s*0*\d+$/i.test(String(x.nome||"").trim())).map(x=>{
    const n=Number(String(x.nome).match(/\d+/)[0]);
