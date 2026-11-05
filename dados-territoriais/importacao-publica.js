@@ -17,7 +17,7 @@ function importar(db,documento){
  const stats={novos:0,atualizados:0,preservados:0};
  for(const modulo of MODULES){
   if(!Array.isArray(documento[modulo]))throw Error("Referências públicas inválidas: "+modulo);
-  const campos=new Set(db.esquema(modulo)?.fields?.map(f=>f.key)||[]);
+  const campos=new Set(root.AlertaGestaoDados?.ESQUEMAS?.[modulo]?.fields?.map(f=>f.key)||[]);
   for(const src of documento[modulo]){
    if(!src.nome||!src.externalId||!src.url_fonte||src.verificacao!=="Em conferência")continue;
    const registro=db.lista(modulo).find(x=>x.externalId===src.externalId||normal(x.nome)===normal(src.nome));
