@@ -136,8 +136,8 @@ function renderTerritorioMunicipal(){
  '<tr><td><strong>'+esc(p.nome)+'</strong></td><td>'+esc(p.uf||"—")+'</td><td>'+esc(p.codigo_ibge||"—")+'</td><td>'+esc(p.telefone||"—")+'</td><td>'+esc(p.email||p.admin_municipal_email||"—")+'</td><td>'+esc(p.status||"—")+'</td>'+
  '<td><a class="row-action" href="../plataforma/#municipios" title="O cadastro da Prefeitura pertence ao Admin Geral">Editar</a></td></tr></tbody></table></div></section>'+
  '<section class="table-shell pref-cabinet"><div class="table-toolbar"><strong>Gabinete de Crise</strong><span class="table-count">'+people.length+' membro(s)</span></div>'+
- '<div class="table-scroll"><table><thead><tr><th>Nome</th><th>Cargo / função</th><th>Estrutura representada</th><th>Telefone</th><th>E-mail</th><th>Ações</th></tr></thead><tbody>'+
- (people.length?people.map(x=>{const org=orgs.find(o=>o.id===x.estrutura_id||o.responsavel_id===x.id);return '<tr><td><strong>'+esc(x.nome)+'</strong></td><td>'+esc(x.cargo||x.funcao||"—")+'</td><td>'+esc(org?.nome||x.orgao||"Não vinculada")+'</td><td>'+esc(x.telefone||"—")+'</td><td>'+esc(x.email||"—")+'</td><td><button type="button" class="row-action" data-canon-edit="pessoas" data-id="'+esc(x.id)+'">Editar</button></td></tr>';}).join(""):'<tr><td colspan="6">Nenhum membro cadastrado. Use Novo cadastro acima.</td></tr>')+
+ '<div class="table-scroll"><table><thead><tr><th>Nome</th><th>Cargo</th><th>Função</th><th>Estrutura representada</th><th>Telefone</th><th>E-mail</th><th>Ações</th></tr></thead><tbody>'+
+ (people.length?people.map(x=>{const org=orgs.find(o=>o.id===x.estrutura_id||o.responsavel_id===x.id);return '<tr><td><strong>'+esc(x.nome)+'</strong></td><td>'+esc(x.cargo||"Não informado")+'</td><td>'+esc(x.funcao||"—")+'</td><td>'+esc(org?.nome||x.orgao||"Não vinculada")+'</td><td>'+esc(x.telefone||"—")+'</td><td>'+esc(x.email||"—")+'</td><td><button type="button" class="row-action" data-canon-edit="pessoas" data-id="'+esc(x.id)+'">Editar</button></td></tr>';}).join(""):'<tr><td colspan="7">Nenhum membro cadastrado. Use Novo cadastro acima.</td></tr>')+
  '</tbody></table></div></section>';
 }
 async function importarUnidadesCNES(){
