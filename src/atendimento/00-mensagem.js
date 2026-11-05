@@ -36,6 +36,8 @@ function startMenu(){
   ["Cheguei / Terminei",()=>iniciarFase()]
  ]);
 }
+const BENS_DOAVEIS=new Set(["FORNECER ALIMENTAÇÃO","MATERIAL DE CONSTRUÇÃO","COMBUSTÍVEL"]);
+const ofereceBensFisicos=dados=>["ajudas","maquinas","materiais"].some(grupo=>(Array.isArray(dados[grupo])?dados[grupo]:[]).some(item=>BENS_DOAVEIS.has(item)));
 function definirSteps(papel){
  const base=identity?[]:[
   {key:"tipo_pessoa",q:"Você é pessoa física ou pessoa jurídica?",kind:"single",opts:["FÍSICA","JURÍDICA"]},
@@ -49,6 +51,7 @@ function definirSteps(papel){
   {key:"maquinas",q:"Você disponibiliza maquinário, veículos, equipamentos ou materiais? Selecione tudo que se aplica.",kind:"multi",opts:catalogos.maquinas},
   {key:"empreendedores",q:"Que apoio pode oferecer para empreendedores atingidos?",kind:"multi",opts:catalogos.empreendedores},
   {key:"materiais",q:"Você pode fornecer material de construção ou combustível?",kind:"multi",opts:catalogos.materiais},
+  {key:"forma_entrega_doacao",q:"Como pode disponibilizar os alimentos ou materiais oferecidos? A prefeitura confirmará um centro habilitado antes da entrega.",kind:"single",opts:catalogos.formas_entrega_doacao,quando:ofereceBensFisicos},
   {key:"outros",q:"Deseja especificar alguma opção OUTRO ou detalhar sua ajuda? Se não, pule esta etapa.",kind:"text",optional:true},
   {key:"disponibilidade",q:"Você está disponível para receber solicitações de ajuda?",kind:"single",opts:["Disponível","A combinar","Indisponível"]}
  ];
@@ -75,6 +78,7 @@ function gravarResposta(v,display){
 }
 function proxima(){
  clear();
+ while(index<steps.length&&steps[index].quando&&!steps[index].quando(answers))index++;
  if(index>=steps.length){concluir();return;}
  current=steps[index];
  mensagem(current.q);
