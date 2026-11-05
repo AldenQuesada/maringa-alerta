@@ -5,8 +5,8 @@ const root=path.resolve(__dirname,"..");
 const page=fs.readFileSync(path.join(root,"atendimento/index.html"),"utf8");
 const chat=fs.readFileSync(path.join(root,"atendimento/chat.js"),"utf8");
 function storage(){const m=new Map();return {getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k)};}
-test("o cabeçalho mostra Maringá Pra Somar com a imagem da Prefeitura e sem avisos no chat",()=>{
- assert.match(page,/<div class="header-title"><strong>Maringá Pra Somar<\/strong><\/div>/);
+test("o cabeçalho identifica Prefeitura Maringá e o perfil Pra Somar, sem avisos no chat",()=>{
+ assert.match(page,/<div class="header-title"><strong>Prefeitura Maringá<\/strong><small>@prasomarmga<\/small><\/div>/);
  assert.match(page,/<div class="avatar"><img src="https:\/\/previdencia\.maringa\.pr\.gov\.br\/assets\/images\/logoprefeituranova\.png"/);
  assert.doesNotMatch(page,/Atendimento demonstrativo/);
  assert.doesNotMatch(page,/SIMULAÇÃO · Não envia mensagens reais/);
@@ -20,6 +20,11 @@ test("interface de smartphone inclui reinício e apresentação do Pra Somar",()
  assert.match(chat,/abrirPraSomar\(\)/);
  assert.match(chat,/assets\/pra-somar-original\.webp/);
  assert.ok(fs.existsSync(path.join(root,"assets/pra-somar-original.webp")));
+});
+test("apresentação do Pra Somar conserva o lema e une empresas, voluntários e entidades",()=>{
+ assert.match(chat,/Programa de Apoio Social e Mobilização Voluntária de Maringá/);
+ assert.match(chat,/Onde a boa vontade se transforma em ação/);
+ assert.match(chat,/Empresas 🤝 Voluntários 🤝 Entidades/);
 });
 test("a entrada cidadã oferece exatamente três fluxos canônicos",()=>{
  const menu=chat.match(/function startMenu\(\)\{[\s\S]*?\n\}/)?.[0];

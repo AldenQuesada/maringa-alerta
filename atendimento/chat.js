@@ -59,7 +59,7 @@ function startMenu(){
  ]);
 }
 function abrirPraSomar(){
- bot("O Pra Somar é o Programa de Apoio Social e Mobilização Voluntária de Maringá. Ele conecta pessoas, empresas e entidades dispostas a ajudar quem precisa.\n\nVamos registrar como você pode contribuir?",false,{
+ bot("Programa de Apoio Social e Mobilização Voluntária de Maringá\n\n“Onde a boa vontade se transforma em ação”\n\nUnindo:\nEmpresas 🤝 Voluntários 🤝 Entidades\n\nVamos registrar como você pode contribuir?",false,{
   src:"../assets/pra-somar-original.webp",alt:"Identidade visual do Pra Somar enviada para a demonstração",titulo:"Pra Somar · Mobilização voluntária"
  });
  optionsSimple([["Continuar cadastro",()=>start("colaborador"),"submit"],["Voltar ao início",()=>startMenu(),"secondary"]]);
