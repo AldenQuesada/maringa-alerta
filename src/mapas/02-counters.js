@@ -81,6 +81,8 @@ $("filtro").onchange=()=>{filtroClasse=$("filtro").value;render();};
 $("busca").oninput=()=>{texto=$("busca").value;render();};
 window.addEventListener("storage",event=>{if(event.key===AlertaGestaoDados.CHAVE)location.reload();});
 municipSelector();renderMunicipio();configurarCamadas();render();
+const fontesPublicas=["../dados-territoriais/maringa-bases-riscos-publicos.json","../dados-territoriais/maringa-abrigos-publicos.json"];
+void Promise.allSettled(fontesPublicas.map(url=>AlertaImportacaoPublica.carregar(app.db,{url}))).then(()=>{configurarCamadas();render();});
 window.addEventListener("focus",()=>{configurarCamadas();render();});
 if(app.prefeitura()?.id==="maringa"&&globalThis.MaringaBairros)
  territorio=MaringaBairros.iniciar({map,L,simulatedLayers:poligonos.getLayers()});

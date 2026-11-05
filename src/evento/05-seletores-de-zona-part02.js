@@ -73,6 +73,7 @@ function atualizarCadastroMapa(){
   renderCollaborators();
   updateKpis();
   montarMarcadoresPublicos();
+  if(filtrosMunicipaisProntos)atualizarFiltroCadastros();
 }
 window.addEventListener('storage',e=>{
   if(e.key===AlertaGestaoDados.CHAVE) atualizarCadastroMapa();
