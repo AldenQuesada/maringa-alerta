@@ -51,7 +51,7 @@ function startMenu(){
  // O cidadão entra exclusivamente pelos três fluxos canônicos.
  identity=null;role=null;answers={};steps=[];index=0;current=null;arquivosFoto=null;
  form.onsubmit=responderEtapa;
- bot("Olá! Bem-vindo ao Maringá Alerta.\n\nO que você deseja fazer?");
+ bot("Olá! Bem-vindo ao Maringá Alerta.\n\nUm sistema desenvolvido pela Prefeitura de Maringá para que todos possam somar esforços na recuperação da nossa cidade em caso de eventos climáticos e desastres naturais.\n\nEscolha uma opção para continuar:");
  optionsSimple([
   ["Ser colaborador",()=>abrirPraSomar(),"submit"],
   ["Relatar ocorrência",()=>start("relato")],
