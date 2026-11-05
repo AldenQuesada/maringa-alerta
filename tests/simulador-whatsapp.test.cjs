@@ -14,11 +14,27 @@ test("interface de smartphone inclui reinício e apresentação do Pra Somar",()
  assert.match(chat,/assets\/pra-somar-original\.webp/);
  assert.ok(fs.existsSync(path.join(root,"assets/pra-somar-original.webp")));
 });
-test("os três eixos e a consulta existem no mesmo atendimento",()=>{
- for(const nome of ["Quero ajudar","Preciso de ajuda","Relatar ocorrência","Consultar cadastro ou protocolo","Cheguei / Terminei"])assert.ok(chat.includes(nome),nome);
+test("a entrada cidadã oferece exatamente três fluxos canônicos",()=>{
+ const menu=chat.match(/function startMenu\(\)\{[\s\S]*?\n\}/)?.[0];
+ assert.ok(menu,"menu inicial ausente");
+ const acoes=[...menu.matchAll(/\["([^"]+)",\(\)=>/g)].map(m=>m[1]);
+ assert.deepEqual(acoes,["Ser colaborador","Relatar ocorrência","Preciso de ajuda"]);
+ assert.doesNotMatch(menu,/Consultar cadastro|Cheguei|Terminei|protocolo/i);
+ assert.match(menu,/identity=null/,"novo atendimento não deve reaproveitar a pessoa anterior");
+ assert.match(chat,/function abrirPraSomar\(\)/);
+ assert.match(chat,/src:"\.\.\/assets\/pra-somar-original\.webp"/);
  assert.match(chat,/function reiniciarDemonstracao\(/);
  assert.match(chat,/function mostrarRevisao\(/);
  assert.match(chat,/function prepararFoto\(/);
+ assert.doesNotMatch(chat,/function consultarCadastro\(|function iniciarFase\(|function escolherFase\(/);
+});
+test("o formulário não exige que o cidadão conheça a zona",()=>{
+ const inicio=chat.indexOf("function definirSteps(papel)");
+ const fim=chat.indexOf("function start(papel)",inicio);
+ const codigo=chat.slice(inicio,fim);
+ assert.ok(inicio>0&&fim>inicio);
+ assert.doesNotMatch(codigo, /key:"zona"/);
+ assert.match(chat,/function zonaPeloEndereco\(/);
 });
 test("ofertas, email e logística são armazenados sem duplicar colaborador",()=>{
  const core=Crise.criar({armazenamento:storage(),municipioId:"maringa",escopoMunicipal:true});
