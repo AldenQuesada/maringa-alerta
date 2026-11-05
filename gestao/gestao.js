@@ -113,51 +113,80 @@ function mapaPreview(){
  }
  return '<aside class="geo-panel"><div class="geo-head">Mapa · '+esc(p.nome)+'</div>'+mapa+'<div class="hint">A vista do município é independente do Mapa Operacional.</div></aside>';
 }
-const PREF_TABS=[["territorio","Gerais"],["geoterritorialidade","Geoterritorialidade"],["estruturas","Estruturas"],["pessoas","Gabinete de Crise"],["bases","Bases"],["riscos","Riscos"]];
-const STRUCT_MODULES=[["saude","Saúde"],["emergencias","Emergência e segurança"],["parceiros","Órgãos e concessionárias"]];
-const PREF_SECTIONS=new Set([...PREF_TABS.map(x=>x[0]),...STRUCT_MODULES.map(x=>x[0])]);
+const PREF_TABS=[["territorio","Gerais"],["geoterritorialidade","Geoterritorialidade"],["estruturas","Estruturas"],["bases","Bases"],["riscos","Riscos"]];
+const STRUCT_MODULES=[["saude","Unidades de saúde"],["emergencias","Emergência e segurança"],["parceiros","Órgãos e concessionárias"]];
+const PREF_SECTIONS=new Set([...PREF_TABS.map(x=>x[0]),"pessoas",...STRUCT_MODULES.map(x=>x[0])]);
+let estruturaTipo="saude",cnesConsultado=false;
 function renderPrefTabs(){
- const active=STRUCT_MODULES.some(x=>x[0]===atual)?"estruturas":atual;
- const html='<nav class="pref-tabs" aria-label="Etapas da gestão da Prefeitura">'+PREF_TABS.map(([id,label],i)=>'<a class="pref-tab'+(id===active?' active':'')+'" href="#'+id+'"'+(id===active?' aria-current="page"':'')+'><small>'+String(i+1).padStart(2,"0")+'</small>'+esc(label)+'</a>').join("")+'</nav>';
- const heading=PAGE.querySelector(".heading-row,.mi-head");if(heading)heading.insertAdjacentHTML("afterend",html);else PAGE.insertAdjacentHTML("afterbegin",html);
+ const html='<nav class="pref-tabs" aria-label="Cadastro da Prefeitura">'+PREF_TABS.map(([id,label])=>'<a class="pref-tab'+(id===atual?' active':'')+'" href="#'+id+'"'+(id===atual?' aria-current="page"':'')+'>'+esc(label)+'</a>').join("")+'</nav>';
+ const heading=PAGE.querySelector(".heading-row");if(heading)heading.insertAdjacentHTML("afterend",html);else PAGE.insertAdjacentHTML("afterbegin",html);
  const nav=PAGE.querySelector(".pref-tabs"),body=document.createElement("div");body.className="pref-tab-body";
  while(nav.nextSibling)body.appendChild(nav.nextSibling);PAGE.appendChild(body);
  PAGE.closest(".content")?.scrollTo(0,0);
 }
 function structures(){return STRUCT_MODULES.flatMap(([m])=>db.lista(m));}
 function responsible(x,people){return people.find(p=>p.id===x.responsavel_id)||people.find(p=>p.estrutura_id===x.id)||null;}
+function gabinete(){const orgs=structures();return db.lista("pessoas").filter(p=>p.estrutura_id||orgs.some(x=>x.responsavel_id===p.id)||["admin","responsavel","substituto","coordenador"].includes(p.funcao));}
 function renderTerritorioMunicipal(){
- const p=db.municipioAtivo();if(!p){PAGE.innerHTML=topo("Município indisponível","Prefeitura ainda não provisionada pelo Admin Geral.");return;}
- const orgs=structures(),people=db.lista("pessoas").filter(x=>x.estrutura_id||orgs.some(o=>o.responsavel_id===x.id)||["admin","responsavel","substituto","coordenador"].includes(x.funcao));
- const fields=[["Município",p.nome],["Estado",p.estado||p.uf],["Código IBGE",p.codigo_ibge],["Situação",p.status||"Em implantação"],["Contato institucional",p.responsavel],["Telefone",p.telefone],["E-mail institucional",p.email||p.admin_municipal_email],["Origem do cadastro",p.origem_provisionamento],["Georreferenciamento",p.fonte_geo]];
- PAGE.innerHTML=topo("Gerais","Dados institucionais e composição do Gabinete de Crise.")+
- '<section class="section-card"><header class="section-card-head"><h2>Dados da Prefeitura</h2><span class="pref-note">Cadastro do Admin Geral · somente leitura</span></header><div class="section-card-body"><dl class="pref-details">'+fields.map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v||"Não informado")+'</dd></div>').join("")+'</dl></div></section>'+
- '<section class="section-card"><header class="section-card-head"><h2>Membros do Gabinete de Crise</h2><a class="mini-action" href="#pessoas">Gerenciar membros</a></header><div class="section-card-body">'+
- (people.length?'<div class="pref-member-grid">'+people.map(x=>{
- const org=orgs.find(o=>o.id===x.estrutura_id||o.responsavel_id===x.id)||orgs.find(o=>x.orgao&&o.nome===x.orgao);
- return '<div class="pref-member"><strong>'+esc(x.nome)+'</strong><span>'+esc(x.cargo||x.funcao||"Função pendente")+'</span><small>'+esc(org?.nome||x.orgao||"Estrutura ainda não vinculada")+'</small></div>';
- }).join("")+'</div>':'<p class="pref-note">Nenhum membro cadastrado. Adicione as pessoas e vincule seus órgãos ou estruturas.</p>')+
- '</div></section>';
+ const p=db.municipioAtivo();
+ if(!p){PAGE.innerHTML=topo("Prefeitura indisponível","Município ainda não provisionado.");return;}
+ const people=gabinete(),orgs=structures();
+ PAGE.innerHTML=topo("Gerais","Dados institucionais e representantes do Gabinete de Crise.","pessoas")+
+ '<section class="table-shell pref-general"><div class="table-toolbar"><strong>Dados da Prefeitura</strong></div><div class="table-scroll"><table><thead><tr><th>Prefeitura</th><th>UF</th><th>Código IBGE</th><th>Telefone</th><th>E-mail</th><th>Situação</th><th>Ações</th></tr></thead><tbody>'+
+ '<tr><td><strong>'+esc(p.nome)+'</strong></td><td>'+esc(p.uf||"—")+'</td><td>'+esc(p.codigo_ibge||"—")+'</td><td>'+esc(p.telefone||"—")+'</td><td>'+esc(p.email||p.admin_municipal_email||"—")+'</td><td>'+esc(p.status||"—")+'</td>'+
+ '<td><a class="row-action" href="../plataforma/#municipios" title="O cadastro da Prefeitura pertence ao Admin Geral">Editar</a></td></tr></tbody></table></div></section>'+
+ '<section class="table-shell pref-cabinet"><div class="table-toolbar"><strong>Gabinete de Crise</strong><span class="table-count">'+people.length+' membro(s)</span></div>'+
+ '<div class="table-scroll"><table><thead><tr><th>Nome</th><th>Cargo / função</th><th>Estrutura representada</th><th>Telefone</th><th>E-mail</th><th>Ações</th></tr></thead><tbody>'+
+ (people.length?people.map(x=>{const org=orgs.find(o=>o.id===x.estrutura_id||o.responsavel_id===x.id);return '<tr><td><strong>'+esc(x.nome)+'</strong></td><td>'+esc(x.cargo||x.funcao||"—")+'</td><td>'+esc(org?.nome||x.orgao||"Não vinculada")+'</td><td>'+esc(x.telefone||"—")+'</td><td>'+esc(x.email||"—")+'</td><td><button type="button" class="row-action" data-canon-edit="pessoas" data-id="'+esc(x.id)+'">Editar</button></td></tr>';}).join(""):'<tr><td colspan="6">Nenhum membro cadastrado. Use Novo cadastro acima.</td></tr>')+
+ '</tbody></table></div></section>';
+}
+async function importarUnidadesCNES(){
+ if(cnesConsultado||db.municipioAtivo()?.codigo_ibge!=="4115200")return;
+ cnesConsultado=true;
+ if(db.lista("saude").some(x=>String(x.codigo_cnes||"").length===7))return;
+ try{
+  const r=await fetch("../dados-territoriais/maringa-unidades-cnes.json",{cache:"no-cache"});
+  if(!r.ok)throw Error("Arquivo de referência CNES indisponível");
+  const doc=await r.json();
+  if(doc.municipio_ibge!=="4115200"||!Array.isArray(doc.unidades)||doc.unidades.length!==69)throw Error("Base CNES inválida");
+  for(const [grupo] of [["saude"],["emergencias"]]){
+   const linhas=doc.unidades.filter(x=>x.grupo===grupo).map(x=>({nome:x.nome,tipo:x.tipo,codigo_cnes:x.codigo_cnes,externalId:"cnes:"+x.codigo_cnes,fonte:"CNES · Ministério da Saúde",url_fonte:doc.url_fonte,verificacao:"Em conferência"}));
+   if(linhas.length)db.importarLote(grupo,linhas);
+  }
+  if(atual==="estruturas")render();
+ }catch(err){toast("Não foi possível importar unidades do CNES: "+err.message);}
 }
 function renderEstruturas(){
- const people=db.lista("pessoas");
- PAGE.innerHTML=topo("Estruturas do Gabinete de Crise","Cada órgão tem seu próprio registro e representante vinculado ao cadastro único de pessoas.")+
- STRUCT_MODULES.map(([module,label])=>{
-  const records=db.lista(module);
-  return '<section class="section-card"><header class="section-card-head"><h2>'+esc(label)+'</h2><a class="mini-action" href="#'+module+'">Cadastrar e editar</a></header><div class="section-card-body">'+
-  (records.length?records.map(x=>'<div class="overview-entry"><div><strong>'+esc(x.nome)+'</strong><p>Representante: '+esc(responsible(x,people)?.nome||"Não atribuído")+'</p></div></div>').join(""):'<p class="pref-note">Nenhuma estrutura cadastrada.</p>')+
-  '</div></section>';
- }).join("");
+ const m=estruturaTipo,people=db.lista("pessoas"),records=db.lista(m);
+ PAGE.innerHTML=topo("Estruturas","Unidades, órgãos e seus representantes cadastrados.",""+m)+
+ '<section class="table-shell pref-canonical-table"><div class="table-toolbar">'+
+ '<label class="pref-table-select" for="estrutura-type">Tipo <select id="estrutura-type">'+STRUCT_MODULES.map(([id,label])=>'<option value="'+id+'"'+(id===m?' selected':'')+'>'+esc(label)+'</option>').join("")+'</select></label>'+
+ '<label class="search-field">'+icon("search")+'<input id="estrutura-search" type="search" placeholder="Buscar unidade ou CNES" aria-label="Buscar estruturas"></label><span class="table-count" id="estrutura-count"></span></div>'+
+ '<div class="table-scroll"><table><thead><tr><th>Unidade / estrutura</th><th>Tipo</th><th>CNES</th><th>Zona / bairro</th><th>Representante no Gabinete</th><th>Ações</th></tr></thead><tbody id="estrutura-rows"></tbody></table></div></section>';
+ $("estrutura-type").onchange=e=>{estruturaTipo=e.target.value;render();};
+ const renderRows=()=>{
+  const term=$("estrutura-search").value.toLocaleLowerCase("pt-BR");
+  const lista=records.filter(x=>(x.nome+" "+(x.codigo_cnes||"")+" "+(x.bairro||"")+" "+(x.zona||"")).toLocaleLowerCase("pt-BR").includes(term));
+  $("estrutura-count").textContent=lista.length+" registro(s)";
+  $("estrutura-rows").innerHTML=lista.map(x=>{
+   const resp=responsible(x,people);
+   return '<tr><td><strong>'+esc(x.nome)+'</strong></td><td>'+esc(x.tipo||"—")+'</td><td>'+esc(x.codigo_cnes||"—")+'</td>'+
+   '<td>'+esc(x.zona||x.bairro||"—")+'</td><td>'+esc(resp?.nome||"Não atribuído")+'</td>'+
+   '<td><button type="button" class="row-action" data-canon-edit="'+m+'" data-id="'+esc(x.id)+'">Editar</button></td></tr>';
+  }).join("")||'<tr><td colspan="6">Nenhum registro para este filtro.</td></tr>';
+ };
+ $("estrutura-search").oninput=renderRows;renderRows();
+ void importarUnidadesCNES();
 }
 function renderGeoterritorialidade(){
- PAGE.innerHTML=topo("Geoterritorialidade","Zonas numeradas de referência do município e bairros, em um único inventário geográfico.")+
- '<section class="section-card geo-workspace"><div class="section-card-body">'+
- '<div class="geo-controls"><label for="geo-type">Exibir<select id="geo-type"><option value="todos">Todos</option><option value="bairros">Bairros</option><option value="zonas">Zonas</option></select></label><div class="geo-new-actions">'+
- '<button type="button" class="btn btn-primary" data-geo-new="territorio">+ Novo território</button></div></div>'+
- '<div id="geo-content" class="geo-content"></div></div></section>';
- $("geo-type").value=geoTipo;
- $("geo-type").onchange=e=>{geoTipo=e.target.value;window.dispatchEvent(new Event("gestao:geo-render"));};
- window.dispatchEvent(new Event("gestao:geo-render"));
+ PAGE.innerHTML=topo("Geoterritorialidade","Cadastro das Zonas numeradas e dos bairros do município.",geoTipo)+
+ '<section class="table-shell pref-canonical-table"><div class="table-toolbar">'+
+ '<label class="pref-table-select" for="geo-type">Território <select id="geo-type"><option value="zonas"'+(geoTipo==="zonas"?" selected":"")+'>Zonas numeradas</option><option value="bairros"'+(geoTipo==="bairros"?" selected":"")+'>Bairros</option></select></label>'+
+ '<label class="search-field">'+icon("search")+'<input id="geo-search" type="search" placeholder="Buscar zona ou bairro" aria-label="Buscar território"></label>'+
+ '<span id="geo-count" class="table-count"></span></div>'+
+ '<div class="table-scroll"><table><thead><tr><th>Zona / Bairro</th><th>Código de referência</th><th>Vínculo territorial</th><th>Fonte</th><th>Ações</th></tr></thead><tbody id="geo-rows"><tr><td colspan="5">Carregando dados territoriais...</td></tr></tbody></table></div></section>';
+ $("geo-type").onchange=e=>{geoTipo=e.target.value;render();};
+ $("geo-search").oninput=()=>window.dispatchEvent(new Event("gestao:geo-render"));
 }
 function renderModulo(){
  const d=D.ESQUEMAS[atual];
@@ -181,23 +210,23 @@ function render(){
   return;
  }
  const hash=decodeURIComponent(location.hash.replace(/^#/,""))||"inicio";
- const adjusted=hash==="prefeituras"||hash==="implantacao"?"territorio":hash==="bairros"||hash==="zonas"?"geoterritorialidade":hash;
  if(hash==="bairros"||hash==="zonas")geoTipo=hash;
- const proximo=adjusted==="inicio"||adjusted==="estruturas"||adjusted==="geoterritorialidade"||Object.hasOwn(D.ESQUEMAS,adjusted)?adjusted:"inicio";
+ if(["saude","emergencias","parceiros"].includes(hash))estruturaTipo=hash;
+ const alias=hash==="prefeituras"||hash==="implantacao"||hash==="pessoas"?"territorio":hash==="bairros"||hash==="zonas"?"geoterritorialidade":["saude","emergencias","parceiros"].includes(hash)?"estruturas":hash;
+ const proximo=alias==="inicio"||alias==="estruturas"||alias==="geoterritorialidade"||Object.hasOwn(D.ESQUEMAS,alias)?alias:"inicio";
  if(proximo!==atual)pesquisa="";
  atual=proximo;
- document.title=(atual==="inicio"?"Gestão":atual==="estruturas"?"Estruturas":atual==="geoterritorialidade"?"Geoterritorialidade":D.ESQUEMAS[atual].label)+" | Maringá Alerta";
+ document.title=(atual==="inicio"?"Gestão":atual==="estruturas"?"Estruturas":atual==="geoterritorialidade"?"Geoterritorialidade":D.ESQUEMAS[atual].label)+" | Gestão Municipal";
  renderNav();
  if(atual==="inicio")renderInicio();
  else if(atual==="territorio")renderTerritorioMunicipal();
- else if(atual==="pessoas"){
-  if(globalThis.AlertaImplantacaoUI)AlertaImplantacaoUI.montar({page:PAGE,db,mode:atual,toast});
-  else PAGE.innerHTML=topo("Implantação indisponível","Não foi possível carregar o módulo territorial.");
- }
  else if(atual==="estruturas")renderEstruturas();
  else if(atual==="geoterritorialidade")renderGeoterritorialidade();
  else renderModulo();
- if(PREF_SECTIONS.has(atual))renderPrefTabs();
+ if(PREF_SECTIONS.has(atual)){
+  renderPrefTabs();
+  if(atual==="geoterritorialidade")window.dispatchEvent(new Event("gestao:geo-render"));
+ }
 }
 function campoHTML(f,valor){
  const id="field-"+f.key,v=esc(valor??""),required=f.required?' required':"";
