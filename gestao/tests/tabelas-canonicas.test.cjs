@@ -54,15 +54,22 @@ test("as 69 unidades utilizam coleções existentes e não duplicam ao importar"
 
 test("Bases e Riscos públicos têm origem rastreável, não simulam coordenadas nem homologação",()=>{
  assert.equal(basesRiscos.municipio_ibge,"4115200");
- assert.equal(basesRiscos.bases.length,3);
+ assert.equal(basesRiscos.bases.length,6);
+ assert.equal(basesRiscos.bases.filter(x=>x.tipo==="Centro de coleta de donativos").length,5);
  assert.equal(basesRiscos.riscos.length,3);
  for(const [modulo,items] of [["bases",basesRiscos.bases],["riscos",basesRiscos.riscos]]){
   assert.equal(new Set(items.map(x=>x.externalId)).size,items.length);
   for(const x of items){
    assert.ok(x.nome&&x.url_fonte.startsWith("https://")&&x.fonte,x.nome);
    assert.equal(x.verificacao,"Em conferência");
-   assert.equal(x.lat,undefined);
-   assert.equal(x.lng,undefined);
+   if(modulo==="bases"&&x.tipo==="Centro de coleta de donativos"){
+    assert.ok(Number.isFinite(x.lat)&&Number.isFinite(x.lng),"Centro com referência de endereço: "+x.nome);
+    assert.match(x.geo_status,/aproximad/i,"A coordenada não é o imóvel confirmado");
+    assert.match(x.geo_fonte,/^https:\/\//);
+   }else{
+    assert.equal(x.lat,undefined);
+    assert.equal(x.lng,undefined);
+   }
    assert.equal(x.geojson,undefined);
   }
   assert.ok(D.ESQUEMAS[modulo].columns.includes("verificacao"));
@@ -84,4 +91,30 @@ test("Importação de fontes públicas reutiliza cadastro existente e respeita v
   assert.equal(db.registro(modulo,registro.id).verificacao,"Validado");
   assert.equal(db.registro(modulo,registro.id).fonte,"Validação municipal");
  }
+});
+
+test("Importador central reutiliza registros antigos, preenche georreferenciamento e preserva validação municipal",()=>{
+ const I=require("../../dados-territoriais/importacao-publica.js");
+ const db=D.criar(store(),{municipioId:"maringa"});
+ const antigo=basesRiscos.bases.find(x=>x.nome.startsWith("SISMMar"));
+ const salvo=db.importarLote("bases",[{nome:antigo.nome,externalId:antigo.externalId,fonte:"Registro anterior",verificacao:"Em conferência"}]);
+ assert.equal(salvo.novos,1);
+ const primeira=I.importar(db,basesRiscos);
+ assert.equal(db.lista("bases").length,6);
+ assert.equal(db.lista("riscos").length,3);
+ const sismmar=db.lista("bases").find(x=>x.externalId===antigo.externalId);
+ assert.equal(sismmar.id,db.lista("bases").find(x=>x.nome===antigo.nome).id);
+ assert.ok(sismmar.lat&&sismmar.lng);
+ assert.equal(sismmar.fonte,"Registro anterior","Fonte de uma edição existente não deve ser apagada");
+ assert.equal(sismmar.tipo,"Centro de coleta de donativos");
+ assert.equal(primeira.novos,8);
+ const segunda=I.importar(db,basesRiscos);
+ assert.equal(segunda.novos,0);
+ assert.equal(segunda.atualizados,0);
+ db.gravar("bases",{...sismmar,verificacao:"Validado",lat:"-23.1",lng:"-51.9"},sismmar.id);
+ I.importar(db,basesRiscos);
+ assert.equal(db.registro("bases",sismmar.id).lat,"-23.1");
+ assert.equal(db.registro("bases",sismmar.id).verificacao,"Validado");
+ const outroMunicipio=D.criar(store(),{municipioId:"maringa"});
+ assert.equal(I.importar(outroMunicipio,{...basesRiscos,municipio_ibge:"4113700"}).novos,0);
 });
