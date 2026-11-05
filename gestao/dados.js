@@ -46,7 +46,7 @@ const ESQUEMAS={
   equipes:{label:"Equipes de recuperação",singular:"Equipe",collection:"equipes",summary:"Equipes municipais com capacidades e disponibilidade.",columns:["nome","tipo","zona","status"],fields:[F("nome","Nome da equipe","text",{required:true}),F("tipo","Especialidade","select",{options:["Recuperação básica","Árvores e obstáculos","Obras e infraestrutura","Saúde","Assistência social","Resgate especializado","Logística","Resgate animal","Outra"]}),Z(),F("lider","Líder"),F("integrantes","Número de integrantes","number"),F("base","Base"),F("status","Disponibilidade","select",{options:["Disponível","Em atendimento","Indisponível"]}),F("recursos","Recursos e equipamentos","textarea"),F("telefone","Contato","tel")]},
   integrantes:{label:"Integrantes",singular:"Integrante",collection:"integrantes",summary:"Pessoas associadas às equipes municipais.",columns:["nome","equipe","funcao"],fields:[F("nome","Nome e sobrenome","text",{required:true}),F("equipe","Equipe","team"),F("funcao","Função"),F("habilitacoes","Habilitações"),F("telefone","Telefone","tel")]},
   voluntarios:{label:"Colaboradores",singular:"Colaborador",collection:"voluntarios",summary:"Pessoas físicas e jurídicas que oferecem ajuda. O cadastro também pode ser feito pelo atendimento simulado.",columns:["nome","tipo_pessoa","zona","telefone"],fields:[
- F("nome","Nome ou razão social","text",{required:true}),F("tipo_pessoa","Pessoa física ou jurídica","select",{required:true,options:["FÍSICA","JURÍDICA"]}),F("endereco","Endereço","text",{required:true}),F("telefone","Telefone / WhatsApp","tel",{required:true}),F("bairro","Bairro de origem"),Z(),
+ F("nome","Nome ou razão social","text",{required:true}),F("tipo_pessoa","Pessoa física ou jurídica","select",{required:true,options:["FÍSICA","JURÍDICA"]}),F("endereco","Endereço","text",{required:true}),F("telefone","Telefone / WhatsApp","tel",{required:true}),F("email","E-mail","email"),F("bairro","Bairro de origem"),Z(),
  F("ajudas","Ajuda para pessoas atingidas","multi",{options:CATALOGOS.ajudas}),F("maquinas","Maquinário, equipamentos e materiais","multi",{options:CATALOGOS.maquinas}),
  F("empreendedores","Apoio para empreendedores","multi",{options:CATALOGOS.empreendedores}),F("materiais","Material / combustível","multi",{options:CATALOGOS.materiais}),
  F("forma_entrega_doacao","Retirada ou entrega da doação","select",{options:CATALOGOS.formas_entrega_doacao}),
@@ -70,8 +70,14 @@ const ESQUEMAS={
   solicitacoes:{label:"Pedidos de ajuda",singular:"Pedido",collection:"solicitacoes",summary:"Demandas pós-evento que aparecem no Mapa da Ajuda.",columns:["nome","necessidade","zona","status"],fields:[
     F("nome","Nome ou razão social","text",{required:true}),F("tipo_pessoa","Pessoa física ou jurídica","select",{required:true,options:["FÍSICA","JURÍDICA"]}),F("telefone","WhatsApp","tel",{required:true}),F("endereco","Endereço (privado)","text",{required:true}),Z(),
     F("necessidade","O que precisa?","select",{required:true,options:CATALOGOS.necessidades}),F("descricao","Descreva a necessidade","textarea"),
-    F("urgencia","Urgência","select",{options:["Normal","Alta","Crítica"]}),F("evento_referencia","Evento relacionado (opcional)"),F("status","Situação","select",{options:["Aguardando","Encaminhada","Cheguei","Atendida","Cancelada"]}),
+    F("urgencia","Urgência","select",{options:["Normal","Alta","Crítica"]}),F("modo_recebimento","Retirada ou entrega da ajuda","select",{options:["Posso retirar em um ponto de apoio","Preciso receber no endereço informado","A combinar"]}),F("evento_referencia","Evento relacionado (opcional)"),F("status","Situação","select",{options:["Aguardando","Encaminhada","Cheguei","Atendida","Cancelada"]}),
     F("atribuido_a","Colaborador acionado (ID)","hidden"),F("criado_em","Criado em","hidden"),F("relatos","Relatos vinculados","hidden")]},
+  relatos:{label:"Relatos de ocorrências",singular:"Relato",collection:"relatos",summary:"Comunicações de cidadãos aguardando triagem operacional. Não são ocorrências confirmadas.",columns:["nome","endereco","status"],fields:[
+    F("nome","Nome do comunicante","text",{required:true}),F("telefone","Telefone","tel",{required:true}),F("endereco","Endereço exato (privado)","text",{required:true}),
+    F("pessoas_no_local","Pessoas no local","multi",{options:["CRIANÇA / ADOLESCENTE","PESSOA IDOSA","PCD","NÃO HÁ"]}),F("descricao","Necessidade ou situação","textarea"),
+    F("foto","Imagem armazenada localmente","hidden"),F("foto_nome","Nome do arquivo","hidden"),F("status","Situação","select",{options:["Em triagem","Vinculado","Confirmado","Arquivado"]}),
+    F("origem","Origem do registro","hidden"),F("criado_em","Data e hora","hidden")
+  ]},
   mobilizacoes:{label:"Mobilizações de brigadas",singular:"Mobilização",collection:"mobilizacoes",summary:"Registro de preparação de mensagens para a brigada da zona; envio real depende de integração.",columns:["nome","zona","status"],fields:[
     F("nome","Nome da mobilização","text",{required:true}),Z(),F("mensagem","Mensagem","textarea"),F("status","Estado","select",{options:["Preparada","Cancelada"]}),
     F("destinatarios","Destinatários (JSON)","hidden"),F("criado_em","Criado em","hidden")]},
@@ -85,7 +91,7 @@ const GROUPS=[
  {label:"Início",items:["inicio","eventos"]},
  {label:"Prefeitura",items:["territorio"]},
  {label:"Equipes e comunidade",items:["equipes","integrantes","voluntarios"]},
- {label:"Ajuda e mobilização",items:["solicitacoes","mobilizacoes","apoios"]},
+ {label:"Ajuda e mobilização",items:["solicitacoes","relatos","mobilizacoes","apoios"]},
  {label:"Infraestrutura e recursos",items:["veiculos","equipamentos","estoques","abrigos","pontos"]},
  {label:"Regras e comunicação",items:["ocorrencias","canais","regras"]}
 ];
