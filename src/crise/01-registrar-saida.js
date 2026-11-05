@@ -11,9 +11,10 @@
  function encontrarIdentidade(tel){
   return encontrarPessoa(tel)||pedidos().find(x=>mesmoTelefone(x.telefone,tel))||null;
  }
- function validarBase({nome,telefone:tel,endereco,tipo_pessoa}) {
+ function validarBase({nome,telefone:tel,endereco,tipo_pessoa},{exigirTipoPessoa=true}={}) {
   if(!String(nome||"").trim())throw Error("Informe o nome ou a razão social.");
-  if(!["FÍSICA","JURÍDICA"].includes(tipo_pessoa))throw Error("Escolha pessoa física ou jurídica.");
+  if((exigirTipoPessoa||tipo_pessoa)&&!["FÍSICA","JURÍDICA"].includes(tipo_pessoa))
+   throw Error("Escolha pessoa física ou jurídica.");
   if(!String(endereco||"").trim())throw Error("Informe o endereço.");
   if(telefone(tel).length<10||telefone(tel).length>13)throw Error("Informe um telefone/WhatsApp válido.");
  }
@@ -50,7 +51,7 @@
   const pessoa=encontrarIdentidade(dados.telefone);
   const base={...dados,nome:dados.nome||pessoa?.nome,tipo_pessoa:dados.tipo_pessoa||pessoa?.tipo_pessoa,
     endereco:dados.endereco||pessoa?.endereco,zona:dados.zona||pessoa?.zona};
-  validarBase(base);
+  validarBase(base,{exigirTipoPessoa:false});
   if(!D.CATALOGOS.necessidades.includes(base.necessidade))throw Error("Escolha o tipo de ajuda.");
   // Não criar fluxo de pagamento/dinheiro direto. Requer referência institucional.
   const preview={necessidade:base.necessidade,zona:base.zona,telefone:base.telefone};
