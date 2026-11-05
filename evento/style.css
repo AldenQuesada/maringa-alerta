@@ -346,3 +346,6 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .mun-row-actions{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end}
 .mun-row-actions button,.mun-row-actions a{font-size:9.5px;color:#e5f3ff;background:#20364b;border:1px solid #4e6680;border-radius:5px;padding:6px;cursor:pointer}
 .mun-empty{font-size:11px;color:#9aafc4}
+
+.mun-toggle-show{display:flex!important;align-items:center;gap:8px;cursor:pointer;font-weight:600}
+.mun-toggle-show input{width:16px;height:16px;accent-color:var(--accent)}
