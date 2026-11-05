@@ -13,20 +13,16 @@ function responderEtapa(e){
 form.onsubmit=responderEtapa;
 function protocolo(prefixo,id){return prefixo+"-SIM-"+String(id).replace(/[^a-z0-9]/gi,"").slice(-7).toUpperCase();}
 function finalizarOpcoes(){
- optionsSimple([
-  ["↩ Novo atendimento",()=>startMenu(),"submit"],
-  ["🔎 Consultar cadastro",()=>consultarCadastro()],
-  ["📍 Mapa de Colaboradores",()=>abrir("../mapas/?tipo=colaboradores")],
-  ["🫶 Mapa da Ajuda",()=>abrir("../mapas/?tipo=ajuda")]
- ]);
+ optionsSimple([["Voltar ao início",()=>startMenu(),"submit"]]);
 }
 function concluir(){
  try{
+  if(role==="colaborador"||role==="solicitacao")answers.zona=zonaPeloEndereco(answers.endereco);
   if(role==="colaborador"){
    const anterior=app.encontrarPessoa(answers.telefone);
    const outros=[["Ajuda a pessoas",answers.outros_ajudas],["Máquinas",answers.outros_maquinas],["Empreendedores",answers.outros_empreendedores]]
     .filter(x=>x[1]).map(x=>x[0]+": "+x[1]).join("; ");
-   const resultado=app.registrarColaborador({...answers,outros});
+   const resultado=app.registrarColaborador({...answers,outros,disponibilidade:"A combinar"});
    registrarMudanca("voluntarios",resultado,anterior);
    identity={nome:resultado.nome,tipo_pessoa:resultado.tipo_pessoa,telefone:resultado.telefone,endereco:resultado.endereco,email:resultado.email,zona:resultado.zona};
    bot("Cadastro de colaborador concluído! ✅\n\nProtocolo de demonstração: "+protocolo("COL",resultado.id)+
