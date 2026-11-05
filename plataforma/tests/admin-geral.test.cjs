@@ -87,7 +87,7 @@ test("Admin Geral é dono das prefeituras e Gestão mantém abas e fluxos canôn
  const groups=D.GROUPS;
  assert.deepEqual(groups[1].items,["territorio"]);
  assert.deepEqual(groups[2].items,["equipes","integrantes","voluntarios"]);
- assert.deepEqual(groups[3].items,["solicitacoes","mobilizacoes","apoios"]);
+ assert.deepEqual(groups[3].items,["solicitacoes","relatos","mobilizacoes","apoios"]);
  assert.deepEqual(groups[4].items,["veiculos","equipamentos","estoques","abrigos","pontos"]);
  assert.deepEqual(groups[5].items,["ocorrencias","canais","regras"]);
  const municipal=fs.readFileSync(path.join(__dirname,"../../gestao/gestao.js"),"utf8");
