@@ -16,6 +16,9 @@ test("prefeitura usa abas diretas com tabelas e botão no topo",()=>{
  assert.match(app,/topo\("Geoterritorialidade"[^;]+geoTipo\)/);
  assert.match(app,/abrirDrawer\(null,novo\.dataset\.new\)/);
  assert.match(app,/data-canon-edit="pessoas"/);
+ assert.match(app,/<th>Nome<\/th><th>Cargo<\/th><th>Função<\/th><th>Estrutura representada<\/th>/);
+ assert.match(app,/esc\(x\.cargo\|\|"Não informado"\)/);
+ assert.match(app,/esc\(x\.funcao\|\|"—"\)/);
  assert.doesNotMatch(app,/pref-member-grid|renderRH\(\)/);
 });
 test("a geoterritorialidade prioriza zonas numeradas oficiais, sem criar outro cadastro",()=>{
