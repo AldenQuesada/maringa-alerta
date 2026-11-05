@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "description": "Fontes por domínio; bundles publicados são resultados determinísticos das fontes.",
+  "bundles": [
+    {
+      "target": "evento/app.js",
+      "sources": [
+        "src/evento/00-contexto.js",
+        "src/evento/01-regioes-demonstrativas.js",
+        "src/evento/02-cadastros-administrativos.js",
+        "src/evento/03-equipes-demonstrativas.js",
+        "src/evento/04-mapa-e-territorio.js",
+        "src/evento/05-seletores-de-zona.js",
+        "src/evento/06-ocorrencias.js",
+        "src/evento/07-administracao-interna.js",
+        "src/evento/08-triagem.js",
+        "src/evento/09-escalonamento.js",
+        "src/evento/10-mensagens-simuladas.js",
+        "src/evento/11-auditoria-local.js",
+        "src/evento/12-status-publico.js",
+        "src/evento/13-relatorio-pos-evento.js",
+        "src/evento/14-offline.js",
+        "src/evento/15-perfil-local.js",
+        "src/evento/16-atendimento-simulado.js"
+      ]
+    }
+  ]
+}
