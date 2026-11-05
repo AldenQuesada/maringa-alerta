@@ -64,6 +64,11 @@ function atualizarRecorte(){
       document.getElementById('chat-thread').textContent='Selecione um contato.';
     }
   }
+  // O mesmo recorte territorial controla ocorrências, cadastros e marcadores.
+  if(document.getElementById("mun-toggle")?.dataset.ready==="1"){
+   montarMarcadoresPublicos();
+   atualizarFiltroCadastros();
+  }
 }
 
 function applyZoneVisibility(){

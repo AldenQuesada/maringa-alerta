@@ -38,6 +38,7 @@ function iniciarFiltrosCadastros(){
  const toggle=document.getElementById("mun-mostrar");
  if(!campo||!bt||!body||!search)return;
  filtrosMunicipaisProntos=true;
+ bt.dataset.ready="1";
  if(toggle)toggle.onchange=e=>{mostrarUnidadesEvento=e.target.checked;montarMarcadoresPublicos();};
  const groups=new Map();
  for(const x of INVENTARIO.resumo(gestao)){
