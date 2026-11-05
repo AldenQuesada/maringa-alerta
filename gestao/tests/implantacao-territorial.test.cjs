@@ -100,7 +100,7 @@ test("Prefeitura usa abas canônicas sem duplicar cadastros no sidebar",()=>{
  assert.ok(!groups.flatMap(g=>g.items).includes("implantacao"));
  assert.ok(D.ESQUEMAS.bairros&&D.ESQUEMAS.zonas&&D.ESQUEMAS.pessoas);
  const legacy={"Equipes e comunidade":["equipes","integrantes","voluntarios"],
- "Ajuda e mobilização":["solicitacoes","mobilizacoes","apoios"],
+ "Ajuda e mobilização":["solicitacoes","relatos","mobilizacoes","apoios"],
  "Infraestrutura e recursos":["veiculos","equipamentos","estoques","abrigos","pontos"],
  "Regras e comunicação":["ocorrencias","canais","regras"]};
  for(const g of groups.slice(2))assert.deepEqual(g.items,legacy[g.label],"Grupo alterado: "+g.label);
