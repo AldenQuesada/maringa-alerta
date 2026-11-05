@@ -85,6 +85,11 @@ function transformar(modulo,registro,relacao){
   precisao:!privado?String(registro.geo_status||registro.verificacao||""):"",
   fonte:String(registro.fonte||"").trim(),
   fonteUrl:!privado&&/^https:\/\//.test(registro.url_fonte||"")?String(registro.url_fonte):"",
+  capacidadeTotal:!privado&&registro.capacidade!==""?registro.capacidade:null,
+  vagasLivres:!privado&&registro.disponiveis!==""?registro.disponiveis:null,
+  orientacao:privado?"":String(registro.acesso||""),
+  donativos:privado?"":String(registro.itens_aceitos||""),
+  horario:privado?"":String(registro.horario||""),
   privado,termo:normal(extras)
  };
 }
