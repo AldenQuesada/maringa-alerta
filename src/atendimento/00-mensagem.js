@@ -59,7 +59,7 @@ function startMenu(){
  ]);
 }
 function abrirPraSomar(){
- bot("Programa de Apoio Social e Mobilização Voluntária de Maringá\n\n“Onde a boa vontade se transforma em ação”\n\nUnindo:\nEmpresas 🤝 Voluntários 🤝 Entidades\n\nPara começar, qual é seu nome completo ou razão social?",false,{
+ bot("Programa de Apoio Social e Mobilização Voluntária de Maringá\n\n“Onde a boa vontade se transforma em ação”\n\nUnindo:\nEmpresas 🤝 Voluntários 🤝 Entidades\n\nQual é seu nome?",false,{
   src:"../assets/pra-somar-original.webp",alt:"Identidade visual do Pra Somar enviada para a demonstração",titulo:"Pra Somar · Mobilização voluntária"
  });
  start("colaborador",true); // O nome já foi perguntado na mensagem com a imagem; sem etapa intermediária.
@@ -73,7 +73,7 @@ function identificarCampos(papel){
   {key:"telefone",q:"Qual é seu telefone com DDD?",kind:"tel",required:true}
  ];
  const b=[];
- if(!identity?.nome)b.push({key:"nome",q:papel==="relato"?"Qual é seu nome?":"Qual é seu nome completo ou razão social?",kind:"text",required:true});
+ if(!identity?.nome)b.push({key:"nome",q:"Qual é seu nome?",kind:"text",required:true});
  if(papel!=="relato"&&!identity?.tipo_pessoa)b.push({key:"tipo_pessoa",q:"Você é pessoa física ou jurídica?",kind:"single",opts:["FÍSICA","JURÍDICA"],required:true});
  if(papel!=="relato"&&!identity?.endereco)b.push({key:"endereco",q:"Informe seu endereço. Ele ficará reservado à equipe de atendimento.",kind:"text",required:true});
  if(!identity?.telefone)b.push({key:"telefone",q:"Qual é seu telefone com DDD?",kind:"tel",required:true});
