@@ -8,6 +8,7 @@ const read=p=>fs.readFileSync(path.join(__dirname,"../..",p),"utf8");
 const app=read("gestao/gestao.js");
 const catalogo=read("gestao/catalogo-bairros.js");
 const unidades=JSON.parse(read("dados-territoriais/maringa-unidades-cnes.json"));
+const basesRiscos=JSON.parse(read("dados-territoriais/maringa-bases-riscos-publicos.json"));
 function store(){const m=new Map();return {getItem:k=>m.has(k)?m.get(k):null,setItem:(k,v)=>m.set(k,String(v))};}
 test("prefeitura usa abas diretas com tabelas e botão no topo",()=>{
  assert.match(app,/const PREF_TABS=\[\["territorio","Gerais"\],\["geoterritorialidade","Geoterritorialidade"\],\["estruturas","Estruturas"\],\["bases","Bases"\],\["riscos","Riscos"\]\]/);
@@ -49,4 +50,38 @@ test("as 69 unidades utilizam coleções existentes e não duplicam ao importar"
   assert.equal(db.lista(modulo).length,dados.length);
  }
  assert.equal(db.estado().instituicoes.length,69);
+});
+
+test("Bases e Riscos públicos têm origem rastreável, não simulam coordenadas nem homologação",()=>{
+ assert.equal(basesRiscos.municipio_ibge,"4115200");
+ assert.equal(basesRiscos.bases.length,3);
+ assert.equal(basesRiscos.riscos.length,3);
+ for(const [modulo,items] of [["bases",basesRiscos.bases],["riscos",basesRiscos.riscos]]){
+  assert.equal(new Set(items.map(x=>x.externalId)).size,items.length);
+  for(const x of items){
+   assert.ok(x.nome&&x.url_fonte.startsWith("https://")&&x.fonte,x.nome);
+   assert.equal(x.verificacao,"Em conferência");
+   assert.equal(x.lat,undefined);
+   assert.equal(x.lng,undefined);
+   assert.equal(x.geojson,undefined);
+  }
+  assert.ok(D.ESQUEMAS[modulo].columns.includes("verificacao"));
+ }
+});
+test("Importação de fontes públicas reutiliza cadastro existente e respeita verificação manual",()=>{
+ const db=D.criar(store(),{municipioId:"maringa"});
+ for(const modulo of ["bases","riscos"]){
+  const regs=basesRiscos[modulo];
+  const primeiro=db.importarLote(modulo,regs);
+  assert.equal(primeiro.novos,regs.length);
+  assert.equal(db.lista(modulo).length,regs.length);
+  const segundo=db.importarLote(modulo,regs);
+  assert.equal(segundo.novos,0);
+  assert.equal(db.lista(modulo).length,regs.length);
+  const registro=db.lista(modulo)[0];
+  db.gravar(modulo,{...registro,verificacao:"Validado",fonte:"Validação municipal"},registro.id);
+  db.importarLote(modulo,regs);
+  assert.equal(db.registro(modulo,registro.id).verificacao,"Validado");
+  assert.equal(db.registro(modulo,registro.id).fonte,"Validação municipal");
+ }
 });
