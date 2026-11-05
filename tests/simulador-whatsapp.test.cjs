@@ -5,6 +5,13 @@ const root=path.resolve(__dirname,"..");
 const page=fs.readFileSync(path.join(root,"atendimento/index.html"),"utf8");
 const chat=fs.readFileSync(path.join(root,"atendimento/chat.js"),"utf8");
 function storage(){const m=new Map();return {getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k)};}
+test("o cabeçalho mostra Maringá Pra Somar com a imagem da Prefeitura e sem avisos no chat",()=>{
+ assert.match(page,/<div class="header-title"><strong>Maringá Pra Somar<\/strong><\/div>/);
+ assert.match(page,/<div class="avatar"><img src="https:\/\/previdencia\.maringa\.pr\.gov\.br\/assets\/images\/logoprefeituranova\.png"/);
+ assert.doesNotMatch(page,/Atendimento demonstrativo/);
+ assert.doesNotMatch(page,/SIMULAÇÃO · Não envia mensagens reais/);
+ assert.doesNotMatch(page,/class="sim-banner"/);
+});
 test("interface de smartphone inclui reinício e apresentação do Pra Somar",()=>{
  assert.match(page,/class="phone-frame"/);
  assert.match(page,/id="restart-demo"/);
