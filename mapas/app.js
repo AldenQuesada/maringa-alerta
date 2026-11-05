@@ -5,7 +5,8 @@ const $=id=>document.getElementById(id);
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const TIPO=new URLSearchParams(location.search).get("tipo")==="ajuda"?"ajuda":"colaboradores";
 const cidadeContexto=()=>sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa";
-let app=MaringaCrise.criar({municipioId:cidadeContexto(),escopoMunicipal:true}),filtroZona="",filtroClasse="",texto="";
+let app=MaringaCrise.criar({municipioId:cidadeContexto(),escopoMunicipal:true}),filtroZona="",filtroClasse="",texto="",camadaAtual="principal";
+const INVENTARIO=globalThis.AlertaInventarioMapas;
 let territorio=null;
 let toastTimer;
 const nomeTipo=TIPO==="ajuda"?"Mapa da Ajuda":"Mapa de Colaboradores";
@@ -33,17 +34,33 @@ function municipSelector(){
  el.title="Município fixado pelo Admin Geral nesta sessão de demonstração.";
  el.onchange=()=>{
   app=MaringaCrise.criar({municipioId:cidadeContexto(),escopoMunicipal:true});
-  filtroZona="";filtroClasse="";texto="";
+  filtroZona="";filtroClasse="";texto="";camadaAtual="principal";
   $("busca").value="";$("filtro").value="";
-  renderMunicipio();render();
+  renderMunicipio();configurarCamadas();render();
   if(territorio){territorio.destroy();territorio=null;}
   if(app.prefeitura()?.id==="maringa"&&globalThis.MaringaBairros)
     territorio=MaringaBairros.iniciar({map,L,simulatedLayers:poligonos.getLayers()});
  };
 }
 function zoneSelect(){
- opts($("zona"),app.zonas(),filtroZona,'<option value="">Todas as zonas</option>');
+ opts($("zona"),[...new Set([...app.zonas(),...INVENTARIO.registros(app.db).map(x=>x.zona).filter(Boolean)])].sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true})),filtroZona,'<option value="">Todas as zonas</option>');
  $("zona").value=filtroZona;
+}
+function configurarCamadas(){
+ const camadas=INVENTARIO.resumo(app.db),grupo=new Map();
+ for(const x of camadas){if(x.id===(TIPO==="ajuda"?"solicitacoes":"voluntarios"))continue;if(!grupo.has(x.grupo))grupo.set(x.grupo,[]);grupo.get(x.grupo).push(x);}
+ const opt=(id,n)=>'<option value="'+esc(id)+'"'+(id===camadaAtual?' selected':'')+'>'+esc(n)+'</option>';
+ $("camada").innerHTML=opt("principal",TIPO==="ajuda"?"Pedidos de ajuda":"Colaboradores")+
+  [...grupo].map(([name,items])=>'<optgroup label="'+esc(name)+'">'+items.map(x=>opt(x.id,x.nome+" ("+x.total+")")).join("")+'</optgroup>').join("");
+ const principal=camadaAtual==="principal",xs=principal?[]:INVENTARIO.registros(app.db).filter(x=>x.modulo===camadaAtual);
+ $("filtro-label").textContent=principal?(TIPO==="ajuda"?"Situação":"Pessoa"):"Situação ou tipo";
+ if(principal)$("filtro").innerHTML=TIPO==="ajuda"?'<option value="">Todas as situações</option><option>Aguardando</option><option>Encaminhada</option><option>Cheguei</option><option>Atendida</option>':'<option value="">Física e jurídica</option><option value="FÍSICA">Pessoa física</option><option value="JURÍDICA">Pessoa jurídica</option>';
+ else opts($("filtro"),INVENTARIO.classes(xs),filtroClasse,'<option value="">Todos os tipos e situações</option>');
+ $("filtro").value=filtroClasse;
+ $("list-title").textContent=principal?(TIPO==="ajuda"?"Pedidos registrados":"Ofertas de ajuda"):(camadas.find(x=>x.id===camadaAtual)?.nome||"Cadastros");
+ $("busca").placeholder=principal?"Alimentos, telhas, limpeza...":"Buscar nome, tipo, zona ou recurso";
+ $("command").hidden=!principal;
+ zoneSelect();
 }
 const map=L.map("map",{zoomControl:true,zoomSnap:0,zoomDelta:.5}).setView([-23.42,-51.934],12);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
@@ -79,13 +96,16 @@ function renderMunicipio(){
  setTimeout(()=>map.invalidateSize(),100);
 }
 function dadosFiltrados(){
+ const inventario=INVENTARIO.registros(app.db);
+ if(camadaAtual!=="principal")return INVENTARIO.filtrar(inventario,{modulo:camadaAtual,zona:filtroZona,classe:filtroClasse,busca:texto});
+
  const xs=TIPO==="ajuda"?app.pedidos():app.oferentes();
  return xs.filter(x=>{
-  if(filtroZona&&x.zona!==filtroZona)return false;
+  if(filtroZona&&!INVENTARIO.filtrar(inventario,{modulo:TIPO==="ajuda"?"solicitacoes":"voluntarios",zona:filtroZona}).some(item=>item.id===String(x.id)))return false;
   if(filtroClasse&&(TIPO==="ajuda"?x.status:x.tipo_pessoa)!==filtroClasse)return false;
   if(texto){
    const campos=TIPO==="ajuda"?[x.necessidade,x.descricao,x.zona]:
-     [x.ajudas,x.maquinas,x.empreendedores,x.materiais,x.contribuicao,x.outros,x.zona];
+     [x.nome,x.ajudas,x.maquinas,x.empreendedores,x.materiais,x.contribuicao,x.outros,x.zona,x.bairro];
    if(!campos.flat().join(" ").toLocaleLowerCase("pt-BR").includes(texto.toLocaleLowerCase("pt-BR")))return false;
   }
   return true;
@@ -131,6 +151,11 @@ async function iniciarCheckin(id,button){
 }
 function renderCards(xs) {
  const el=$("results");$("list-count").textContent=xs.length+" registro"+(xs.length===1?"":"s");
+ if(camadaAtual!=="principal"){
+  el.innerHTML=xs.map(x=>'<article class="result canonical-result"><div class="result-top"><strong>'+esc(x.nome)+'</strong><span class="result-tag">'+esc(x.classe)+'</span></div><small>'+esc(x.moduloNome)+' · '+esc(x.zona||x.bairro||"Sem zona vinculada")+'</small><small>'+esc(x.detalhes.slice(0,180))+'</small><div class="canonical-actions">'+(x.georreferenciado?'<button type="button" data-loc="'+esc(x.chave)+'">Localizar</button>':'<small>Sem coordenadas</small>')+'<a href="../gestao/#'+encodeURIComponent(x.modulo)+'" target="_blank" rel="noopener">Abrir cadastro</a></div></article>').join("")||'<p class="empty">Nenhum registro neste filtro.</p>';
+  el.querySelectorAll("[data-loc]").forEach(b=>b.onclick=()=>{const x=xs.find(y=>y.chave===b.dataset.loc);if(x?.georreferenciado)map.flyTo([x.lat,x.lng],Math.max(map.getZoom(),15));});
+  return;
+ }
  if(TIPO==="colaboradores"){renderEquipePorBairro(xs);return;}
  if(!xs.length){el.innerHTML='<div class="empty">Nenhum registro neste filtro.<p>Cadastre pelo WhatsApp simulado ou use a Gestão para adicionar dados.</p><a class="btn" href="../atendimento/" target="_blank" rel="noopener">Abrir atendimento</a></div>';return;}
  el.innerHTML=xs.map((x,i)=>{
@@ -152,6 +177,14 @@ function renderCards(xs) {
 }
 function renderMarkers(xs){
  marcadores.clearLayers();
+ if(camadaAtual!=="principal"){
+  for(const x of xs.filter(x=>x.georreferenciado)){
+   const icon=x.modulo==="bases"&&x.categoria==="Centro de coleta de donativos"?"📦":x.modulo==="riscos"?"⚠️":"📍";
+   const ic=L.divIcon({className:"pin canonical-map-pin",html:'<span class="canonical-pin">'+icon+'</span>',iconSize:[32,32],iconAnchor:[16,32]});
+   L.marker([x.lat,x.lng],{icon:ic,title:x.nome}).bindPopup('<strong>'+esc(x.nome)+'</strong><p>'+esc(x.moduloNome)+' · '+esc(x.classe)+'</p><small>'+esc(x.precisao||"Localização cadastrada")+'</small>').addTo(marcadores);
+  }
+  return;
+ }
  const grupos=new Map();
  for(const x of xs){const zona=x.zona||"Não informada";grupos.set(zona,(grupos.get(zona)||0)+1);}
  for(const [zona,quantidade] of grupos.entries()){
@@ -164,6 +197,15 @@ function renderMarkers(xs){
  }
 }
 function counters(xs){
+ if(camadaAtual!=="principal"){
+  $("metric-one").textContent=xs.length;
+  $("metric-two").textContent=new Set(xs.map(x=>x.zona).filter(Boolean)).size;
+  $("metric-three").textContent=xs.filter(x=>x.georreferenciado).length;
+  $("metric-one-label").textContent="Registros filtrados";
+  $("metric-two-label").textContent="Zonas vinculadas";
+  $("metric-three-label").textContent="No mapa";
+  return;
+ }
  const all=TIPO==="ajuda"?app.pedidos():app.oferentes();
  const zonas=new Set(all.map(x=>x.zona).filter(Boolean)).size;
  $("metric-one").textContent=all.length;
@@ -226,13 +268,18 @@ function comandoPrefeituras(){
 function render(){
  const xs=dadosFiltrados();
  renderCards(xs);renderMarkers(xs);counters(xs);
- if(TIPO==="ajuda")comandoPrefeituras();else comandoBrigadas();
+ if(camadaAtual==="principal"){
+  $("command").hidden=false;
+  if(TIPO==="ajuda")comandoPrefeituras();else comandoBrigadas();
+ }else $("command").hidden=true;
 }
+$("camada").onchange=()=>{camadaAtual=$("camada").value;filtroClasse="";texto="";$("busca").value="";configurarCamadas();render();};
 $("zona").onchange=()=>{filtroZona=$("zona").value;render();};
 $("filtro").onchange=()=>{filtroClasse=$("filtro").value;render();};
 $("busca").oninput=()=>{texto=$("busca").value;render();};
 window.addEventListener("storage",event=>{if(event.key===AlertaGestaoDados.CHAVE)location.reload();});
-municipSelector();renderMunicipio();render();
+municipSelector();renderMunicipio();configurarCamadas();render();
+window.addEventListener("focus",()=>{configurarCamadas();render();});
 if(app.prefeitura()?.id==="maringa"&&globalThis.MaringaBairros)
  territorio=MaringaBairros.iniciar({map,L,simulatedLayers:poligonos.getLayers()});
 })();

@@ -330,3 +330,19 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .ponto-publico-popup p{margin:5px 0;}
 .ponto-publico-popup small{display:block;color:#69532e;margin:7px 0;}
 .ponto-publico-popup a{color:#086b8c;text-decoration:underline;}
+
+/* Filtros de cadastros integrados no painel de eventos. */
+.municipal-filters{border-top:1px solid #334558;margin-top:9px;padding-top:8px;font-size:11px}
+.municipal-filters>button{width:100%;text-align:left;padding:10px 11px;background:#1b293b;border:1px solid #38516a;color:#edf2f9;border-radius:7px;font-weight:700;cursor:pointer}
+#mun-body{padding:10px 5px;max-height:min(55dvh,520px);overflow-y:auto}
+#mun-body>label{display:flex;flex-direction:column;gap:5px;margin-bottom:9px;color:#b5c6d5}
+#mun-body select,#mun-body input{width:100%;min-height:35px;padding:7px;color:#e7eff9;background:#101c2c;border:1px solid #3b5669;border-radius:6px}
+#mun-status{font-size:10px;color:#9bb6cb;margin:9px 0}
+.mun-rows{display:flex;flex-direction:column;gap:6px}
+.mun-row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:9px;border:1px solid #36485c;border-radius:7px;background:#142338}
+.mun-row>div:first-child{min-width:0}
+.mun-row strong{font-size:11px;color:#ebf0f7;display:block}
+.mun-row small{font-size:9.5px;color:#a5bbcd;line-height:1.5;display:block;margin-top:4px}
+.mun-row-actions{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end}
+.mun-row-actions button,.mun-row-actions a{font-size:9.5px;color:#e5f3ff;background:#20364b;border:1px solid #4e6680;border-radius:5px;padding:6px;cursor:pointer}
+.mun-empty{font-size:11px;color:#9aafc4}

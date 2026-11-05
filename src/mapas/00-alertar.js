@@ -5,7 +5,8 @@ const $=id=>document.getElementById(id);
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const TIPO=new URLSearchParams(location.search).get("tipo")==="ajuda"?"ajuda":"colaboradores";
 const cidadeContexto=()=>sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa";
-let app=MaringaCrise.criar({municipioId:cidadeContexto(),escopoMunicipal:true}),filtroZona="",filtroClasse="",texto="";
+let app=MaringaCrise.criar({municipioId:cidadeContexto(),escopoMunicipal:true}),filtroZona="",filtroClasse="",texto="",camadaAtual="principal";
+const INVENTARIO=globalThis.AlertaInventarioMapas;
 let territorio=null;
 let toastTimer;
 const nomeTipo=TIPO==="ajuda"?"Mapa da Ajuda":"Mapa de Colaboradores";
@@ -33,17 +34,33 @@ function municipSelector(){
  el.title="Município fixado pelo Admin Geral nesta sessão de demonstração.";
  el.onchange=()=>{
   app=MaringaCrise.criar({municipioId:cidadeContexto(),escopoMunicipal:true});
-  filtroZona="";filtroClasse="";texto="";
+  filtroZona="";filtroClasse="";texto="";camadaAtual="principal";
   $("busca").value="";$("filtro").value="";
-  renderMunicipio();render();
+  renderMunicipio();configurarCamadas();render();
   if(territorio){territorio.destroy();territorio=null;}
   if(app.prefeitura()?.id==="maringa"&&globalThis.MaringaBairros)
     territorio=MaringaBairros.iniciar({map,L,simulatedLayers:poligonos.getLayers()});
  };
 }
 function zoneSelect(){
- opts($("zona"),app.zonas(),filtroZona,'<option value="">Todas as zonas</option>');
+ opts($("zona"),[...new Set([...app.zonas(),...INVENTARIO.registros(app.db).map(x=>x.zona).filter(Boolean)])].sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true})),filtroZona,'<option value="">Todas as zonas</option>');
  $("zona").value=filtroZona;
+}
+function configurarCamadas(){
+ const camadas=INVENTARIO.resumo(app.db),grupo=new Map();
+ for(const x of camadas){if(x.id===(TIPO==="ajuda"?"solicitacoes":"voluntarios"))continue;if(!grupo.has(x.grupo))grupo.set(x.grupo,[]);grupo.get(x.grupo).push(x);}
+ const opt=(id,n)=>'<option value="'+esc(id)+'"'+(id===camadaAtual?' selected':'')+'>'+esc(n)+'</option>';
+ $("camada").innerHTML=opt("principal",TIPO==="ajuda"?"Pedidos de ajuda":"Colaboradores")+
+  [...grupo].map(([name,items])=>'<optgroup label="'+esc(name)+'">'+items.map(x=>opt(x.id,x.nome+" ("+x.total+")")).join("")+'</optgroup>').join("");
+ const principal=camadaAtual==="principal",xs=principal?[]:INVENTARIO.registros(app.db).filter(x=>x.modulo===camadaAtual);
+ $("filtro-label").textContent=principal?(TIPO==="ajuda"?"Situação":"Pessoa"):"Situação ou tipo";
+ if(principal)$("filtro").innerHTML=TIPO==="ajuda"?'<option value="">Todas as situações</option><option>Aguardando</option><option>Encaminhada</option><option>Cheguei</option><option>Atendida</option>':'<option value="">Física e jurídica</option><option value="FÍSICA">Pessoa física</option><option value="JURÍDICA">Pessoa jurídica</option>';
+ else opts($("filtro"),INVENTARIO.classes(xs),filtroClasse,'<option value="">Todos os tipos e situações</option>');
+ $("filtro").value=filtroClasse;
+ $("list-title").textContent=principal?(TIPO==="ajuda"?"Pedidos registrados":"Ofertas de ajuda"):(camadas.find(x=>x.id===camadaAtual)?.nome||"Cadastros");
+ $("busca").placeholder=principal?"Alimentos, telhas, limpeza...":"Buscar nome, tipo, zona ou recurso";
+ $("command").hidden=!principal;
+ zoneSelect();
 }
 const map=L.map("map",{zoomControl:true,zoomSnap:0,zoomDelta:.5}).setView([-23.42,-51.934],12);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
@@ -79,13 +96,16 @@ function renderMunicipio(){
  setTimeout(()=>map.invalidateSize(),100);
 }
 function dadosFiltrados(){
+ const inventario=INVENTARIO.registros(app.db);
+ if(camadaAtual!=="principal")return INVENTARIO.filtrar(inventario,{modulo:camadaAtual,zona:filtroZona,classe:filtroClasse,busca:texto});
+
  const xs=TIPO==="ajuda"?app.pedidos():app.oferentes();
  return xs.filter(x=>{
-  if(filtroZona&&x.zona!==filtroZona)return false;
+  if(filtroZona&&!INVENTARIO.filtrar(inventario,{modulo:TIPO==="ajuda"?"solicitacoes":"voluntarios",zona:filtroZona}).some(item=>item.id===String(x.id)))return false;
   if(filtroClasse&&(TIPO==="ajuda"?x.status:x.tipo_pessoa)!==filtroClasse)return false;
   if(texto){
    const campos=TIPO==="ajuda"?[x.necessidade,x.descricao,x.zona]:
-     [x.ajudas,x.maquinas,x.empreendedores,x.materiais,x.contribuicao,x.outros,x.zona];
+     [x.nome,x.ajudas,x.maquinas,x.empreendedores,x.materiais,x.contribuicao,x.outros,x.zona,x.bairro];
    if(!campos.flat().join(" ").toLocaleLowerCase("pt-BR").includes(texto.toLocaleLowerCase("pt-BR")))return false;
   }
   return true;
