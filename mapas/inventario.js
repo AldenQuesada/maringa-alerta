@@ -38,7 +38,7 @@ const INDICE=new Map(CAMADAS.map(c=>[c.id,c]));
 const PRIVADOS=new Set(["pessoas","voluntarios","solicitacoes","integrantes"]);
 const NAO_PONTUAIS=new Set(["territorio","zonas","bairros","eventos","ocorrencias","canais","regras","mobilizacoes","apoios"]);
 const normal=x=>String(x??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR").replace(/\s+/g," ").trim().replace(/^zona\s*0*(\d+)$/,(_,n)=>"zona "+Number(n));
-const valido=(lat,lng)=>Number.isFinite(Number(lat))&&Number.isFinite(Number(lng))&&lat!==""&&lng!==""&&lat!=null&&lng!=null&&Number(lat)>=-90&&Number(lat)<=90&&Number(lng)>=-180&&Number(lng)<=180;
+const valido=(lat,lng)=>Number.isFinite(Number(lat))&&Number.isFinite(Number(lng))&&lat!==""&&lng!==""&&lat!=null&&lng!=null&&Number(lat)>=-90&&Number(lat)<=90&&Number(lng)>=-180&&Number(lng)<=180&&!(Number(lat)===0&&Number(lng)===0);
 const escopo=source=>source?.lista&&typeof source.lista==="function";
 function transformar(modulo,registro,relacao){
  const def=INDICE.get(modulo);if(!def)return null;
@@ -54,7 +54,7 @@ function transformar(modulo,registro,relacao){
  const endereco=privado?"":String(registro.endereco||registro.localizacao||"").trim();
  const detalhes=[
   categoria,
-  registro.cargo,
+  ...(privado?[]:[registro.cargo,
   registro.especialidade,
   registro.quantidade?String(registro.quantidade)+" "+String(registro.unidade||""):"",
   registro.itens_aceitos,
@@ -67,6 +67,7 @@ function transformar(modulo,registro,relacao){
   registro.acesso,
   registro.capacidade?("Capacidade total: "+registro.capacidade):"",
   registro.disponiveis!==""&&registro.disponiveis!=null?("Vagas informadas: "+registro.disponiveis):""
+  ])
  ].filter(Boolean).join(" · ");
  const extras=[
   nome,categoria,situacao,zona,bairro,registro.identificacao,registro.cargo,
@@ -90,12 +91,29 @@ function transformar(modulo,registro,relacao){
 function registros(db){
  if(!escopo(db))throw Error("O inventário exige o cadastro municipal canônico.");
  const relacao=new Map(db.lista("bairros").filter(b=>b.zona).map(b=>[normal(b.nome),String(b.zona)]));
+ const bases=new Map();
+ for(const base of db.lista("bases")){
+  if(!valido(base.lat,base.lng)||base.verificacao==="Rejeitado")continue;
+  for(const chave of [base.id,base.nome].filter(Boolean))bases.set(normal(chave),base);
+ }
  const itens=[];
  for(const camada of CAMADAS){
   for(const registro of db.lista(camada.id)){
    if(registro.verificacao==="Rejeitado")continue;
    const item=transformar(camada.id,registro,relacao);
-   if(item)itens.push(item);
+   if(!item)continue;
+   if(!item.georreferenciado&&!item.privado&&["equipes","veiculos","equipamentos","estoques"].includes(camada.id)){
+    const vinculo=registro.base||registro.localizacao;
+    const base=bases.get(normal(vinculo));
+    if(base){
+     item.lat=Number(base.lat);item.lng=Number(base.lng);item.georreferenciado=true;
+     item.precisao="Localização da base vinculada, não posição atual do recurso";
+     if(!item.zona)item.zona=base.zona||"";
+     if(!item.bairro)item.bairro=base.bairro||"";
+     if(!item.endereco)item.endereco=base.endereco||"";
+    }
+   }
+   itens.push(item);
   }
  }
  return itens;
