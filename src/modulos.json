@@ -8,20 +8,31 @@
         "src/evento/00-contexto.js",
         "src/evento/01-regioes-demonstrativas.js",
         "src/evento/02-cadastros-administrativos.js",
-        "src/evento/03-equipes-demonstrativas.js",
+        "src/evento/03-equipes-demonstrativas-part01.js",
+        "src/evento/03-equipes-demonstrativas-part02.js",
         "src/evento/04-mapa-e-territorio.js",
-        "src/evento/05-seletores-de-zona.js",
-        "src/evento/06-ocorrencias.js",
-        "src/evento/07-administracao-interna.js",
+        "src/evento/05-seletores-de-zona-part01.js",
+        "src/evento/05-seletores-de-zona-part02.js",
+        "src/evento/05-seletores-de-zona-part03.js",
+        "src/evento/05-seletores-de-zona-part04.js",
+        "src/evento/06-ocorrencias-part01.js",
+        "src/evento/06-ocorrencias-part02.js",
+        "src/evento/07-administracao-interna-part01.js",
+        "src/evento/07-administracao-interna-part02.js",
         "src/evento/08-triagem.js",
-        "src/evento/09-escalonamento.js",
+        "src/evento/09-escalonamento-part01.js",
+        "src/evento/09-escalonamento-part02.js",
         "src/evento/10-mensagens-simuladas.js",
         "src/evento/11-auditoria-local.js",
         "src/evento/12-status-publico.js",
         "src/evento/13-relatorio-pos-evento.js",
         "src/evento/14-offline.js",
         "src/evento/15-perfil-local.js",
-        "src/evento/16-atendimento-simulado.js"
+        "src/evento/16-atendimento-simulado-part01.js",
+        "src/evento/16-atendimento-simulado-part02.js",
+        "src/evento/16-atendimento-simulado-part03.js",
+        "src/evento/16-atendimento-simulado-part04.js",
+        "src/evento/16-atendimento-simulado-part05.js"
       ]
     },
     {
@@ -38,7 +49,10 @@
     {
       "target": "gestao/dados.js",
       "sources": [
-        "src/cadastros/00-contexto.js",
+        "src/cadastros/00-contexto-part01.js",
+        "src/cadastros/00-contexto-part02.js",
+        "src/cadastros/00-contexto-part03.js",
+        "src/cadastros/00-contexto-part04.js",
         "src/cadastros/01-novo-estado.js",
         "src/cadastros/02-implantar-pacote.js"
       ]
