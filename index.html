@@ -335,7 +335,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <link rel="stylesheet" href="gestao/acoes-cabecalho.css?v=acoes-2">
 <link rel="stylesheet" href="cadastro-ocorrencia.css?v=3">
 <link rel="stylesheet" href="filtros-ocorrencias.css?v=1">
-<link rel="stylesheet" href="painel-eventos.css?v=1">
+<link rel="stylesheet" href="painel-eventos.css?v=2">
 <link rel="stylesheet" href="operacao-restauracao.css?v=1">
 </head>
 <body>
@@ -402,7 +402,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
         <section id="eventos-painel" class="eventos-painel" aria-label="Filtros de eventos e ocorrências" hidden>
           <header id="eventos-painel-head" class="eventos-painel-head"><strong>Eventos e filtros</strong><button type="button" id="eventos-close" aria-label="Fechar filtros de eventos" title="Fechar">×</button></header>
           <div class="eventos-painel-body"><label class="evento-filter">Evento <select id="filtro-evento" aria-label="Filtrar por evento"><option value="">Todos</option></select></label>
-          <section class="oc-filters" id="filtros-ocorrencias" aria-label="Filtros de ocorrências"></section></div>
+          <div id="evento-referencias" class="evento-referencias"></div><section class="oc-filters" id="filtros-ocorrencias" aria-label="Filtros de ocorrências"></section></div>
         </section>
         <div class="legend">
           <div><i style="background:var(--red)"></i> Ocorrência ativa</div>
@@ -552,12 +552,13 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
     </div>
   </section>
 </div>
-<script src="gestao/dados.js?v=evento-oc-1"></script>
+<script src="gestao/dados.js?v=eventos-2"></script>
 <script src="gestao/acoes-cabecalho.js?v=evento-2"></script>
-<script src="cadastro-ocorrencia.js?v=3"></script>
-<script src="cadastro-ocorrencia-mapa.js?v=2"></script>
+<script src="cadastro-ocorrencia.js?v=4"></script>
+<script src="cadastro-ocorrencia-mapa.js?v=3"></script>
 <script src="fluxo-ajuda.js?v=sessoes-1"></script>
 <script src="filtros-ocorrencias.js?v=1"></script>
+<script src="eventos-mapa.js?v=1"></script>
 <script src="operacao-restauracao.js?v=1"></script>
 <script src="painel-eventos.js?v=1"></script>
 <script src="sessao.js?v=sessoes-1"></script>
@@ -783,8 +784,10 @@ const areas = [...areasCadastradas,...bairros.map(b=>({
   nome:b.nome,chave:'demo:'+b.nome,tipoArea:'Zona demonstrativa',demo:b
 }))];
 const camadasVisiveis={Bairro:true,'Zona cartográfica':false,'Zona demonstrativa':true};
-let eventoAtivo='';
-const noEvento=o=>!eventoAtivo||o.eventoId===eventoAtivo;
+let eventoAtivo=new URLSearchParams(location.search).get('evento')||'';
+let eventosCache=[];const eventosMunicipio=()=>eventosCache;
+let abriuEventoDaUrl=false;
+const noEvento=o=>EventosMapa.corresponde(o,eventoAtivo,eventosMunicipio());
 let filtroOcorrencias=null;
 const noFiltro=o=>!filtroOcorrencias||filtroOcorrencias.corresponde(o);
 const ocorrenciaVisivel=o=>noRecorte(o.bairro)&&noEvento(o)&&noFiltro(o);
@@ -2506,13 +2509,21 @@ function responsavelDaOcorrencia(nome){
 }
 function atualizarFiltroEventos(){
   const select=document.getElementById('filtro-evento');
-  const lista=AlertaGestaoDados.criar().lista('eventos',tenantId);
-  select.replaceChildren(new Option('Todos',''),...lista.map(e=>new Option(e.nome,e.id)));
-  if(!lista.some(e=>e.id===eventoAtivo))eventoAtivo='';
-  select.value=eventoAtivo;
+  eventosCache=AlertaGestaoDados.criar(undefined,{municipioId:tenantId}).lista('eventos');const lista=eventosMunicipio();
+  if(!abriuEventoDaUrl&&eventoAtivo){const grupo=EventosMapa.membros(eventoAtivo,lista);if(grupo.length>1)eventoAtivo='mapa:'+EventosMapa.raiz(eventoAtivo,lista);abriuEventoDaUrl=true;}
+  const grupos=lista.filter(e=>EventosMapa.membros(e.id,lista).length>1&&EventosMapa.raiz(e.id,lista)===e.id);
+  select.replaceChildren(new Option('Todos os eventos',''),...grupos.map(e=>new Option('Mapa conjunto · '+e.nome,'mapa:'+e.id)),...lista.map(e=>new Option(e.nome,e.id)));
+  if(![...select.options].some(e=>e.value===eventoAtivo))eventoAtivo='';
+  select.value=eventoAtivo;renderEventoReferencias();
+}
+function renderEventoReferencias(){
+  const target=document.getElementById('evento-referencias'),lista=eventosMunicipio();
+  const ids=eventoAtivo.startsWith('mapa:')?EventosMapa.membros(eventoAtivo.slice(5),lista):[eventoAtivo];
+  target.replaceChildren();
+  lista.filter(e=>ids.includes(e.id)&&e.referencias).forEach(e=>{const box=document.createElement('section');const title=document.createElement('strong');title.textContent='Informações de fonte · '+e.nome;const content=document.createElement('p');content.textContent=e.referencias;box.append(title,content);if(e.url_fonte){const a=document.createElement('a');try{const u=new URL(e.url_fonte);if(['http:','https:'].includes(u.protocol)){a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';a.textContent='Consultar fonte';box.append(a);}}catch(_){}}target.append(box);});
 }
 document.getElementById('filtro-evento').addEventListener('change',e=>{
-  eventoAtivo=e.target.value;
+  eventoAtivo=e.target.value;renderEventoReferencias();
   if(currentPanelOcId&&!noEvento(ocorrencias.find(o=>o.id===currentPanelOcId)||{}))document.getElementById('panel-close').click();
   atualizarRecorte();
 });
@@ -2523,7 +2534,8 @@ function instalarCadastroOcorrencia(){
     refreshOcTooltip,salvarPrototipo,acionarAjuda,atualizarFluxo,atualizarFiltroEventos,
     openOcorrencia,fecharMenuMobile,obterOcorrencias:()=>ocorrencias,
     proximoId:()=>idCounter++,reverterId:id=>{if(idCounter===id+1)idCounter=id;},
-    setEventoFiltro:id=>{eventoAtivo=id;}
+    setEventoFiltro:id=>{if(!noEvento({eventoId:id}))eventoAtivo=id;},
+    obterEventoSelecionado:()=>EventosMapa.selecionadoIndividual(eventoAtivo)
   });
 }
 

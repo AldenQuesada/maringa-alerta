@@ -62,7 +62,8 @@ const ESQUEMAS={
   canais:{label:"Canais de comunicação",singular:"Canal",collection:"canais",summary:"WhatsApp institucional e contatos alternativos.",columns:["nome","tipo","identificacao"],fields:[F("nome","Nome do canal","text",{required:true}),F("tipo","Canal","select",{options:["WhatsApp","Telefone","E-mail","Web","Rádio"]}),F("identificacao","Número ou identificador"),F("responsavel","Responsável")]},
   eventos:{label:"Eventos",singular:"Evento",collection:"eventos",summary:"Eventos municipais que agrupam ocorrências.",columns:["nome","tipo","status"],fields:[
     F("nome","Nome do evento","text",{required:true}),F("tipo","Tipo de evento","text",{required:true}),
-    F("status","Situação","select",{options:["Em andamento","Encerrado"]}),F("inicio","Data e hora de início"),F("descricao","Descrição","textarea")]},
+    F("status","Situação","select",{options:["A confirmar","Em andamento","Encerrado"]}),F("inicio","Data e hora de início"),
+    F("mapa_evento_id","Visualizar junto com o mapa de outro evento","eventoMapa"),F("descricao","Descrição","textarea"),F("fonte","Fonte"),F("url_fonte","Link da fonte"),F("referencias","Informações verificadas","textarea"),F("externalId","Identificador da fonte","hidden")]},
   regras:{label:"Regras de acionamento",singular:"Regra",collection:"regras",summary:"Critérios previamente definidos para mobilização automática.",columns:["nome","ocorrencia","recurso"],fields:[F("nome","Nome da regra","text",{required:true}),F("ocorrencia","Tipo de ocorrência"),F("recurso","Equipe ou recurso"),F("zona","Zona","zone"),F("alternativa","Alternativa sem recurso disponível")]},
   solicitacoes:{label:"Pedidos de ajuda",singular:"Pedido",collection:"solicitacoes",summary:"Demandas pós-evento que aparecem no Mapa da Ajuda.",columns:["nome","necessidade","zona","status"],fields:[
     F("nome","Nome ou razão social","text",{required:true}),F("tipo_pessoa","Pessoa física ou jurídica","select",{required:true,options:["FÍSICA","JURÍDICA"]}),F("telefone","WhatsApp","tel",{required:true}),F("endereco","Endereço (privado)","text",{required:true}),Z(),
@@ -79,7 +80,7 @@ const ESQUEMAS={
 
 };
 const GROUPS=[
- {label:"Início",items:["inicio"]},
+ {label:"Início",items:["inicio","eventos"]},
  {label:"Prefeitura",items:["territorio"]},
  {label:"Equipes e comunidade",items:["equipes","integrantes","voluntarios"]},
  {label:"Ajuda e mobilização",items:["solicitacoes","mobilizacoes","apoios"]},
@@ -121,6 +122,11 @@ function criar(armazenamento=global.localStorage,options={}){
   if(scopedId&&m.collection==="prefeituras")throw new Error("Somente o Admin Geral pode criar ou alterar Prefeituras.");
   const atual=id?registro(modulo,id):null;if(id&&!atual)throw new Error("Registro não encontrado neste município.");
   const campos={};for(const f of m.fields){let val=form[f.key];if(typeof val==="string")val=val.trim();if(val===undefined||val===null)val="";if(f.required&&!String(val).trim())throw new Error("Preencha: "+f.label+".");campos[f.key]=val;}
+  if(modulo==="eventos"&&campos.mapa_evento_id){
+   const listaEventos=estado.eventos.filter(e=>e.municipioId===municipioCorrente());
+   const visitados=new Set(id?[String(id)]:[]);let ref=String(campos.mapa_evento_id);
+   while(ref){if(visitados.has(ref))throw new Error("O evento não pode formar um vínculo circular de mapas.");visitados.add(ref);const alvo=listaEventos.find(e=>e.id===ref);if(!alvo)throw new Error("Evento de referência não encontrado neste município.");ref=String(alvo.mapa_evento_id||"");}
+  }
   if(m.collection==="prefeituras"){
    if(!/^\d{7}$/.test(String(campos.codigo_ibge)))throw new Error("Informe um código IBGE válido.");
    if(estado.prefeituras.some(x=>x.id!==id&&x.codigo_ibge===campos.codigo_ibge))throw new Error("Esta prefeitura já está cadastrada.");
