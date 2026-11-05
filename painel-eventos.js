@@ -3,6 +3,16 @@
 'use strict';
 function iniciar({painel,barra,abrir,fechar,area,aoAbrir}){
  let arraste=null;
+ const minimizar=painel.querySelector("#eventos-minimizar"),corpo=painel.querySelector("#eventos-painel-body");
+ minimizar.addEventListener("click",()=>{
+  const recolhido=!corpo.hidden;
+  corpo.hidden=recolhido;
+  minimizar.textContent=recolhido?"+":"−";
+  minimizar.setAttribute("aria-expanded",String(!recolhido));
+  minimizar.setAttribute("aria-label",recolhido?"Expandir filtros de eventos":"Minimizar filtros de eventos");
+  minimizar.title=recolhido?"Expandir":"Minimizar";
+  if(!recolhido&&painel.style.left)posicionar(painel.offsetLeft,painel.offsetTop);
+ });
  function posicionar(x,y){
   const maxX=Math.max(0,area.clientWidth-painel.offsetWidth),maxY=Math.max(0,area.clientHeight-painel.offsetHeight);
   painel.style.left=Math.max(0,Math.min(x,maxX))+'px';painel.style.top=Math.max(0,Math.min(y,maxY))+'px';

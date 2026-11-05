@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="gestao/acoes-cabecalho.css?v=acoes-2">
 <link rel="stylesheet" href="cadastro-ocorrencia.css?v=3">
 <link rel="stylesheet" href="filtros-ocorrencias.css?v=1">
-<link rel="stylesheet" href="painel-eventos.css?v=4">
+<link rel="stylesheet" href="painel-eventos.css?v=5">
 <link rel="stylesheet" href="operacao-restauracao.css?v=1">
 </head>
 <body>
@@ -77,8 +77,8 @@
       <div class="mapwrap" id="mapwrap">
         <div id="map"></div>
         <section id="eventos-painel" class="eventos-painel" aria-label="Filtros de eventos e ocorrências" hidden>
-          <header id="eventos-painel-head" class="eventos-painel-head"><strong>Eventos e filtros</strong><button type="button" id="eventos-close" aria-label="Fechar filtros de eventos" title="Fechar">×</button></header>
-          <div class="eventos-painel-body"><label class="evento-filter">Evento <span class="evento-seletor"><span aria-hidden="true">Selecionar evento</span><select id="filtro-evento" aria-label="Selecionar evento"><option value="">Todos</option></select></span></label>
+          <header id="eventos-painel-head" class="eventos-painel-head"><strong>Eventos e filtros</strong><span class="eventos-painel-acoes"><button type="button" id="eventos-minimizar" aria-label="Minimizar filtros de eventos" title="Minimizar" aria-controls="eventos-painel-body" aria-expanded="true">−</button><button type="button" id="eventos-close" aria-label="Fechar filtros de eventos" title="Fechar">×</button></span></header>
+          <div id="eventos-painel-body" class="eventos-painel-body"><label class="evento-filter">Evento <span class="evento-seletor"><span aria-hidden="true">Selecionar evento</span><select id="filtro-evento" aria-label="Selecionar evento"><option value="">Todos</option></select></span></label>
           <div id="evento-referencias" class="evento-referencias"></div><section class="oc-filters" id="filtros-ocorrencias" aria-label="Filtros de ocorrências"></section></div>
         </section>
         <div class="legend">
@@ -238,7 +238,7 @@
 <script src="eventos-mapa.js?v=1"></script>
 <script src="evento-referencias.js?v=2"></script>
 <script src="operacao-restauracao.js?v=1"></script>
-<script src="painel-eventos.js?v=1"></script>
+<script src="painel-eventos.js?v=2"></script>
 <script src="sessao.js?v=sessoes-1"></script>
 <script src="sessao-ui.js?v=sessoes-2"></script>
 <script src="mapa-navegacao.js?v=mapa-4"></script>

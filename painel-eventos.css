@@ -20,3 +20,7 @@
 .evento-seletor{position:relative;display:block;padding:7px 8px;color:var(--fg);background:var(--panel-2);border:1px solid var(--line);border-radius:5px;min-height:32px;box-sizing:border-box}
 .eventos-painel .evento-filter .evento-seletor select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
 .evento-seletor:focus-within{outline:2px solid #3ba7ff;outline-offset:2px}
+
+.eventos-painel-acoes{display:flex;align-items:center;gap:4px}
+.eventos-painel-acoes button{min-width:30px;min-height:30px}
+.eventos-painel-body[hidden]{display:none}
