@@ -79,7 +79,17 @@
         <section id="eventos-painel" class="eventos-painel" aria-label="Filtros de eventos e ocorrências" hidden>
           <header id="eventos-painel-head" class="eventos-painel-head"><strong>Eventos e filtros</strong><span class="eventos-painel-acoes"><button type="button" id="eventos-minimizar" aria-label="Minimizar filtros de eventos" title="Minimizar" aria-controls="eventos-painel-body" aria-expanded="true">−</button><button type="button" id="eventos-close" aria-label="Fechar filtros de eventos" title="Fechar">×</button></span></header>
           <div id="eventos-painel-body" class="eventos-painel-body"><label class="evento-filter">Evento <span class="evento-seletor"><span aria-hidden="true">Selecionar evento</span><select id="filtro-evento" aria-label="Selecionar evento"><option value="">Todos</option></select></span></label>
-          <div id="evento-referencias" class="evento-referencias"></div><section class="oc-filters" id="filtros-ocorrencias" aria-label="Filtros de ocorrências"></section></div>
+          <div id="evento-referencias" class="evento-referencias"></div><section class="oc-filters" id="filtros-ocorrencias" aria-label="Filtros de ocorrências"></section>
+   <section class="municipal-filters" id="filtros-cadastros-municipais" aria-label="Filtros dos cadastros municipais">
+    <button type="button" id="mun-toggle" aria-expanded="false">Cadastros da Prefeitura <span id="mun-count"></span></button>
+    <div id="mun-body" hidden>
+     <label for="mun-camada">Camada do dashboard<select id="mun-camada"></select></label>
+     <label for="mun-classe">Situação ou tipo<select id="mun-classe"><option value="">Todos</option></select></label>
+     <label for="mun-busca">Buscar cadastro<input id="mun-busca" type="search" placeholder="Centro de doações, equipes, riscos..."></label>
+     <p id="mun-status" aria-live="polite"></p>
+     <div id="mun-rows" class="mun-rows"></div>
+    </div>
+   </section></div>
         </section>
         <div class="legend">
           <div><i style="background:var(--red)"></i> Ocorrência ativa</div>
@@ -246,6 +256,7 @@
 <script src="dados-territoriais/camadas-mapas.js?v=territorio-2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+<script src="mapas/inventario.js?v=dash-mapas-1"></script>
 <script src="evento/app.js?v=apoios-1"></script>
 </body>
 </html>
