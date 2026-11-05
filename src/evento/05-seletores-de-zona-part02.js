@@ -72,6 +72,7 @@ function atualizarCadastroMapa(){
   renderOfficialMarkers();
   renderCollaborators();
   updateKpis();
+  montarMarcadoresPublicos();
 }
 window.addEventListener('storage',e=>{
   if(e.key===AlertaGestaoDados.CHAVE) atualizarCadastroMapa();

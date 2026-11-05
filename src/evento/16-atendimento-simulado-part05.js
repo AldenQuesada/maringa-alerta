@@ -1,3 +1,8 @@
+void AlertaImportacaoPublica.carregar(gestao).then(()=>{
+ montarMarcadoresPublicos();
+ if(buscaMapa.value.trim())buscarNoMapa();
+}).catch(error=>console.warn("Centros de doações: referências indisponíveis",error));
+montarMarcadoresPublicos();
 function incluirTerritorio(territorio){
   if(noRecorte(territorio)) return;
   const area=areas.find(a=>a.tipoArea==='Bairro'&&pertence(a,territorio))||areas.find(a=>pertence(a,territorio));
@@ -29,7 +34,7 @@ function buscarNoMapa(){
       abrir:()=>{if(!noEvento(o)){eventoAtivo='';atualizarFiltroEventos();atualizarRecorte();}incluirTerritorio(o.bairro);if(o.pos)map.panTo(o.pos);openOcorrencia(o);}}))],
     ['Pessoas',pessoasMunicipio().map(p=>({nome:p.nome,meta:[p.sub,p.bairroOrigem].filter(Boolean).join(' · '),territorio:p.bairroOrigem,
       abrir:()=>{incluirTerritorio(p.bairroOrigem);mostrarFicha(p.id);}}))],
-    ['Unidades e pontos cadastrados',recursosBusca.map(r=>({nome:r.nome,meta:[r.tipo,r.categoria,r.endereco,r.localizacao].filter(Boolean).join(' · '),
+    ['Unidades e pontos cadastrados',listarRecursosPublicos().map(r=>({nome:r.nome,meta:[r.tipo,r.categoria,r.endereco,r.localizacao].filter(Boolean).join(' · '),
       territorio:r.bairro||r.zona,abrir:()=>abrirRecurso(r)}))]
   ];
   for(const [titulo,registros] of grupos){

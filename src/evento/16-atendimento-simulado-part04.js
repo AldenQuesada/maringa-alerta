@@ -107,6 +107,29 @@ renderOfficialMarkers();
 processarFilaOffline();
 const buscaMapa=document.getElementById('event-search');
 const resultadosMapa=document.getElementById('event-results');
-const recursosBusca=['bases','riscos','pontos','saude','emergencias','parceiros','abrigos']
-  .flatMap(tipo=>gestao.lista(tipo,tenantId));
+const listarRecursosPublicos=()=>['bases','riscos','pontos','saude','emergencias','parceiros','abrigos']
+ .flatMap(modulo=>gestao.lista(modulo,tenantId).filter(item=>item.verificacao!=='Rejeitado').map(item=>({...item,modulo})));
+const layerRecursosPublicos=L.layerGroup().addTo(map);
 let marcadorBusca;
+function montarMarcadoresPublicos(){
+ layerRecursosPublicos.clearLayers();
+ const registros=listarRecursosPublicos().filter(x=>{
+  if(x.lat===undefined||x.lat===null||x.lat===""||x.lng===undefined||x.lng===null||x.lng==="")return false;
+  const lat=Number(x.lat),lng=Number(x.lng);
+  return Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=-24&&lat<=-23&&lng>=-52.5&&lng<=-51.2;
+ });
+ for(const r of registros){
+  const doacoes=r.modulo==='bases'&&r.tipo==='Centro de coleta de donativos';
+  const simbolo=doacoes?'📦':r.modulo==='riscos'?'⚠️':r.modulo==='bases'?'🏠':r.modulo==='saude'?'🏥':'📍';
+  const ic=L.divIcon({className:'ponto-publico-marker',html:'<span title="'+escHtml(r.nome)+'">'+simbolo+'</span>',iconSize:[30,30],iconAnchor:[15,30]});
+  const geolocalizacao=r.geo_status||'Localização cadastrada';
+  const source=/^https:\/\//.test(r.url_fonte||'')?'<a href="'+escHtml(r.url_fonte)+'" target="_blank" rel="noopener">Fonte pública</a>':'';
+  const route=r.endereco?'<a href="https://www.google.com/maps/search/?api=1&amp;query='+encodeURIComponent(r.endereco+', Maringá, PR')+'" target="_blank" rel="noopener">Ver endereço no mapa</a>':'';
+  const observacao=doacoes?'<p><strong>Donativos:</strong> '+escHtml(r.itens_aceitos||'Confirmar antes de doar')+'</p><p>'+escHtml(r.horario||'Horário a confirmar')+'</p>':'';
+  const aviso='<small>Coordenada: '+escHtml(geolocalizacao)+'. Cadastro: '+escHtml(r.verificacao||'Sem validação')+'. Confirme antes do deslocamento.</small>';
+  const html='<div class="ponto-publico-popup"><strong>'+simbolo+' '+escHtml(r.nome)+'</strong><p>'+escHtml(r.endereco||r.localizacao||'')+'</p>'+observacao+aviso+'<div>'+[route,source].filter(Boolean).join(' · ')+'</div></div>';
+  L.marker([Number(r.lat),Number(r.lng)],{icon:ic,title:r.nome}).bindPopup(html).addTo(layerRecursosPublicos);
+ }
+ return registros.length;
+}
+
