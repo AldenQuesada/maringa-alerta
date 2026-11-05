@@ -49,6 +49,12 @@ function abrirDrawer(id=null,modulo=atual,prefill=null){
  $("drawer-eyebrow").textContent=def.label;
  $("drawer-title").textContent=(id?"Editar ":"Novo cadastro · ")+def.singular;
  $("cadastro-campos").innerHTML=def.fields.map(f=>campoHTML(f,item?.[f.key]??prefill?.[f.key])).join("")+(atual==="prefeituras"?'<datalist id="ibge-cidades"></datalist>':"");
+ if(modulo==="relatos" && typeof item?.foto==="string" && /^data:image\/jpeg;base64,/.test(item.foto)){
+  const foto=document.createElement("img");
+  foto.src=item.foto;foto.alt="Foto da ocorrência informada pelo cidadão";
+  foto.style.cssText="display:block;width:min(100%,340px);max-height:260px;object-fit:contain;border-radius:12px;margin:12px auto;background:#eef1f0";
+  $("cadastro-campos").prepend(foto);
+ }
  const bairro=$("field-bairro");
  if(bairro&&(modulo==="pessoas"||modulo==="voluntarios")){
   bairro.required=true;
