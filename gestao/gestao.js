@@ -145,13 +145,11 @@ async function importarBasesERiscosPublicos(){
  const municipio=db.municipioAtivo();
  if(referenciasPublicasConsultadas||municipio?.codigo_ibge!=="4115200")return;
  referenciasPublicasConsultadas=true;
- try{
-  const result=await globalThis.AlertaImportacaoPublica.carregar(db);
-  if((result.novos||result.atualizados)&&["bases","riscos","inicio"].includes(atual))render();
- }catch(error){
-  referenciasPublicasConsultadas=false;
-  console.warn("Referências públicas de Bases e Riscos não disponíveis:",error);
- }
+ const docs=["../dados-territoriais/maringa-bases-riscos-publicos.json","../dados-territoriais/maringa-abrigos-publicos.json"];
+ const results=await Promise.allSettled(docs.map(url=>globalThis.AlertaImportacaoPublica.carregar(db,{url})));
+ const alterados=results.some(r=>r.status==="fulfilled"&&(r.value.novos||r.value.atualizados));
+ if(results.some(r=>r.status==="rejected"))console.warn("Algumas referências públicas ainda não estão disponíveis.");
+ if(alterados&&["bases","riscos","abrigos","inicio"].includes(atual))render();
 }
 async function importarUnidadesCNES(){
  if(cnesConsultado||db.municipioAtivo()?.codigo_ibge!=="4115200")return;
