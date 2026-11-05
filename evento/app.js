@@ -1060,6 +1060,9 @@ filaOverlay.addEventListener('click', e=>{ if(e.target===filaOverlay) filaOverla
 
 function renderFila(){
   const body = document.getElementById('fila-body');
+  // A entrada cidadã não confirma nem aciona uma ocorrência: segue para triagem.
+  const relatosCidadaos = isViewOnly() ? [] : AlertaGestaoDados.criar(undefined,{municipioId:tenantId})
+    .lista('relatos',tenantId).filter(r=>r.status==='Em triagem');
   const lista = ocorrencias
     .filter(o=> o.status==='ativa'||o.status==='em_atendimento')
     .filter(ocorrenciaVisivel)
@@ -1067,6 +1070,7 @@ function renderFila(){
     .sort((a,c)=>c.score-a.score);
   body.innerHTML = `
     <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Gravidade define a ordem; o tempo de espera desempata dentro de cada classe. Presença da equipe e propriedade pública/privada não reduzem o risco. Recorte: ${escHtml(recorteLabel())}.</div>
+    ${relatosCidadaos.length?'<section class="fila-relatos"><h3>Relatos enviados por cidadãos · '+relatosCidadaos.length+'</h3><p style="font-size:11px;color:var(--muted)">Ainda não são ocorrências confirmadas. Consulte os dados e fotografias na Gestão antes do acionamento.</p>'+relatosCidadaos.map(r=>'<div class="fila-item"><div class="fila-rank">●</div><div class="fila-info"><div class="fi-title">Relato cidadão · '+escHtml(r.endereco)+'</div><div class="fi-meta">'+escHtml((r.pessoas_no_local||[]).filter(x=>x!=="NÃO HÁ").join(" · ")||"Sem pessoas vulneráveis informadas")+' · Em triagem</div></div></div>').join('')+'<a href="./gestao/#relatos" target="_blank" rel="noopener" class="sidebar-btn" style="display:inline-block;margin:9px 0 16px">Abrir relatos na Gestão</a></section>':''}
     ${lista.map(({o,score},i)=>`
       <div class="fila-item" data-oc="${o.id}">
         <div class="fila-rank">#${i+1}</div>
