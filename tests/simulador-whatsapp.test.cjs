@@ -59,3 +59,24 @@ test("relatos de cidadão entram na coleção de triagem, não criam ocorrência
  assert.equal(db.excluir("relatos",relato.id),true);
  assert.equal(db.lista("relatos").length,0);
 });
+
+test("link do simulador permanece único e recursos mudam versão quando o código muda",()=>{
+ const hash=require("node:crypto").createHash;
+ const assetVersions={
+  "./chat.css":"atendimento/chat.css",
+  "../gestao/dados.js":"gestao/dados.js",
+  "../crise/core.js":"crise/core.js",
+  "./chat.js":"atendimento/chat.js"
+ };
+ const home=fs.readFileSync(path.join(root,"index.html"),"utf8");
+ assert.match(home,/href="\.\/atendimento\/"/,"link canônico do Mapa de Evento");
+ for(const [url,arquivo] of Object.entries(assetVersions)){
+  const bytes=fs.readFileSync(path.join(root,arquivo));
+  const id=hash("sha1").update("blob "+bytes.length+"\0").update(bytes).digest("hex").slice(0,12);
+  assert.ok(page.includes('"'+url+"?v="+id+'"'),"arquivo com versão obsoleta: "+arquivo);
+ }
+ const sw=fs.readFileSync(path.join(root,"sw.js"),"utf8");
+ assert.match(sw,/const simulador = url\.pathname\.includes\("\/atendimento\/"\)/);
+ assert.match(sw,/simulador \? \{ cache: "no-store" \}/);
+ assert.match(sw,/if \(simulador\) return new Response/,"não redirecionar o chat para o mapa offline");
+});
