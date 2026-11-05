@@ -1,101 +1,86 @@
-/* Inventário territorial: zonas numeradas e bairros vinculados à malha disponível,
-   sem criar dados de cidadãos nem confundir bairros com zonas operacionais. */
+/* Lista única de geoterritorialidade: utiliza os cadastros já existentes.
+ * Zonas: referência de subdistritos numerados IBGE; bairros: camada territorial versionada.
+ * Referências públicas são exibidas sem duplicar a coleção municipal.
+ */
 (function(){
 "use strict";
-const $=id=>document.getElementById(id),D=globalThis.AlertaGestaoDados;
+const $=id=>document.getElementById(id);
+const D=globalThis.AlertaGestaoDados;
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const SITE="../mapas/?tipo=";
-const DB=()=>D.criar(undefined,{municipioId:sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa"});
-let token=0;
-function linkMapa(nome,tipo){
- return SITE+tipo+"&bairro="+encodeURIComponent(nome);
+const norm=x=>String(x??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR").replace(/\s+/g," ").trim();
+const db=()=>D.criar(undefined,{municipioId:sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa"});
+let zonasPromise=null,bairrosPromise=null,token=0;
+let referencias=new Map();
+function zonasOficiais(){
+ if(zonasPromise)return zonasPromise;
+ const p=db().municipioAtivo();
+ if(!p||p.id!=="maringa")return Promise.resolve([]);
+ const url="https://servicodados.ibge.gov.br/api/v1/localidades/municipios/"+encodeURIComponent(p.codigo_ibge)+"/subdistritos";
+ zonasPromise=fetch(url,{cache:"force-cache"}).then(r=>{if(!r.ok)throw Error("Consulta IBGE indisponível");return r.json();}).then(rows=>{
+  if(!Array.isArray(rows))throw Error("Resposta territorial inválida");
+  return rows.filter(x=>/^zona\s*0*\d+$/i.test(String(x.nome||"").trim())).map(x=>{
+   const n=Number(String(x.nome).match(/\d+/)[0]);
+   return {nome:"Zona "+n,codigo:String(x.id),externalId:"ibge-subdistrito:"+x.id,fonte:"IBGE · Subdistritos",verificacao:"Pendente"};
+  }).sort((a,b)=>Number(a.nome.match(/\d+/)[0])-Number(b.nome.match(/\d+/)[0]));
+ }).catch(()=>{zonasPromise=null;return null;});
+ return zonasPromise;
 }
-function linkEvento(nome){return "../index.html?bairro="+encodeURIComponent(nome);}
-function bairrosUI(){
- const panel=document.querySelector("#geo-content")||document.querySelector("#page .pref-tab-body")||$("page");
- if(panel)panel.innerHTML="";
- if(!panel)return;
- const isMaringa=DB().municipioAtivo()?.id==="maringa";
- const id=++token;
- const div=document.createElement("section");div.id="catalogo-oficial-bairros";div.className="mi-official-catalog";
- div.innerHTML='<div class="mi-official-head"><div><h2>Zonas numeradas e bairros</h2><p>As zonas numeradas são referências territoriais do município. Bairros são outra forma de localização. Use a camada cartográfica correspondente, sem confundir com zoneamento de uso do solo.</p></div><span class="mi-official-badge">Consultando base...</span></div><div class="mi-official-body" role="status">Carregando geometrias...</div>';
- panel.appendChild(div);
- const localOnly={bairros:{features:[],count:0,kind:"local",source:"Cadastro local"}};
- const carregamento=isMaringa&&globalThis.MaringaBairros?MaringaBairros.carregar().catch(()=>localOnly):Promise.resolve(localOnly);
- carregamento.then(data=>{
-  if(id!==token||!div.isConnected)return;
-  const layer=data.bairros,normal=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
-  const registros=DB().lista("bairros"),cadastrados=new Map(registros.map(x=>[normal(x.nome),x]));
-  const inventario=new Map();
-  layer.features.forEach(f=>{const p=f.properties||{},key=normal(p.nome);if(key)inventario.set(key,{...p,...(cadastrados.get(key)||{})});});
-  registros.forEach(x=>{const key=normal(x.nome);if(key&&!inventario.has(key))inventario.set(key,{...x});});
-  const sorted=[...inventario.values()].map(x=>({...x,territorioTipo:"bairros"}));
-  DB().lista("zonas").forEach(x=>sorted.push({...x,territorioTipo:"zonas"}));
-  sorted.sort((a,b)=>a.territorioTipo!==b.territorioTipo?(a.territorioTipo==="zonas"?-1:1):String(a.nome).localeCompare(String(b.nome),"pt-BR",{numeric:true}));
-  const status=div.querySelector(".mi-official-badge");
-  status.textContent=layer.kind==="local"?"Cadastro local":layer.count+" polígonos · "+(layer.kind==="municipal"?"GeoMaringá":layer.kind==="ibge2022"?"IBGE 2022":"Paraná Interativo");
-  div.querySelector(".mi-official-body").innerHTML=
-   '<div class="mi-official-actions"><input id="mi-official-search" type="search" placeholder="Buscar bairro ou zona por nome ou código" aria-label="Buscar bairros ou zonas">'+
-   '<button id="mi-official-save" type="button">Importar base territorial oficial</button></div>'+
-   '<div class="mi-official-scroll"><table><thead><tr><th>Nome</th><th>Tipo</th><th>Código</th><th>Vínculo territorial</th><th>Verificação</th><th>Mapa de Evento</th><th>Colaboradores</th><th>Ajuda</th><th>Ações</th></tr></thead>'+
-   '<tbody id="mi-official-rows"></tbody></table></div>'+
-   '<p class="mi-official-foot">Fonte: '+esc(layer.source)+'. '+sorted.filter(x=>x.territorioTipo==="bairros").length+' bairros no inventário. Os dados podem não cobrir alterações territoriais posteriores à fonte. Zonas numeradas requerem geometrias verificadas antes de utilização em geolocalização ou acionamento.</p>';
-  const render=()=>{
-   const needle=$("mi-official-search")?.value?.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR")||"";
-   const tipo=$("geo-type")?.value||"todos";
-   const rows=sorted.filter(p=>(tipo==="todos"||tipo===p.territorioTipo)&&(String(p.nome)+" "+String(p.codigo_bairro||p.codigo||"")).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR").includes(needle));
-   $("mi-official-rows").innerHTML=rows.map(p=>'<tr><td><strong>'+esc(p.nome)+'</strong></td><td>'+ (p.territorioTipo==='zonas'?'Zona numerada':'Bairro') +'</td><td>'+esc(p.codigo_bairro||p.codigo||"—")+'</td>'+
-    '<td>'+esc(p.zona||"Não vinculada")+'</td><td>'+esc(p.verificacao||"Fonte pública · não validado")+'</td>'+
-    '<td><a href="'+esc(linkEvento(p.nome))+'" target="_blank" rel="noopener">Localizar</a></td>'+
-    '<td><a href="'+esc(linkMapa(p.nome,"colaboradores"))+'" target="_blank" rel="noopener">Localizar</a></td>'+
-    '<td><a href="'+esc(linkMapa(p.nome,"ajuda"))+'" target="_blank" rel="noopener">Localizar</a></td>'+
-    '<td>'+(p.id?'<button type="button" data-geo-edit="'+esc(p.id)+'" data-geo-module="'+esc(p.territorioTipo)+'">Editar</button>':'<span>Não importado</span>')+'</td></tr>').join("")||
-    '<tr><td colspan="9">Nenhum território corresponde à busca.</td></tr>';
-  };
-  render();$("mi-official-search").oninput=render;
-  $("mi-official-save").hidden=layer.kind==="local";
-  $("mi-official-save").onclick=()=>{
-   const db=DB();
-   if(db.municipioAtivo()?.id!=="maringa"){alert("Selecione Maringá.");return;}
-   if(!confirm("Registrar as "+layer.count+" áreas da fonte "+layer.source+" no armazenamento local? Os registros validados serão preservados."))return;
-   const rows=layer.features.map(f=>({
-    nome:String(f.properties.nome),externalId:(layer.kind==="municipal"?"geomaringa:":layer.kind==="ibge2022"?"ibge2022:":"parana:")+String(f.id||f.properties.id),
-    zona:"",fonte:layer.source,geojson:JSON.stringify(f.geometry),
-    verificacao:"Pendente",codigo_bairro:String(f.properties.codigo_bairro||f.properties.codigo||"")
-   }));
-   try{
-    const stats=db.importarLote("bairros",rows);
-    alert("Cadastro salvo neste navegador: "+stats.novos+" novos, "+stats.atualizados+" atualizados e "+stats.preservados+" validados preservados.");
-    location.reload();
-   }catch(e){alert("Não foi possível gravar todos os bairros: "+e.message);}
-  };
- }).catch(e=>{
-  if(id!==token||!div.isConnected)return;
-  div.querySelector(".mi-official-badge").textContent="Fonte indisponível";
-  div.querySelector(".mi-official-body").textContent="Não foi possível carregar o inventário geográfico: "+e.message;
- });
+function bairrosOficiais(){
+ if(bairrosPromise)return bairrosPromise;
+ if(db().municipioAtivo()?.id!=="maringa"||!globalThis.MaringaBairros)return Promise.resolve([]);
+ bairrosPromise=MaringaBairros.carregar().then(data=>data.bairros.features.map(f=>({
+  nome:String(f.properties?.nome||"").trim(),
+  codigo:String(f.properties?.codigo_bairro||f.properties?.codigo||""),
+  externalId:String(f.id||f.properties?.id||""),
+  fonte:data.bairros.source,
+  geojson:JSON.stringify(f.geometry),
+  verificacao:"Pendente"
+ })).filter(x=>x.nome)).catch(()=>{bairrosPromise=null;return null;});
+ return bairrosPromise;
 }
-function zonasUI(){
- const panel=document.querySelector("#page .pref-tab-body")||$("page");if(!panel)return;
- if(DB().municipioAtivo()?.id!=="maringa"){
-  panel.insertAdjacentHTML("beforeend",'<section class="mi-official-catalog"><div class="mi-official-head"><div><h2>Zonas operacionais</h2><p>Este município ainda não possui zonas operacionais homologadas na demonstração. Cadastre apenas limites confirmados pela Prefeitura e Defesa Civil.</p></div></div></section>');
-  return;
+function ordem(a,b){
+ const za=String(a.nome).match(/^Zona\s*(\d+)$/i),zb=String(b.nome).match(/^Zona\s*(\d+)$/i);
+ return za&&zb?Number(za[1])-Number(zb[1]):String(a.nome).localeCompare(String(b.nome),"pt-BR",{numeric:true});
+}
+async function render(){
+ const body=$("geo-rows"),type=$("geo-type")?.value;
+ if(!body||!["zonas","bairros"].includes(type))return;
+ const stamp=++token;
+ const registros=db().lista(type);
+ let oficiais=type==="zonas"?await zonasOficiais():await bairrosOficiais();
+ if(stamp!==token||!body.isConnected)return;
+ const indisponivel=oficiais===null;
+ oficiais=oficiais||[];
+ const merged=new Map(registros.map(x=>[norm(x.nome),{...x,cadastrado:true}]));
+ for(const x of oficiais){
+  const k=norm(x.nome);
+  if(k&&!merged.has(k))merged.set(k,{...x,cadastrado:false});
  }
- const div=document.createElement("section");div.className="mi-official-catalog";
- const n=["Zona 7","Jardim Alvorada","Conjunto Requião","Jardim Universo","Vila Esperança","Centro Cívico"];
- div.innerHTML='<div class="mi-official-head"><div><h2>Contexto das zonas operacionais</h2><p>O Mapa de Evento ainda usa seis zonas de simulação. Não são limites de cobertura homologados nem os mesmos bairros do IBGE.</p></div><span class="mi-official-badge">6 demonstrativas</span></div>'+
- '<div class="mi-zone-list">'+n.map(x=>'<span>'+esc(x)+'</span>').join("")+'</div>'+
- '<p class="mi-official-foot">Para usar zonas operacionais em mobilizações reais, a Prefeitura/Defesa Civil deve cadastrar limites e responsáveis validados. A camada municipal GeoMaringá não respondeu na extração automática.</p>';
- panel.appendChild(div);
+ const rows=[...merged.values()].sort(ordem);
+ const search=norm($("geo-search")?.value);
+ const filtrados=rows.filter(x=>norm([x.nome,x.codigo||x.codigo_bairro,x.zona,x.responsavel].join(" ")).includes(search));
+ const count=$("geo-count");
+ if(count)count.textContent=filtrados.length+" registro(s)"+(indisponivel?" · fonte oficial temporariamente indisponível":"");
+ referencias=new Map();
+ body.innerHTML=filtrados.map(x=>{
+  const key=x.externalId||x.codigo||x.nome;
+  if(!x.cadastrado)referencias.set(key,{...x});
+  const vinculo=type==="zonas"?x.responsavel||"—":x.zona||"—";
+  const codigo=x.codigo||x.codigo_bairro||x.externalId?.split(":").pop()||"—";
+  const action=x.cadastrado?
+   '<button type="button" class="row-action" data-geo-edit="'+esc(x.id)+'" data-geo-module="'+type+'">Editar</button>':
+   '<button type="button" class="row-action" data-geo-ref="'+esc(key)+'">Cadastrar</button>';
+  return '<tr><td><strong>'+esc(x.nome)+'</strong></td><td>'+esc(codigo)+'</td><td>'+esc(vinculo)+'</td>'+
+   '<td>'+esc(x.fonte||"Cadastro municipal")+'</td><td>'+action+'</td></tr>';
+ }).join("")||'<tr><td colspan="5">Nenhum território encontrado para esta pesquisa.</td></tr>';
+ body.onclick=e=>{
+  const ref=e.target.closest("[data-geo-ref]");if(!ref)return;
+  const source=referencias.get(ref.dataset.geoRef);if(!source)return;
+  globalThis.dispatchEvent(new CustomEvent("gestao:referencia-territorial",{detail:{modulo:type,source}}));
+ };
 }
-function run(){
- const hash=decodeURIComponent(location.hash.slice(1)||"");
- if(hash==="bairros"||hash==="zonas"||hash==="geoterritorialidade")bairrosUI();
-
- else token++;
-}
-globalThis.addEventListener("hashchange",()=>setTimeout(run,0));
-globalThis.addEventListener("gestao:bairros-atualizados",()=>setTimeout(run,0));
-globalThis.addEventListener("gestao:geo-render",run);
-run();
+globalThis.addEventListener("hashchange",()=>setTimeout(render,0));
+globalThis.addEventListener("gestao:geo-render",()=>void render());
+globalThis.addEventListener("gestao:bairros-atualizados",()=>void render());
+void render();
 })();
