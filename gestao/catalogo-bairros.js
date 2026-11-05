@@ -46,9 +46,16 @@ async function render(){
  const body=$("geo-rows"),type=$("geo-type")?.value;
  if(!body||!["zonas","bairros"].includes(type))return;
  const stamp=++token;
- const registros=db().lista(type);
  let oficiais=type==="zonas"?await zonasOficiais():await bairrosOficiais();
  if(stamp!==token||!body.isConnected)return;
+ if(type==="zonas"&&Array.isArray(oficiais)&&db().municipioAtivo()?.id==="maringa"){
+  const existentes=new Set(db().lista("zonas").map(x=>norm(x.nome)));
+  const faltantes=oficiais.filter(x=>!existentes.has(norm(x.nome))).map(x=>({...x,tipo:"Zona numerada",verificacao:"Em conferência"}));
+  if(faltantes.length){
+   try{db().importarLote("zonas",faltantes);}catch(err){/* A consulta continua acessível mesmo quando o navegador não permite salvar. */}
+  }
+ }
+ const registros=db().lista(type);
  const indisponivel=oficiais===null;
  oficiais=oficiais||[];
  const merged=new Map(registros.map(x=>[norm(x.nome),{...x,cadastrado:true}]));
