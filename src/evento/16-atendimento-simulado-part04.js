@@ -107,13 +107,21 @@ renderOfficialMarkers();
 processarFilaOffline();
 const buscaMapa=document.getElementById('event-search');
 const resultadosMapa=document.getElementById('event-results');
+const INVENTARIO=globalThis.AlertaInventarioMapas||null;
+const filtrosMunicipais={modulo:"todos",classe:"",busca:""};
+let filtrosMunicipaisProntos=false;
 const listarRecursosPublicos=()=>['bases','riscos','pontos','saude','emergencias','parceiros','abrigos']
  .flatMap(modulo=>gestao.lista(modulo,tenantId).filter(item=>item.verificacao!=='Rejeitado').map(item=>({...item,modulo})));
+const linhasInventario=()=>INVENTARIO?INVENTARIO.filtrar(INVENTARIO.registros(gestao),filtrosMunicipais)
+ .filter(x=>noRecorte(x.zona||x.bairro)):null;
 const layerRecursosPublicos=L.layerGroup().addTo(map);
 let marcadorBusca;
 function montarMarcadoresPublicos(){
  layerRecursosPublicos.clearLayers();
+ const ativos=linhasInventario();
+ const ids=ativos?new Set(ativos.map(x=>x.chave)):null;
  const registros=listarRecursosPublicos().filter(x=>{
+  if(ids&&!ids.has(x.modulo+":"+x.id))return false;
   if(x.lat===undefined||x.lat===null||x.lat===""||x.lng===undefined||x.lng===null||x.lng==="")return false;
   const lat=Number(x.lat),lng=Number(x.lng);
   return Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=-24&&lat<=-23&&lng>=-52.5&&lng<=-51.2;
