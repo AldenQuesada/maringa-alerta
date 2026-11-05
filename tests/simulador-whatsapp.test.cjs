@@ -62,6 +62,31 @@ test("Ser colaborador começa pelo nome na mensagem com a foto, sem outra introd
  assert.match(proxima,/if\(!perguntaJaExibida\)msg\(current.q\)/);
  assert.match(proxima,/Você pode escolher mais de uma opção/);
 });
+test("depois do nome o colaborador recebe agradecimento personalizado e dois botões legíveis",()=>{
+ const vm=require("node:vm");
+ const inicio=chat.indexOf("function proxima(");
+ const fim=chat.indexOf("function mostrarRevisao(){",inicio);
+ assert.ok(inicio>=0&&fim>inicio);
+ const mensagens=[],botoes=[],respostas=[];
+ const ctx={
+  steps:[{key:"tipo_pessoa",kind:"single",q:"Você é pessoa física ou jurídica?",opts:["FÍSICA","JURÍDICA"]}],
+  index:0,current:null,answers:{nome:"Maria Silva"},role:"colaborador",
+  clear:()=>{},msg:texto=>mensagens.push(texto),
+  button:(texto,fn)=>botoes.push({texto,fn}),
+  gravarResposta:(valor,exibicao)=>respostas.push({valor,exibicao}),
+  form:{hidden:true},input:{},photoPreview:{},uploadArea:{},
+  $:()=>({hidden:true}),history:{scrollTop:0,scrollHeight:0},arquivosFoto:null,
+  mostrarRevisao:()=>{throw Error("Não deveria encerrar cadastro antes da escolha.");}
+ };
+ const proxima=vm.runInNewContext(chat.slice(inicio,fim)+"\nproxima;",ctx);
+ proxima();
+ assert.equal(mensagens.length,1);
+ assert.equal(mensagens[0],"Muito obrigado, Maria Silva! Como você gostaria de se cadastrar?\n\n◾ Pessoa física\n◾ Pessoa jurídica\n\nToque em uma das opções abaixo. 👇");
+ assert.deepEqual(botoes.map(b=>b.texto),["Pessoa física","Pessoa jurídica"]);
+ botoes[0].fn();botoes[1].fn();
+ assert.deepEqual(respostas.map(r=>r.valor),["FÍSICA","JURÍDICA"]);
+ assert.deepEqual(respostas.map(r=>r.exibicao),["Pessoa física","Pessoa jurídica"]);
+});
 test("o formulário não exige que o cidadão conheça a zona",()=>{
  const inicio=chat.indexOf("function definirSteps(papel)");
  const fim=chat.indexOf("function start(papel",inicio);
