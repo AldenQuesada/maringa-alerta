@@ -51,7 +51,7 @@ function criar(armazenamento=global.localStorage,options={}){
 
  function importarLote(modulo,rows,{modo="revisado"}={}){
   refresh();
-  const permitido=new Set(["bairros","zonas","bases","riscos","pontos","saude","emergencias","parceiros"]);
+  const permitido=new Set(["bairros","zonas","bases","riscos","pontos","abrigos","saude","emergencias","parceiros"]);
   if(!permitido.has(modulo))throw new Error("Coleção não permitida para importação.");
   if(!Array.isArray(rows)||rows.length>5000)throw new Error("Lote inválido ou maior que 5.000 registros.");
   const m=ESQUEMAS[modulo],municipioId=municipioCorrente();
