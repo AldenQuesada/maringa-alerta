@@ -35,7 +35,7 @@ const ICONS={
   chevron:'<path d="m9 18 6-6-6-6"/>'
 };
 const icon=(id,css="")=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="'+css+'" aria-hidden="true">'+(ICONS[id]||ICONS.list)+'</svg>';
-const icons={territorio:"layers",implantacao:"pin",bairros:"layers",pessoas:"users",solicitacoes:"list",mobilizacoes:"bell",apoios:"building",inicio:"dashboard",prefeituras:"building",zonas:"layers",bases:"pin",riscos:"shield",administradores:"shield",responsaveis:"user",substitutos:"user",coordenadores:"users",operadores:"user",equipes:"wrench",integrantes:"users",voluntarios:"users",saude:"hospital",emergencias:"siren",parceiros:"building",veiculos:"truck",equipamentos:"wrench",estoques:"box",abrigos:"hospital",pontos:"pin",ocorrencias:"list",canais:"bell",regras:"shield"};
+const icons={territorio:"layers",implantacao:"pin",bairros:"layers",pessoas:"users",solicitacoes:"list",mobilizacoes:"bell",apoios:"building",inicio:"dashboard",eventos:"pin",prefeituras:"building",zonas:"layers",bases:"pin",riscos:"shield",administradores:"shield",responsaveis:"user",substitutos:"user",coordenadores:"users",operadores:"user",equipes:"wrench",integrantes:"users",voluntarios:"users",saude:"hospital",emergencias:"siren",parceiros:"building",veiculos:"truck",equipamentos:"wrench",estoques:"box",abrigos:"hospital",pontos:"pin",ocorrencias:"list",canais:"bell",regras:"shield"};
 let atual="inicio",pesquisa="",edicao=null,ultimoFoco=null,toastTimer=null,geoTipo="zonas",drawerModulo=null;
 const cidadesPorUf=new Map();
 const municipio=db.municipioAtivo();
@@ -63,6 +63,7 @@ function resumoCard(nome,valor,icone,nota){
 function renderInicio(){
  const numero=tipo=>db.lista(tipo).length;
  const entradas=[
+  ["Eventos","Registrar eventos e abrir seus mapas operacionais.","eventos"],
   ["Gerais","Dados institucionais e membros do Gabinete de Crise.","territorio"],
   ["Geoterritorialidade","Consultar e cadastrar zonas numeradas e bairros.","geoterritorialidade"],
   ["Estruturas","Cadastrar unidades e seus representantes do Gabinete de Crise.","estruturas"],
@@ -94,7 +95,7 @@ function tabelaLinhas(){
   return;
  }
  tbody.innerHTML=list.map(item=>'<tr>'+def.columns.map(c=>'<td>'+esc(c==="responsavel_id"?(db.lista("pessoas").find(p=>p.id===item[c])?.nome||"Não vinculado"):(item[c]===0?0:item[c]||"—"))+'</td>').join("")+
- '<td><div class="row-actions"><button class="row-action" type="button" data-edit="'+esc(item.id)+'" title="Editar">Editar</button><button class="row-action danger" type="button" data-delete="'+esc(item.id)+'" title="Excluir">Excluir</button></div></td></tr>').join("");
+ '<td><div class="row-actions">'+(atual==="eventos"?'<a class="row-action" href="../index.html?evento='+encodeURIComponent(item.id)+'" target="_blank" rel="noopener">Abrir mapa</a>':'')+'<button class="row-action" type="button" data-edit="'+esc(item.id)+'" title="Editar">Editar</button>'+(atual==="eventos"?'':'<button class="row-action danger" type="button" data-delete="'+esc(item.id)+'" title="Excluir">Excluir</button>')+'</div></td></tr>').join("");
 }
 function mapaPreview(){
  const p=db.municipioAtivo();
@@ -196,6 +197,7 @@ function renderModulo(){
   return; // O catálogo de bairros é o único inventário visível, montado pelo adaptador territorial existente.
  }
  PAGE.innerHTML=topo(d.label,d.summary,atual)+
+ (atual==='eventos'&&db.municipioAtivo()?.id==='maringa'?'<div class="heading-actions"><button type="button" class="btn btn-primary" data-importar-tornado>+ Importar tornado de 02/11/2026</button></div>':'')+
  '<section class="table-shell"><div class="table-toolbar"><label class="search-field">'+icon("search")+'<input id="table-search" type="search" placeholder="Buscar cadastro" aria-label="Buscar cadastros" autocomplete="off"></label><span id="table-count" class="table-count"></span></div>'+
  '<div class="table-scroll"><table><thead><tr>'+d.columns.map(c=>'<th scope="col">'+esc(d.fields.find(f=>f.key===c)?.label||c)+'</th>').join("")+'<th scope="col" style="text-align:right">Ações</th></tr></thead><tbody id="table-body"></tbody></table></div></section>'+
  (atual==="prefeituras"?'<div class="prefecture-layout"><section class="section-card"><header class="section-card-head"><h2>Prefeitura selecionada</h2></header><div class="section-card-body"><div class="hierarchy">'+
@@ -236,8 +238,8 @@ function campoHTML(f,valor){
  if(f.type==="multi"){const current=Array.isArray(valor)?valor:String(valor||"").split(";").map(x=>x.trim()).filter(Boolean);
  return '<fieldset class="field multi-field"><legend>'+esc(f.label)+'</legend><div class="multi-choices">'+(f.options||[]).map(opt=>'<label class="multi-option"><input type="checkbox" name="'+esc(f.key)+'" value="'+esc(opt)+'"'+(current.includes(opt)?' checked':'')+'/><span>'+esc(opt)+'</span></label>').join("")+'</div></fieldset>';}
  if(f.type==="textarea")return '<div class="field">'+label+'<textarea id="'+id+'" name="'+esc(f.key)+'"'+required+'>'+v+'</textarea></div>';
- if(f.type==="select"||f.type==="uf"||f.type==="zone"||f.type==="team"||f.type==="person"||f.type==="structure"){
-  const options=f.type==="uf"?D.UFS:f.type==="zone"?db.lista("zonas").map(x=>x.nome):f.type==="team"?db.lista("equipes").map(x=>x.nome):f.type==="person"?db.lista("pessoas").map(x=>({id:x.id,nome:x.nome})):f.type==="structure"?structures().map(x=>({id:x.id,nome:x.nome})):f.options||[];
+ if(f.type==="select"||f.type==="uf"||f.type==="zone"||f.type==="team"||f.type==="person"||f.type==="structure"||f.type==="eventoMapa"){
+  const options=f.type==="eventoMapa"?db.lista("eventos").filter(x=>x.id!==edicao):f.type==="uf"?D.UFS:f.type==="zone"?db.lista("zonas").map(x=>x.nome):f.type==="team"?db.lista("equipes").map(x=>x.nome):f.type==="person"?db.lista("pessoas").map(x=>({id:x.id,nome:x.nome})):f.type==="structure"?structures().map(x=>({id:x.id,nome:x.nome})):f.options||[];
   return '<div class="field">'+label+'<select id="'+id+'" name="'+esc(f.key)+'"'+required+'><option value="">Selecionar</option>'+options.map(o=>'<option value="'+esc(o.id??o)+'"'+(String(o.id??o)===String(valor)?" selected":"")+'>'+esc(o.nome??o)+'</option>').join("")+'</select></div>';
  }
  const type=f.type==="number"?"number":f.type==="date"?"date":f.type==="tel"?"tel":f.type==="email"?"email":"text";
@@ -355,6 +357,8 @@ FORM.addEventListener("submit",e=>{
  }catch(err){$("form-error").textContent=err.message;}
 });
 PAGE.addEventListener("click",e=>{
+ if(e.target.closest('[data-importar-tornado]')){try{EventoTornado2026.importar(db);render();toast('Evento histórico disponível no cadastro.');}catch(err){toast(err.message||'Não foi possível importar.');}return;}
+
  const novo=e.target.closest("[data-new]");
  const edit=e.target.closest("[data-edit]");
  const del=e.target.closest("[data-delete]");
