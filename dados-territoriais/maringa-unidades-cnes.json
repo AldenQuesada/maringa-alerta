@@ -1,0 +1,423 @@
+{
+  "municipio_ibge": "4115200",
+  "data_consulta": "2026-11-04",
+  "fonte": "Cadastro Nacional de Estabelecimentos de Saúde (CNES) · mantenedora Prefeitura do Município de Maringá",
+  "url_fonte": "https://cnes2.datasus.gov.br/Listar_Mantidas.asp?VCnpj=76282656000106&VEstado=41&VNome=PREFEITURA+DO+MUNICIPIO+DE+MARINGA",
+  "nota": "Referência pública de 69 estabelecimentos e serviços; atualização de endereço, telefone, vínculos e operação requer conferência. Não contém responsáveis fictícios.",
+  "unidades": [
+    {
+      "codigo_cnes": "7608020",
+      "nome": "UNIDADE BASICA DE SAUDE PORTAL DAS TORRES",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2587173",
+      "nome": "SIATE CORPO DE BOMBEIROS 5 GRUPAMENTO MARINGA",
+      "grupo": "emergencias",
+      "tipo": "Bombeiros"
+    },
+    {
+      "codigo_cnes": "9963650",
+      "nome": "UNIDADE BASICA DE SAUDE PAULINO",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "9853502",
+      "nome": "SIATE CORPO DE BOMBEIROS POSTO II MARINGA VELHO",
+      "grupo": "emergencias",
+      "tipo": "Bombeiros"
+    },
+    {
+      "codigo_cnes": "9695087",
+      "nome": "UNIDADE DE APOIO A SAUDE DA FAMILIA LICCE",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "6896618",
+      "nome": "CAPSI CENTRO DE ATENCAO PSICOSSOCIAL INFANTIL",
+      "grupo": "saude",
+      "tipo": "Outro"
+    },
+    {
+      "codigo_cnes": "7228155",
+      "nome": "UNIDADE BASICA DE SAUDE CEU AZUL",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "3560848",
+      "nome": "CENTRAL DE REGULACAO SAMU",
+      "grupo": "saude",
+      "tipo": "SAMU"
+    },
+    {
+      "codigo_cnes": "6975429",
+      "nome": "SALA DE VACINA SECRETARIA DE SAUDE",
+      "grupo": "saude",
+      "tipo": "Outro"
+    },
+    {
+      "codigo_cnes": "2586347",
+      "nome": "UNIDADE BASICA DE SAUDE PARQUE RESIDENCIAL QUEBEC",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "5390133",
+      "nome": "LABORATORIO MUNICIPAL DE ANALISES CLINICAS",
+      "grupo": "saude",
+      "tipo": "Outro"
+    },
+    {
+      "codigo_cnes": "7857136",
+      "nome": "UNIDADE BASICA DE SAUDE PARAISO",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586355",
+      "nome": "UNIDADE BASICA DE SAUDE MORANGUEIRA",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586401",
+      "nome": "UNIDADE BASICA DE SAUDE JARDIM PINHEIROS",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "5407680",
+      "nome": "UNIDADE BASICA DE SAUDE ACLIMACAO",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "7063245",
+      "nome": "UNIDADE BASICA DE SAUDE PIATA",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586371",
+      "nome": "CENTRO DE ESPECIALIDADES ODONTOLOGICAS DE MARINGA",
+      "grupo": "saude",
+      "tipo": "Outro"
+    },
+    {
+      "codigo_cnes": "5682479",
+      "nome": "UNIDADE SAUDE DA FAMILIA JARDIM OLIMPICO",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "9630368",
+      "nome": "UNIDADE DE APOIO A SAUDE DA FAMILIA JARDIM PAULISTA",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "7715080",
+      "nome": "UNIDADE BASICA DE SAUDE IMPERIO DO SOL",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "7741545",
+      "nome": "SAMU SUPORTE AVANCADO 2",
+      "grupo": "saude",
+      "tipo": "SAMU"
+    },
+    {
+      "codigo_cnes": "2743477",
+      "nome": "HOSPITAL MUNICIPAL DE MARINGA THELMA VILLANOVA KASPROWICZ",
+      "grupo": "saude",
+      "tipo": "Hospital"
+    },
+    {
+      "codigo_cnes": "7070640",
+      "nome": "UNIDADE DE PRONTO ATENDIMENTO UPA ZONA NORTE",
+      "grupo": "saude",
+      "tipo": "UPA"
+    },
+    {
+      "codigo_cnes": "7030797",
+      "nome": "SAMU SUPORTE BASICO 01",
+      "grupo": "saude",
+      "tipo": "SAMU"
+    },
+    {
+      "codigo_cnes": "7030800",
+      "nome": "SAMU SUPORTE BASICO 03",
+      "grupo": "saude",
+      "tipo": "SAMU"
+    },
+    {
+      "codigo_cnes": "7030819",
+      "nome": "SAMU SUPORTE BASICO 02",
+      "grupo": "saude",
+      "tipo": "SAMU"
+    },
+    {
+      "codigo_cnes": "7030835",
+      "nome": "SAMU SUPORTE BASICO 04",
+      "grupo": "saude",
+      "tipo": "SAMU"
+    },
+    {
+      "codigo_cnes": "3995682",
+      "nome": "SERVICO DE ASSISTENCIA ESPECIALIZADA",
+      "grupo": "saude",
+      "tipo": "Outro"
+    },
+    {
+      "codigo_cnes": "2586266",
+      "nome": "UNIDADE BASICA DE SAUDE MARINGA VELHO",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586827",
+      "nome": "UNIDADE BASICA DE SAUDE NEY BRAGA",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "9853510",
+      "nome": "SIATE CORPO DE BOMBEIROS POSTO III AV CENTENARIO",
+      "grupo": "emergencias",
+      "tipo": "Bombeiros"
+    },
+    {
+      "codigo_cnes": "9090347",
+      "nome": "SAMU SUPORTE AVANCADO 3",
+      "grupo": "saude",
+      "tipo": "SAMU"
+    },
+    {
+      "codigo_cnes": "9685146",
+      "nome": "UNIDADE BASICA DE SAUDE JARDIM ANDREA",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "7628544",
+      "nome": "UNIDADE BASICA DE SAUDE PARIS",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2864274",
+      "nome": "PRONTO ATENDIMENTO DA CRIANCA PAC",
+      "grupo": "saude",
+      "tipo": "Outro"
+    },
+    {
+      "codigo_cnes": "0075930",
+      "nome": "CLINICA DE APOIO AO AUTISTA",
+      "grupo": "saude",
+      "tipo": "Outro"
+    },
+    {
+      "codigo_cnes": "9944184",
+      "nome": "CENTRO DE CONTROLE DE ZOONOSES DE MARINGA",
+      "grupo": "saude",
+      "tipo": "Outro"
+    },
+    {
+      "codigo_cnes": "3376516",
+      "nome": "UNIDADE BASICA DE SAUDE ALVORADA III",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586800",
+      "nome": "SMS DE MARINGA",
+      "grupo": "saude",
+      "tipo": "Outro"
+    },
+    {
+      "codigo_cnes": "2594803",
+      "nome": "CLINICA ODONTOLOGICA MOVEL I",
+      "grupo": "saude",
+      "tipo": "Outro"
+    },
+    {
+      "codigo_cnes": "2586398",
+      "nome": "POLICLINICA PRIMO MARCELO MONTESCHIO ZONA SUL",
+      "grupo": "saude",
+      "tipo": "Outro"
+    },
+    {
+      "codigo_cnes": "3065480",
+      "nome": "CAPS II CANCAO",
+      "grupo": "saude",
+      "tipo": "Outro"
+    },
+    {
+      "codigo_cnes": "2586363",
+      "nome": "UNIDADE BASICA DE SAUDE MANDACARU",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "6986609",
+      "nome": "UNIDADE DE PRONTO ATENDIMENTO UPA ZONA SUL",
+      "grupo": "saude",
+      "tipo": "UPA"
+    },
+    {
+      "codigo_cnes": "7935633",
+      "nome": "UBS ZONA 07",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2824930",
+      "nome": "UNIDADE BASICA DE SAUDE GUAIAPO REQUIAO",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2824949",
+      "nome": "CLINICA DA MULHER",
+      "grupo": "saude",
+      "tipo": "Outro"
+    },
+    {
+      "codigo_cnes": "2586320",
+      "nome": "UNIDADE BASICA DE SAUDE IGUATEMI",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586282",
+      "nome": "UNIDADE BASICA DE SAUDE TUIUTI",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "9853529",
+      "nome": "SIATE CORPO DE BOMBEIROS POSTO I JARDIM ALVORADA",
+      "grupo": "emergencias",
+      "tipo": "Bombeiros"
+    },
+    {
+      "codigo_cnes": "2586312",
+      "nome": "CAPS III CENTRO DE ATENCAO PSICOSSOCIAL III",
+      "grupo": "saude",
+      "tipo": "Outro"
+    },
+    {
+      "codigo_cnes": "7376529",
+      "nome": "UNIDADE BASICA DE SAUDE VARDELINA",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586193",
+      "nome": "UNIDADE BASICA DE SAUDE INTERNORTE",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586223",
+      "nome": "UNIDADE BASICA DE SAUDE JARDIM UNIVERSO",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586258",
+      "nome": "UNIDADE BASICA DE SAUDE VILA OPERARIA",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586185",
+      "nome": "UNIDADE BASICA DE SAUDE PARIGOT DE SOUZA",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586207",
+      "nome": "UNIDADE BASICA DE SAUDE VILA ESPERANCA",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586231",
+      "nome": "UNIDADE BASICA DE SAUDE FLORIANO",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586274",
+      "nome": "UNIDADE BASICA DE SAUDE JARDIM INDUSTRIAL",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586304",
+      "nome": "UNIDADE BASICA DE SAUDE GREVILEAS III",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586339",
+      "nome": "UNIDADE BASICA DE SAUDE ALVORADA I",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586177",
+      "nome": "UNIDADE BASICA DE SAUDE JARDIM IGUACU",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2594838",
+      "nome": "CAPS AD II CENTRO DE ATENCAO PSICOSSOCIAL PARA ALCOOL E OU",
+      "grupo": "saude",
+      "tipo": "Outro"
+    },
+    {
+      "codigo_cnes": "7126522",
+      "nome": "UNIDADE BASICA DE SAUDE ZONA 06",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586215",
+      "nome": "UNIDADE BASICA DE SAUDE SAO SILVESTRE",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "2586290",
+      "nome": "UNIDADE BASICA DE SAUDE CIDADE ALTA",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "7024266",
+      "nome": "SAMU SUPORTE AVANCADO 1",
+      "grupo": "saude",
+      "tipo": "SAMU"
+    },
+    {
+      "codigo_cnes": "4271238",
+      "nome": "UNIDADE DE APOIO A SAUDE DA FAMILIA JARDIM SUMARE",
+      "grupo": "saude",
+      "tipo": "UBS"
+    },
+    {
+      "codigo_cnes": "5710898",
+      "nome": "CAS CENTRO DE ATENDIMENTO AO SERVIDOR DA SELURB",
+      "grupo": "saude",
+      "tipo": "Outro"
+    }
+  ]
+}
