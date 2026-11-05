@@ -117,7 +117,7 @@ function mapaPreview(){
 const PREF_TABS=[["territorio","Gerais"],["geoterritorialidade","Geoterritorialidade"],["estruturas","Estruturas"],["bases","Bases"],["riscos","Riscos"]];
 const STRUCT_MODULES=[["saude","Unidades de saúde"],["emergencias","Emergência e segurança"],["parceiros","Órgãos e concessionárias"]];
 const PREF_SECTIONS=new Set([...PREF_TABS.map(x=>x[0]),"pessoas",...STRUCT_MODULES.map(x=>x[0])]);
-let estruturaTipo="saude",cnesConsultado=false;
+let estruturaTipo="saude",cnesConsultado=false,referenciasPublicasConsultadas=false;
 function renderPrefTabs(){
  const html='<nav class="pref-tabs" aria-label="Cadastro da Prefeitura">'+PREF_TABS.map(([id,label])=>'<a class="pref-tab'+(id===atual?' active':'')+'" href="#'+id+'"'+(id===atual?' aria-current="page"':'')+'>'+esc(label)+'</a>').join("")+'</nav>';
  const heading=PAGE.querySelector(".heading-row");if(heading)heading.insertAdjacentHTML("afterend",html);else PAGE.insertAdjacentHTML("afterbegin",html);
@@ -140,6 +140,33 @@ function renderTerritorioMunicipal(){
  '<div class="table-scroll"><table><thead><tr><th>Nome</th><th>Cargo</th><th>Função</th><th>Estrutura representada</th><th>Telefone</th><th>E-mail</th><th>Ações</th></tr></thead><tbody>'+
  (people.length?people.map(x=>{const org=orgs.find(o=>o.id===x.estrutura_id||o.responsavel_id===x.id);return '<tr><td><strong>'+esc(x.nome)+'</strong></td><td>'+esc(x.cargo||"Não informado")+'</td><td>'+esc(x.funcao||"—")+'</td><td>'+esc(org?.nome||x.orgao||"Não vinculada")+'</td><td>'+esc(x.telefone||"—")+'</td><td>'+esc(x.email||"—")+'</td><td><button type="button" class="row-action" data-canon-edit="pessoas" data-id="'+esc(x.id)+'">Editar</button></td></tr>';}).join(""):'<tr><td colspan="7">Nenhum membro cadastrado. Use Novo cadastro acima.</td></tr>')+
  '</tbody></table></div></section>';
+}
+async function importarBasesERiscosPublicos(){
+ const municipio=db.municipioAtivo();
+ if(referenciasPublicasConsultadas||municipio?.id!=="maringa"||municipio?.codigo_ibge!=="4115200")return;
+ referenciasPublicasConsultadas=true;
+ const etiqueta="Referências públicas de Bases e Riscos · 2026-11-04";
+ if(db.lista("implantacao").some(x=>x.nome===etiqueta))return;
+ try{
+  const response=await fetch("../dados-territoriais/maringa-bases-riscos-publicos.json",{cache:"no-cache"});
+  if(!response.ok)throw Error("Arquivo de fontes públicas indisponível.");
+  const fonte=await response.json();
+  if(fonte.municipio_ibge!=="4115200"||!Array.isArray(fonte.bases)||!Array.isArray(fonte.riscos))throw Error("Fonte pública sem município ou registros válidos.");
+  let total=0;
+  const norm=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+  for(const tipo of ["bases","riscos"]){
+   const atuais=db.lista(tipo);
+   const codigos=new Set(atuais.map(x=>String(x.externalId||"")).filter(Boolean));
+   const nomes=new Set(atuais.map(x=>norm(x.nome)));
+   const faltantes=fonte[tipo].filter(x=>x.nome&&x.externalId&&x.url_fonte&&x.verificacao==="Em conferência"&&!codigos.has(x.externalId)&&!nomes.has(norm(x.nome)));
+   if(faltantes.length)total+=db.importarLote(tipo,faltantes).novos;
+  }
+  db.gravar("implantacao",{nome:etiqueta,fonte:"Fontes públicas (referências históricas e locais de apoio temporários)",status:"Concluído",criado_em:fonte.data_referencia||"2026-11-04",quantidade:String(total)});
+  if(["bases","riscos","inicio"].includes(atual))render();
+ }catch(error){
+  referenciasPublicasConsultadas=false;
+  console.warn("Não foi possível carregar as referências públicas de Bases e Riscos:",error);
+ }
 }
 async function importarUnidadesCNES(){
  if(cnesConsultado||db.municipioAtivo()?.codigo_ibge!=="4115200")return;
@@ -430,6 +457,7 @@ if(globalThis.AlertaSessao&&globalThis.AlertaSessaoUI&&db.municipioAtivo()){
 }
 render();
 void importarUnidadesCNES();
+void importarBasesERiscosPublicos();
 // Ao trocar para uma prefeitura nova, tentar localizar seu mapa automaticamente.
 const prefeituraInicial=db.municipioAtivo();
 // Georreferenciamento inicial exclusivo da Administração Geral.
