@@ -13,20 +13,16 @@ function responderEtapa(e){
 form.onsubmit=responderEtapa;
 function protocolo(prefixo,id){return prefixo+"-SIM-"+String(id).replace(/[^a-z0-9]/gi,"").slice(-7).toUpperCase();}
 function finalizarOpcoes(){
- optionsSimple([
-  ["↩ Novo atendimento",()=>startMenu(),"submit"],
-  ["🔎 Consultar cadastro",()=>consultarCadastro()],
-  ["📍 Mapa de Colaboradores",()=>abrir("../mapas/?tipo=colaboradores")],
-  ["🫶 Mapa da Ajuda",()=>abrir("../mapas/?tipo=ajuda")]
- ]);
+ optionsSimple([["Voltar ao início",()=>startMenu(),"submit"]]);
 }
 function concluir(){
  try{
+  if(role==="colaborador"||role==="solicitacao")answers.zona=zonaPeloEndereco(answers.endereco);
   if(role==="colaborador"){
    const anterior=app.encontrarPessoa(answers.telefone);
    const outros=[["Ajuda a pessoas",answers.outros_ajudas],["Máquinas",answers.outros_maquinas],["Empreendedores",answers.outros_empreendedores]]
     .filter(x=>x[1]).map(x=>x[0]+": "+x[1]).join("; ");
-   const resultado=app.registrarColaborador({...answers,outros});
+   const resultado=app.registrarColaborador({...answers,outros,disponibilidade:"A combinar"});
    registrarMudanca("voluntarios",resultado,anterior);
    identity={nome:resultado.nome,tipo_pessoa:resultado.tipo_pessoa,telefone:resultado.telefone,endereco:resultado.endereco,email:resultado.email,zona:resultado.zona};
    bot("Cadastro de colaborador concluído! ✅\n\nProtocolo de demonstração: "+protocolo("COL",resultado.id)+
@@ -68,56 +64,6 @@ function concluir(){
  }
  finalizarOpcoes();
 }
-function abrir(url){
- window.open(url,"_blank","noopener,noreferrer");
- bot("A página solicitada foi aberta em outra aba. A demonstração permanece disponível aqui.");
- optionsSimple([["Voltar ao início",()=>startMenu(),"submit"]]);
-}
-function consultarCadastro(){
- bot("Informe o telefone com DDD usado no cadastro. A consulta funciona apenas para dados salvos neste navegador.");
- current={key:"consulta_telefone",kind:"tel",required:true};
- clear();form.hidden=false;$("compose-placeholder").hidden=true;input.type="tel";input.placeholder="(44) 99999-9999";input.required=true;
- form.onsubmit=e=>{
-  e.preventDefault();const tel=input.value.trim();
-  if(MaringaCrise.telefone(tel).length<10){msg("Informe o telefone com DDD.",false,true);return;}
-  msg(tel,true);
-  const igual=(x)=>MaringaCrise.mesmoTelefone(x.telefone,tel);
-  const colaborador=app.oferentes().find(igual),pedidos=app.pedidos().filter(igual),relatos=dados.lista("relatos").filter(igual);
-  if(!colaborador&&!pedidos.length&&!relatos.length)bot("Não encontrei registros com esse número nesta demonstração.");
-  else bot("Resultados neste navegador:\n"+
-    (colaborador?"• Colaborador: "+protocolo("COL",colaborador.id)+" · "+(colaborador.disponibilidade||"Cadastrado")+"\n":"")+
-    pedidos.map(p=>"• Pedido: "+protocolo("AJU",p.id)+" · "+p.necessidade+" · "+p.status).join("\n")+
-    (pedidos.length&&relatos.length?"\n":"")+
-    relatos.map(r=>"• Ocorrência: "+protocolo("OCO",r.id)+" · "+r.status).join("\n"));
-  optionsSimple([["Consultar outro telefone",()=>consultarCadastro(),"submit"],["Voltar ao início",()=>startMenu()]]);
- };
- input.focus();
-}
-function iniciarFase(){
- bot("Este é um teste de presença do colaborador. Informe seu telefone para consultar encaminhamentos e registrar CHEGUEI ou TERMINEI.");
- current={key:"fase_telefone",kind:"tel",required:true};clear();form.hidden=false;$("compose-placeholder").hidden=true;input.type="tel";input.required=true;input.placeholder="(44) 99999-9999";
- form.onsubmit=e=>{
-  e.preventDefault();const tel=input.value.trim();msg(tel,true);
-  const pessoa=app.encontrarPessoa(tel);
-  if(!pessoa){bot("Não há cadastro de colaborador com esse telefone nesta demonstração.");optionsSimple([["Início",()=>startMenu()]]);return;}
-  const pendentes=app.pedidos().filter(x=>x.atribuido_a===pessoa.id&&["Encaminhada","Cheguei"].includes(x.status));
-  if(!pendentes.length){bot("Não há encaminhamentos ativos para este colaborador no cenário simulado.");optionsSimple([["Início",()=>startMenu()]]);return;}
-  bot("Encontramos "+pendentes.length+" encaminhamento(s). Selecione um:");
-  optionsSimple(pendentes.map(p=>[p.necessidade+" · "+(p.zona||"Sem zona"),()=>escolherFase(p.id)]));
- };
- input.focus();
-}
-function escolherFase(id){
- const p=app.pedidos().find(x=>x.id===id);
- if(!p){startMenu();return;}
- const fase=p.status==="Encaminhada"?"Cheguei":"Terminei";
- bot("Pedido de "+p.necessidade+".\nStatus: "+p.status+".\nDeseja confirmar "+fase.toUpperCase()+" neste teste?");
- optionsSimple([[fase.toUpperCase(),()=>{
-  try{app.registrarFase(id,fase);bot(fase==="Cheguei"?"Chegada registrada nesta demonstração.":"Participação concluída nesta demonstração. Obrigado!");}
-  catch(err){bot(err.message,true);}
-  optionsSimple([["Voltar ao início",()=>startMenu(),"submit"]]);
- },"submit"],["Cancelar",()=>startMenu(),"secondary"]]);
-}
 async function prepararFoto(arquivo){
  if(!arquivo||!arquivo.type.startsWith("image/"))throw Error("Selecione uma imagem.");
  if(arquivo.size>8*1024*1024)throw Error("A imagem deve ter no máximo 8 MB.");
@@ -158,7 +104,7 @@ function reiniciarDemonstracao(){
  history.replaceChildren();
  const divisor=document.createElement("div");divisor.className="day-divider";divisor.textContent="HOJE";history.appendChild(divisor);
  form.onsubmit=responderEtapa;
- bot(problemas?"A conversa foi reiniciada. Alguns registros locais não puderam ser restaurados.":"Demonstração reiniciada. Você pode percorrer todos os fluxos novamente.");
+ if(problemas)msg("A conversa foi reiniciada, mas alguns registros locais não puderam ser restaurados.",false,true);
  startMenu();
 }
 $("go-home").onclick=()=>{form.onsubmit=responderEtapa;startMenu();};
