@@ -2088,12 +2088,12 @@ function montarMarcadoresPublicos(){
  });
  for(const r of registros){
   const doacoes=r.modulo==='bases'&&r.tipo==='Centro de coleta de donativos';
-  const simbolo=doacoes?'📦':r.modulo==='riscos'?'⚠️':r.modulo==='bases'?'🏠':r.modulo==='saude'?'🏥':'📍';
+  const simbolo=doacoes?'📦':r.modulo==='abrigos'?'🛏️':r.modulo==='riscos'?'⚠️':r.modulo==='bases'?'🏠':r.modulo==='saude'?'🏥':'📍';
   const ic=L.divIcon({className:'ponto-publico-marker',html:'<span title="'+escHtml(r.nome)+'">'+simbolo+'</span>',iconSize:[30,30],iconAnchor:[15,30]});
   const geolocalizacao=r.geo_status||'Localização cadastrada';
   const source=/^https:\/\//.test(r.url_fonte||'')?'<a href="'+escHtml(r.url_fonte)+'" target="_blank" rel="noopener">Fonte pública</a>':'';
   const route=r.endereco?'<a href="https://www.google.com/maps/search/?api=1&amp;query='+encodeURIComponent(r.endereco+', Maringá, PR')+'" target="_blank" rel="noopener">Ver endereço no mapa</a>':'';
-  const observacao=doacoes?'<p><strong>Donativos:</strong> '+escHtml(r.itens_aceitos||'Confirmar antes de doar')+'</p><p>'+escHtml(r.horario||'Horário a confirmar')+'</p>':'';
+  const observacao=doacoes?'<p><strong>Donativos:</strong> '+escHtml(r.itens_aceitos||'Confirmar antes de doar')+'</p><p>'+escHtml(r.horario||'Horário a confirmar')+'</p>':r.modulo==='abrigos'?'<p><strong>Modalidade:</strong> '+escHtml(r.tipo||'Acolhimento')+'</p><p><strong>Capacidade total publicada:</strong> '+escHtml(r.capacidade||'Não informada')+' · Vagas livres: '+escHtml(r.disponiveis===''||r.disponiveis==null?'A confirmar':r.disponiveis)+'</p><p>'+escHtml(r.acesso||'Confirme a disponibilidade com a instituição')+'</p>':'';
   const aviso='<small>Coordenada: '+escHtml(geolocalizacao)+'. Cadastro: '+escHtml(r.verificacao||'Sem validação')+'. Confirme antes do deslocamento.</small>';
   const html='<div class="ponto-publico-popup"><strong>'+simbolo+' '+escHtml(r.nome)+'</strong><p>'+escHtml(r.endereco||r.localizacao||'')+'</p>'+observacao+aviso+'<div>'+[route,source].filter(Boolean).join(' · ')+'</div></div>';
   L.marker([Number(r.lat),Number(r.lng)],{icon:ic,title:r.nome}).bindPopup(html).addTo(layerRecursosPublicos);
@@ -2101,10 +2101,10 @@ function montarMarcadoresPublicos(){
  return registros.length;
 }
 
-void AlertaImportacaoPublica.carregar(gestao).then(()=>{
+void Promise.allSettled(["dados-territoriais/maringa-bases-riscos-publicos.json","dados-territoriais/maringa-abrigos-publicos.json"].map(url=>AlertaImportacaoPublica.carregar(gestao,{url}))).then(()=>{
  montarMarcadoresPublicos();
  if(buscaMapa.value.trim())buscarNoMapa();
-}).catch(error=>console.warn("Centros de doações: referências indisponíveis",error));
+});
 montarMarcadoresPublicos();
 function incluirTerritorio(territorio){
   if(noRecorte(territorio)) return;

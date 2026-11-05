@@ -1,7 +1,7 @@
-void AlertaImportacaoPublica.carregar(gestao).then(()=>{
+void Promise.allSettled(["dados-territoriais/maringa-bases-riscos-publicos.json","dados-territoriais/maringa-abrigos-publicos.json"].map(url=>AlertaImportacaoPublica.carregar(gestao,{url}))).then(()=>{
  montarMarcadoresPublicos();
  if(buscaMapa.value.trim())buscarNoMapa();
-}).catch(error=>console.warn("Centros de doações: referências indisponíveis",error));
+});
 montarMarcadoresPublicos();
 function incluirTerritorio(territorio){
   if(noRecorte(territorio)) return;
