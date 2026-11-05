@@ -48,14 +48,14 @@ function optionsSimple(itens){
  }
 }
 function startMenu(){
- role=null;answers={};steps=[];index=0;current=null;arquivosFoto=null;
- bot("Olá! 👋 Bem-vindo ao Maringá Alerta.\n\nComo podemos ajudar você hoje?");
+ // O cidadão entra exclusivamente pelos três fluxos canônicos.
+ identity=null;role=null;answers={};steps=[];index=0;current=null;arquivosFoto=null;
+ form.onsubmit=responderEtapa;
+ bot("Olá! Bem-vindo ao Maringá Alerta.\n\nO que você deseja fazer?");
  optionsSimple([
-  ["🤝 Quero ajudar",()=>abrirPraSomar(),"submit"],
-  ["🫶 Preciso de ajuda",()=>start("solicitacao")],
-  ["📍 Relatar ocorrência",()=>start("relato")],
-  ["🔎 Consultar cadastro ou protocolo",()=>consultarCadastro()],
-  ["✅ Cheguei / Terminei",()=>iniciarFase()]
+  ["Ser colaborador",()=>abrirPraSomar(),"submit"],
+  ["Relatar ocorrência",()=>start("relato")],
+  ["Preciso de ajuda",()=>start("solicitacao")]
  ]);
 }
 function abrirPraSomar(){
@@ -69,17 +69,28 @@ const BENS_DEMANDA=new Set(["Alimentação","Telhas e cobertura","Roupas e cober
 const ofereceBens=a=>["ajudas","maquinas","materiais"].some(k=>(a[k]||[]).some(x=>BENS.has(x)));
 function identificarCampos(papel){
  const b=[];
- if(papel!=="relato"&&!identity?.tipo_pessoa)b.push({key:"tipo_pessoa",q:"Você é pessoa física ou jurídica?",kind:"single",opts:["FÍSICA","JURÍDICA"],required:true});
  if(!identity?.nome)b.push({key:"nome",q:papel==="relato"?"Qual é seu nome?":"Qual é seu nome completo ou razão social?",kind:"text",required:true});
+ if(papel!=="relato"&&!identity?.tipo_pessoa)b.push({key:"tipo_pessoa",q:"Você é pessoa física ou jurídica?",kind:"single",opts:["FÍSICA","JURÍDICA"],required:true});
+ if(papel!=="relato"&&!identity?.endereco)b.push({key:"endereco",q:"Informe seu endereço. Ele ficará reservado à equipe de atendimento.",kind:"text",required:true});
  if(!identity?.telefone)b.push({key:"telefone",q:"Qual é seu telefone com DDD?",kind:"tel",required:true});
  if(papel==="colaborador"&&!identity?.email)b.push({key:"email",q:"Qual é seu e-mail?",kind:"email",required:true});
- if(papel!=="relato"&&!identity?.endereco)b.push({key:"endereco",q:"Informe seu endereço. Ele ficará reservado à equipe de atendimento.",kind:"text",required:true});
  return b;
+}
+// Não exigir que o cidadão saiba a zona: usa somente vínculos territoriais já cadastrados.
+function zonaPeloEndereco(endereco){
+ const norm=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+ const texto=" "+norm(endereco)+" ";
+ if(!texto.trim())return "";
+ const zonas=dados.lista("zonas").map(z=>z.nome).filter(Boolean);
+ const encontradas=zonas.filter(nome=>texto.includes(" "+norm(nome)+" "));
+ if(encontradas.length===1)return encontradas[0];
+ const referencias=dados.lista("bairros").filter(b=>b.nome&&b.zona&&texto.includes(" "+norm(b.nome)+" "));
+ const associadas=[...new Set(referencias.map(b=>b.zona))];
+ return associadas.length===1?associadas[0]:"";
 }
 function definirSteps(papel){
  const base=identificarCampos(papel);
  if(papel==="colaborador")return [...base,
-  {key:"zona",q:"Qual é sua zona ou região de referência? Se não souber, escolha a última opção.",kind:"single",opts:[...app.zonas(),"Não sei informar"],required:true},
   {key:"ajudas",q:"Que tipos de ajuda você pode oferecer às pessoas atingidas? Pode marcar várias.",kind:"multi",opts:catalogos.ajudas},
   {key:"outros_ajudas",q:"Você marcou OUTRO em ajuda a pessoas. O que pode oferecer?",kind:"text",required:true,quando:a=>(a.ajudas||[]).includes("OUTRO")},
   {key:"maquinas",q:"Você pode oferecer maquinário, veículos, equipamentos ou materiais? Marque quantos quiser.",kind:"multi",opts:catalogos.maquinas},
@@ -87,11 +98,9 @@ function definirSteps(papel){
   {key:"empreendedores",q:"Pode ajudar empreendedores atingidos? Escolha as opções que se aplicam.",kind:"multi",opts:catalogos.empreendedores},
   {key:"outros_empreendedores",q:"Que outro apoio pode oferecer aos empreendedores?",kind:"text",required:true,quando:a=>(a.empreendedores||[]).includes("OUTRO")},
   {key:"materiais",q:"Pode fornecer material de construção ou combustível?",kind:"multi",opts:catalogos.materiais},
-  {key:"forma_entrega_doacao",q:"Como prefere disponibilizar alimentos ou materiais? A prefeitura deve confirmar o ponto de recebimento antes de qualquer entrega.",kind:"single",opts:catalogos.formas_entrega_doacao,quando:ofereceBens},
-  {key:"disponibilidade",q:"Você está disponível para receber solicitações de ajuda?",kind:"single",opts:["Disponível","A combinar","Indisponível"],required:true}
+  {key:"forma_entrega_doacao",q:"Como prefere disponibilizar alimentos ou materiais? A prefeitura deve confirmar o ponto de recebimento antes de qualquer entrega.",kind:"single",opts:catalogos.formas_entrega_doacao,quando:ofereceBens}
  ];
  if(papel==="solicitacao")return [...base,
-  {key:"zona",q:"Em qual zona ou região você precisa de ajuda?",kind:"single",opts:[...app.zonas(),"Não sei informar"],required:true},
   {key:"necessidade",q:"Do que você precisa neste momento?",kind:"single",opts:catalogos.necessidades,required:true},
   {key:"descricao",q:"Quer contar mais detalhes da sua necessidade?",kind:"text",optional:true},
   {key:"modo_recebimento",q:"Como você consegue receber a ajuda?",kind:"single",opts:["Posso retirar em um ponto de apoio","Preciso receber no endereço informado","A combinar"],quando:a=>BENS_DEMANDA.has(a.necessidade)},
@@ -181,20 +190,16 @@ function responderEtapa(e){
 form.onsubmit=responderEtapa;
 function protocolo(prefixo,id){return prefixo+"-SIM-"+String(id).replace(/[^a-z0-9]/gi,"").slice(-7).toUpperCase();}
 function finalizarOpcoes(){
- optionsSimple([
-  ["↩ Novo atendimento",()=>startMenu(),"submit"],
-  ["🔎 Consultar cadastro",()=>consultarCadastro()],
-  ["📍 Mapa de Colaboradores",()=>abrir("../mapas/?tipo=colaboradores")],
-  ["🫶 Mapa da Ajuda",()=>abrir("../mapas/?tipo=ajuda")]
- ]);
+ optionsSimple([["Voltar ao início",()=>startMenu(),"submit"]]);
 }
 function concluir(){
  try{
+  if(role==="colaborador"||role==="solicitacao")answers.zona=zonaPeloEndereco(answers.endereco);
   if(role==="colaborador"){
    const anterior=app.encontrarPessoa(answers.telefone);
    const outros=[["Ajuda a pessoas",answers.outros_ajudas],["Máquinas",answers.outros_maquinas],["Empreendedores",answers.outros_empreendedores]]
     .filter(x=>x[1]).map(x=>x[0]+": "+x[1]).join("; ");
-   const resultado=app.registrarColaborador({...answers,outros});
+   const resultado=app.registrarColaborador({...answers,outros,disponibilidade:"A combinar"});
    registrarMudanca("voluntarios",resultado,anterior);
    identity={nome:resultado.nome,tipo_pessoa:resultado.tipo_pessoa,telefone:resultado.telefone,endereco:resultado.endereco,email:resultado.email,zona:resultado.zona};
    bot("Cadastro de colaborador concluído! ✅\n\nProtocolo de demonstração: "+protocolo("COL",resultado.id)+
@@ -236,56 +241,6 @@ function concluir(){
  }
  finalizarOpcoes();
 }
-function abrir(url){
- window.open(url,"_blank","noopener,noreferrer");
- bot("A página solicitada foi aberta em outra aba. A demonstração permanece disponível aqui.");
- optionsSimple([["Voltar ao início",()=>startMenu(),"submit"]]);
-}
-function consultarCadastro(){
- bot("Informe o telefone com DDD usado no cadastro. A consulta funciona apenas para dados salvos neste navegador.");
- current={key:"consulta_telefone",kind:"tel",required:true};
- clear();form.hidden=false;$("compose-placeholder").hidden=true;input.type="tel";input.placeholder="(44) 99999-9999";input.required=true;
- form.onsubmit=e=>{
-  e.preventDefault();const tel=input.value.trim();
-  if(MaringaCrise.telefone(tel).length<10){msg("Informe o telefone com DDD.",false,true);return;}
-  msg(tel,true);
-  const igual=(x)=>MaringaCrise.mesmoTelefone(x.telefone,tel);
-  const colaborador=app.oferentes().find(igual),pedidos=app.pedidos().filter(igual),relatos=dados.lista("relatos").filter(igual);
-  if(!colaborador&&!pedidos.length&&!relatos.length)bot("Não encontrei registros com esse número nesta demonstração.");
-  else bot("Resultados neste navegador:\n"+
-    (colaborador?"• Colaborador: "+protocolo("COL",colaborador.id)+" · "+(colaborador.disponibilidade||"Cadastrado")+"\n":"")+
-    pedidos.map(p=>"• Pedido: "+protocolo("AJU",p.id)+" · "+p.necessidade+" · "+p.status).join("\n")+
-    (pedidos.length&&relatos.length?"\n":"")+
-    relatos.map(r=>"• Ocorrência: "+protocolo("OCO",r.id)+" · "+r.status).join("\n"));
-  optionsSimple([["Consultar outro telefone",()=>consultarCadastro(),"submit"],["Voltar ao início",()=>startMenu()]]);
- };
- input.focus();
-}
-function iniciarFase(){
- bot("Este é um teste de presença do colaborador. Informe seu telefone para consultar encaminhamentos e registrar CHEGUEI ou TERMINEI.");
- current={key:"fase_telefone",kind:"tel",required:true};clear();form.hidden=false;$("compose-placeholder").hidden=true;input.type="tel";input.required=true;input.placeholder="(44) 99999-9999";
- form.onsubmit=e=>{
-  e.preventDefault();const tel=input.value.trim();msg(tel,true);
-  const pessoa=app.encontrarPessoa(tel);
-  if(!pessoa){bot("Não há cadastro de colaborador com esse telefone nesta demonstração.");optionsSimple([["Início",()=>startMenu()]]);return;}
-  const pendentes=app.pedidos().filter(x=>x.atribuido_a===pessoa.id&&["Encaminhada","Cheguei"].includes(x.status));
-  if(!pendentes.length){bot("Não há encaminhamentos ativos para este colaborador no cenário simulado.");optionsSimple([["Início",()=>startMenu()]]);return;}
-  bot("Encontramos "+pendentes.length+" encaminhamento(s). Selecione um:");
-  optionsSimple(pendentes.map(p=>[p.necessidade+" · "+(p.zona||"Sem zona"),()=>escolherFase(p.id)]));
- };
- input.focus();
-}
-function escolherFase(id){
- const p=app.pedidos().find(x=>x.id===id);
- if(!p){startMenu();return;}
- const fase=p.status==="Encaminhada"?"Cheguei":"Terminei";
- bot("Pedido de "+p.necessidade+".\nStatus: "+p.status+".\nDeseja confirmar "+fase.toUpperCase()+" neste teste?");
- optionsSimple([[fase.toUpperCase(),()=>{
-  try{app.registrarFase(id,fase);bot(fase==="Cheguei"?"Chegada registrada nesta demonstração.":"Participação concluída nesta demonstração. Obrigado!");}
-  catch(err){bot(err.message,true);}
-  optionsSimple([["Voltar ao início",()=>startMenu(),"submit"]]);
- },"submit"],["Cancelar",()=>startMenu(),"secondary"]]);
-}
 async function prepararFoto(arquivo){
  if(!arquivo||!arquivo.type.startsWith("image/"))throw Error("Selecione uma imagem.");
  if(arquivo.size>8*1024*1024)throw Error("A imagem deve ter no máximo 8 MB.");
@@ -326,7 +281,7 @@ function reiniciarDemonstracao(){
  history.replaceChildren();
  const divisor=document.createElement("div");divisor.className="day-divider";divisor.textContent="HOJE";history.appendChild(divisor);
  form.onsubmit=responderEtapa;
- bot(problemas?"A conversa foi reiniciada. Alguns registros locais não puderam ser restaurados.":"Demonstração reiniciada. Você pode percorrer todos os fluxos novamente.");
+ if(problemas)msg("A conversa foi reiniciada, mas alguns registros locais não puderam ser restaurados.",false,true);
  startMenu();
 }
 $("go-home").onclick=()=>{form.onsubmit=responderEtapa;startMenu();};
