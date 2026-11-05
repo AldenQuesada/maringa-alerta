@@ -90,14 +90,13 @@ function zonaPeloEndereco(endereco){
 function definirSteps(papel){
  const base=identificarCampos(papel);
  if(papel==="colaborador")return [...base,
-  {key:"ajudas",q:"Que tipos de ajuda você pode oferecer às pessoas atingidas? Pode marcar várias.",kind:"multi",opts:catalogos.ajudas},
-  {key:"outros_ajudas",q:"Você marcou OUTRO em ajuda a pessoas. O que pode oferecer?",kind:"text",required:true,quando:a=>(a.ajudas||[]).includes("OUTRO")},
-  {key:"maquinas",q:"Você pode oferecer maquinário, veículos, equipamentos ou materiais? Marque quantos quiser.",kind:"multi",opts:catalogos.maquinas},
-  {key:"outros_maquinas",q:"Qual outro equipamento ou máquina você pode disponibilizar?",kind:"text",required:true,quando:a=>(a.maquinas||[]).includes("OUTRO")},
-  {key:"empreendedores",q:"Pode ajudar empreendedores atingidos? Escolha as opções que se aplicam.",kind:"multi",opts:catalogos.empreendedores},
-  {key:"outros_empreendedores",q:"Que outro apoio pode oferecer aos empreendedores?",kind:"text",required:true,quando:a=>(a.empreendedores||[]).includes("OUTRO")},
-  {key:"materiais",q:"Pode fornecer material de construção ou combustível?",kind:"multi",opts:catalogos.materiais},
-  {key:"forma_entrega_doacao",q:"Como prefere disponibilizar alimentos ou materiais? A prefeitura deve confirmar o ponto de recebimento antes de qualquer entrega.",kind:"single",opts:catalogos.formas_entrega_doacao,quando:ofereceBens}
+  {key:"ajudas",q:"Que tipo de ajuda pode oferecer para pessoas atingidas?",kind:"multi",opts:catalogos.ajudas},
+  {key:"maquinas",q:"MAQUINÁRIO, equipamentos e materiais disponíveis",kind:"multi",opts:catalogos.maquinas},
+  {key:"empreendedores",q:"Que tipo de apoio pode oferecer para empreendedores?",kind:"multi",opts:catalogos.empreendedores},
+  {key:"outros",q:"Especifique qual outra ajuda, equipamento ou apoio você pode oferecer.",kind:"text",required:true,
+   quando:a=>["ajudas","maquinas","empreendedores"].some(grupo=>(a[grupo]||[]).includes("OUTRO"))},
+  {key:"materiais",q:"MATERIAL CONSTRUÇÃO / COMBUSTÍVEL",kind:"multi",opts:catalogos.materiais},
+  {key:"forma_entrega_doacao",q:"Como você disponibiliza sua doação?",kind:"single",opts:catalogos.formas_entrega_doacao,quando:ofereceBens}
  ];
  if(papel==="solicitacao")return [...base,
   {key:"necessidade",q:"Do que você precisa neste momento?",kind:"single",opts:catalogos.necessidades,required:true},
@@ -121,6 +120,10 @@ function start(papel,nomeJaPerguntado=false){
 function gravarResposta(valor,exibicao=null){
  if(!current)return;
  answers[current.key]=valor;
+ if(role==="colaborador" && ["ajudas","maquinas","empreendedores"].includes(current.key) &&
+   !["ajudas","maquinas","empreendedores"].some(grupo=>(answers[grupo]||[]).includes("OUTRO")))delete answers.outros;
+ if(role==="colaborador" && ["ajudas","maquinas","materiais"].includes(current.key) && !ofereceBens(answers))
+  delete answers.forma_entrega_doacao;
  const exib=exibicao??(Array.isArray(valor)?(valor.join(" · ")||"Nenhuma opção selecionada"):String(valor||"Prefiro não informar"));
  msg(exib,true);index++;proxima();
 }
@@ -190,8 +193,10 @@ function mostrarRevisao(){
   bot("Selecione pelo menos um tipo de colaboração para concluir.",true);
   index=steps.findIndex(s=>s.key==="ajudas");proxima();return;
  }
- const labels={nome:"Nome",tipo_pessoa:"Pessoa",telefone:"Telefone",email:"E-mail",endereco:"Endereço",zona:"Zona",ajudas:"Ajuda a pessoas",maquinas:"Máquinas e equipamentos",empreendedores:"Empreendedores",materiais:"Materiais e combustível",forma_entrega_doacao:"Entrega da doação",disponibilidade:"Disponibilidade",necessidade:"Necessidade",descricao:"Detalhes",modo_recebimento:"Recebimento",urgencia:"Urgência",endereco_ocorrencia:"Local da ocorrência",pessoas_no_local:"Pessoas no local",necessidade_relato:"Descrição",foto:"Fotografia",outros_ajudas:"Outros serviços",outros_maquinas:"Outros equipamentos",outros_empreendedores:"Outros apoios"};
+ const labels={nome:"Nome",tipo_pessoa:"Pessoa",telefone:"Telefone",email:"E-mail",endereco:"Endereço",zona:"Zona",ajudas:"Ajuda a pessoas",maquinas:"Máquinas e equipamentos",empreendedores:"Empreendedores",materiais:"Materiais e combustível",forma_entrega_doacao:"Entrega da doação",disponibilidade:"Disponibilidade",necessidade:"Necessidade",descricao:"Detalhes",modo_recebimento:"Recebimento",urgencia:"Urgência",endereco_ocorrencia:"Local da ocorrência",pessoas_no_local:"Pessoas no local",necessidade_relato:"Descrição",foto:"Fotografia",outros:"Especificar outros",outros_ajudas:"Outros serviços",outros_maquinas:"Outros equipamentos",outros_empreendedores:"Outros apoios"};
  const linhas=Object.entries(answers).filter(([k,v])=>labels[k]&&v!==""&&v!=null&&(!Array.isArray(v)||v.length)).map(([k,v])=>labels[k]+": "+(Array.isArray(v)?v.join(", "):k==="foto"?"Imagem anexada":String(v)));
  bot("Confira suas informações antes de concluir:\n\n"+linhas.join("\n")+"\n\nEstá tudo correto?");
- optionsSimple([["✓ Confirmar e concluir",()=>concluir(),"submit"],["✎ Corrigir respostas",()=>{index=0;bot("Vamos revisar suas respostas. As escolhas anteriores foram preservadas.");proxima();}],["Voltar ao início",()=>startMenu(),"secondary"]]);
+ const acoes=[["✓ Confirmar e concluir",()=>concluir(),"submit"],["✎ Corrigir respostas",()=>{index=0;bot("Vamos revisar suas respostas. As escolhas anteriores foram preservadas.");proxima();}]];
+ if(role!=="colaborador")acoes.push(["Voltar ao início",()=>startMenu(),"secondary"]);
+ optionsSimple(acoes);
 }
