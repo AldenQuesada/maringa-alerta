@@ -122,7 +122,7 @@ async function carregarZonasOficiais(){
    nomesZonasOficiais.push(nome);poligonos.addLayer(layer);
   }
   zoneSelect();render();
- }catch(error){console.warn("Zonas numeradas indisponíveis",error);}
+ }catch(error){zonasConsultadas=false;console.warn("Zonas numeradas indisponíveis",error);}
 }
 function renderUnidadesMunicipais(){
  unidadesMunicipais.clearLayers();
