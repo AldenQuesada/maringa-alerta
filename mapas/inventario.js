@@ -62,13 +62,17 @@ function transformar(modulo,registro,relacao){
   registro.servicos,
   registro.urgencia,
   registro.descricao,
-  registro.observacoes
+  registro.observacoes,
+  registro.publico,
+  registro.acesso,
+  registro.capacidade?("Capacidade total: "+registro.capacidade):"",
+  registro.disponiveis!==""&&registro.disponiveis!=null?("Vagas informadas: "+registro.disponiveis):""
  ].filter(Boolean).join(" · ");
  const extras=[
   nome,categoria,situacao,zona,bairro,registro.identificacao,registro.cargo,
   registro.necessidade,registro.tipo_pessoa,
   registro.ajudas,registro.maquinas,registro.empreendedores,registro.materiais,
-  registro.condicao,registro.recurso,registro.itens_aceitos,registro.fonte,
+  registro.condicao,registro.recurso,registro.itens_aceitos,registro.fonte,registro.publico,registro.acesso,
   privado?"":endereco
  ].flat().filter(Boolean).join(" ");
  return {

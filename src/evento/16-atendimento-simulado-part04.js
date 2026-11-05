@@ -128,7 +128,7 @@ function montarMarcadoresPublicos(){
  });
  for(const r of registros){
   const doacoes=r.modulo==='bases'&&r.tipo==='Centro de coleta de donativos';
-  const simbolo=doacoes?'📦':r.modulo==='riscos'?'⚠️':r.modulo==='bases'?'🏠':r.modulo==='saude'?'🏥':'📍';
+  const simbolo=doacoes?'📦':r.modulo==='abrigos'?'🛏️':r.modulo==='riscos'?'⚠️':r.modulo==='bases'?'🏠':r.modulo==='saude'?'🏥':'📍';
   const ic=L.divIcon({className:'ponto-publico-marker',html:'<span title="'+escHtml(r.nome)+'">'+simbolo+'</span>',iconSize:[30,30],iconAnchor:[15,30]});
   const geolocalizacao=r.geo_status||'Localização cadastrada';
   const source=/^https:\/\//.test(r.url_fonte||'')?'<a href="'+escHtml(r.url_fonte)+'" target="_blank" rel="noopener">Fonte pública</a>':'';
