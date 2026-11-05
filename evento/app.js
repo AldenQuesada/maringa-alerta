@@ -540,7 +540,15 @@ function renderOfficialMarkers(){
   });
 }
 
+const assinaturaTerritorial=()=>JSON.stringify(["zonas","bairros"].flatMap(modulo=>
+ gestao.lista(modulo,tenantId).map(x=>[modulo,x.id,x.nome,x.zona,x.geojson,x.verificacao])));
+let ultimaAssinaturaTerritorial=assinaturaTerritorial();
 function atualizarCadastroMapa(){
+  // Alterações dos limites territoriais exigem reconstruir as camadas, não reaproveitar polígonos antigos.
+  const assinatura=assinaturaTerritorial();
+  if(assinatura!==ultimaAssinaturaTerritorial){
+   ultimaAssinaturaTerritorial=assinatura;location.reload();return;
+  }
   // A Gestão é a fonte dos cadastros: atualiza os eventos e as opções dos
   // filtros junto dos recursos e equipes ao retornar ao mapa ou mudar outra aba.
   atualizarFiltroEventos();
