@@ -74,7 +74,7 @@ function identificarCampos(papel){
  ];
  const b=[];
  if(!identity?.nome)b.push({key:"nome",q:"Qual é seu nome?",kind:"text",required:true});
- if(papel!=="relato"&&!identity?.tipo_pessoa)b.push({key:"tipo_pessoa",q:"Você é pessoa física ou jurídica?",kind:"single",opts:["FÍSICA","JURÍDICA"],required:true});
+ if(papel!=="relato"&&!identity?.tipo_pessoa)b.push({key:"tipo_pessoa",q:"Como você gostaria de se cadastrar?",kind:"single",opts:["FÍSICA","JURÍDICA"],required:true});
  if(papel!=="relato"&&!identity?.endereco)b.push({key:"endereco",q:"Informe seu endereço. Ele ficará reservado à equipe de atendimento.",kind:"text",required:true});
  if(!identity?.telefone)b.push({key:"telefone",q:"Qual é seu telefone com DDD?",kind:"tel",required:true});
  return b;
