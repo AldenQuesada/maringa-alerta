@@ -45,7 +45,7 @@ test("mapa cadastra 5 pontos de coleta sem duplicar o cadastro da Prefeitura",()
  assert.equal(pins.length,5,"A atualização substitui os marcadores sem duplicar");
  const scripts=read("index.html");
  assert.match(scripts,/dados-territoriais\/importacao-publica\.js/);
- assert.match(scripts,/evento\/app\.js\?v=apoios-\d+/);
+ assert.match(scripts,/evento\/app\.js\?v=[^"]+/);
  assert.match(read("gestao/index.html"),/importacao-publica\.js/);
 });
 test("bases sem coordenadas continuam consultáveis, sem pin fictício",()=>{

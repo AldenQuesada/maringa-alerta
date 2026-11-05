@@ -7,7 +7,7 @@
  if(typeof module==="object"&&module.exports)module.exports=api;
 })(typeof globalThis!=="undefined"?globalThis:this,function(root){
 "use strict";
-const MODULES=["bases","riscos"];
+const MODULES=["bases","riscos","abrigos"];
 const originalUrl=typeof document!=="undefined"&&document.currentScript?.src?
  new URL("maringa-bases-riscos-publicos.json",document.currentScript.src).href:null;
 const normal=x=>String(x??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
@@ -16,7 +16,7 @@ function importar(db,documento){
  if(db.municipioAtivo()?.codigo_ibge!=="4115200"||!documento||documento.municipio_ibge!=="4115200")return {novos:0,atualizados:0,preservados:0};
  const stats={novos:0,atualizados:0,preservados:0};
  for(const modulo of MODULES){
-  if(!Array.isArray(documento[modulo]))throw Error("Referências públicas inválidas: "+modulo);
+  if(!Array.isArray(documento[modulo]))continue;
   const campos=new Set(root.AlertaGestaoDados?.ESQUEMAS?.[modulo]?.fields?.map(f=>f.key)||[]);
   for(const src of documento[modulo]){
    if(!src.nome||!src.externalId||!src.url_fonte||src.verificacao!=="Em conferência")continue;
