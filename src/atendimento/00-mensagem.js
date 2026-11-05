@@ -78,13 +78,13 @@ function identificarCampos(papel){
 }
 // Não exigir que o cidadão saiba a zona: usa somente vínculos territoriais já cadastrados.
 function zonaPeloEndereco(endereco){
- const norm=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
- const texto=norm(endereco);
- if(!texto)return "";
+ const norm=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+ const texto=" "+norm(endereco)+" ";
+ if(!texto.trim())return "";
  const zonas=dados.lista("zonas").map(z=>z.nome).filter(Boolean);
- const encontradas=zonas.filter(nome=>new RegExp("(^|[^a-z0-9])"+norm(nome).replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"($|[^a-z0-9])").test(texto));
+ const encontradas=zonas.filter(nome=>texto.includes(" "+norm(nome)+" "));
  if(encontradas.length===1)return encontradas[0];
- const referencias=dados.lista("bairros").filter(b=>b.nome&&b.zona&&texto.includes(norm(b.nome)));
+ const referencias=dados.lista("bairros").filter(b=>b.nome&&b.zona&&texto.includes(" "+norm(b.nome)+" "));
  const associadas=[...new Set(referencias.map(b=>b.zona))];
  return associadas.length===1?associadas[0]:"";
 }
