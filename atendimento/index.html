@@ -1,30 +1,66 @@
 <!doctype html>
 <html lang="pt-BR">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0c1817"><title>Maringá Unida · Atendimento</title>
-<link rel="stylesheet" href="./chat.css?v=crise-1"></head>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#075e54">
+<title>Simulador WhatsApp · Maringá Alerta</title>
+<link rel="stylesheet" href="./chat.css?v=simulador-20261105">
+</head>
 <body>
-<div class="chat-shell">
- <header class="chat-header">
-  <a class="back" href="../gestao/" aria-label="Voltar ao painel">‹</a>
-  <div class="avatar">MU</div>
-  <div class="header-title"><strong>Maringá Unida</strong><small>Atendimento e cadastro · simulação</small></div>
-  <nav class="header-links"><a href="../mapas/?tipo=colaboradores" target="_blank" rel="noopener">Colaboradores</a><a href="../mapas/?tipo=ajuda" target="_blank" rel="noopener">Ajuda</a></nav>
+<div class="demo-layout">
+ <header class="demo-toolbar">
+  <div class="demo-brand">
+   <img src="https://previdencia.maringa.pr.gov.br/assets/images/logoprefeituranova.png" alt="Brasão da Prefeitura de Maringá">
+   <span><strong>Maringá Alerta</strong><small>Simulador de atendimento · WhatsApp</small></span>
+  </div>
+  <nav class="demo-actions" aria-label="Ações da demonstração">
+   <button id="go-home" type="button">Início</button>
+   <button id="restart-demo" type="button" class="restart">↻ Reiniciar demonstração</button>
+  </nav>
  </header>
- <div class="safety-banner" role="note">Protótipo local. Não é um canal oficial de emergência nem envia mensagens reais. Use dados fictícios nos testes. Em emergências, ligue 190, 192 ou 193.</div>
- <main id="history" class="history" aria-live="polite" aria-label="Conversa de cadastro">
-  <div class="day-divider">Maringá Unida</div>
- </main>
- <footer class="response-area">
-  <div id="options" class="options"></div>
-  <form id="reply-form" class="reply-form" hidden>
-   <input id="reply" autocomplete="off" placeholder="Escreva sua resposta..." aria-label="Responder mensagem">
-   <button id="reply-send" type="submit">Enviar <span aria-hidden="true">➤</span></button>
-  </form>
-  <p id="hint" class="hint">As respostas são salvas somente no navegador deste dispositivo.</p>
- </footer>
+ <div class="phone-frame">
+  <div class="phone-screen">
+   <div class="phone-status"><span id="phone-hour">12:00</span><span class="status-symbols" aria-hidden="true">●●● ▰ ◼</span></div>
+   <header class="chat-header">
+    <span class="chat-back" aria-hidden="true">‹</span>
+    <div class="avatar"><img src="https://previdencia.maringa.pr.gov.br/assets/images/logoprefeituranova.png" alt="Logo da Prefeitura de Maringá"></div>
+    <div class="header-title"><strong>Maringá Alerta</strong><small>Atendimento demonstrativo</small></div>
+    <div class="header-icons" aria-label="Ícones ilustrativos do WhatsApp">
+     <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="2" y="6" width="15" height="12" rx="3"></rect><path d="m17 10 5-3v10l-5-3"></path></svg>
+     <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3 4 5c-1.2 3 1 8 5 12s9 6 12 5l2-3-6-4-3 3c-3-1.5-5.5-4-7-7l3-3z"></path></svg>
+     <button id="menu-toggle" type="button" aria-label="Mais opções" aria-expanded="false">⋮</button>
+    </div>
+    <div id="chat-menu" class="chat-menu" hidden>
+     <button type="button" data-action="home">Voltar ao início</button>
+     <button type="button" data-action="reset">Reiniciar demonstração</button>
+    </div>
+   </header>
+   <div class="sim-banner">SIMULAÇÃO · Não envia mensagens reais nem substitui serviços de emergência.</div>
+   <main id="history" class="history" aria-live="polite" aria-label="Conversa de demonstração">
+    <div class="day-divider">HOJE</div>
+   </main>
+   <div class="chat-compose">
+    <div id="options" class="options" aria-label="Respostas rápidas"></div>
+    <div id="upload-area" class="upload-area" hidden>
+     <input type="file" id="photo-input" accept="image/*" hidden>
+     <button id="upload-photo" class="upload-photo" type="button">📷 Escolher foto do dispositivo</button>
+     <div id="photo-preview" class="photo-preview" hidden></div>
+    </div>
+    <form id="reply-form" class="reply-form" hidden>
+     <span class="emoji" aria-hidden="true">☺</span>
+     <input id="reply" autocomplete="off" placeholder="Digite uma mensagem" aria-label="Responder mensagem">
+     <button id="reply-send" type="submit" aria-label="Enviar resposta">➤</button>
+    </form>
+    <div id="compose-placeholder" class="compose-placeholder"><span>☺</span><span>Escolha uma opção acima para responder...</span><span>🎙</span></div>
+   </div>
+   <div class="phone-home-indicator" aria-hidden="true"><span></span></div>
+  </div>
+ </div>
+ <p class="demo-footnote">Use dados fictícios. Para emergência real: 190 · 192 · 193. Cadastros desta demonstração permanecem neste navegador até serem reiniciados.</p>
 </div>
-<script src="../gestao/dados.js?v=gestao-5"></script>
-<script src="../crise/core.js?v=crise-3"></script>
-<script src="./chat.js?v=crise-3"></script>
-</body></html>
+<script src="../gestao/dados.js?v=simulador-20261105"></script>
+<script src="../crise/core.js?v=simulador-20261105"></script>
+<script src="./chat.js?v=simulador-20261105"></script>
+</body>
+</html>
