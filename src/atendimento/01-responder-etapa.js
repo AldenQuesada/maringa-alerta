@@ -13,7 +13,6 @@ function responderEtapa(e){
   const n=MaringaCrise.telefone(valor);
   if(n.length<10||n.length>13){msg("Informe um telefone válido com DDD.",false,true);input.focus();return;}
  }
- if(current.key==="email"&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor)){msg("Confira o endereço de e-mail e tente novamente.",false,true);input.focus();return;}
  gravarResposta(valor);
 }
 form.onsubmit=responderEtapa;
