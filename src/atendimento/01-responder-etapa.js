@@ -25,13 +25,12 @@ function concluir(){
   if(role==="colaborador"||role==="solicitacao")answers.zona=zonaPeloEndereco(answers.endereco);
   if(role==="colaborador"){
    const anterior=app.encontrarPessoa(answers.telefone);
-   const outros=[["Ajuda a pessoas",answers.outros_ajudas],["Máquinas",answers.outros_maquinas],["Empreendedores",answers.outros_empreendedores]]
-    .filter(x=>x[1]).map(x=>x[0]+": "+x[1]).join("; ");
+   const outros=String(answers.outros||"").trim();
    const resultado=app.registrarColaborador({...answers,outros,disponibilidade:"A combinar"});
    registrarMudanca("voluntarios",resultado,anterior);
    identity={nome:resultado.nome,tipo_pessoa:resultado.tipo_pessoa,telefone:resultado.telefone,endereco:resultado.endereco,email:resultado.email,zona:resultado.zona};
    bot("Cadastro de colaborador concluído! ✅\n\nProtocolo de demonstração: "+protocolo("COL",resultado.id)+
-    "\nOfertas cadastradas: "+[resultado.ajudas,resultado.maquinas,resultado.empreendedores,resultado.materiais].flat().filter(Boolean).length+
+    "\nOfertas cadastradas: "+new Set([resultado.ajudas,resultado.maquinas,resultado.empreendedores,resultado.materiais].flat().filter(Boolean)).size+
     (resultado.forma_entrega_doacao?"\nDoação: "+resultado.forma_entrega_doacao:"")+
     "\n\nOs dados aparecem na Gestão e no Mapa de Colaboradores deste navegador. Nenhuma mensagem foi enviada a órgãos ou voluntários.");
   }else if(role==="solicitacao"){
