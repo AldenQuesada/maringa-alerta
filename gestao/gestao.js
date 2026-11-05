@@ -143,14 +143,15 @@ function renderTerritorioMunicipal(){
 async function importarUnidadesCNES(){
  if(cnesConsultado||db.municipioAtivo()?.codigo_ibge!=="4115200")return;
  cnesConsultado=true;
- if(db.lista("saude").some(x=>String(x.codigo_cnes||"").length===7))return;
+ const codigosExistentes=new Set(["saude","emergencias"].flatMap(modulo=>db.lista(modulo)).map(x=>String(x.codigo_cnes||"")).filter(Boolean));
+ if(codigosExistentes.size>=69)return;
  try{
   const r=await fetch("../dados-territoriais/maringa-unidades-cnes.json",{cache:"no-cache"});
   if(!r.ok)throw Error("Arquivo de referência CNES indisponível");
   const doc=await r.json();
   if(doc.municipio_ibge!=="4115200"||!Array.isArray(doc.unidades)||doc.unidades.length!==69)throw Error("Base CNES inválida");
   for(const [grupo] of [["saude"],["emergencias"]]){
-   const linhas=doc.unidades.filter(x=>x.grupo===grupo).map(x=>({nome:x.nome,tipo:x.tipo,codigo_cnes:x.codigo_cnes,externalId:"cnes:"+x.codigo_cnes,fonte:"CNES · Ministério da Saúde",url_fonte:doc.url_fonte,verificacao:"Em conferência"}));
+   const linhas=doc.unidades.filter(x=>x.grupo===grupo&&!codigosExistentes.has(String(x.codigo_cnes))).map(x=>({nome:x.nome,tipo:x.tipo,codigo_cnes:x.codigo_cnes,externalId:"cnes:"+x.codigo_cnes,fonte:"CNES · Ministério da Saúde",url_fonte:doc.url_fonte,verificacao:"Em conferência"}));
    if(linhas.length)db.importarLote(grupo,linhas);
   }
   if(atual==="estruturas"||atual==="inicio")render();
