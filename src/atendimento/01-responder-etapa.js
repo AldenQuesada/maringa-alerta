@@ -35,7 +35,7 @@ function concluir(){
     "\n\nOs dados aparecem na Gestão e no Mapa de Colaboradores deste navegador. Nenhuma mensagem foi enviada a órgãos ou voluntários.");
   }else if(role==="solicitacao"){
    // "Outro" é somente a classificação interna; a necessidade fica no texto original do cidadão.
-   const pedido=app.registrarPedido({...answers,necessidade:"Outro",descricao:String(answers.descricao||"").trim()}).pedido;
+   const pedido=app.registrarPedido({...answers,necessidade:"Outro",descricao:String(answers.descricao||"").trim(),urgencia:"Não avaliada"}).pedido;
    registrarMudanca("solicitacoes",pedido);
    identity={...identity,nome:pedido.nome,telefone:pedido.telefone,endereco:pedido.endereco,zona:pedido.zona};
    bot("Seu pedido de ajuda foi registrado. ✅\n\nAjuda solicitada: "+pedido.descricao+
