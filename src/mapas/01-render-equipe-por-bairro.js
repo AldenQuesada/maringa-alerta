@@ -38,7 +38,7 @@ async function iniciarCheckin(id,button){
 function renderCards(xs) {
  const el=$("results");$("list-count").textContent=xs.length+" registro"+(xs.length===1?"":"s");
  if(camadaAtual!=="principal"){
-  el.innerHTML=xs.map(x=>'<article class="result canonical-result"><div class="result-top"><strong>'+esc(x.nome)+'</strong><span class="result-tag">'+esc(x.classe)+'</span></div><small>'+esc(x.moduloNome)+' · '+esc(x.zona||x.bairro||"Sem zona vinculada")+'</small><small>'+esc(x.detalhes.slice(0,180))+'</small><div class="canonical-actions">'+(x.georreferenciado?'<button type="button" data-loc="'+esc(x.chave)+'">Localizar</button>':'<small>Sem coordenadas</small>')+'<a href="../gestao/#'+encodeURIComponent(x.modulo)+'" target="_blank" rel="noopener">Abrir cadastro</a></div></article>').join("")||'<p class="empty">Nenhum registro neste filtro.</p>';
+  el.innerHTML=xs.map(x=>'<article class="result canonical-result"><div class="result-top"><strong>'+esc(x.nome)+'</strong><span class="result-tag">'+esc(x.classe)+'</span></div><small>'+esc(x.moduloNome)+' · '+esc(x.zona||x.bairro||"Sem zona vinculada")+'</small><small>'+esc(x.detalhes.slice(0,180))+'</small><div class="canonical-actions">'+(x.georreferenciado?'<button type="button" data-loc="'+esc(x.chave)+'">Localizar</button>':'<small>Sem coordenadas</small>')+'(x.endereco?'<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query='+encodeURIComponent(x.endereco+", Maringá, PR")+'>Ver endereço</a>':"")+'<a href="../gestao/#'+encodeURIComponent(x.modulo)+'" target="_blank" rel="noopener">Abrir cadastro</a></div></article>').join("")||'<p class="empty">Nenhum registro neste filtro.</p>';
   el.querySelectorAll("[data-loc]").forEach(b=>b.onclick=()=>{const x=xs.find(y=>y.chave===b.dataset.loc);if(x?.georreferenciado)map.flyTo([x.lat,x.lng],Math.max(map.getZoom(),15));});
   return;
  }
@@ -65,7 +65,7 @@ function renderMarkers(xs){
  marcadores.clearLayers();
  if(camadaAtual!=="principal"){
   for(const x of xs.filter(x=>x.georreferenciado)){
-   const icon=x.modulo==="bases"&&x.categoria==="Centro de coleta de donativos"?"📦":x.modulo==="riscos"?"⚠️":"📍";
+   const icon=x.modulo==="abrigos"?"🛏️":x.modulo==="bases"&&x.categoria==="Centro de coleta de donativos"?"📦":x.modulo==="riscos"?"⚠️":"📍";
    const ic=L.divIcon({className:"pin canonical-map-pin",html:'<span class="canonical-pin">'+icon+'</span>',iconSize:[32,32],iconAnchor:[16,32]});
    L.marker([x.lat,x.lng],{icon:ic,title:x.nome}).bindPopup('<strong>'+esc(x.nome)+'</strong><p>'+esc(x.moduloNome)+' · '+esc(x.classe)+'</p><small>'+esc(x.precisao||"Localização cadastrada")+'</small>').addTo(marcadores);
   }

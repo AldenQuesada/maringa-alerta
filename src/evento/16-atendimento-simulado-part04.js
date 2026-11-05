@@ -133,7 +133,7 @@ function montarMarcadoresPublicos(){
   const geolocalizacao=r.geo_status||'Localização cadastrada';
   const source=/^https:\/\//.test(r.url_fonte||'')?'<a href="'+escHtml(r.url_fonte)+'" target="_blank" rel="noopener">Fonte pública</a>':'';
   const route=r.endereco?'<a href="https://www.google.com/maps/search/?api=1&amp;query='+encodeURIComponent(r.endereco+', Maringá, PR')+'" target="_blank" rel="noopener">Ver endereço no mapa</a>':'';
-  const observacao=doacoes?'<p><strong>Donativos:</strong> '+escHtml(r.itens_aceitos||'Confirmar antes de doar')+'</p><p>'+escHtml(r.horario||'Horário a confirmar')+'</p>':'';
+  const observacao=doacoes?'<p><strong>Donativos:</strong> '+escHtml(r.itens_aceitos||'Confirmar antes de doar')+'</p><p>'+escHtml(r.horario||'Horário a confirmar')+'</p>':r.modulo==='abrigos'?'<p><strong>Modalidade:</strong> '+escHtml(r.tipo||'Acolhimento')+'</p><p><strong>Capacidade total divulgada:</strong> '+escHtml(r.capacidade||'Não informada')+' · Vagas livres: '+escHtml(r.disponiveis===''||r.disponiveis==null?'A confirmar':r.disponiveis)+'</p><p>'+escHtml(r.acesso||'Confirme o encaminhamento com a instituição')+'</p>':'';
   const aviso='<small>Coordenada: '+escHtml(geolocalizacao)+'. Cadastro: '+escHtml(r.verificacao||'Sem validação')+'. Confirme antes do deslocamento.</small>';
   const html='<div class="ponto-publico-popup"><strong>'+simbolo+' '+escHtml(r.nome)+'</strong><p>'+escHtml(r.endereco||r.localizacao||'')+'</p>'+observacao+aviso+'<div>'+[route,source].filter(Boolean).join(' · ')+'</div></div>';
   L.marker([Number(r.lat),Number(r.lng)],{icon:ic,title:r.nome}).bindPopup(html).addTo(layerRecursosPublicos);

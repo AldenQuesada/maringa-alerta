@@ -32,3 +32,6 @@ select,input,textarea{background:#0d1724;border:1px solid #3c5065;color:var(--fg
 .team-member button{background:#24374b;color:#e3eff8;border:1px solid #45617a;border-radius:7px;padding:8px 9px;font-weight:700;font-size:10px;white-space:nowrap}
 .team-member button:hover{border-color:#ffb020}.team-member button:disabled{opacity:.5}
 .presence-note{color:#9eb3c5;font-size:10px;line-height:1.6;margin:10px 5px 16px}
+
+.canonical-result{cursor:default}
+.canonical-actions{flex-wrap:wrap}
