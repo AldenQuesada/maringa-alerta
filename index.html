@@ -335,7 +335,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <link rel="stylesheet" href="gestao/acoes-cabecalho.css?v=acoes-2">
 <link rel="stylesheet" href="cadastro-ocorrencia.css?v=3">
 <link rel="stylesheet" href="filtros-ocorrencias.css?v=1">
-<link rel="stylesheet" href="painel-eventos.css?v=2">
+<link rel="stylesheet" href="painel-eventos.css?v=3">
 <link rel="stylesheet" href="operacao-restauracao.css?v=1">
 </head>
 <body>
@@ -559,6 +559,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <script src="fluxo-ajuda.js?v=sessoes-1"></script>
 <script src="filtros-ocorrencias.js?v=1"></script>
 <script src="eventos-mapa.js?v=1"></script>
+<script src="evento-referencias.js?v=1"></script>
 <script src="operacao-restauracao.js?v=1"></script>
 <script src="painel-eventos.js?v=1"></script>
 <script src="sessao.js?v=sessoes-1"></script>
@@ -2519,8 +2520,7 @@ function atualizarFiltroEventos(){
 function renderEventoReferencias(){
   const target=document.getElementById('evento-referencias'),lista=eventosMunicipio();
   const ids=eventoAtivo.startsWith('mapa:')?EventosMapa.membros(eventoAtivo.slice(5),lista):[eventoAtivo];
-  target.replaceChildren();
-  lista.filter(e=>ids.includes(e.id)&&e.referencias).forEach(e=>{const box=document.createElement('section');const title=document.createElement('strong');title.textContent='Informações de fonte · '+e.nome;const content=document.createElement('p');content.textContent=e.referencias;box.append(title,content);if(e.url_fonte){const a=document.createElement('a');try{const u=new URL(e.url_fonte);if(['http:','https:'].includes(u.protocol)){a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';a.textContent='Consultar fonte';box.append(a);}}catch(_){}}target.append(box);});
+  EventoReferencias.render(target,lista.filter(e=>ids.includes(e.id)&&e.referencias));
 }
 document.getElementById('filtro-evento').addEventListener('change',e=>{
   eventoAtivo=e.target.value;renderEventoReferencias();
