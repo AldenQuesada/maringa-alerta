@@ -336,6 +336,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <link rel="stylesheet" href="cadastro-ocorrencia.css?v=3">
 <link rel="stylesheet" href="filtros-ocorrencias.css?v=1">
 <link rel="stylesheet" href="painel-eventos.css?v=1">
+<link rel="stylesheet" href="operacao-restauracao.css?v=1">
 </head>
 <body>
 <button id="menu-backdrop" class="menu-backdrop" aria-label="Fechar zonas e menus"></button>
@@ -557,6 +558,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 <script src="cadastro-ocorrencia-mapa.js?v=2"></script>
 <script src="fluxo-ajuda.js?v=sessoes-1"></script>
 <script src="filtros-ocorrencias.js?v=1"></script>
+<script src="operacao-restauracao.js?v=1"></script>
 <script src="painel-eventos.js?v=1"></script>
 <script src="sessao.js?v=sessoes-1"></script>
 <script src="sessao-ui.js?v=sessoes-2"></script>
@@ -2463,6 +2465,9 @@ function salvarPrototipo(){
       chatHistorico,alertasClimaticos,prontidao,alertaIdCursor};
     const serializado=JSON.stringify(dados);
     if(serializado===ultimaSerializacao)return true;
+    if(localStorage.getItem(storageKey('operacao'))!==ultimaSerializacao){
+      const aviso=document.getElementById('demo-save-status');aviso.textContent='Os dados foram alterados em outra aba. Recarregue antes de continuar; não substituímos os dados salvos.';aviso.hidden=false;return false;
+    }
     localStorage.setItem(storageKey('operacao'),serializado);
     ultimaSerializacao=serializado;
     document.getElementById('demo-save-status').hidden=true;
@@ -2470,11 +2475,7 @@ function salvarPrototipo(){
   }catch(e){const aviso=document.getElementById('demo-save-status');aviso.textContent='Não foi possível salvar neste navegador.';aviso.hidden=false;return false;}
 }
 
-function restaurarPrototipo(){
-  let dados;
-  try{dados=JSON.parse(localStorage.getItem(storageKey('operacao'))||'null');}catch(e){return false;}
-  if(!dados||dados.versao!==1||dados.tenantId!==tenantId||!Array.isArray(dados.ocorrencias)||!Array.isArray(dados.voluntarios))return false;
-  if(dados.voluntarios.some(v=>!bairros.some(b=>b.nome===v.bairro)))return false;
+function restaurarPrototipo(dados){
   idCounter=dados.idCounter||1;if(Number.isFinite(dados.eventStart))eventStart=dados.eventStart;
   voluntarios=dados.voluntarios.map(v=>{
     const marker=L.marker(v.pos,{icon:volIcon(),title:v.nome}).addTo(volLayer);
@@ -2570,7 +2571,18 @@ function fecharMenuMobile(){
 
 iniciarControlesDemo();
 if(window.innerWidth<=860)document.getElementById('floatwin-min').click();
-if(!restaurarPrototipo()){
+const recuperacao=OperacaoRestauracao.ler(localStorage,storageKey('operacao'),tenantId);
+if(recuperacao.estado==='bloqueado'){
+  const overlay=document.createElement('div');overlay.className='recuperacao-overlay';
+  overlay.innerHTML='<section class="recuperacao-card" role="alertdialog" aria-modal="true" aria-labelledby="recuperacao-title"><h2 id="recuperacao-title">Seus dados foram preservados</h2><p id="recuperacao-motivo"></p><p>O mapa foi interrompido para impedir que os dados sejam substituídos. Salve uma cópia e procure suporte para recuperar o conteúdo.</p><button type="button" id="recuperacao-backup">Baixar cópia dos dados</button></section>';
+  overlay.querySelector('#recuperacao-motivo').textContent=recuperacao.motivo;
+  const backup=overlay.querySelector('#recuperacao-backup');backup.hidden=recuperacao.original===null;
+  backup.onclick=()=>{const url=URL.createObjectURL(new Blob([recuperacao.original],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download='backup-mapa-operacional.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+  document.body.appendChild(overlay);(backup.hidden?overlay.querySelector('h2'):backup).focus();
+  return;
+}
+if(recuperacao.estado==='restauravel'){restaurarPrototipo(recuperacao.dados);ultimaSerializacao=recuperacao.original;}
+if(recuperacao.estado==='vazio'){
 gerarVoluntarios();
 for(let i=0;i<5;i++) gerarOcorrencia();
 gerarOcorrencia({zona:bairros[0].nome,tipo:tiposOcorrencia[0]});
