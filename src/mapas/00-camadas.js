@@ -1,0 +1,42 @@
+/* Camadas geográficas do cadastro municipal, sem polígonos fictícios. */
+const unidadesMunicipais=L.layerGroup().addTo(map);
+const nomesZonasOficiais=[];
+const pontosZonasOficiais=new Map();
+let mostrarUnidades=true,zonasConsultadas=false;
+function pontoZona(nome){return app.pontoDaZona(nome)||pontosZonasOficiais.get(INVENTARIO.normal(nome))||null;}
+async function carregarZonasOficiais(){
+ if(zonasConsultadas||app.prefeitura()?.id!=="maringa"||!globalThis.MaringaBairros)return;
+ zonasConsultadas=true;
+ try{
+  const dados=await MaringaBairros.carregar();
+  for(const feature of dados.zonasNumeradas?.features||[]){
+   const nome=String(feature.properties?.nome||"").trim();
+   if(!/^Zona\s*\d+$/i.test(nome))continue;
+   const layer=L.geoJSON(feature,{
+    style:{color:"#e7b94c",weight:1.6,fillColor:"#e7b94c",fillOpacity:.035,dashArray:"5 5"},
+    onEachFeature:(_f,shape)=>{shape.bindTooltip(nome,{sticky:true});shape.on("click",()=>{filtroZona=nome;zoneSelect();render();});}
+   });
+   const bounds=layer.getBounds();if(!bounds?.isValid())continue;
+   const centro=bounds.getCenter();
+   pontosZonasOficiais.set(INVENTARIO.normal(nome),{lat:centro.lat,lng:centro.lng,label:nome});
+   nomesZonasOficiais.push(nome);poligonos.addLayer(layer);
+  }
+  zoneSelect();render();
+ }catch(error){zonasConsultadas=false;console.warn("Zonas numeradas indisponíveis",error);}
+}
+function renderUnidadesMunicipais(){
+ unidadesMunicipais.clearLayers();
+ const todos=INVENTARIO.registros(app.db).filter(x=>x.georreferenciado&&!x.privado);
+ const visiveis=camadaAtual==="principal"&&mostrarUnidades?INVENTARIO.filtrar(todos,{zona:filtroZona,busca:texto}):[];
+ const indicador=$("mostrar-unidades-texto");
+ if(indicador)indicador.textContent="Mostrar unidades e recursos ("+todos.length+" georreferenciados)";
+ for(const x of visiveis){
+  const simbolo=x.modulo==="abrigos"?"🛏️":x.modulo==="bases"&&x.categoria==="Centro de coleta de donativos"?"📦":x.modulo==="riscos"?"⚠️":x.grupo==="Estruturas"?"🏥":"📍";
+  const icon=L.divIcon({className:"pin canonical-map-pin",html:'<span class="canonical-pin">'+simbolo+"</span>",iconSize:[32,32],iconAnchor:[16,32]});
+  const detalhes=[x.moduloNome,x.classe,x.precisao].filter(Boolean).map(esc).join(" · ");
+  const local=x.endereco?"<p>"+esc(x.endereco)+"</p>":"";
+  const fonte=x.fonteUrl?'<a href="'+esc(x.fonteUrl)+'" target="_blank" rel="noopener">Fonte</a>':"";
+  L.marker([x.lat,x.lng],{icon,title:x.nome}).bindPopup("<strong>"+esc(x.nome)+"</strong>"+local+"<small>"+detalhes+"</small>"+fonte).addTo(unidadesMunicipais);
+ }
+ return visiveis.length;
+}

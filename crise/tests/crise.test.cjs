@@ -7,7 +7,11 @@ function storage(){const m=new Map();return {getItem:k=>m.get(k)??null,setItem:(
 const novo=()=>{const memoria=storage();return {core:Crise.criar({armazenamento:memoria}),memoria};};
 const pessoa=(n,tel,extra={})=>({nome:n,tipo_pessoa:"FÍSICA",endereco:"Rua fictícia",telefone:tel,zona:"Zona 7",...extra});
 test("três mapas conceituais: Maringá possui zonas e o mapa original permanece em index.html",()=>{
- const {core}=novo();assert.equal(core.prefeitura().nome,"Maringá");assert.ok(core.zonas().includes("Zona 7"));assert.ok(core.pontoDaZona("Zona 7").lat<0);
+ const {core}=novo();assert.equal(core.prefeitura().nome,"Maringá");
+ assert.equal(core.pontoDaZona("Zona 7"),null,"Sem limites verificados não pode criar ponto fictício");
+ core.db.gravar("zonas",{nome:"Zona 7",tipo:"Zona numerada",geojson:JSON.stringify({type:"Polygon",coordinates:[[[-51.94,-23.40],[-51.93,-23.40],[-51.93,-23.39],[-51.94,-23.40]]]})});
+ assert.ok(core.zonas().includes("Zona 7"));
+ assert.ok(core.pontoDaZona("Zona 7").lat<0);
 });
 test("cadastro PF exige quatro campos básicos",()=>{
  const {core}=novo();assert.throws(()=>core.registrarColaborador({nome:"Teste",tipo_pessoa:"FÍSICA",telefone:"44999990000"}),/endereço/i);
@@ -70,7 +74,7 @@ test("após encaminhamento, colaborador só confirma Cheguei e Terminei",()=>{
  assert.equal(core.registrarFase(p.id,"Terminei").status,"Atendida");
 });
 test("brigada reúne colaboradores e equipes da zona em um clique, mas não envia automaticamente",()=>{
- const {core}=novo();core.registrarColaborador(pessoa("Fornecedor","44999990012",{ajudas:["LIMPEZA"]}));
+ const {core}=novo();core.db.gravar("zonas",{nome:"Zona 7",tipo:"Zona numerada"});core.registrarColaborador(pessoa("Fornecedor","44999990012",{ajudas:["LIMPEZA"]}));
  core.db.gravar("equipes",{nome:"Equipe municipal",zona:"Zona 7",telefone:"44999990013"});
  const out=core.acionarBrigada("Zona 7","Teste de mobilização");
  assert.equal(out.destinatarios.length,2);assert.equal(out.mobilizacao.status,"Preparada");
@@ -91,7 +95,7 @@ test("dados municipais não vazam para a prefeitura de outro tenant local",()=>{
  assert.equal(outra.oferentes().length,0);assert.equal(outra.pedidos().length,0);
 });
 test("nenhum canal WhatsApp real é usado no core",()=>{
- const {core}=novo();const out=core.acionarBrigada("Zona 7");
+ const {core}=novo();core.db.gravar("zonas",{nome:"Zona 7",tipo:"Zona numerada"});const out=core.acionarBrigada("Zona 7");
  assert.equal(out.destinatarios.length,0);assert.ok(out.mensagem.includes("REDE MUNICIPAL"));
 });
 

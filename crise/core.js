@@ -7,14 +7,6 @@
   root.MaringaCrise=api;
 })(typeof globalThis!=="undefined"?globalThis:this,function(root) {
 "use strict";
-const ZONAS_MARINGA=[
- {nome:"Zona 7",lat:-23.3995,lng:-51.9395},
- {nome:"Jardim Alvorada",lat:-23.387,lng:-51.912},
- {nome:"Conjunto Requião",lat:-23.436,lng:-51.956},
- {nome:"Jardim Universo",lat:-23.443,lng:-51.923},
- {nome:"Vila Esperança",lat:-23.382,lng:-51.951},
- {nome:"Centro Cívico",lat:-23.4225,lng:-51.9365}
-];
 const COMPATIBILIDADE={
  "Alimentação":["FORNECER ALIMENTAÇÃO"],
  "Telhas e cobertura":["PEDREIRO","CARPINTEIRO","MATERIAL DE CONSTRUÇÃO","CAMIONETE","CAMINHÃO BASCULANTE"],
@@ -50,15 +42,27 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
  if(municipioId&&db.municipioAtivo()?.id!==municipioId&&!escopoMunicipal)db.selecionarMunicipio(municipioId);
  const prefeitura=()=>db.municipioAtivo();
  function zonas() {
-  const locais=db.lista("zonas").map(x=>x.nome).filter(Boolean);
-  const base=prefeitura()?.id==="maringa"?ZONAS_MARINGA.map(x=>x.nome):[];
-  return [...new Set([...base,...locais])].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+  return [...new Set(db.lista("zonas").map(x=>x.nome).filter(Boolean))]
+   .sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true}));
  }
  function pontoDaZona(nome) {
-  const z=ZONAS_MARINGA.find(z=>norm(z.nome)===norm(nome));
-  if(prefeitura()?.id==="maringa"&&z)return resumoPonto(z);
-  const p=prefeitura();
-  return p?.lat!==undefined&&p?.lng!==undefined?{lat:Number(p.lat),lng:Number(p.lng),label:p.nome}:null;
+  const zona=db.lista("zonas").find(z=>norm(z.nome)===norm(nome));
+  if(!zona)return null;
+  const lat=Number(zona.lat),lng=Number(zona.lng);
+  if(zona.lat!==""&&zona.lng!==""&&zona.lat!=null&&zona.lng!=null&&Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180)
+   return {lat,lng,label:zona.nome};
+  if(!zona.geojson)return null;
+  try {
+   const geo=typeof zona.geojson==="string"?JSON.parse(zona.geojson):zona.geojson;
+   const pontos=[];
+   const walk=c=>{if(Array.isArray(c)&&typeof c[0]==="number"&&typeof c[1]==="number")pontos.push(c);else if(Array.isArray(c))c.forEach(walk);};
+   walk(geo.coordinates||geo.geometry?.coordinates||[]);
+   if(!pontos.length)return null;
+   const west=Math.min(...pontos.map(p=>p[0])),east=Math.max(...pontos.map(p=>p[0]));
+   const south=Math.min(...pontos.map(p=>p[1])),north=Math.max(...pontos.map(p=>p[1]));
+   if(![west,east,south,north].every(Number.isFinite))return null;
+   return {lat:(south+north)/2,lng:(west+east)/2,label:zona.nome};
+  }catch(_){return null}
  }
  const geofence=(point,geometry)=>{
   if(!point||!geometry||!["Polygon","MultiPolygon"].includes(geometry.type))return false;
@@ -201,5 +205,5 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
   encontrarPessoa,encontrarIdentidade,registrarColaborador,registrarPedido,compatíveis,registrarFase,acionarBrigada, situacaoBairro,registrarCheckin,registrarSaida,
   solicitarOutraPrefeitura,mensagemParaColaborador};
 }
-return {criar,ZONAS_MARINGA,COMPATIBILIDADE,norm,telefone,mesmoTelefone,waLink};
+return {criar,COMPATIBILIDADE,norm,telefone,mesmoTelefone,waLink};
 });

@@ -87,7 +87,7 @@ function gerarOcorrencia(config={}){
   const t = config.tipo||pick(tiposOcorrencia);
   const numId = idCounter++;
   const o = {
-    id:"oc"+numId, tenantId, confirmado:true, protocolo:tenantConfig.prefixo+"-"+String(10000+numId).slice(-5), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos,
+    id:"oc"+numId, tenantId, demo:true, confirmado:true, protocolo:tenantConfig.prefixo+"-"+String(10000+numId).slice(-5), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos,
     gravidade: sortGravidade(t.gravBase), responsabilidade: pick(t.resp),
     reportadoEm: Date.now() - Math.floor(rnd(0,5))*60000,
     confirmadoEm:null, resolvidoEm:null,

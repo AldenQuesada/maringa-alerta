@@ -37,6 +37,11 @@ async function iniciarCheckin(id,button){
 }
 function renderCards(xs) {
  const el=$("results");$("list-count").textContent=xs.length+" registro"+(xs.length===1?"":"s");
+ if(camadaAtual!=="principal"){
+  el.innerHTML=xs.map(x=>'<article class="result canonical-result"><div class="result-top"><strong>'+esc(x.nome)+'</strong><span class="result-tag">'+esc(x.classe)+'</span></div><small>'+esc(x.moduloNome)+' · '+esc(x.zona||x.bairro||"Sem zona vinculada")+'</small><small>'+esc(x.detalhes.slice(0,180))+'</small><div class="canonical-actions">'+(x.georreferenciado?'<button type="button" data-loc="'+esc(x.chave)+'">Localizar</button>':'<small>Sem coordenadas</small>')+'<a href="../gestao/#'+encodeURIComponent(x.modulo)+'" target="_blank" rel="noopener">Abrir cadastro</a></div></article>').join("")||'<p class="empty">Nenhum registro neste filtro.</p>';
+  el.querySelectorAll("[data-loc]").forEach(b=>b.onclick=()=>{const x=xs.find(y=>y.chave===b.dataset.loc);if(x?.georreferenciado)map.flyTo([x.lat,x.lng],Math.max(map.getZoom(),15));});
+  return;
+ }
  if(TIPO==="colaboradores"){renderEquipePorBairro(xs);return;}
  if(!xs.length){el.innerHTML='<div class="empty">Nenhum registro neste filtro.<p>Cadastre pelo WhatsApp simulado ou use a Gestão para adicionar dados.</p><a class="btn" href="../atendimento/" target="_blank" rel="noopener">Abrir atendimento</a></div>';return;}
  el.innerHTML=xs.map((x,i)=>{
@@ -52,16 +57,25 @@ function renderCards(xs) {
  }).join("");
  el.querySelectorAll("[data-result]").forEach(btn=>btn.onclick=()=>{
   const chosen=xs.find(x=>x.id===btn.dataset.result);
-  const pt=app.pontoDaZona(chosen?.zona);
+  const pt=pontoZona(chosen?.zona);
   if(pt){map.flyTo([pt.lat,pt.lng],Math.max(map.getZoom(),13));alertar("Localização aproximada da zona "+(chosen.zona||"indicada")+".");}
  });
 }
 function renderMarkers(xs){
  marcadores.clearLayers();
+ if(camadaAtual!=="principal"){
+  if(!mostrarUnidades)return;
+  for(const x of xs.filter(x=>x.georreferenciado)){
+   const icon=x.modulo==="bases"&&x.categoria==="Centro de coleta de donativos"?"📦":x.modulo==="riscos"?"⚠️":"📍";
+   const ic=L.divIcon({className:"pin canonical-map-pin",html:'<span class="canonical-pin">'+icon+'</span>',iconSize:[32,32],iconAnchor:[16,32]});
+   L.marker([x.lat,x.lng],{icon:ic,title:x.nome}).bindPopup('<strong>'+esc(x.nome)+'</strong><p>'+esc(x.moduloNome)+' · '+esc(x.classe)+'</p><small>'+esc(x.precisao||"Localização cadastrada")+'</small>').addTo(marcadores);
+  }
+  return;
+ }
  const grupos=new Map();
  for(const x of xs){const zona=x.zona||"Não informada";grupos.set(zona,(grupos.get(zona)||0)+1);}
  for(const [zona,quantidade] of grupos.entries()){
-  const pt=app.pontoDaZona(zona);if(!pt)continue;
+  const pt=pontoZona(zona);if(!pt)continue;
   const tipoClass=TIPO==="ajuda"?"help":"collab";
   const ic=L.divIcon({html:'<div class="bubble">'+quantidade+'</div>',className:"pin "+tipoClass,iconSize:[44,44],iconAnchor:[22,22]});
   L.marker([pt.lat,pt.lng],{icon:ic,title:quantidade+" registros na zona "+zona})

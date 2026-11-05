@@ -1,6 +1,7 @@
 
 (async function(){
 "use strict";
+const demoMode=new URLSearchParams(location.search).get('demo')==='1';
 const tenantId='maringa';
 const tenantConfig={nome:'Maringá',marca:'MARINGÁ ALERTA',prefixo:'MA'};
 const storageKey=nome=>`alerta_prototipo_v2_${tenantId}_${nome}`;
@@ -8,7 +9,7 @@ const storageKey=nome=>`alerta_prototipo_v2_${tenantId}_${nome}`;
 
 
 /* ---------- zonas de demonstração sobre o mapa de Maringá ---------- */
-const equipePool = [
+const equipePool = demoMode ? [
   {nome:"Marcos Teixeira", cargo:"Vereador"},
   {nome:"Fernanda Lopes", cargo:"Secretária de Assistência Social"},
   {nome:"Ricardo Bittencourt", cargo:"Chefe de Defesa Civil"},
@@ -27,13 +28,13 @@ const equipePool = [
   {nome:"Mariana Esteves", cargo:"Subsecretária de Saúde"},
   {nome:"Rogério Villela", cargo:"Coordenador de Campo"},
   {nome:"Daniela Freitas", cargo:"Vereadora"},
-];
+]:[];
 let equipeCursor = 0;
 function nextEquipe(){ return equipePool[(equipeCursor++) % equipePool.length]; }
 
-const equipamentosPool = ["2 motosserras","1 caminhão basculante","1 retroescavadeira","Kit de resgate","Gerador móvel","1 caminhão-pipa","Equipe de eletricistas","Ambulância de apoio"];
+const equipamentosPool = demoMode ? ["2 motosserras","1 caminhão basculante","1 retroescavadeira","Kit de resgate","Gerador móvel","1 caminhão-pipa","Equipe de eletricistas","Ambulância de apoio"]:[];
 
-const bairros = [
+const bairros = demoMode ? [
   { nome:"Zona 7", center:[-23.3995,-51.9395],
     poly:[[-23.392,-51.950],[-23.392,-51.930],[-23.408,-51.930],[-23.408,-51.950]] },
   { nome:"Jardim Alvorada", center:[-23.3870,-51.9120],
@@ -46,7 +47,7 @@ const bairros = [
     poly:[[-23.374,-51.962],[-23.374,-51.941],[-23.392,-51.941],[-23.392,-51.962]] },
   { nome:"Centro Cívico", center:[-23.4225,-51.9365],
     poly:[[-23.415,-51.946],[-23.415,-51.927],[-23.430,-51.927],[-23.430,-51.946]] },
-];
+]:[];
 let funcIdCursor = 1;
 const PAPEL_LABEL = { responsavel:"Responsável", substituto:"Substituto", coordenador:"Coordenador" };
 bairros.forEach(b=>{
@@ -213,10 +214,10 @@ for(const [grupo,tipoArea] of [[fontesPublicas?.zonasNumeradas,'Zona'],[fontesPu
     areasCadastradas.push({id,nome,tipoArea,chave:'publico:'+tipoArea+':'+(id||nome),geojson:feature.geometry,fonte:grupo.source});
   });
 }
-const areas = [...areasCadastradas,...bairros.map(b=>({
+const areas = [...areasCadastradas,...(demoMode?bairros.map(b=>({
   nome:b.nome,chave:'demo:'+b.nome,tipoArea:'Zona demonstrativa',demo:b
-}))];
-const camadasVisiveis={Zona:true,Bairro:true,'Zona cartográfica':false,'Zona demonstrativa':true};
+})):[])];
+const camadasVisiveis={Zona:true,Bairro:true,'Zona cartográfica':false,'Zona demonstrativa':demoMode};
 let eventoAtivo=new URLSearchParams(location.search).get('evento')||'';
 let eventosCache=[];const eventosMunicipio=()=>eventosCache;
 let abriuEventoDaUrl=false;
@@ -328,7 +329,7 @@ function gerarOcorrencia(config={}){
   const t = config.tipo||pick(tiposOcorrencia);
   const numId = idCounter++;
   const o = {
-    id:"oc"+numId, tenantId, confirmado:true, protocolo:tenantConfig.prefixo+"-"+String(10000+numId).slice(-5), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos,
+    id:"oc"+numId, tenantId, demo:true, confirmado:true, protocolo:tenantConfig.prefixo+"-"+String(10000+numId).slice(-5), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos,
     gravidade: sortGravidade(t.gravBase), responsabilidade: pick(t.resp),
     reportadoEm: Date.now() - Math.floor(rnd(0,5))*60000,
     confirmadoEm:null, resolvidoEm:null,
@@ -429,6 +430,11 @@ function atualizarRecorte(){
       document.getElementById('chat-thread').textContent='Selecione um contato.';
     }
   }
+  // O mesmo recorte territorial controla ocorrências, cadastros e marcadores.
+  if(document.getElementById("mun-toggle")?.dataset.ready==="1"){
+   montarMarcadoresPublicos();
+   atualizarFiltroCadastros();
+  }
 }
 
 function applyZoneVisibility(){
@@ -472,8 +478,8 @@ function pessoasMunicipio(){
       .map(p=>({...p,id:'rh:'+p.id,oficial:true,sub:[p.funcao,...(Array.isArray(p.papeis)?p.papeis:[])].map(papel=>PAPEL_LABEL[papel]||papel).join(' · ')})),
     ...cadastro.lista('voluntarios',tenantId).map(p=>({...p,id:'cad:'+p.id,
       sub:[...['ajudas','maquinas','empreendedores','materiais'].flatMap(chave=>Array.isArray(p[chave])?p[chave]:[]),p.contribuicao].filter(Boolean).join(', ')})),
-    ...todosFuncionarios().map(p=>({...p,oficial:true,sub:PAPEL_LABEL[p.papel],demo:true})),
-    ...voluntarios.map(v=>({...v,zona:v.bairro,sub:(v.contribuicoes||[v.ajuda]).join(', '),demo:true,disponibilidade:estadoPessoa(v.id)}))
+    ...(demoMode?todosFuncionarios().map(p=>({...p,oficial:true,sub:PAPEL_LABEL[p.papel],demo:true})):[]),
+    ...(demoMode?voluntarios.map(v=>({...v,zona:v.bairro,sub:(v.contribuicoes||[v.ajuda]).join(', '),demo:true,disponibilidade:estadoPessoa(v.id)})):[])
   ].map(p=>({...p,bairroOrigem:p.bairro||p.zona}));
 }
 function pontoPessoa(p){
@@ -534,13 +540,22 @@ function renderOfficialMarkers(){
   });
 }
 
+const assinaturaTerritorial=()=>JSON.stringify(["zonas","bairros"].flatMap(modulo=>
+ gestao.lista(modulo,tenantId).map(x=>[modulo,x.id,x.nome,x.zona,x.geojson,x.verificacao])));
+let ultimaAssinaturaTerritorial=assinaturaTerritorial();
 function atualizarCadastroMapa(){
+  // Alterações dos limites territoriais exigem reconstruir as camadas, não reaproveitar polígonos antigos.
+  const assinatura=assinaturaTerritorial();
+  if(assinatura!==ultimaAssinaturaTerritorial){
+   ultimaAssinaturaTerritorial=assinatura;location.reload();return;
+  }
   // A Gestão é a fonte dos cadastros: atualiza os eventos e as opções dos
   // filtros junto dos recursos e equipes ao retornar ao mapa ou mudar outra aba.
   atualizarFiltroEventos();
   filtroOcorrencias?.atualizarOpcoes();
   atualizarRecorte();
   montarMarcadoresPublicos();
+  if(filtrosMunicipaisProntos)atualizarFiltroCadastros();
 }
 window.addEventListener('storage',e=>{
   if(e.key===AlertaGestaoDados.CHAVE) atualizarCadastroMapa();
@@ -2033,7 +2048,7 @@ if(recuperacao.estado==='bloqueado'){
   return;
 }
 if(recuperacao.estado==='restauravel'){restaurarPrototipo(recuperacao.dados);ultimaSerializacao=recuperacao.original;}
-if(recuperacao.estado==='vazio'){
+if(recuperacao.estado==='vazio'&&demoMode){
 gerarVoluntarios();
 for(let i=0;i<5;i++) gerarOcorrencia();
 gerarOcorrencia({zona:bairros[0].nome,tipo:tiposOcorrencia[0]});
@@ -2047,7 +2062,7 @@ bairros.forEach(b=>{
     const reportado = Date.now()-Math.floor(rnd(60,230))*60000;
     const numIdHist = idCounter++;
     ocorrencias.push({
-      id:"oc"+numIdHist, protocolo:tenantConfig.prefixo+"-"+String(10000+numIdHist).slice(-5), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos: randPointInBox(b.poly),
+      id:"oc"+numIdHist, demo:true, protocolo:tenantConfig.prefixo+"-"+String(10000+numIdHist).slice(-5), tipo:t.tipo, icone:t.icone, bairro:b.nome, pos: randPointInBox(b.poly),
       gravidade: sortGravidade(t.gravBase), responsabilidade: pick(t.resp),
       reportadoEm: reportado, confirmadoEm: reportado+tChegada*60000, resolvidoEm: reportado+(tChegada+tAtend)*60000,
       status:"resolvida", tempoChegada:tChegada, tempoAtendimento:tAtend, tempoReal: tChegada+tAtend,
@@ -2075,37 +2090,90 @@ renderOfficialMarkers();
 processarFilaOffline();
 const buscaMapa=document.getElementById('event-search');
 const resultadosMapa=document.getElementById('event-results');
-const listarRecursosPublicos=()=>['bases','riscos','pontos','saude','emergencias','parceiros','abrigos']
- .flatMap(modulo=>gestao.lista(modulo,tenantId).filter(item=>item.verificacao!=='Rejeitado').map(item=>({...item,modulo})));
+const INVENTARIO=globalThis.AlertaInventarioMapas;
+const filtrosMunicipais={modulo:"todos",classe:"",busca:""};
+let filtrosMunicipaisProntos=false,mostrarUnidadesEvento=true;
+const listarRecursosPublicos=()=>INVENTARIO.registros(gestao).filter(x=>!x.privado);
+const linhasInventario=()=>INVENTARIO.filtrar(INVENTARIO.registros(gestao),filtrosMunicipais)
+ .filter(x=>noRecorte(x.zona||x.bairro));
 const layerRecursosPublicos=L.layerGroup().addTo(map);
 let marcadorBusca;
 function montarMarcadoresPublicos(){
  layerRecursosPublicos.clearLayers();
- const registros=listarRecursosPublicos().filter(x=>{
-  if(x.lat===undefined||x.lat===null||x.lat===""||x.lng===undefined||x.lng===null||x.lng==="")return false;
-  const lat=Number(x.lat),lng=Number(x.lng);
-  return Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=-24&&lat<=-23&&lng>=-52.5&&lng<=-51.2;
- });
+ if(!mostrarUnidadesEvento)return 0;
+ const registros=linhasInventario().filter(x=>x.georreferenciado&&!x.privado);
  for(const r of registros){
-  const doacoes=r.modulo==='bases'&&r.tipo==='Centro de coleta de donativos';
-  const simbolo=doacoes?'📦':r.modulo==='abrigos'?'🛏️':r.modulo==='riscos'?'⚠️':r.modulo==='bases'?'🏠':r.modulo==='saude'?'🏥':'📍';
+  const doacoes=r.modulo==='bases'&&r.categoria==='Centro de coleta de donativos';
+  const simbolo=doacoes?'📦':r.modulo==='abrigos'?'🛏️':r.modulo==='riscos'?'⚠️':r.modulo==='bases'?'🏠':r.grupo==='Estruturas'?'🏥':'📍';
   const ic=L.divIcon({className:'ponto-publico-marker',html:'<span title="'+escHtml(r.nome)+'">'+simbolo+'</span>',iconSize:[30,30],iconAnchor:[15,30]});
-  const geolocalizacao=r.geo_status||'Localização cadastrada';
-  const source=/^https:\/\//.test(r.url_fonte||'')?'<a href="'+escHtml(r.url_fonte)+'" target="_blank" rel="noopener">Fonte pública</a>':'';
+  const source=r.fonteUrl?'<a href="'+escHtml(r.fonteUrl)+'" target="_blank" rel="noopener">Fonte pública</a>':'';
   const route=r.endereco?'<a href="https://www.google.com/maps/search/?api=1&amp;query='+encodeURIComponent(r.endereco+', Maringá, PR')+'" target="_blank" rel="noopener">Ver endereço no mapa</a>':'';
-  const observacao=doacoes?'<p><strong>Donativos:</strong> '+escHtml(r.itens_aceitos||'Confirmar antes de doar')+'</p><p>'+escHtml(r.horario||'Horário a confirmar')+'</p>':r.modulo==='abrigos'?'<p><strong>Modalidade:</strong> '+escHtml(r.tipo||'Acolhimento')+'</p><p><strong>Capacidade total publicada:</strong> '+escHtml(r.capacidade||'Não informada')+' · Vagas livres: '+escHtml(r.disponiveis===''||r.disponiveis==null?'A confirmar':r.disponiveis)+'</p><p>'+escHtml(r.acesso||'Confirme a disponibilidade com a instituição')+'</p>':'';
-  const aviso='<small>Coordenada: '+escHtml(geolocalizacao)+'. Cadastro: '+escHtml(r.verificacao||'Sem validação')+'. Confirme antes do deslocamento.</small>';
-  const html='<div class="ponto-publico-popup"><strong>'+simbolo+' '+escHtml(r.nome)+'</strong><p>'+escHtml(r.endereco||r.localizacao||'')+'</p>'+observacao+aviso+'<div>'+[route,source].filter(Boolean).join(' · ')+'</div></div>';
-  L.marker([Number(r.lat),Number(r.lng)],{icon:ic,title:r.nome}).bindPopup(html).addTo(layerRecursosPublicos);
+  const conteudo=doacoes?'<p>Donativos: '+escHtml(r.donativos||'Confirmar antes da entrega')+' · '+escHtml(r.horario||'Horário a confirmar')+'</p>':
+   r.modulo==='abrigos'?'<p>Capacidade total publicada: '+escHtml(r.capacidadeTotal??'Não informada')+' · Vagas livres: '+escHtml(r.vagasLivres??'A confirmar')+'</p><p>'+escHtml(r.orientacao||'Confirme a disponibilidade com a instituição')+'</p>':
+   r.detalhes?'<p>'+escHtml(r.detalhes.slice(0,350))+'</p>':'';
+  const aviso='<small>'+escHtml(r.precisao||'Localização cadastrada')+' · '+escHtml(r.classe||'Em conferência')+'. Confirmar antes do deslocamento.</small>';
+  const popup='<div class="ponto-publico-popup"><strong>'+simbolo+' '+escHtml(r.nome)+'</strong><p>'+escHtml(r.endereco||'Endereço não informado')+'</p>'+conteudo+aviso+'<div>'+[route,source].filter(Boolean).join(' · ')+'</div></div>';
+  L.marker([r.lat,r.lng],{icon:ic,title:r.nome}).bindPopup(popup).addTo(layerRecursosPublicos);
  }
  return registros.length;
 }
-
 void Promise.allSettled(["dados-territoriais/maringa-bases-riscos-publicos.json","dados-territoriais/maringa-abrigos-publicos.json"].map(url=>AlertaImportacaoPublica.carregar(gestao,{url}))).then(()=>{
  montarMarcadoresPublicos();
  if(buscaMapa.value.trim())buscarNoMapa();
-});
+ atualizarFiltroCadastros();
+}).catch(error=>console.warn("Referências municipais de abrigo e apoio indisponíveis",error));
 montarMarcadoresPublicos();
+function atualizarFiltroCadastros(){
+ if(!INVENTARIO)return;
+ const el=document.getElementById("mun-rows"),status=document.getElementById("mun-status"),count=document.getElementById("mun-count");
+ if(!el||!status||!count)return;
+ const xs=linhasInventario()||[];
+ count.textContent="("+xs.length+")";
+ status.textContent=xs.length+" registros; "+xs.filter(x=>x.georreferenciado).length+" com ponto geográfico.";
+ el.innerHTML=xs.map(x=>{
+  const route=x.endereco?'<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query='+encodeURIComponent(x.endereco+", Maringá, PR")+'">Ver endereço</a>':"";
+  return '<div class="mun-row"><div><strong>'+escHtml(x.nome)+'</strong><small>'+escHtml(x.moduloNome)+' · '+escHtml(x.zona||x.bairro||"Zona não informada")+' · '+escHtml(x.classe)+'</small>'+
+   (x.precisao?'<small>'+escHtml(x.precisao)+'</small>':'')+'</div><div class="mun-row-actions">'+
+   (x.georreferenciado?'<button type="button" data-mun-loc="'+escHtml(x.chave)+'">Localizar</button>':'<small>Sem coordenadas</small>')+
+   route+'<a target="_blank" rel="noopener" href="gestao/#'+encodeURIComponent(x.modulo)+'">Cadastro</a></div></div>';
+ }).join("")||'<p class="mun-empty">Nenhum registro corresponde aos filtros.</p>';
+ el.querySelectorAll("[data-mun-loc]").forEach(btn=>btn.onclick=()=>{
+  const x=xs.find(item=>item.chave===btn.dataset.munLoc);
+  if(x?.georreferenciado)map.flyTo([x.lat,x.lng],Math.max(map.getZoom(),15));
+ });
+}
+function atualizarClassesCadastros(){
+ if(!INVENTARIO)return;
+ const el=document.getElementById("mun-classe");
+ if(!el)return;
+ const subset=INVENTARIO.filtrar(INVENTARIO.registros(gestao),{modulo:filtrosMunicipais.modulo});
+ el.innerHTML='<option value="">Todos os tipos e situações</option>'+
+  INVENTARIO.classes(subset).map(x=>'<option value="'+escHtml(x)+'">'+escHtml(x)+'</option>').join("");
+ el.value=filtrosMunicipais.classe;
+}
+function iniciarFiltrosCadastros(){
+ if(!INVENTARIO||filtrosMunicipaisProntos)return;
+ const campo=document.getElementById("mun-camada"),bt=document.getElementById("mun-toggle"),body=document.getElementById("mun-body"),search=document.getElementById("mun-busca");
+ const toggle=document.getElementById("mun-mostrar");
+ if(!campo||!bt||!body||!search)return;
+ filtrosMunicipaisProntos=true;
+ bt.dataset.ready="1";
+ if(toggle)toggle.onchange=e=>{mostrarUnidadesEvento=e.target.checked;montarMarcadoresPublicos();};
+ const groups=new Map();
+ for(const x of INVENTARIO.resumo(gestao)){
+  if(!groups.has(x.grupo))groups.set(x.grupo,[]);
+  groups.get(x.grupo).push(x);
+ }
+ campo.innerHTML='<option value="todos">Todos os cadastros</option>'+
+  [...groups].map(([group,itens])=>'<optgroup label="'+escHtml(group)+'">'+itens.map(x=>'<option value="'+escHtml(x.id)+'">'+escHtml(x.nome)+' ('+x.total+')</option>').join("")+'</optgroup>').join("");
+ bt.onclick=()=>{body.hidden=!body.hidden;bt.setAttribute("aria-expanded",String(!body.hidden));if(!body.hidden)atualizarFiltroCadastros();};
+ campo.onchange=()=>{filtrosMunicipais.modulo=campo.value;filtrosMunicipais.classe="";atualizarClassesCadastros();atualizarFiltroCadastros();montarMarcadoresPublicos();};
+ document.getElementById("mun-classe").onchange=e=>{filtrosMunicipais.classe=e.target.value;atualizarFiltroCadastros();montarMarcadoresPublicos();};
+ search.oninput=()=>{filtrosMunicipais.busca=search.value;atualizarFiltroCadastros();montarMarcadoresPublicos();};
+ atualizarClassesCadastros();
+ atualizarFiltroCadastros();
+}
+iniciarFiltrosCadastros();
 function incluirTerritorio(territorio){
   if(noRecorte(territorio)) return;
   const area=areas.find(a=>a.tipoArea==='Bairro'&&pertence(a,territorio))||areas.find(a=>pertence(a,territorio));
@@ -2137,7 +2205,7 @@ function buscarNoMapa(){
       abrir:()=>{if(!noEvento(o)){eventoAtivo='';atualizarFiltroEventos();atualizarRecorte();}incluirTerritorio(o.bairro);if(o.pos)map.panTo(o.pos);openOcorrencia(o);}}))],
     ['Pessoas',pessoasMunicipio().map(p=>({nome:p.nome,meta:[p.sub,p.bairroOrigem].filter(Boolean).join(' · '),territorio:p.bairroOrigem,
       abrir:()=>{incluirTerritorio(p.bairroOrigem);mostrarFicha(p.id);}}))],
-    ['Unidades e pontos cadastrados',listarRecursosPublicos().map(r=>({nome:r.nome,meta:[r.tipo,r.categoria,r.endereco,r.localizacao].filter(Boolean).join(' · '),
+    ['Cadastros da Prefeitura',listarRecursosPublicos().map(r=>({nome:r.nome,meta:[r.moduloNome,r.categoria,r.classe,r.endereco].filter(Boolean).join(' · '),
       territorio:r.bairro||r.zona,abrir:()=>abrirRecurso(r)}))]
   ];
   for(const [titulo,registros] of grupos){

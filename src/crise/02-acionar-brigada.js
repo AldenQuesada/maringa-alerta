@@ -27,5 +27,5 @@
   encontrarPessoa,encontrarIdentidade,registrarColaborador,registrarPedido,compatíveis,registrarFase,acionarBrigada, situacaoBairro,registrarCheckin,registrarSaida,
   solicitarOutraPrefeitura,mensagemParaColaborador};
 }
-return {criar,ZONAS_MARINGA,COMPATIBILIDADE,norm,telefone,mesmoTelefone,waLink};
+return {criar,COMPATIBILIDADE,norm,telefone,mesmoTelefone,waLink};
 });

@@ -6,8 +6,8 @@ function pessoasMunicipio(){
       .map(p=>({...p,id:'rh:'+p.id,oficial:true,sub:[p.funcao,...(Array.isArray(p.papeis)?p.papeis:[])].map(papel=>PAPEL_LABEL[papel]||papel).join(' · ')})),
     ...cadastro.lista('voluntarios',tenantId).map(p=>({...p,id:'cad:'+p.id,
       sub:[...['ajudas','maquinas','empreendedores','materiais'].flatMap(chave=>Array.isArray(p[chave])?p[chave]:[]),p.contribuicao].filter(Boolean).join(', ')})),
-    ...todosFuncionarios().map(p=>({...p,oficial:true,sub:PAPEL_LABEL[p.papel],demo:true})),
-    ...voluntarios.map(v=>({...v,zona:v.bairro,sub:(v.contribuicoes||[v.ajuda]).join(', '),demo:true,disponibilidade:estadoPessoa(v.id)}))
+    ...(demoMode?todosFuncionarios().map(p=>({...p,oficial:true,sub:PAPEL_LABEL[p.papel],demo:true})):[]),
+    ...(demoMode?voluntarios.map(v=>({...v,zona:v.bairro,sub:(v.contribuicoes||[v.ajuda]).join(', '),demo:true,disponibilidade:estadoPessoa(v.id)})):[])
   ].map(p=>({...p,bairroOrigem:p.bairro||p.zona}));
 }
 function pontoPessoa(p){
@@ -68,13 +68,22 @@ function renderOfficialMarkers(){
   });
 }
 
+const assinaturaTerritorial=()=>JSON.stringify(["zonas","bairros"].flatMap(modulo=>
+ gestao.lista(modulo,tenantId).map(x=>[modulo,x.id,x.nome,x.zona,x.geojson,x.verificacao])));
+let ultimaAssinaturaTerritorial=assinaturaTerritorial();
 function atualizarCadastroMapa(){
+  // Alterações dos limites territoriais exigem reconstruir as camadas, não reaproveitar polígonos antigos.
+  const assinatura=assinaturaTerritorial();
+  if(assinatura!==ultimaAssinaturaTerritorial){
+   ultimaAssinaturaTerritorial=assinatura;location.reload();return;
+  }
   // A Gestão é a fonte dos cadastros: atualiza os eventos e as opções dos
   // filtros junto dos recursos e equipes ao retornar ao mapa ou mudar outra aba.
   atualizarFiltroEventos();
   filtroOcorrencias?.atualizarOpcoes();
   atualizarRecorte();
   montarMarcadoresPublicos();
+  if(filtrosMunicipaisProntos)atualizarFiltroCadastros();
 }
 window.addEventListener('storage',e=>{
   if(e.key===AlertaGestaoDados.CHAVE) atualizarCadastroMapa();

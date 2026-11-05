@@ -9,9 +9,12 @@ test('alterações da Gestão atualizam eventos, opções, recorte e pontos do m
  const listeners={},chamadas=[];
  const ctx={window:{addEventListener:(nome,fn)=>{listeners[nome]=fn}},AlertaGestaoDados:{CHAVE:'cadastro'},
   atualizarFiltroEventos:()=>chamadas.push('eventos'),filtroOcorrencias:{atualizarOpcoes:()=>chamadas.push('filtros')},
-  atualizarRecorte:()=>chamadas.push('recorte'),montarMarcadoresPublicos:()=>chamadas.push('pontos')};
+  assinaturaTerritorial:()=>"mesmo",ultimaAssinaturaTerritorial:"mesmo",location:{reload:()=>chamadas.push('reload')},
+  atualizarRecorte:()=>chamadas.push('recorte'),montarMarcadoresPublicos:()=>chamadas.push('pontos'),
+  filtrosMunicipaisProntos:true,atualizarFiltroCadastros:()=>chamadas.push('cadastros')};
  vm.runInNewContext(trecho,ctx);
  listeners.storage({key:'outra'});assert.deepEqual(chamadas,[]);
- listeners.storage({key:'cadastro'});assert.deepEqual(chamadas,['eventos','filtros','recorte','pontos']);
- chamadas.length=0;listeners.focus();assert.deepEqual(chamadas,['eventos','filtros','recorte','pontos']);
+ listeners.storage({key:'cadastro'});assert.deepEqual(chamadas,['eventos','filtros','recorte','pontos','cadastros']);
+ chamadas.length=0;listeners.focus();assert.deepEqual(chamadas,['eventos','filtros','recorte','pontos','cadastros']);
+ chamadas.length=0;ctx.ultimaAssinaturaTerritorial="alterado";listeners.focus();assert.deepEqual(chamadas,['reload']);
 });

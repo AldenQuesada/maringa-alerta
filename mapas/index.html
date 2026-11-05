@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b111b">
 <title>Mapas · Maringá Unida</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="./style.css?v=crise-4">
+<link rel="stylesheet" href="./style.css?v=dash-mapas-2">
 <link rel="stylesheet" href="../dados-territoriais/camadas-mapas.css?v=territorio-1">
 </head>
 <body>
@@ -32,10 +32,14 @@
    <section class="stats" aria-label="Indicadores">
     <div><span id="metric-one">0</span><small id="metric-one-label">Cadastros</small></div><div><span id="metric-two">0</span><small id="metric-two-label">Zonas</small></div><div><span id="metric-three">0</span><small id="metric-three-label">Disponíveis</small></div>
    </section>
-   <section class="filters" aria-label="Filtros">
-    <label for="zona">Zona</label><select id="zona"><option value="">Todas as zonas</option></select>
-    <label for="filtro" id="filtro-label">Tipo de colaborador</label><select id="filtro"></select>
-    <label for="busca">Buscar por tipo de ajuda</label><input id="busca" type="search" placeholder="Alimentos, telhas, limpeza...">
+   <section class="filters" aria-label="Filtros dos cadastros municipais">
+    <div class="filter-source"><label for="camada">Camada do dashboard</label><select id="camada" aria-label="Selecionar cadastro municipal"></select></div>
+    <div class="filter-cols">
+     <div><label for="zona">Zona numerada</label><select id="zona"><option value="">Todas as zonas</option></select></div>
+     <div><label for="filtro" id="filtro-label">Situação ou tipo</label><select id="filtro"></select></div>
+    </div>
+    <div class="filter-search"><label for="busca">Buscar</label><input id="busca" type="search" placeholder="Alimentos, telhas, limpeza..."></div>
+    <label class="filter-toggle"><input type="checkbox" id="mostrar-unidades" checked> <span id="mostrar-unidades-texto">Mostrar unidades e recursos</span></label>
    </section>
    <div class="list-heading"><strong id="list-title">Registros</strong><span id="list-count">0</span></div>
    <div class="results" id="results" aria-live="polite"></div>
@@ -51,6 +55,8 @@
 <script src="../gestao/dados.js?v=gestao-7"></script>
 <script src="../crise/core.js?v=crise-4"></script>
 <script src="../dados-territoriais/camadas-mapas.js?v=territorio-1"></script>
-<script src="./app.js?v=crise-4"></script>
+<script src="../dados-territoriais/importacao-publica.js?v=abrigos-1"></script>
+<script src="./inventario.js?v=integracao-1"></script>
+<script src="./app.js?v=integracao-1"></script>
 </body>
 </html>
