@@ -209,7 +209,7 @@ test("resumo de colaborador permite confirmar ou corrigir sem terceira etapa",()
  const fim=chat.indexOf("function responderEtapa(",inicio);
  const revisao=chat.slice(inicio,fim);
  assert.ok(revisao.includes('outros:"Especificar outros"'));
- assert.ok(revisao.includes('if(role!=="colaborador")acoes.push('));
+ assert.ok(revisao.includes('if(role==="relato")acoes.push('));
  const conclusao=chat.slice(chat.indexOf('if(role==="colaborador"){',fim),chat.indexOf('}else if(role==="solicitacao"){',fim));
  assert.match(conclusao,/const outros=String\(answers\.outros\|\|""\)\.trim\(\)/);
  assert.match(conclusao,/new Set\(\[resultado\.ajudas/);
