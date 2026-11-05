@@ -157,7 +157,7 @@ function proxima(){
   form.hidden=false;
   $("compose-placeholder").hidden=true;
   input.type="text";
-  input.inputMode="numeric";
+  input.inputMode="text"; // O teclado precisa permitir vírgulas e espaços entre os números.
   input.placeholder=current.required?"Ex.: 1, 3":"Ex.: 1, 3 ou 0";
   input.required=true;
   input.value=Array.isArray(answers[current.key])?
