@@ -10,10 +10,11 @@ const C=(label,values)=>F(label[0],label[1],"select",{options:values});
 const Z=()=>F("zona","Zona de referência","zone");
 const CONTATO=[F("telefone","Telefone","tel"),F("email","E-mail","email")];
 const CATALOGOS={
- ajudas:["FORNECER ALIMENTAÇÃO","ATENDER PESSOAS COM NECESSIDADES ESPECIAIS","CUIDADOR","LIMPEZA","PEDREIRO","METALÚRGICO","CARPINTEIRO","OPERADOR DE MOTOSSERRA","ELETRICISTA","LAUDO","EMITIR LAUDOS DE PREJUÍZOS","OUTRO"],
+ ajudas:["FORNECER ALIMENTAÇÃO","ATENDER PESSOAS COM NECESSIDADES ESPECIAIS","CUIDADOR","LIMPEZA","PEDREIRO","METALÚRGICO","CARPINTEIRO","OPERADOR DE MOTOSSERRA","ELETRICISTA","LAUDO","EMITIR LAUDOS DE PREJUÍZOS","INFLUENCIADORES E DIVULGAÇÃO DE NOTÍCIAS","OPERADOR DE DRONE","OUTRO"],
  maquinas:["PÁ CARREGADEIRA","RETROESCAVADEIRA","MUNCK","CAMIONETE","BOBCAT","CAMINHÃO GARRA","CAMINHÃO BASCULANTE","GERADOR","MATERIAL DE CONSTRUÇÃO","STAR LINK","OUTRO","MOTOSSERRA COM OPERADOR","MOTOSSERRA"],
  empreendedores:["ESPAÇO EM FREEZER PARA PERECÍVEIS","AMBIENTE DE TRABALHO","OUTRO"],
  materiais:["MATERIAL DE CONSTRUÇÃO","COMBUSTÍVEL"],
+ formas_entrega_doacao:["Preciso que retirem no meu endereço","Consigo entregar no centro de acolhimento/coleta mais próximo","A combinar"],
  necessidades:["Alimentação","Telhas e cobertura","Apoio financeiro","Abrigo e moradia","Roupas e cobertores","Medicamentos e saúde","Limpeza e remoção","Material de construção","Eletricidade e gerador","Água potável","Transporte","Cuidados especiais","Laudos de prejuízos","Apoio a empreendedores","Outro"]
 };
 const GEO_FIELDS=[

@@ -112,7 +112,7 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
     endereco:String(dados.endereco).trim(),telefone:String(dados.telefone).trim(),
     zona:String(dados.zona||existente?.zona||"").trim(),bairro:String(dados.bairro||existente?.bairro||"").trim(),
     ajudas:array(dados.ajudas),maquinas:array(dados.maquinas),empreendedores:array(dados.empreendedores),
-    materiais:array(dados.materiais),outros:String(dados.outros||"").trim(),
+    materiais:array(dados.materiais),forma_entrega_doacao:String(dados.forma_entrega_doacao||"").trim(),outros:String(dados.outros||"").trim(),
     contribuicao:String(dados.contribuicao||"").trim(),disponibilidade:dados.disponibilidade||"Disponível"};
   return db.gravar("voluntarios",campos,existente?.id||null);
  }

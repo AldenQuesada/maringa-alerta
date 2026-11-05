@@ -14,7 +14,9 @@ function concluir(){
   if(role==="colaborador"){
    const res=app.registrarColaborador(answers);
    identity={nome:res.nome,tipo_pessoa:res.tipo_pessoa,endereco:res.endereco,telefone:res.telefone,zona:res.zona};
-   bot("Cadastro de colaborador concluído nesta simulação. Obrigado por ajudar!\n\nSuas ofertas aparecem no Mapa de Colaboradores por zona. Nenhuma mensagem foi enviada automaticamente.");
+   bot("Cadastro de colaborador concluído nesta simulação. Obrigado por ajudar!\n\nSuas ofertas aparecem no Mapa de Colaboradores por zona."+
+    (res.forma_entrega_doacao?"\nDoação: "+res.forma_entrega_doacao+". A prefeitura confirmará o ponto de recebimento apropriado.":"")+
+    "\nNenhuma mensagem foi enviada automaticamente.");
   }else{
    const res=app.registrarPedido(answers);
    const p=res.pedido;

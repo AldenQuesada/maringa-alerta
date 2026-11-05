@@ -205,7 +205,7 @@ Os nomes são internos. Um evento pode conter várias ocorrências e cada ocorr�
 
 Horários, canal, pessoa, ocorrência e mudanças de estado são registrados automaticamente. Relatórios e agradecimentos usam esses registros, sem pedir comprovante de contribuição ou nota de qualidade.
 
-### 5.4 Cadastro canônico de colaboradores pelo WhatsApp — pessoas físicas e jurídicas (atualização 04/11/2026)
+### 5.4 Cadastro canônico de colaboradores pelo WhatsApp — pessoas físicas e jurídicas (atualização 05/11/2026)
 
 **Origem:** formulário e categorias fornecidos pelo autor para cadastrar pessoas e empresas que possam ajudar moradores atingidos e empreendedores. **Decisão de preservação:** nenhuma opção original é excluída; os textos abaixo são o catálogo inicial da prefeitura, passível de extensão municipal. Esta seção complementa o cadastro de voluntários da seção 5.1 e substitui listas genéricas de contribuições por uma taxonomia detalhada. **Ainda é especificação de produto; não representa formulário WhatsApp real já publicado.**
 
@@ -235,7 +235,11 @@ O cadastro não exige CPF, CNPJ, fotografia, documentos, avaliação, autorizaç
 9. ELETRICISTA
 10. LAUDO
 11. EMITIR LAUDOS DE PREJUÍZOS
-12. OUTRO: campo de texto para especificação
+12. INFLUENCIADORES E DIVULGAÇÃO DE NOTÍCIAS
+13. OPERADOR DE DRONE
+14. OUTRO: campo de texto para especificação
+
+**Divulgação e drones:** influenciadores distribuem informações previamente verificadas pela coordenação; não se publicam alertas não confirmados. O operador de drone é uma capacidade de atuação, distinta de apenas possuir o equipamento; o voo depende das verificações e autorizações aplicáveis.
 
 **Normalização para o motor:** manter **LAUDO** e **EMITIR LAUDOS DE PREJUÍZOS** como duas opções reconhecíveis, mesmo que sejam reunidas visualmente sob uma categoria de assistência técnica. Não presumir que marcar “laudo” autorize produzir avaliação de engenharia ou documento técnico sem competência profissional. Atendimento de saúde, risco elétrico, corte de árvores e atividades técnicas seguem compatibilidade e habilitação previamente reconhecidas.
 
@@ -272,6 +276,8 @@ Para freezer, o cadastro permite detalhar capacidade e condições de conservaç
 #### E. MATERIAL DE CONSTRUÇÃO / COMBUSTÍVEL
 
 **Categoria de apoio preservada integralmente.** Registrar ofertas de **MATERIAL DE CONSTRUÇÃO** e/ou **COMBUSTÍVEL** como itens separados, mesmo quando já estiverem na seção de maquinário, permitindo quantidade/unidade, retirada/entrega e disponibilidade. Não duplicar a reserva do mesmo estoque caso a oferta apareça em dois grupos. Combustível doado ou sujeito a reembolso é informação da oferta/logística, não obrigação financeira do voluntário.
+
+**Retirada ou entrega de doações:** quando são oferecidos alimentos, material de construção ou combustível, registrar uma das opções **Preciso que retirem no meu endereço**, **Consigo entregar no centro de acolhimento/coleta mais próximo** ou **A combinar**. Não perguntar isso a quem oferece apenas serviços. Esta resposta é preferência logística, não autorização nem destino confirmado: somente centros cadastrados e habilitados para receber os itens podem ser indicados pela prefeitura. Endereço residencial permanece privado.
 
 #### F. Campo **ESPECIFICAR “OUTROS”**
 
