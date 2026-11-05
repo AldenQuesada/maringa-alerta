@@ -7,7 +7,11 @@ function storage(){const m=new Map();return {getItem:k=>m.get(k)??null,setItem:(
 const novo=()=>{const memoria=storage();return {core:Crise.criar({armazenamento:memoria}),memoria};};
 const pessoa=(n,tel,extra={})=>({nome:n,tipo_pessoa:"FÍSICA",endereco:"Rua fictícia",telefone:tel,zona:"Zona 7",...extra});
 test("três mapas conceituais: Maringá possui zonas e o mapa original permanece em index.html",()=>{
- const {core}=novo();assert.equal(core.prefeitura().nome,"Maringá");assert.ok(core.zonas().includes("Zona 7"));assert.ok(core.pontoDaZona("Zona 7").lat<0);
+ const {core}=novo();assert.equal(core.prefeitura().nome,"Maringá");
+ assert.equal(core.pontoDaZona("Zona 7"),null,"Sem limites verificados não pode criar ponto fictício");
+ core.db.gravar("zonas",{nome:"Zona 7",tipo:"Zona numerada",geojson:JSON.stringify({type:"Polygon",coordinates:[[[-51.94,-23.40],[-51.93,-23.40],[-51.93,-23.39],[-51.94,-23.40]]]})});
+ assert.ok(core.zonas().includes("Zona 7"));
+ assert.ok(core.pontoDaZona("Zona 7").lat<0);
 });
 test("cadastro PF exige quatro campos básicos",()=>{
  const {core}=novo();assert.throws(()=>core.registrarColaborador({nome:"Teste",tipo_pessoa:"FÍSICA",telefone:"44999990000"}),/endereço/i);
