@@ -1,8 +1,8 @@
 // cache minimo do shell do app para abrir mesmo sem internet depois do primeiro carregamento.
 // protocolo real de missao critica precisaria de fila de sincronizacao mais robusta (Background Sync API);
 // isto aqui cobre o caso mais comum: internet caiu, mas o navegador ja tinha a pagina aberta/carregada antes.
-const CACHE_NAME = "maringa-alerta-shell-v27";
-const SHELL_FILES = ["./", "./index.html", "./gestao/dados.js?v=eventos-2", "./cadastro-ocorrencia.js?v=4", "./cadastro-ocorrencia-mapa.js?v=3", "./cadastro-ocorrencia.css?v=3", "./filtros-ocorrencias.js?v=1", "./filtros-ocorrencias.css?v=1", "./eventos-mapa.js?v=1", "./evento-referencias.js?v=1", "./evento-tornado-2026.js?v=1", "./painel-eventos.js?v=1", "./painel-eventos.css?v=3", "./operacao-restauracao.js?v=1", "./operacao-restauracao.css?v=1", "./gestao/acoes-cabecalho.js?v=evento-2", "./gestao/acoes-cabecalho.css?v=acoes-2", "./dados-territoriais/camadas-mapas.js?v=territorio-1", "./fluxo-ajuda.js?v=sessoes-1", "./prototipo.css?v=evento-9", "./sessao.js?v=sessoes-1", "./sessao-ui.js?v=sessoes-2", "./sessao.css?v=sessoes-2", "./mapa-navegacao.js?v=mapa-4", "./mapa-navegacao.css?v=mapa-2"];
+const CACHE_NAME = "maringa-alerta-shell-v28";
+const SHELL_FILES = ["./", "./index.html", "./gestao/dados.js?v=eventos-2", "./cadastro-ocorrencia.js?v=4", "./cadastro-ocorrencia-mapa.js?v=3", "./cadastro-ocorrencia.css?v=3", "./filtros-ocorrencias.js?v=1", "./filtros-ocorrencias.css?v=1", "./eventos-mapa.js?v=1", "./evento-referencias.js?v=2", "./evento-tornado-2026.js?v=1", "./painel-eventos.js?v=1", "./painel-eventos.css?v=4", "./operacao-restauracao.js?v=1", "./operacao-restauracao.css?v=1", "./gestao/acoes-cabecalho.js?v=evento-2", "./gestao/acoes-cabecalho.css?v=acoes-2", "./dados-territoriais/camadas-mapas.js?v=territorio-2", "./fluxo-ajuda.js?v=sessoes-1", "./prototipo.css?v=evento-9", "./sessao.js?v=sessoes-1", "./sessao-ui.js?v=sessoes-2", "./sessao.css?v=sessoes-2", "./mapa-navegacao.js?v=mapa-4", "./mapa-navegacao.css?v=mapa-2"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
