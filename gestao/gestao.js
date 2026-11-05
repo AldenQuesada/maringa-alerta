@@ -244,7 +244,7 @@ function campoHTML(f,valor){
  const list=f.type==="city"?' list="ibge-cidades" autocomplete="off"':"";
  return '<div class="field">'+label+'<input id="'+id+'" name="'+esc(f.key)+'" type="'+type+'" value="'+v+'"'+required+attr+list+'></div>';
 }
-function abrirDrawer(id=null,modulo=atual){
+function abrirDrawer(id=null,modulo=atual,prefill=null){
  if(modulo==="inicio")return;
  drawerModulo=modulo;
  const def=D.ESQUEMAS[modulo];
@@ -254,7 +254,7 @@ function abrirDrawer(id=null,modulo=atual){
  ultimoFoco=document.activeElement;
  $("drawer-eyebrow").textContent=def.label;
  $("drawer-title").textContent=(id?"Editar ":"Novo cadastro · ")+def.singular;
- $("cadastro-campos").innerHTML=def.fields.map(f=>campoHTML(f,item?.[f.key])).join("")+(atual==="prefeituras"?'<datalist id="ibge-cidades"></datalist>':"");
+ $("cadastro-campos").innerHTML=def.fields.map(f=>campoHTML(f,item?.[f.key]??prefill?.[f.key])).join("")+(atual==="prefeituras"?'<datalist id="ibge-cidades"></datalist>':"");
  const bairro=$("field-bairro");
  if(bairro&&(modulo==="pessoas"||modulo==="voluntarios")){
   bairro.required=true;
@@ -354,27 +354,26 @@ FORM.addEventListener("submit",e=>{
  }catch(err){$("form-error").textContent=err.message;}
 });
 PAGE.addEventListener("click",e=>{
- const novo=e.target.closest("[data-new]"),edit=e.target.closest("[data-edit]"),del=e.target.closest("[data-delete]");
- if(atual==="geoterritorialidade"){
-  const add=e.target.closest("[data-geo-new]"),geoEdit=e.target.closest("[data-geo-edit]"),geoDel=e.target.closest("[data-geo-delete]");
-  if(add){
-   if(geoTipo==="todos"){toast("Selecione Zona numerada ou Bairro antes de cadastrar.");return;}
-   abrirDrawer(null,geoTipo);return;
-  }
-  if(geoEdit){abrirDrawer(geoEdit.dataset.geoEdit,geoEdit.dataset.geoModule||geoTipo);return;}
-  if(geoDel){
-   const id=geoDel.dataset.geoDelete;
-   const record=db.registro(geoTipo,id);
-   if(record&&confirm('Excluir "'+record.nome+'"?')){
-    try{db.excluir(geoTipo,id);render();toast("Cadastro excluído.");}catch(err){toast(err.message);}
-   }
-   return;
-  }
-  if(edit){abrirDrawer(edit.dataset.edit,"bairros");return;}
+ const novo=e.target.closest("[data-new]");
+ const edit=e.target.closest("[data-edit]");
+ const del=e.target.closest("[data-delete]");
+ const canon=e.target.closest("[data-canon-edit]");
+ const geoEdit=e.target.closest("[data-geo-edit]");
+ if(canon){abrirDrawer(canon.dataset.id,canon.dataset.canonEdit);return;}
+ if(geoEdit){abrirDrawer(geoEdit.dataset.geoEdit,geoEdit.dataset.geoModule||geoTipo);return;}
+ if(novo){
+  e.preventDefault();
+  if(atual==="inicio")location.hash="#"+novo.dataset.new;
+  else abrirDrawer(null,novo.dataset.new);
+  return;
  }
- if(novo){e.preventDefault();if(atual==="inicio")location.hash="#"+novo.dataset.new;else abrirDrawer();return;}
  if(edit){abrirDrawer(edit.dataset.edit);return;}
  if(del){excluir(del.dataset.delete);return;}
+});
+window.addEventListener("gestao:referencia-territorial",e=>{
+ const {modulo,source}=e.detail||{};
+ if(atual!=="geoterritorialidade"||!["zonas","bairros"].includes(modulo)||!source)return;
+ abrirDrawer(null,modulo,source);
 });
 $("drawer-close").onclick=fecharDrawer;
 $("drawer-cancel").onclick=fecharDrawer;
