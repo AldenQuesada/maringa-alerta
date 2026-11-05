@@ -168,8 +168,16 @@ function proxima(perguntaJaExibida=false){
    answers[current.key].map(opcao=>current.opts.indexOf(opcao)+1).filter(n=>n>0).join(", "):"";
   input.focus();
  }else if(current.kind==="single"){
-  msg(current.q);
-  current.opts.forEach(opt=>button(opt,()=>{clear();gravarResposta(opt);}));
+  if(role==="colaborador" && current.key==="tipo_pessoa"){
+   msg("Muito obrigado, "+String(answers.nome||"")+"! Como você gostaria de se cadastrar?\n\n◾ Pessoa física\n◾ Pessoa jurídica\n\nToque em uma das opções abaixo. 👇");
+   current.opts.forEach(opt=>{
+    const rotulo=opt==="FÍSICA"?"Pessoa física":"Pessoa jurídica";
+    button(rotulo,()=>{clear();gravarResposta(opt,rotulo);});
+   });
+  }else{
+   msg(current.q);
+   current.opts.forEach(opt=>button(opt,()=>{clear();gravarResposta(opt);}));
+  }
  }else if(current.kind==="photo"){
   msg(current.q);
   uploadArea.hidden=false;
