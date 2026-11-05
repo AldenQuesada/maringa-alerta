@@ -16,12 +16,15 @@ test("prefeitura padrão é Maringá",()=>{
  assert.deepEqual(db.municipios().map(x=>x.nome),["Maringá"]);
  assert.equal(db.municipioAtivo().codigo_ibge,"4115200");
 });
-test("todos os submenus possuem cadastro associado",()=>{
+test("todos os módulos visíveis e os módulos das abas reutilizam cadastros canônicos",()=>{
  const modulos=D.GROUPS.flatMap(g=>g.items).filter(x=>x!=="inicio");
- assert.ok(modulos.length>=20);
- for(const id of modulos){assert.ok(D.ESQUEMAS[id],"esquema ausente: "+id);
-  assert.ok(D.ESQUEMAS[id].fields.length>0,"cadastro sem campos: "+id);}
+ assert.ok(modulos.length>=15,"A navegação deve ser direta, sem submenus redundantes");
+ for(const id of [...modulos,"bairros","zonas","pessoas","saude","emergencias","parceiros","bases","riscos"]){
+  assert.ok(D.ESQUEMAS[id],"Esquema ausente: "+id);
+  assert.ok(D.ESQUEMAS[id].fields.length>0,"Cadastro sem campos: "+id);
+ }
 });
+
 test("cadastro de prefeitura usa IBGE e não duplica o município",()=>{
  const {db}=novo();
  const p=db.gravar("prefeituras",{uf:"SC",nome:"Florianópolis",codigo_ibge:"4205407"});
@@ -88,7 +91,7 @@ test("excluir prefeitura apaga apenas seus registros e preserva a última prefei
 });
 test("nova gestão chama o mapa original sem copiar seu HTML para dentro dela",()=>{
  const admin=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- const old=fs.readFileSync(path.join(__dirname,"../../index.html"),"utf8");
+ const old=fs.readFileSync(path.join(__dirname,"../../index.html"),"utf8")+fs.readFileSync(path.join(__dirname,"../../evento/app.js"),"utf8");
  const code=fs.readFileSync(path.join(__dirname,"../gestao.js"),"utf8");
  assert.match(admin,/id="abrir-mapa"[^>]*href="\.\.\/index\.html"[^>]*target="_blank"/);
  assert.match(code,/window\.open\(abrirMapa\.href/);

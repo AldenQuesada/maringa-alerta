@@ -93,17 +93,17 @@ test("pessoas e hierarquia convivem com telas legadas sem duplicação",()=>{
  assert.equal(db.lista("coordenadores")[0].id,r.id);
  assert.equal(db.lista("substitutos").length,0);
 });
-test("somente os dois primeiros grupos mudam e três mapas ficam intactos",()=>{
- const group=D.GROUPS;
- assert.deepEqual(group[1].items,["territorio","bairros","zonas","bases","riscos"]);
- assert.deepEqual(group[2].items,["pessoas"]);
- assert.ok(!group[1].items.includes("prefeituras")&&!group[1].items.includes("implantacao"),"provisionamento pertence ao Admin Geral");
+test("Prefeitura usa abas canônicas sem duplicar cadastros no sidebar",()=>{
+ const groups=D.GROUPS;
+ assert.deepEqual(groups[1].items,["territorio"]);
+ assert.ok(!groups.flatMap(g=>g.items).includes("prefeituras"));
+ assert.ok(!groups.flatMap(g=>g.items).includes("implantacao"));
+ assert.ok(D.ESQUEMAS.bairros&&D.ESQUEMAS.zonas&&D.ESQUEMAS.pessoas);
  const legacy={"Equipes e comunidade":["equipes","integrantes","voluntarios"],
  "Ajuda e mobilização":["solicitacoes","mobilizacoes","apoios"],
- "Rede de emergência":["saude","emergencias","parceiros"],
  "Infraestrutura e recursos":["veiculos","equipamentos","estoques","abrigos","pontos"],
  "Regras e comunicação":["ocorrencias","canais","regras"]};
- for(const g of group.slice(3))assert.deepEqual(g.items,legacy[g.label],"grupo alterado: "+g.label);
+ for(const g of groups.slice(2))assert.deepEqual(g.items,legacy[g.label],"Grupo alterado: "+g.label);
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
  assert.equal((html.match(/class="map-arrow"/g)||[]).length,3);
  assert.match(html,/implantacao-ui.js/);

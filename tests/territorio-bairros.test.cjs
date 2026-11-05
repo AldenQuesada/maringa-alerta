@@ -37,7 +37,7 @@ test("bairros municipais não disponíveis não são apresentados como homologad
  assert.match(municipal.nota,/não são zonas operacionais/i);
 });
 test("os três mapas carregam a mesma camada de bairros",()=>{
- const mapaEvento=read("index.html");
+ const mapaEvento=read("index.html")+"\n"+read("evento/app.js");
  const mapas=read("mapas/index.html"),app=read("mapas/app.js");
  assert.match(mapaEvento,/dados-territoriais\/camadas-mapas.js/);
  assert.match(mapaEvento,/MaringaBairros.carregar/);
@@ -46,18 +46,20 @@ test("os três mapas carregam a mesma camada de bairros",()=>{
  assert.match(mapaEvento,/Zona demonstrativa/);
  assert.match(mapaEvento,/new URLSearchParams\(location.search\).get\('bairro'\)/);
 });
-test("o menu Bairros apresenta inventário, busca e três links por bairro",()=>{
- const admin=read("gestao/index.html"),ui=read("gestao/catalogo-bairros.js");
+test("Geoterritorialidade usa tabela única, zonas numeradas e cadastro existente",()=>{
+ const admin=read("gestao/index.html"),ui=read("gestao/catalogo-bairros.js"),gestao=read("gestao/gestao.js");
  assert.match(admin,/\.\.\/dados-territoriais\/camadas-mapas.js/);
  assert.match(admin,/catalogo-bairros.js/);
- assert.match(ui,/hash==="bairros"/);
- assert.match(ui,/mi-official-search/);
- assert.match(ui,/Localizar/);
- assert.match(ui,/Salvar bairros no cadastro local/);
- assert.match(ui,/href/);
- assert.match(ui,/linkEvento/);
- assert.match(ui,/linkMapa/);
+ assert.match(gestao,/\["geoterritorialidade","Geoterritorialidade"\]/);
+ assert.match(gestao,/id="geo-rows"/);
+ assert.match(gestao,/id="geo-search"/);
+ assert.match(ui,/gestao:geo-render/);
+ assert.match(ui,/data-geo-edit/);
+ assert.match(ui,/data-geo-ref/);
+ assert.match(ui,/zonasOficiais/);
+ assert.match(ui,/db\(\)\.lista\(type\)/);
 });
+
 test("o controlador seleciona o bairro por nome e aceita deep links",()=>{
  const src=read("dados-territoriais/camadas-mapas.js");
  assert.match(src,/name="selecionar-bairro"/);
