@@ -152,7 +152,7 @@ function proxima(perguntaJaExibida=false){
   const lista=current.opts.map((opcao,i)=>(i+1)+". "+opcao).join("\n");
   const nenhuma=current.required?"":"\n0. Nenhuma das opções";
   msg(current.q+"\n\n"+lista+nenhuma+
-    "\n\nDigite os números separados por vírgula. Exemplo: 1, 3, 5."+
+    "\n\nVocê pode escolher mais de uma opção. Digite os números separados por vírgula. Exemplo: 1, 3, 5."+
     (current.required?"":" Se nenhuma se aplica, digite 0."));
   form.hidden=false;
   $("compose-placeholder").hidden=true;
