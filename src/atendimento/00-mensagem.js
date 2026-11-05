@@ -48,14 +48,14 @@ function optionsSimple(itens){
  }
 }
 function startMenu(){
- role=null;answers={};steps=[];index=0;current=null;arquivosFoto=null;
- bot("Olá! 👋 Bem-vindo ao Maringá Alerta.\n\nComo podemos ajudar você hoje?");
+ // O cidadão entra exclusivamente pelos três fluxos canônicos.
+ identity=null;role=null;answers={};steps=[];index=0;current=null;arquivosFoto=null;
+ form.onsubmit=responderEtapa;
+ bot("Olá! Bem-vindo ao Maringá Alerta.\n\nO que você deseja fazer?");
  optionsSimple([
-  ["🤝 Quero ajudar",()=>abrirPraSomar(),"submit"],
-  ["🫶 Preciso de ajuda",()=>start("solicitacao")],
-  ["📍 Relatar ocorrência",()=>start("relato")],
-  ["🔎 Consultar cadastro ou protocolo",()=>consultarCadastro()],
-  ["✅ Cheguei / Terminei",()=>iniciarFase()]
+  ["Ser colaborador",()=>abrirPraSomar(),"submit"],
+  ["Relatar ocorrência",()=>start("relato")],
+  ["Preciso de ajuda",()=>start("solicitacao")]
  ]);
 }
 function abrirPraSomar(){
@@ -69,17 +69,28 @@ const BENS_DEMANDA=new Set(["Alimentação","Telhas e cobertura","Roupas e cober
 const ofereceBens=a=>["ajudas","maquinas","materiais"].some(k=>(a[k]||[]).some(x=>BENS.has(x)));
 function identificarCampos(papel){
  const b=[];
- if(papel!=="relato"&&!identity?.tipo_pessoa)b.push({key:"tipo_pessoa",q:"Você é pessoa física ou jurídica?",kind:"single",opts:["FÍSICA","JURÍDICA"],required:true});
  if(!identity?.nome)b.push({key:"nome",q:papel==="relato"?"Qual é seu nome?":"Qual é seu nome completo ou razão social?",kind:"text",required:true});
+ if(papel!=="relato"&&!identity?.tipo_pessoa)b.push({key:"tipo_pessoa",q:"Você é pessoa física ou jurídica?",kind:"single",opts:["FÍSICA","JURÍDICA"],required:true});
+ if(papel!=="relato"&&!identity?.endereco)b.push({key:"endereco",q:"Informe seu endereço. Ele ficará reservado à equipe de atendimento.",kind:"text",required:true});
  if(!identity?.telefone)b.push({key:"telefone",q:"Qual é seu telefone com DDD?",kind:"tel",required:true});
  if(papel==="colaborador"&&!identity?.email)b.push({key:"email",q:"Qual é seu e-mail?",kind:"email",required:true});
- if(papel!=="relato"&&!identity?.endereco)b.push({key:"endereco",q:"Informe seu endereço. Ele ficará reservado à equipe de atendimento.",kind:"text",required:true});
  return b;
+}
+// Não exigir que o cidadão saiba a zona: usa somente vínculos territoriais já cadastrados.
+function zonaPeloEndereco(endereco){
+ const norm=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
+ const texto=norm(endereco);
+ if(!texto)return "";
+ const zonas=dados.lista("zonas").map(z=>z.nome).filter(Boolean);
+ const encontradas=zonas.filter(nome=>new RegExp("(^|[^a-z0-9])"+norm(nome).replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"($|[^a-z0-9])").test(texto));
+ if(encontradas.length===1)return encontradas[0];
+ const referencias=dados.lista("bairros").filter(b=>b.nome&&b.zona&&texto.includes(norm(b.nome)));
+ const associadas=[...new Set(referencias.map(b=>b.zona))];
+ return associadas.length===1?associadas[0]:"";
 }
 function definirSteps(papel){
  const base=identificarCampos(papel);
  if(papel==="colaborador")return [...base,
-  {key:"zona",q:"Qual é sua zona ou região de referência? Se não souber, escolha a última opção.",kind:"single",opts:[...app.zonas(),"Não sei informar"],required:true},
   {key:"ajudas",q:"Que tipos de ajuda você pode oferecer às pessoas atingidas? Pode marcar várias.",kind:"multi",opts:catalogos.ajudas},
   {key:"outros_ajudas",q:"Você marcou OUTRO em ajuda a pessoas. O que pode oferecer?",kind:"text",required:true,quando:a=>(a.ajudas||[]).includes("OUTRO")},
   {key:"maquinas",q:"Você pode oferecer maquinário, veículos, equipamentos ou materiais? Marque quantos quiser.",kind:"multi",opts:catalogos.maquinas},
@@ -87,11 +98,9 @@ function definirSteps(papel){
   {key:"empreendedores",q:"Pode ajudar empreendedores atingidos? Escolha as opções que se aplicam.",kind:"multi",opts:catalogos.empreendedores},
   {key:"outros_empreendedores",q:"Que outro apoio pode oferecer aos empreendedores?",kind:"text",required:true,quando:a=>(a.empreendedores||[]).includes("OUTRO")},
   {key:"materiais",q:"Pode fornecer material de construção ou combustível?",kind:"multi",opts:catalogos.materiais},
-  {key:"forma_entrega_doacao",q:"Como prefere disponibilizar alimentos ou materiais? A prefeitura deve confirmar o ponto de recebimento antes de qualquer entrega.",kind:"single",opts:catalogos.formas_entrega_doacao,quando:ofereceBens},
-  {key:"disponibilidade",q:"Você está disponível para receber solicitações de ajuda?",kind:"single",opts:["Disponível","A combinar","Indisponível"],required:true}
+  {key:"forma_entrega_doacao",q:"Como prefere disponibilizar alimentos ou materiais? A prefeitura deve confirmar o ponto de recebimento antes de qualquer entrega.",kind:"single",opts:catalogos.formas_entrega_doacao,quando:ofereceBens}
  ];
  if(papel==="solicitacao")return [...base,
-  {key:"zona",q:"Em qual zona ou região você precisa de ajuda?",kind:"single",opts:[...app.zonas(),"Não sei informar"],required:true},
   {key:"necessidade",q:"Do que você precisa neste momento?",kind:"single",opts:catalogos.necessidades,required:true},
   {key:"descricao",q:"Quer contar mais detalhes da sua necessidade?",kind:"text",optional:true},
   {key:"modo_recebimento",q:"Como você consegue receber a ajuda?",kind:"single",opts:["Posso retirar em um ponto de apoio","Preciso receber no endereço informado","A combinar"],quando:a=>BENS_DEMANDA.has(a.necessidade)},
