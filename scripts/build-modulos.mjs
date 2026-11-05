@@ -3,6 +3,7 @@
 import {readFileSync,writeFileSync,mkdirSync} from "node:fs";
 import {dirname,resolve} from "node:path";
 import {createHash} from "node:crypto";
+import {versionarAtendimento} from "./versionar-atendimento.mjs";
 import {fileURLToPath} from "node:url";
 const root=resolve(dirname(fileURLToPath(import.meta.url)),"..");
 const safe=p=>{if(typeof p!=="string"||!/^[-A-Za-z0-9_/\\.]+$/.test(p)||p.includes(".."))throw Error("Caminho inválido");return resolve(root,p);};
@@ -22,4 +23,5 @@ for(const bundle of manifest.bundles){
   console.log("Construído "+bundle.target+" sha256:"+hash);
  }
 }
+errors+=versionarAtendimento(root,checking);
 if(errors)process.exitCode=1;
