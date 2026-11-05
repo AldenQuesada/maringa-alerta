@@ -321,3 +321,12 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   .legend{display:none}
   .floatwin{width:85vw;right:8px}
 }
+
+/* Pontos e centros de coleta visíveis no Mapa de Evento por padrão. */
+.ponto-publico-marker{border:0;background:transparent;}
+.ponto-publico-marker span{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;font-size:18px;background:#10352f;border:2px solid #42d9a9;box-shadow:0 2px 8px #0009;cursor:pointer;}
+.ponto-publico-popup{max-width:300px;font-size:12px;line-height:1.48;color:#222;}
+.ponto-publico-popup strong{font-size:13px;}
+.ponto-publico-popup p{margin:5px 0;}
+.ponto-publico-popup small{display:block;color:#69532e;margin:7px 0;}
+.ponto-publico-popup a{color:#086b8c;text-decoration:underline;}
