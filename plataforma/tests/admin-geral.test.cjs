@@ -8,15 +8,16 @@ const P=require("../modelo.js");
 function storage(){const map=new Map();return {getItem:k=>map.get(k)||null,setItem:(k,v)=>map.set(k,String(v)),removeItem:k=>map.delete(k)};}
 function novo(){const local=storage(),session=storage(),central=P.criar({armazenamento:local,sessoes:session,dados:D});return {local,session,central};}
 const londrina={id:4113700,nome:"Londrina",uf:{sigla:"PR"}};
-test("a Administração Geral é independente da Prefeitura e exige sessão explícita",()=>{
+test("Admin Geral mantém sessão demonstrativa sem bloquear a consulta do protótipo",()=>{
  const {central,session}=novo();
  assert.equal(central.sessaoAtiva(),false);
- assert.throws(()=>central.municipios(),/sessão/);
+ assert.equal(central.municipios().length,1,"Consulta em modo demonstração sem autorização real");
  central.entrarDemonstracao();assert.equal(central.sessaoAtiva(),true);
  assert.equal(central.municipios().length,1);
  central.sairDemonstracao();assert.equal(central.sessaoAtiva(),false);
  assert.equal(session.getItem(P.SESSION),null);
 });
+
 test("Admin Geral provisiona Londrina e preserva Maringá",()=>{
  const {central,local}=novo();central.entrarDemonstracao();
  const p=central.gravarPrefeitura({uf:"PR",estado:"Paraná",cidade:londrina,adminMunicipal:"Gestor da cidade",email:"gestor@example.invalid"});
@@ -82,18 +83,17 @@ test("contexto municipal escolhe Prefeitura na sessão, não altera banco global
  assert.equal(session.getItem(P.MUNICIPIO_CTX),p.id);
  assert.equal(D.criar(local).municipioAtivo().id,"maringa");
 });
-test("menu municipal não oferece implantar município e não altera grupos inferiores",()=>{
- const group=D.GROUPS;
- assert.deepEqual(group[1].items,["territorio","bairros","zonas","bases","riscos"]);
- assert.deepEqual(group[2].items,["pessoas"]);
- assert.deepEqual(group[3].items,["equipes","integrantes","voluntarios"]);
- assert.deepEqual(group[4].items,["solicitacoes","mobilizacoes","apoios"]);
- assert.deepEqual(group[5].items,["saude","emergencias","parceiros"]);
- assert.deepEqual(group[6].items,["veiculos","equipamentos","estoques","abrigos","pontos"]);
- assert.deepEqual(group[7].items,["ocorrencias","canais","regras"]);
+test("Admin Geral é dono das prefeituras e Gestão mantém abas e fluxos canônicos",()=>{
+ const groups=D.GROUPS;
+ assert.deepEqual(groups[1].items,["territorio"]);
+ assert.deepEqual(groups[2].items,["equipes","integrantes","voluntarios"]);
+ assert.deepEqual(groups[3].items,["solicitacoes","mobilizacoes","apoios"]);
+ assert.deepEqual(groups[4].items,["veiculos","equipamentos","estoques","abrigos","pontos"]);
+ assert.deepEqual(groups[5].items,["ocorrencias","canais","regras"]);
  const municipal=fs.readFileSync(path.join(__dirname,"../../gestao/gestao.js"),"utf8");
  assert.match(municipal,/renderTerritorioMunicipal/);
  assert.match(municipal,/municipioId:CIDADE_DEMO/);
+ assert.match(municipal,/\["geoterritorialidade","Geoterritorialidade"\]/);
  assert.doesNotMatch(municipal,/\["Implantar Maringá"/);
  const platform=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
  assert.match(platform,/Administração Geral da Plataforma/);

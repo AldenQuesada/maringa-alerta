@@ -19,8 +19,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verificar montagem canônica dos módulos
+        run: node scripts/build-modulos.mjs --check
       - name: Verificar sintaxe dos módulos
         run: |
+          node --check evento/app.js
+          node --check cadastro-ocorrencia.js
           node --check fluxo-ajuda.js
           node --check gestao/dados.js
           node --check gestao/gestao.js

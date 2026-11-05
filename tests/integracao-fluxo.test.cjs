@@ -7,10 +7,11 @@ const AlertaFluxo = require('../fluxo-ajuda.js');
 
 // Executa o adaptador real, sem depender do mapa ou de mensagens externas.
 const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
-const inicio = html.indexOf('function acionarAjuda(');
-const fim = html.indexOf('function calcularTempos(', inicio);
+const evento = fs.readFileSync(path.join(__dirname, '../evento/app.js'), 'utf8');
+const inicio = evento.indexOf('function acionarAjuda(');
+const fim = evento.indexOf('function calcularTempos(', inicio);
 assert.ok(inicio >= 0 && fim > inicio, 'Adaptador de acionamento disponível');
-const adaptador = html.slice(inicio, fim);
+const adaptador = evento.slice(inicio, fim);
 
 function cenario(quantidade) {
   const o = {
@@ -65,7 +66,7 @@ test('cadastro de colaboradores segue um único fluxo canônico nos três mapas'
   assert.match(chat, /app\.registrarColaborador\(/);
   assert.match(core, /db\.gravar\("voluntarios"/);
   assert.match(mapa, /app\.oferentes\(\)/);
-  assert.match(html, /cadastro\.lista\('voluntarios',tenantId\)/);
-  assert.match(html, /Gerenciar colaboradores na Gestão/);
-  assert.doesNotMatch(html, /data-action="rm-vol"/);
+  assert.match(evento, /cadastro\.lista\('voluntarios',tenantId\)/);
+  assert.match(evento, /Gerenciar colaboradores na Gestão/);
+  assert.doesNotMatch(evento, /data-action="rm-vol"/);
 });

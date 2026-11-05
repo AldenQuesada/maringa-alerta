@@ -19,7 +19,7 @@ test("três mapas têm nomes completos e abrem telas independentes",()=>{
  assert.equal((html.match(/class="map-symbol"/g)||[]).length,3,"os três botões devem ter o mesmo ícone");
  assert.match(css,/\.map-hub \.map-arrow\{display:inline-flex/, "setas visíveis também no layout responsivo");
 });
-test("o cabeçalho preserva a sessão e todas as funções dos grupos não alterados",()=>{
+test("o cabeçalho preserva sessão, três mapas e acesso canônico sem menus redundantes",()=>{
  assert.match(html,/id="sidebar-nav"/);
  assert.match(html,/id="header-actions"/);
  assert.match(html,/id="session-anchor"/);
@@ -27,13 +27,15 @@ test("o cabeçalho preserva a sessão e todas as funções dos grupos não alter
  assert.match(html,/src="\.\/acoes-cabecalho.js/);
  const groups=dados.slice(dados.indexOf("const GROUPS=["),dados.indexOf("const COLLECTIONS="));
  for(const name of ["equipes","integrantes","voluntarios","solicitacoes","mobilizacoes","apoios",
-   "saude","emergencias","parceiros","veiculos","equipamentos","estoques","abrigos","pontos","ocorrencias","canais","regras"])
-   assert.match(groups,new RegExp('"'+name+'"'),"Acesso preservado: "+name);
- for(const name of ["territorio","bairros","pessoas"])
-   assert.match(groups,new RegExp('"'+name+'"'),"Novo cadastro obrigatório: "+name);
- assert.doesNotMatch(groups,/"administradores"|"responsaveis"|"substitutos"|"coordenadores"|"operadores"/,
-   "Os cinco papéis de RH devem usar um único menu Pessoas e Hierarquia");
+  "veiculos","equipamentos","estoques","abrigos","pontos","ocorrencias","canais","regras"]){
+  assert.match(groups,new RegExp('"'+name+'"'),"Acesso pelo menu: "+name);
+ }
+ for(const name of ["bairros","zonas","pessoas","saude","emergencias","parceiros","bases","riscos"]){
+  assert.match(dados,new RegExp(name+':\\{'),"Cadastro canônico da aba: "+name);
+ }
+ assert.doesNotMatch(groups,/"administradores"|"responsaveis"|"substitutos"|"coordenadores"|"operadores"/);
 });
+
 test("não inclui Vigilância Sanitária nem chamada de colaboradores internos",()=>{
  assert.doesNotMatch(html+css+js,/Vigilância Sanitária|chamar colaboradores internos|TeamCallBar|SanitaryInspectionAlertButton/i);
  assert.match(js,/SAMU/);

@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "description": "Fontes por domínio; bundles publicados são resultados determinísticos das fontes.",
+  "bundles": [
+    {
+      "target": "evento/app.js",
+      "sources": [
+        "src/evento/00-contexto.js",
+        "src/evento/01-regioes-demonstrativas.js",
+        "src/evento/02-cadastros-administrativos.js",
+        "src/evento/03-equipes-demonstrativas-part01.js",
+        "src/evento/03-equipes-demonstrativas-part02.js",
+        "src/evento/04-mapa-e-territorio.js",
+        "src/evento/05-seletores-de-zona-part01.js",
+        "src/evento/05-seletores-de-zona-part02.js",
+        "src/evento/05-seletores-de-zona-part03.js",
+        "src/evento/05-seletores-de-zona-part04.js",
+        "src/evento/06-ocorrencias-part01.js",
+        "src/evento/06-ocorrencias-part02.js",
+        "src/evento/07-administracao-interna-part01.js",
+        "src/evento/07-administracao-interna-part02.js",
+        "src/evento/08-triagem.js",
+        "src/evento/09-escalonamento-part01.js",
+        "src/evento/09-escalonamento-part02.js",
+        "src/evento/10-mensagens-simuladas.js",
+        "src/evento/11-auditoria-local.js",
+        "src/evento/12-status-publico.js",
+        "src/evento/13-relatorio-pos-evento.js",
+        "src/evento/14-offline.js",
+        "src/evento/15-perfil-local.js",
+        "src/evento/16-atendimento-simulado-part01.js",
+        "src/evento/16-atendimento-simulado-part02.js",
+        "src/evento/16-atendimento-simulado-part03.js",
+        "src/evento/16-atendimento-simulado-part04.js",
+        "src/evento/16-atendimento-simulado-part05.js"
+      ]
+    },
+    {
+      "target": "gestao/gestao.js",
+      "sources": [
+        "src/gestao/00-render-municipios.js",
+        "src/gestao/01-render-inicio.js",
+        "src/gestao/02-render-pref-tabs.js",
+        "src/gestao/03-render-estruturas.js",
+        "src/gestao/04-render.js",
+        "src/gestao/05-carregar-ibge.js"
+      ]
+    },
+    {
+      "target": "gestao/dados.js",
+      "sources": [
+        "src/cadastros/00-contexto-part01.js",
+        "src/cadastros/00-contexto-part02.js",
+        "src/cadastros/00-contexto-part03.js",
+        "src/cadastros/00-contexto-part04.js",
+        "src/cadastros/01-novo-estado.js",
+        "src/cadastros/02-implantar-pacote.js"
+      ]
+    },
+    {
+      "target": "gestao/implantacao-ui.js",
+      "sources": [
+        "src/implantacao/00-notify.js",
+        "src/implantacao/01-refresh-table.js",
+        "src/implantacao/02-import-official.js",
+        "src/implantacao/03-render-rh.js",
+        "src/implantacao/04-montar.js"
+      ]
+    },
+    {
+      "target": "plataforma/app.js",
+      "sources": [
+        "src/plataforma/00-notice.js",
+        "src/plataforma/01-wire-list.js",
+        "src/plataforma/02-polygon.js"
+      ]
+    },
+    {
+      "target": "mapas/app.js",
+      "sources": [
+        "src/mapas/00-alertar.js",
+        "src/mapas/01-render-equipe-por-bairro.js",
+        "src/mapas/02-counters.js"
+      ]
+    },
+    {
+      "target": "atendimento/chat.js",
+      "sources": [
+        "src/atendimento/00-mensagem.js",
+        "src/atendimento/01-responder-etapa.js"
+      ]
+    },
+    {
+      "target": "cadastro-ocorrencia.js",
+      "sources": [
+        "src/ocorrencias/00-iniciar.js",
+        "src/ocorrencias/01-mostrar-etapa.js",
+        "src/ocorrencias/02-marcar.js",
+        "src/ocorrencias/03-encontrar-bairro.js"
+      ]
+    },
+    {
+      "target": "crise/core.js",
+      "sources": [
+        "src/crise/00-wa-link.js",
+        "src/crise/01-registrar-saida.js",
+        "src/crise/02-acionar-brigada.js"
+      ]
+    },
+    {
+      "target": "gestao/acoes-cabecalho.js",
+      "sources": [
+        "src/acoes-cabecalho/00-alerts.js",
+        "src/acoes-cabecalho/01-open.js"
+      ]
+    }
+  ]
+}
