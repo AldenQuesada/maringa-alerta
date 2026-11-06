@@ -80,6 +80,7 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
  function registrarCheckin({colaboradorId,bairro,lat,lng,precisao,geometry,origem="IBGE 2022"}={}) {
   const item=db.registro("voluntarios",colaboradorId);
   if(!item)throw Error("Colaborador não cadastrado nesta Prefeitura.");
+   if(item.status_simulacao==="simulado")throw Error("Cadastro de demonstração não permite check-in real.");
   const origemBairro=String(item.bairro||item.zona||"").trim();
   if(!origemBairro||norm(origemBairro)!==norm(bairro))throw Error("A pessoa só pode registrar presença no bairro de cadastro.");
   if(!Number.isFinite(lat)||!Number.isFinite(lng)||!Number.isFinite(precisao)||precisao>100||precisao<0)
