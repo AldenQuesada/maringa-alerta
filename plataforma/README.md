@@ -1,43 +1,37 @@
-# Administração Geral — Sistema Integrado de Gestão de Crise
+# Administração Geral
 
-## Separação canônica inspirada na arquitetura multi-tenant do LifeSinal
+A rota `/plataforma/` exige Supabase Auth e `ma_meu_perfil().admin_plataforma`. O servidor decide a autorização usando `private.ma_admins`; nome de responsável, e-mail institucional e metadados editáveis do usuário não concedem privilégios.
 
-**Admin Geral é da plataforma inteira, não da Prefeitura de Maringá nem da marca Maringá Alerta.** É a camada de provisionamento e governo de municípios: Brasil → UF → município → ambiente municipal e atribuições locais.
+A identidade de administrador geral já existente no projeto foi preservada. A página permite consultar administradores gerais e administrar vínculos municipais; não oferece autopromoção nem criação de administrador global. O provisionamento inicial é técnico, por convite privado e confirmação de e-mail pelo Auth. O admin geral pode iniciar mesmo quando ainda não existe prefeitura.
 
-A arquitetura do LifeSinal consultada como referência separa tabelas como `platform_users`, `states`, `municipalities`, `user_scope_memberships` e `access_roles`. O projeto de gestão de crise **não usa o banco do LifeSinal**.
+## Fluxos
 
-### Rotas
-- `/plataforma/`: Administração Geral global. Dashboard, municípios e georreferenciamento inicial.
-- `/gestao/`: painel da Prefeitura atribuída; nenhum botão Criar Prefeitura ou Implantar Maringá; substituído por Território municipal (identificação somente leitura).
-- `/gestao/#pessoas`: Usuários e Hierarquia da Prefeitura (RH e operação local).
-- `/mapas/?tipo=colaboradores` e `/mapas/?tipo=ajuda`: mapas do município ativo na sessão local.
-- `/index.html`: mapa de evento demonstrativo de Maringá, preservado. Não é reutilizado falsamente para Londrina.
+- Visão geral: contagens consultadas no servidor.
+- Prefeituras: busca por nome ou código IBGE, filtro de UF e páginas de 25 registros.
+- Nova Prefeitura: botão com + amarelo, identificação oficial e responsabilidade em duas etapas; grava na tabela existente `ma_prefeituras`.
+- Editar: conserva dados e geometrias, exige a versão original, permite implantação, ativação e suspensão. IBGE e UF são imutáveis.
+- Acessos: vincula uma conta já confirmada a uma prefeitura como administrador, operador ou leitor; permite alterar ou revogar o vínculo. Não cria contas Auth nem envia convites. Para uma conta nova, a pessoa precisa concluir o login por e-mail antes do vínculo. SMTP e URLs de retorno precisam estar configurados para os destinatários pretendidos.
+- Território: importa o limite do município pelo código IBGE, sem regra especial por cidade.
+- Histórico: consulta paginada dos metadados de alterações produzidos no banco. Não copia valores pessoais completos nem reconstrói estados anteriores.
 
-### Fluxo de provisionamento (protótipo)
-1. Entrar na sessão **demonstrativa** do Admin Geral (não autentica; sem segredo ou senha).
-2. Prefeituras → Nova Prefeitura: país BR, UF, município selecionado na lista oficial IBGE, código IBGE não editável, nome/contato do administrador municipal de referência, status inicial `implantacao`.
-3. Salvar: uma Prefeitura por código IBGE, sem duplicar Maringá existente.
-4. Georreferenciamento: consultar malha IBGE por código oficial, conferir retorno, gravar geometria/centro/bbox e procedência na coleção `prefeituras`; outras instituições e zonas operacionais exigem implantação separada.
-5. Editar/ativar/suspender município; entrar em seu ambiente municipal no mesmo navegador. Seleção da Prefeitura é fixada em `sessionStorage` nesta aba; a coleção local permanece identificada por `municipioId`.
-6. Administradores municipais vinculam pessoas, órgãos, zonas e recursos apenas no próprio contexto.
+O Admin Geral só abre os cadastros operacionais de prefeituras em que também tem vínculo municipal. O criador recebe esse vínculo no servidor ao cadastrar a prefeitura. Suspensão bloqueia os acessos municipais; o cadastro central permanece disponível para reativação.
 
-### Segurança e limites
+## Contratos
 
-**Não existe autenticação real no GitHub Pages.** O usuário que abre `/plataforma/` pode ativar uma sessão demonstrativa local; isso NÃO protege os dados nem habilita uso operacional. Contas e atribuições exibidas são metadados locais, não convites enviados nem identidades verificadas. Não insira CPF, dados privados ou credenciais reais.
+`backend/admin.js` implementa consultas paginadas, estatísticas, catálogo e RPCs. Não carrega `ma_cadastros` nem as geometrias de todas as prefeituras ao entrar. `backend/boot.js` executa o guard da rota antes de iniciar esse serviço. Gravações falhas bloqueiam novas tentativas no serviço até recarregar e conferir o resultado.
 
-O armazenamento em `localStorage` está disponível a scripts da mesma origem; filtros por `municipioId` no navegador não são isolamento seguro. Para produção, implantar um backend exclusivo desta plataforma com:
+`src/plataforma/` contém oito módulos com escopos independentes: componentes visuais, adaptador demonstrativo, listagem, formulário, acessos, histórico, território e composição das rotas. O build concatena módulos completos, sem dividir funções ou depender de variáveis lexicais de arquivos vizinhos. `plataforma/app.js` é gerado; editar os fontes.
 
-- `countries`, `states`, `municipalities` e status;
-- `platform_users` autenticados e `municipality_memberships` por usuário/role;
-- Admin Geral com permissão explícita server-side para provisionar município;
-- Admin Municipal limitado por RLS e pelo vínculo de município validado pelo servidor;
-- registro de auditoria, convites autenticados, soft deletion e revisão de importações cartográficas;
-- identidade e credenciais não vinculadas apenas ao e-mail digitado no formulário.
+O modo `?modo=demo` usa o cadastro local existente, é identificado visualmente e não simula concessão de permissões reais. Não é um mecanismo de autenticação.
 
-O Supabase conectado contém projeto LifeSinal, mas **nenhum projeto de backend próprio de Maringá Alerta foi identificado**. Não fazer alterações no banco LifeSinal. Contrato para backend real deve ser implementado quando houver projeto de produção próprio.
+## Referência territorial
 
-### Verificação
+`ma_ufs` e `ma_municipios_ibge` contêm a referência IBGE consultada em 06/11/2026: 27 UFs e 5.571 códigos na API de municípios. Referências não são prefeituras provisionadas. `dados-territoriais/catalogo-ibge.json` é o snapshot de origem e referência do modo demonstrativo. A interface conectada consulta o catálogo no banco.
 
-`node --test plataforma/tests/*.test.cjs gestao/tests/*.test.cjs crise/tests/*.test.cjs tests/*.test.cjs`.
+`node scripts/gerar-catalogo-sql.mjs --check` confere o snapshot contra a migração. Para atualizar o catálogo depois de aplicada, criar **nova migração**, preservando a história existente; não reescrever a migração aplicada.
 
-Os testes validam provisionamento de Londrina, status, deduplicação IBGE, acesso municipal de demonstração e ausência de dados de Maringá na Prefeitura de Londrina; não provam segurança de servidor nem entrega de mensagens.
+## Verificação e publicação
+
+`npm test`, `npm run check`, `tests/backend/permissoes.sql` e `tests/backend/admin-geral.sql`. As fixtures SQL só podem rodar em PostgreSQL descartável; são revertidas. `supabase/auditoria/admin-geral-verificacao.sql` é uma consulta somente leitura para conferir o projeto real.
+
+As cinco migrações de 06/11/2026 do Admin Geral foram aplicadas e verificadas no projeto `yyoozisgoginwepzvnvu` pelo SQL Editor. O frontend desta revisão está no workspace; ainda precisa ser publicado pelo fluxo GitHub Pages. As migrações históricas foram aplicadas manualmente, sem registro no histórico do CLI: reconciliar as versões antes de usar `supabase db push`.

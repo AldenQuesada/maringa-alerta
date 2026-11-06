@@ -1,6 +1,4 @@
-/* Administração central demonstrativa do SaaS — independente de município.
- * A sessão local NÃO autentica usuários; produção precisa de backend e RLS.
- */
+/* Modelo do cadastro canônico. Sessão demonstrativa não concede autorização no servidor. */
 (function(root,factory){
  const api=factory(root);
  if(typeof module==="object"&&module.exports)module.exports=api;
@@ -24,7 +22,6 @@ function criar({armazenamento=root.localStorage,sessoes=root.sessionStorage,dado
   if(!oficial||typeof oficial!=="object")throw Error("Selecione município retornado pelo IBGE.");
   const nome=String(oficial.nome||"").trim(),codigo=String(oficial.id||oficial.codigo_ibge||"").trim();
   if(!nome||!/^\d{7}$/.test(codigo))throw Error("Dados oficiais incompletos.");
-  if(uf==="PR"&&!codigo.startsWith("41"))throw Error("Município fora do Paraná.");
   const returnedUF=oficial?.microrregiao?.mesorregiao?.UF?.sigla||
     oficial?.["regiao-imediata"]?.["regiao-intermediaria"]?.UF?.sigla||
     oficial?.uf?.sigla;
@@ -74,7 +71,7 @@ function criar({armazenamento=root.localStorage,sessoes=root.sessionStorage,dado
   sessoes.setItem(MUNICIPIO_CTX,id);
   return item;
  }
- function contextoMunicipal(){return sessoes.getItem(MUNICIPIO_CTX)||"maringa";}
+ function contextoMunicipal(){const id=sessoes.getItem(MUNICIPIO_CTX);return municipios().find(x=>x.id===id)?.id||municipios()[0]?.id||null;}
  return {entrarDemonstracao,sairDemonstracao,sessaoAtiva,municipios,gravarPrefeitura,mudarSituacao,registrarGeo,acessarMunicipio,contextoMunicipal,db,SESSION,MUNICIPIO_CTX};
 }
 return {criar,SESSION,MUNICIPIO_CTX,STATUSES};

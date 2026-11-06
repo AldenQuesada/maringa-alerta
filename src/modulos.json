@@ -70,9 +70,14 @@
     {
       "target": "plataforma/app.js",
       "sources": [
-        "src/plataforma/00-notice.js",
-        "src/plataforma/01-wire-list.js",
-        "src/plataforma/02-polygon.js"
+        "src/plataforma/ui.js",
+        "src/plataforma/servico-demo.js",
+        "src/plataforma/prefeituras.js",
+        "src/plataforma/editor.js",
+        "src/plataforma/acessos.js",
+        "src/plataforma/auditoria.js",
+        "src/plataforma/territorio.js",
+        "src/plataforma/app.js"
       ]
     },
     {
@@ -113,6 +118,14 @@
       "sources": [
         "src/acoes-cabecalho/00-alerts.js",
         "src/acoes-cabecalho/01-open.js"
+      ]
+    },
+    {
+      "target": "backend/repositorio.js",
+      "sources": [
+        "src/backend/diferencas.js",
+        "src/backend/consultas.js",
+        "src/backend/repositorio.js"
       ]
     }
   ]

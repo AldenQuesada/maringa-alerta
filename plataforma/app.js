@@ -1,182 +1,301 @@
-/* Administração Geral · interface demonstrativa de provisionamento multi-prefeitura.
- * SEM autenticação real. Municípios e geometrias persistem apenas no navegador.
- */
-(function(){
-"use strict";
-const $=id=>document.getElementById(id);
-const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const D=globalThis.AlertaGestaoDados,A=globalThis.AlertaAdminPlataforma;
-if(!D||!A){$("screen").textContent="Falha ao carregar Administração Geral.";return;}
-const central=A.criar(),cache=new Map();
-let section="dashboard",editing=null,search="",ufFilter="",busy=false,formCities=[],selectedUF="PR",notifyTimer;
-const ufLabels={AC:"Acre",AL:"Alagoas",AP:"Amapá",AM:"Amazonas",BA:"Bahia",CE:"Ceará",DF:"Distrito Federal",ES:"Espírito Santo",GO:"Goiás",MA:"Maranhão",MT:"Mato Grosso",MS:"Mato Grosso do Sul",MG:"Minas Gerais",PA:"Pará",PB:"Paraíba",PR:"Paraná",PE:"Pernambuco",PI:"Piauí",RJ:"Rio de Janeiro",RN:"Rio Grande do Norte",RS:"Rio Grande do Sul",RO:"Rondônia",RR:"Roraima",SC:"Santa Catarina",SP:"São Paulo",SE:"Sergipe",TO:"Tocantins"};
-const nameUF=x=>ufLabels[x]||x;
-function notice(txt){let x=$("notification");x.textContent=txt;x.hidden=false;clearTimeout(notifyTimer);notifyTimer=setTimeout(()=>x.hidden=true,4100);}
-function heading(title,description,actions=""){return '<div class="heading"><div><div class="kicker">ADMIN GERAL · TODO O SISTEMA</div><h1>'+esc(title)+'</h1><p>'+esc(description)+'</p></div><div>'+actions+'</div></div>';}
-const warning=globalThis.AlertaNuvem?.ativo?'': '<div class="notice"><strong>Ambiente demonstrativo.</strong> Os dados desta Administração Geral são armazenados somente neste navegador. A sessão local não autentica nem protege o banco. Não insira credenciais ou informações privadas reais. A publicação institucional exige backend com login e permissões auditáveis.</div>';
-function badge(status){const value=status||"implantacao";return '<span class="status '+esc(value)+'">'+esc(value==="implantacao"?"Em implantação":value==="ativa"?"Ativa":value==="suspensa"?"Suspensa":value)+'</span>';}
-function renderNav(){
- document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===section));
+/* Componentes visuais sem dependência de dados ou autorização. */
+(function(root){
+'use strict';
+const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const situacoes={implantacao:'Em implantação',ativa:'Ativa',suspensa:'Suspensa'};
+function heading(title,description,actions=''){
+  return '<div class="heading"><div><div class="kicker">ADMIN GERAL · TODO O SISTEMA</div><h1>'+esc(title)+'</h1><p>'+esc(description)+'</p></div>'+actions+'</div>';
 }
-function current(){return central.municipios();}
-function stats(){
- const xs=current();
- return '<div class="stat-grid">'+[
- ["Prefeituras cadastradas",xs.length],["Em implantação",xs.filter(x=>!x.status||x.status==="implantacao").length],["Ativas",xs.filter(x=>x.status==="ativa").length],["Suspensas",xs.filter(x=>x.status==="suspensa").length]
- ].map(([name,n])=>'<div class="stat"><small>'+esc(name)+'</small><strong>'+n+'</strong></div>').join("")+'</div>';
+function panel(title,body){return '<section class="panel"><div class="panel-head"><h2>'+esc(title)+'</h2></div><div class="panel-body">'+body+'</div></section>';}
+function field(label,id,markup){return '<div class="field"><label for="'+esc(id)+'">'+esc(label)+'</label>'+markup+'</div>';}
+function status(value){return '<span class="status '+esc(value)+'">'+esc(situacoes[value]||value)+'</span>';}
+function plus(label,attrs){return '<button type="button" class="btn add" aria-label="'+esc(label)+'" '+attrs+'><span aria-hidden="true">+</span>'+esc(label)+'</button>';}
+function pager({pagina,total,tamanho}){
+  return '<div class="pagination"><span>'+total+' registros · página '+(pagina+1)+' de '+Math.max(1,Math.ceil(total/tamanho))+'</span><button class="btn" data-prev '+(pagina===0?'disabled':'')+'>Anterior</button><button class="btn" data-next '+((pagina+1)*tamanho>=total?'disabled':'')+'>Próxima</button></div>';
 }
-function renderDashboard(){
- $("screen").innerHTML=heading("Painel geral da plataforma","Administração central do SaaS. Crie a Prefeitura uma única vez; depois sua equipe trabalha no próprio ambiente.")+warning+stats()+
- '<section class="panel"><div class="panel-head"><h2>Hierarquia de provisionamento</h2></div><div class="panel-body"><div class="hierarchy"><span>Plataforma</span><b>›</b><span>Brasil</span><b>›</b><span>Estado</span><b>›</b><span>Prefeitura</span><b>›</b><span>Gabinete de crise</span></div>'+
- '<p>O Admin Geral cria, parametriza e acompanha prefeituras; o Admin Municipal não pode criar outras prefeituras. Os usuários municipais trabalham com o escopo da própria cidade.</p>'+
- '<div class="entry-pills"><a href="#municipios">Cadastrar / editar Prefeituras</a><a href="#territorios">Georreferenciamento por município</a></div></div></section>'+
- municipalityTable(current());
- wireList();
+function bindPager(el,page,change){
+  el.querySelector('[data-prev]')?.addEventListener('click',()=>change(page-1));
+  el.querySelector('[data-next]')?.addEventListener('click',()=>change(page+1));
 }
-function municipalityTable(items){
- return '<section class="panel"><div class="panel-head"><h2>Prefeituras da plataforma</h2><span>'+items.length+' município(s)</span></div><div class="table-wrap"><table class="records"><thead><tr><th>País › Estado › Prefeitura</th><th>Código IBGE</th><th>Situação</th><th>Território</th><th>Admin municipal</th><th>Ações</th></tr></thead><tbody>'+
- (items.length?items.map(x=>'<tr><td><strong>'+esc(x.nome)+' / '+esc(x.uf)+'</strong><small>Brasil › '+esc(nameUF(x.uf))+'</small></td><td>'+esc(x.codigo_ibge)+'</td><td>'+badge(x.status)+'</td>'+
- '<td>'+esc(x.geo_atualizado?"Georreferenciado · "+(x.fonte_geo||"IBGE"):x.id==="maringa"?"Bairros IBGE 2022 disponíveis":"Georreferência pendente")+'</td>'+
- '<td><small>'+esc(x.admin_municipal_email||"Não definido")+'</small></td>'+
- '<td><div class="row-actions"><button type="button" class="btn" data-edit="'+esc(x.id)+'">Editar</button><button type="button" class="btn" data-open="'+esc(x.id)+'">Abrir Prefeitura</button></div></td></tr>').join(""):'<tr><td colspan="6" class="empty">Nenhuma Prefeitura cadastrada.</td></tr>')+
- '</tbody></table></div></section>';
-}
-function renderMunicipios(){
- const xs=current().filter(x=>(!ufFilter||x.uf===ufFilter)&&(!search||(x.nome+" "+x.codigo_ibge+" "+x.uf).toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR"))));
- $("screen").innerHTML=heading("Prefeituras","Cadastre Maringá, Londrina e os demais municípios em um único formulário hierárquico.",
- '<button id="new-city" type="button" class="btn primary">+ Nova Prefeitura</button>')+warning+
- '<section class="panel"><div class="panel-head"><h2>Filtros de municípios</h2></div><div class="panel-body"><div class="toolbar"><input id="filter-search" class="grow" type="search" placeholder="Buscar nome ou código IBGE" value="'+esc(search)+'"><select id="filter-uf"><option value="">Todos os estados</option>'+
- Object.entries(ufLabels).map(([v,t])=>'<option value="'+v+'"'+(v===ufFilter?" selected":"")+'>'+esc(t)+' ('+v+')</option>').join("")+'</select></div></div></section>'+
- municipalityTable(xs)+'<section id="city-editor" class="panel" hidden></section>';
- $("new-city").onclick=()=>openEditor(null);
- $("filter-search").oninput=e=>{search=e.target.value;renderMunicipios();$("filter-search")?.focus();};
- $("filter-uf").onchange=e=>{ufFilter=e.target.value;renderMunicipios();};
- wireList();
-}
-function wireList(){
- $("screen").querySelectorAll("[data-edit]").forEach(x=>x.onclick=()=>{section="municipios";renderMunicipios();openEditor(x.dataset.edit);});
- $("screen").querySelectorAll("[data-open]").forEach(x=>x.onclick=()=>abrirMunicipio(x.dataset.open));
-}
-function openEditor(id=null){
- editing=id;
- const original=id?current().find(x=>x.id===id):null;
- if(id&&!original){notice("Prefeitura não encontrada.");return;}
- selectedUF=original?.uf||"PR";formCities=[];
- const el=$("city-editor");if(!el)return;el.hidden=false;
- el.innerHTML='<div class="panel-head"><h2>'+(original?"Editar Prefeitura":"Nova Prefeitura")+'</h2><span>Cadastro único · país, estado e município</span></div>'+
- '<div class="panel-body"><form id="city-form"><div class="form-grid">'+
- field("País","pais",'<select name="pais" disabled><option value="BR">Brasil</option></select><small>Outros países dependem de catálogo e backend próprios.</small>')+
- field("Estado","uf",'<select id="field-uf" name="uf"'+(original?" disabled":"")+'>'+Object.entries(ufLabels).map(([v,t])=>'<option value="'+v+'"'+(v===selectedUF?" selected":"")+'>'+esc(t)+' ('+v+')</option>').join("")+'</select>')+
- field("Município oficial / IBGE","cidade",original?
- '<input id="field-city" type="text" readonly value="'+esc(original.nome)+'"><small>Código IBGE não pode ser alterado.</small>':
- '<select id="field-city" required disabled><option value="">Consultando municípios no IBGE...</option></select>')+
- field("Código IBGE","codigo",'<input id="field-code" readonly value="'+esc(original?.codigo_ibge||"")+'">')+
- field("Administrador municipal (nome de referência)","admin",'<input name="admin" value="'+esc(original?.responsavel||"")+'" placeholder="Nome do responsável municipal">')+
- field("E-mail institucional (não envia convite)","email",'<input type="email" name="email" value="'+esc(original?.admin_municipal_email||"")+'" placeholder="contato@prefeitura.gov.br">')+
- field("Telefone institucional","telefone",'<input type="tel" name="telefone" value="'+esc(original?.telefone||"")+'">')+
- field("Situação","status",'<select name="status">'+A.STATUSES.map(x=>'<option value="'+x+'"'+((original?.status||"implantacao")===x?" selected":"")+'>'+esc(x==="implantacao"?"Em implantação":x==="ativa"?"Ativa":"Suspensa")+'</option>').join("")+'</select>')+
- '</div><div class="form-actions"><button type="button" class="btn" id="cancel-city">Cancelar</button><button class="btn primary" type="submit">Salvar Prefeitura</button></div></form></div>';
- el.scrollIntoView({block:"nearest"});
- $("cancel-city").onclick=()=>{el.hidden=true;editing=null;};
- $("field-uf").onchange=e=>{selectedUF=e.target.value;$("field-code").value="";void loadCities();};
- if(!original){void loadCities();$("field-city").onchange=()=>{
-  const record=formCities.find(x=>String(x.id)===$("field-city").value);
-  $("field-code").value=String(record?.id||"");
- };}
- $("city-form").onsubmit=async e=>{e.preventDefault();
-  const submit=e.currentTarget.querySelector('[type="submit"]');if(submit.disabled)return;
-  const fd=new FormData(e.currentTarget),uf=original?.uf||String(fd.get("uf")||selectedUF);
-  const selected=original?{id:original.codigo_ibge,nome:original.nome,uf:{sigla:uf}}:formCities.find(x=>String(x.id)===$("field-city").value);
-  if(!selected){notice("Selecione uma Prefeitura consultada no IBGE.");return;}
-  submit.disabled=true;
-  try{
-   const p=await central.gravarPrefeitura({uf,estado:nameUF(uf),cidade:selected,
-     adminMunicipal:fd.get("admin"),email:fd.get("email"),telefone:fd.get("telefone"),status:fd.get("status")},editing);
-   editing=null;notice("Prefeitura "+p.nome+(window.AlertaNuvem?.ativo?" salva no Supabase.":" salva neste navegador."));renderMunicipios();
-  }catch(err){notice(err.message);}finally{submit.disabled=false;}
- };
-}
-function field(name,key,markup){return '<div class="field"><label for="'+esc(key)+'">'+esc(name)+'</label>'+markup+'</div>';}
-async function loadCities(){
- const select=$("field-city");if(!select||busy)return;
- const uf=$("field-uf")?.value||selectedUF;
- select.disabled=true;select.innerHTML='<option value="">Carregando municípios do IBGE...</option>';
- try{
-  let cities=cache.get(uf);
-  if(!cities){
-   const controller=new AbortController(),t=setTimeout(()=>controller.abort(),18000);
-   try{
-    const res=await fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados/"+uf+"/municipios",{signal:controller.signal,cache:"force-cache"});
-    if(!res.ok)throw Error("IBGE HTTP "+res.status);
-    cities=await res.json();if(!Array.isArray(cities)||!cities.length)throw Error("Lista do IBGE vazia");
-    cache.set(uf,cities);
-   }finally{clearTimeout(t);}
+root.AlertaPlataformaUI={esc,situacoes,heading,panel,field,status,plus,pager,bindPager};
+})(globalThis);
+/* Adaptador explícito de demonstração; nenhum privilégio real é simulado como concedido. */
+(function(root){
+'use strict';
+function criar(){
+  const central=root.AlertaAdminPlataforma.criar();
+  let reference;
+  async function catalog(){
+    if(!reference){
+      const response=await fetch('../dados-territoriais/catalogo-ibge.json');
+      if(!response.ok)throw Error('Catálogo IBGE indisponível.');
+      reference=await response.json();
+    }
+    return reference;
   }
-  if(!select.isConnected||$("field-uf")?.value!==uf)return;
-  formCities=cities;select.disabled=false;
-  select.innerHTML='<option value="">Selecione a Prefeitura...</option>'+cities.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.nome)+'</option>').join("");
-  if(uf==="PR"){const expected=cities.find(x=>x.nome==="Londrina");if(!expected)notice("Lista do IBGE consultada; verifique o município pretendido.");}
- }catch(err){
-  formCities=[];select.disabled=true;select.innerHTML='<option>IBGE indisponível · tente novamente</option>';
-  notice("Consulta IBGE falhou: "+err.message);
- }
+  return {
+    remoto:false,
+    async catalogo(uf){const data=await catalog();return uf?data.municipios.filter(x=>x.uf===uf):data.ufs;},
+    async listar({busca='',uf='',pagina=0}={}){
+      const items=central.municipios().filter(x=>(!uf||x.uf===uf)&&(!busca||(x.nome+' '+x.codigo_ibge).toLocaleLowerCase('pt-BR').includes(busca.toLocaleLowerCase('pt-BR'))));
+      return {items:items.slice(pagina*25,(pagina+1)*25),total:items.length,pagina,tamanho:25};
+    },
+    async estatisticas(){const items=central.municipios();return [items.length,...['implantacao','ativa','suspensa'].map(s=>items.filter(x=>x.status===s).length)];},
+    async detalhe(id){const p=central.municipios().find(x=>x.id===id);if(!p)throw Error('Prefeitura não encontrada.');return p;},
+    async salvar(dados,anterior){
+      const saved=central.gravarPrefeitura({uf:dados.uf,estado:dados.estado,cidade:{id:dados.codigo_ibge,nome:dados.nome,uf:{sigla:dados.uf}},telefone:dados.telefone,email:dados.email,adminMunicipal:dados.responsavel,status:dados.status},anterior?.id);
+      if(dados.limite_geojson)central.registrarGeo(saved.id,dados);
+      return saved;
+    },
+    async acessos(){throw Error('A gestão de acessos exige conexão autenticada ao banco.');},
+    async auditoria(){throw Error('O histórico de alterações exige conexão autenticada ao banco.');}
+  };
 }
-function abrirMunicipio(id){
- try{
-  const p=central.acessarMunicipio(id);
-  location.href="../gestao/?municipio="+encodeURIComponent(p.id);
- }catch(err){notice(err.message);}
+root.AlertaPlataformaUI.criarDemo=criar;
+})(globalThis);
+/* Listagem e indicadores: consulta paginada, sem carregar cadastros operacionais. */
+(function(root){
+'use strict';
+const {esc,heading,panel,status,plus,pager,bindPager}=root.AlertaPlataformaUI;
+function rows(items){
+  return '<div class="table-wrap"><table class="records"><thead><tr><th>Prefeitura</th><th>IBGE</th><th>Situação</th><th>Referência institucional</th><th>Ações</th></tr></thead><tbody>'+items.map(p=>
+    '<tr><td><strong>'+esc(p.nome)+'</strong><small>'+esc(p.uf)+'</small></td><td>'+esc(p.codigo_ibge)+'</td><td>'+status(p.status)+'</td><td>'+esc(p.admin_municipal_email||'Não informado')+'</td><td><div class="row-actions">'+
+    '<a class="btn" href="#editar/'+encodeURIComponent(p.id)+'">Editar</a><a class="btn" href="#acessos/'+encodeURIComponent(p.id)+'">Acessos</a><a class="btn" href="#territorio/'+encodeURIComponent(p.id)+'">Território</a>'+
+    (p.status==='suspensa'?'':'<button class="btn" data-open="'+esc(p.id)+'">Abrir Prefeitura</button>')+'</div></td></tr>').join('')+
+    (items.length?'':'<tr><td colspan="5" class="empty">Nenhuma prefeitura encontrada.</td></tr>')+'</tbody></table></div>';
 }
+function bindOpen(ctx){
+  ctx.el.querySelectorAll('[data-open]').forEach(button=>button.onclick=()=>{
+    const url=new URL('../gestao/',location.href);url.searchParams.set('municipio',button.dataset.open);
+    if(!ctx.service.remoto){sessionStorage.setItem(root.AlertaAdminPlataforma.MUNICIPIO_CTX,button.dataset.open);url.searchParams.set('modo','demo');}
+    location.href=url.href;
+  });
+}
+async function dashboard(ctx){
+  const numbers=await ctx.service.estatisticas();
+  if(!ctx.show(heading('Administração do sistema','Gerencie prefeituras e os acessos de suas equipes.',plus('Nova Prefeitura','data-new'))+
+    '<div class="stat-grid">'+['Prefeituras cadastradas','Em implantação','Ativas','Suspensas'].map((label,i)=>'<div class="stat"><small>'+label+'</small><strong>'+numbers[i]+'</strong></div>').join('')+'</div>'+
+    panel('Gestão central','<p>O cadastro utiliza o catálogo oficial IBGE. Cada prefeitura tem seu próprio ambiente e vínculos de acesso. A suspensão bloqueia o acesso municipal e preserva os registros.</p><div class="entry-pills"><a href="#municipios">Prefeituras</a><a href="#administradores">Administradores gerais</a><a href="#auditoria">Histórico de alterações</a></div>')))return;
+  ctx.el.querySelector('[data-new]').onclick=()=>{location.hash='nova';};
+}
+async function municipios(ctx){
+  const filters=ctx.state.filtros;
+  const [result,ufs]=await Promise.all([ctx.service.listar(filters),ctx.catalogo()]);
+  if(!ctx.show(heading('Prefeituras','Cadastro único por município, disponível para todas as UFs.',plus('Nova Prefeitura','data-new'))+
+    panel('Buscar prefeituras','<form id="filters" class="toolbar"><label class="grow">Nome ou código IBGE<input name="busca" type="search" value="'+esc(filters.busca)+'" placeholder="Buscar prefeitura"></label><label>Estado<select name="uf"><option value="">Todos os estados</option>'+ufs.map(x=>'<option value="'+esc(x.sigla)+'" '+(x.sigla===filters.uf?'selected':'')+'>'+esc(x.nome)+'</option>').join('')+'</select></label><button class="btn" type="submit">Buscar</button></form>')+rows(result.items)+pager(result)))return;
+  ctx.el.querySelector('[data-new]').onclick=()=>{location.hash='nova';};
+  ctx.el.querySelector('#filters').onsubmit=e=>{e.preventDefault();const data=new FormData(e.currentTarget);Object.assign(filters,{busca:String(data.get('busca')),uf:String(data.get('uf')),pagina:0});ctx.render();};
+  bindPager(ctx.el,result.pagina,pagina=>{filters.pagina=pagina;ctx.render();});
+  bindOpen(ctx);
+}
+root.AlertaPlataformaUI.dashboard=dashboard;
+root.AlertaPlataformaUI.municipios=municipios;
+})(globalThis);
+/* Formulário canônico. Dados oficiais e versão original acompanham a gravação. */
+(function(root){
+'use strict';
+const {esc,heading,panel,field,situacoes}=root.AlertaPlataformaUI;
+async function editor(ctx,id){
+  const [original,ufs]=await Promise.all([id?ctx.service.detalhe(id):null,ctx.catalogo()]);
+  let cities=[],loading=0,step=1;
+  if(!ctx.show(heading(original?'Editar Prefeitura':'Nova Prefeitura','Identificação oficial, contato institucional e situação do ambiente.')+
+    panel('Cadastro da prefeitura','<form id="city-form"><p id="form-step" aria-live="polite">Etapa 1 de 2 · Identificação oficial</p><section data-step="1"><div class="form-grid">'+
+      field('País','pais','<input id="pais" value="Brasil" readonly>')+
+      field('Estado','uf','<select id="uf" required '+(original?'disabled':'')+'><option value="">Selecione o estado</option>'+ufs.map(u=>'<option value="'+esc(u.sigla)+'" '+(u.sigla===original?.uf?'selected':'')+'>'+esc(u.nome)+'</option>').join('')+'</select>')+
+      field('Município oficial IBGE','cidade',original?'<input id="cidade" value="'+esc(original.nome)+'" readonly>':'<select id="cidade" required disabled><option value="">Selecione primeiro o estado</option></select>')+
+      field('Código IBGE','codigo','<input id="codigo" value="'+esc(original?.codigo_ibge||'')+'" readonly>')+
+      '</div></section><section data-step="2" hidden><div class="form-grid">'+
+      field('Responsável institucional','responsavel','<input id="responsavel" name="responsavel" maxlength="200" value="'+esc(original?.responsavel)+'">')+
+      field('E-mail institucional','email','<input id="email" name="email" type="email" maxlength="254" value="'+esc(original?.email)+'">')+
+      field('Telefone institucional','telefone','<input id="telefone" name="telefone" type="tel" maxlength="40" value="'+esc(original?.telefone)+'">')+
+      field('Situação','status','<select id="status" name="status">'+Object.entries(situacoes).map(([v,l])=>'<option value="'+v+'" '+(v===(original?.status||'implantacao')?'selected':'')+'>'+l+'</option>').join('')+'</select>')+
+      '</div><p>O contato institucional é uma referência. As permissões são gerenciadas na página Acessos da prefeitura. Suspender bloqueia os vínculos municipais e preserva os dados.</p></section><p id="city-error" role="alert"></p><div class="form-actions"><a class="btn" href="#municipios">Cancelar</a><button class="btn" type="button" id="previous-step" hidden>Voltar</button><button class="btn primary" type="button" id="next-step">Continuar</button><button class="btn primary" type="submit" hidden>Salvar Prefeitura</button></div></form>')))return;
+  const form=ctx.el.querySelector('form'),uf=form.querySelector('#uf'),city=form.querySelector('#cidade'),feedback=form.querySelector('#city-error');
+  function changeStep(value){
+    if(value===2&&(!uf.reportValidity()||(!original&&!city.value))){feedback.textContent='Selecione um município do catálogo oficial.';return;}
+    step=value;feedback.textContent='';
+    form.querySelectorAll('[data-step]').forEach(section=>section.hidden=Number(section.dataset.step)!==step);
+    form.querySelector('#previous-step').hidden=step===1;form.querySelector('#next-step').hidden=step===2;
+    form.querySelector('[type=submit]').hidden=step===1;
+    form.querySelector('#form-step').textContent=step===1?'Etapa 1 de 2 · Identificação oficial':'Etapa 2 de 2 · Responsabilidade e situação';
+    form.querySelector(step===1?'#uf':'#responsavel').focus();
+  }
+  form.querySelector('#next-step').onclick=()=>changeStep(2);
+  form.querySelector('#previous-step').onclick=()=>changeStep(1);
+  if(!original){
+    uf.onchange=async()=>{
+      const attempt=++loading;cities=[];city.disabled=true;form.querySelector('#codigo').value='';feedback.textContent='';
+      city.innerHTML='<option value="">'+(uf.value?'Carregando municípios…':'Selecione primeiro o estado')+'</option>';
+      if(!uf.value)return;
+      try{
+        const result=await ctx.catalogo(uf.value);
+        if(attempt!==loading||!city.isConnected)return;
+        cities=result;city.innerHTML='<option value="">Selecione o município</option>'+result.map(x=>'<option value="'+esc(x.codigo_ibge)+'">'+esc(x.nome)+'</option>').join('');city.disabled=false;
+      }catch(error){if(attempt===loading&&city.isConnected){feedback.textContent=error.message+' Selecione o estado novamente para tentar.';}}
+    };
+    city.onchange=()=>{form.querySelector('#codigo').value=city.value;};
+  }
+  form.onsubmit=async e=>{
+    e.preventDefault();if(step===1){changeStep(2);return;}
+    const submit=form.querySelector('[type=submit]');if(submit.disabled)return;
+    const selected=original||cities.find(x=>x.codigo_ibge===city.value),unit=ufs.find(x=>x.sigla===uf.value);
+    if(!selected||!unit){feedback.textContent='Selecione um município do catálogo oficial.';return;}
+    const fd=new FormData(form);
+    const dados={...original,id:original?.id||crypto.randomUUID(),nome:selected.nome,codigo_ibge:selected.codigo_ibge,
+      uf:unit.sigla,estado:unit.nome,codigo_uf:unit.codigo,pais:'Brasil',paisId:'BR',
+      responsavel:String(fd.get('responsavel')).trim(),email:String(fd.get('email')).trim(),
+      admin_municipal_email:String(fd.get('email')).trim(),telefone:String(fd.get('telefone')).trim(),status:fd.get('status'),origem_provisionamento:'Admin Geral · catálogo IBGE'};
+    submit.disabled=true;feedback.textContent='Salvando…';
+    try{await ctx.service.salvar(dados,original);ctx.notice('Prefeitura salva'+(ctx.service.remoto?' no banco.':' na demonstração local.'));location.hash='municipios';}
+    catch(error){feedback.textContent=error.message+' Atualize a página antes de tentar novamente.';}
+    finally{submit.disabled=false;}
+  };
+}
+root.AlertaPlataformaUI.editor=editor;
+})(globalThis);
+/* Vínculos de identidades confirmadas; não cria contas nem envia mensagens. */
+(function(root){
+'use strict';
+const {esc,heading,panel,field,plus}=root.AlertaPlataformaUI;
+const papeis={admin:'Administrador municipal',operador:'Operador',leitor:'Leitor'};
+async function acessos(ctx,id){
+  if(!ctx.service.remoto){ctx.show(heading('Acessos','Disponível no ambiente conectado.')+panel('Autenticação necessária','<p>Entre com sua conta de Administração Geral para gerenciar vínculos reais.</p>'));return;}
+  const page=ctx.state.acessosPagina||0;
+  const [city,items]=await Promise.all([id?ctx.service.detalhe(id):null,ctx.service.acessos(id||null,page)]);
+  const title=city?'Acessos · '+city.nome:'Administradores gerais';
+  if(!ctx.show(heading(title,city?'Vincule uma conta com e-mail confirmado. Os vínculos autorizam somente esta prefeitura.':'Contas autorizadas a gerenciar o cadastro e os acessos das prefeituras.',city?plus('Novo vínculo','data-new-access'):'')+
+    (city&&city.status==='suspensa'?'<div class="notice">Prefeitura suspensa. Seus vínculos não permitem acesso municipal enquanto estiver suspensa.</div>':'')+
+    '<div class="table-wrap"><table class="records"><thead><tr><th>E-mail confirmado</th><th>Permissão</th>'+(city?'<th>Ações</th>':'')+'</tr></thead><tbody>'+items.map((x,i)=>'<tr><td>'+esc(x.email)+'</td><td>'+esc(papeis[x.papel]||'Administrador geral')+'</td>'+(city?'<td><button class="btn" data-edit-access="'+i+'">Gerenciar</button></td>':'')+'</tr>').join('')+(items.length?'':'<tr><td colspan="3">Nenhum vínculo encontrado.</td></tr>')+'</tbody></table></div>'+
+    '<div class="pagination"><button class="btn" data-prev '+(page?'':'disabled')+'>Anterior</button><span>Página '+(page+1)+'</span><button class="btn" data-next '+(items.length===25?'':'disabled')+'>Próxima</button></div><div id="access-editor"></div>'+
+    (!city?panel('Administração da plataforma','<p>Administradores gerais são provisionados pelo responsável técnico no banco. Esta página não permite promover contas a administrador geral.</p>'):'')))return;
+  ctx.el.querySelector('[data-prev]').onclick=()=>{ctx.state.acessosPagina=page-1;ctx.render();};
+  ctx.el.querySelector('[data-next]').onclick=()=>{ctx.state.acessosPagina=page+1;ctx.render();};
+  if(!city)return;
+  const container=ctx.el.querySelector('#access-editor');
+  function edit(original){
+    container.innerHTML=panel(original?'Gerenciar vínculo':'Novo vínculo','<form id="access-form"><div class="form-grid">'+
+      field('E-mail da conta','access-email','<input type="email" id="access-email" name="email" required maxlength="254" '+(original?'readonly':'')+' value="'+esc(original?.email)+'">')+
+      field('Permissão municipal','access-role','<select id="access-role" name="papel">'+Object.entries(papeis).map(([value,label])=>'<option value="'+value+'" '+((original?.papel||'leitor')===value?'selected':'')+'>'+label+'</option>').join('')+(original?'<option value="revogar">Revogar acesso municipal</option>':'')+'</select>')+
+      '</div><p>Administrador e operador podem editar cadastros municipais. Leitor pode consultar. Nenhum desses papéis concede Administração Geral.</p><p role="alert"></p><div class="form-actions"><button type="button" class="btn" data-cancel>Cancelar</button><button type="submit" class="btn primary">Salvar vínculo</button></div></form>');
+    container.scrollIntoView({block:'nearest'});container.querySelector('input').focus();
+    container.querySelector('[data-cancel]').onclick=()=>{container.replaceChildren();};
+    container.querySelector('form').onsubmit=async event=>{
+      event.preventDefault();const form=event.currentTarget,submit=form.querySelector('[type=submit]'),feedback=form.querySelector('[role=alert]');
+      if(submit.disabled)return;
+      const data=new FormData(form);submit.disabled=true;feedback.textContent='Salvando vínculo…';
+      try{
+        await ctx.service.definirVinculo({municipio:city.id,email:String(data.get('email')).trim(),papel:data.get('papel')==='revogar'?null:data.get('papel'),anterior:original?.papel||null});
+        ctx.notice('Vínculo atualizado no banco.');ctx.render();
+      }catch(error){feedback.textContent=error.message+' Atualize a lista antes de repetir a operação.';}
+      finally{submit.disabled=false;}
+    };
+  }
+  ctx.el.querySelector('[data-new-access]').onclick=()=>edit(null);
+  ctx.el.querySelectorAll('[data-edit-access]').forEach(button=>button.onclick=()=>edit(items[Number(button.dataset.editAccess)]));
+}
+root.AlertaPlataformaUI.acessos=acessos;
+})(globalThis);
+/* Histórico imutável para clientes; paginação mantém a consulta limitada. */
+(function(root){
+'use strict';
+const {esc,heading,panel,pager,bindPager}=root.AlertaPlataformaUI;
+const acoes={INSERT:'Criação',UPDATE:'Alteração',DELETE:'Remoção'};
+async function auditoria(ctx){
+  if(!ctx.service.remoto){ctx.show(heading('Histórico de alterações','Disponível no ambiente conectado.'));return;}
+  const result=await ctx.service.auditoria(ctx.state.auditoriaPagina||0);
+  if(!ctx.show(heading('Histórico de alterações','Registro de autoria, data, operação e campos alterados. O histórico não pode ser editado pela aplicação.')+
+    panel('Alterações registradas','<div class="table-wrap"><table class="records"><thead><tr><th>Data</th><th>Operação</th><th>Registro</th><th>Autor</th><th>Campos</th></tr></thead><tbody>'+result.items.map(x=>'<tr><td>'+esc(new Date(x.criado_em).toLocaleString('pt-BR'))+'</td><td>'+esc(acoes[x.operacao]||x.operacao)+'</td><td>'+esc(x.tabela)+'<small>'+esc(x.municipio_id||'Plataforma')+' · '+esc(x.registro_id)+'</small></td><td><small>'+esc(x.ator_id||'Operação técnica no banco')+'</small></td><td>'+esc(x.campos.join(', '))+'</td></tr>').join('')+(result.items.length?'':'<tr><td colspan="5">Nenhuma alteração registrada desde a ativação do histórico.</td></tr>')+'</tbody></table></div>')+pager(result)))return;
+  bindPager(ctx.el,result.pagina,pagina=>{ctx.state.auditoriaPagina=pagina;ctx.render();});
+}
+root.AlertaPlataformaUI.auditoria=auditoria;
+})(globalThis);
+/* Importação de malha por código IBGE; nenhuma cidade tem tratamento especial. */
+(function(root){
+'use strict';
 function polygon(geo){
- const feature=geo?.type==="FeatureCollection"?geo.features?.find(x=>x?.geometry?.type?.includes("Polygon")):geo?.type==="Feature"?geo:geo;
- const g=feature?.geometry||feature;if(!["Polygon","MultiPolygon"].includes(g?.type))throw Error("Malha IBGE não contém polígono.");
- if(JSON.stringify(g).length>1250000)throw Error("Malha excede limite do navegador.");
- const points=[];
- const walk=x=>{if(!Array.isArray(x))return;if(x.length>=2&&typeof x[0]==="number"&&typeof x[1]==="number"){points.push(x);return;}for(const a of x)walk(a);};
- walk(g.coordinates);if(points.length<4)throw Error("Malha sem geometria suficiente.");
- const xs=points.map(a=>a[0]),ys=points.map(a=>a[1]);
- const left=Math.min(...xs),right=Math.max(...xs),bottom=Math.min(...ys),top=Math.max(...ys);
- if(![left,right,bottom,top].every(Number.isFinite))throw Error("Limite geográfico inválido.");
- return {center:[(bottom+top)/2,(left+right)/2],bbox:[bottom,top,left,right],json:JSON.stringify(g)};
+  const feature=geo?.type==='FeatureCollection'?geo.features?.find(x=>['Polygon','MultiPolygon'].includes(x?.geometry?.type)):geo;
+  const geometry=feature?.geometry||feature;
+  if(!['Polygon','MultiPolygon'].includes(geometry?.type))throw Error('Malha IBGE sem polígono.');
+  const json=JSON.stringify(geometry);if(json.length>1250000)throw Error('Malha excede o limite de tamanho.');
+  let left=Infinity,right=-Infinity,bottom=Infinity,top=-Infinity,count=0;
+  function walk(value){
+    if(!Array.isArray(value))throw Error('Coordenadas inválidas.');
+    if(typeof value[0]==='number'){
+      const [x,y]=value;if(!Number.isFinite(x)||!Number.isFinite(y)||Math.abs(x)>180||Math.abs(y)>90)throw Error('Coordenada inválida.');
+      left=Math.min(left,x);right=Math.max(right,x);bottom=Math.min(bottom,y);top=Math.max(top,y);count++;return;
+    }
+    value.forEach(walk);
+  }
+  walk(geometry.coordinates);if(count<4)throw Error('Polígono incompleto.');
+  return {lat:(bottom+top)/2,lng:(left+right)/2,bbox:[bottom,top,left,right],limite_geojson:json};
 }
-async function syncGeo(id){
- if(busy)return;const p=current().find(x=>x.id===id);if(!p)return;
- busy=true;renderTerritorios();const status=$("geo-status");if(status)status.textContent="Consultando malha IBGE de "+p.nome+"...";
- try{
-  const url="https://servicodados.ibge.gov.br/api/v3/malhas/municipios/"+p.codigo_ibge+"?formato=application%2Fvnd.geo%2Bjson&qualidade=minima";
-  const controller=new AbortController(),t=setTimeout(()=>controller.abort(),28000);
-  let data;try{
-   const res=await fetch(url,{signal:controller.signal,headers:{Accept:"application/vnd.geo+json, application/json"}});
-   if(!res.ok)throw Error("IBGE HTTP "+res.status);
-   data=await res.json();
-  }finally{clearTimeout(t);}
-  const g=polygon(data);
-  await central.registrarGeo(id,{lat:g.center[0],lng:g.center[1],bbox:g.bbox,limite_geojson:g.json,fonte:"IBGE · malha municipal"});
-  notice("Limite geográfico de "+p.nome+(window.AlertaNuvem?.ativo?" salvo no Supabase.":" salvo no protótipo."));
- }catch(err){notice("Malha não atualizada: "+err.message);}finally{busy=false;renderTerritorios();}
+async function territorio(ctx,id){
+  const {esc,heading,panel}=root.AlertaPlataformaUI;
+  const city=await ctx.service.detalhe(id);
+  if(!ctx.show(heading('Território · '+city.nome,'Importe o limite oficial deste município. Bairros, zonas e estruturas são cadastros próprios da prefeitura.')+
+    panel('Georreferenciamento municipal','<p>IBGE '+esc(city.codigo_ibge)+' · '+esc(city.uf)+'</p><p>Fonte: '+esc(city.fonte_geo||'Nenhuma importação registrada')+'</p><p>Última importação: '+esc(city.geo_atualizado?new Date(city.geo_atualizado).toLocaleString('pt-BR'):'Não realizada')+'</p><button class="btn primary" id="import-geo">Importar limite IBGE</button><p role="alert"></p>')))return;
+  const button=ctx.el.querySelector('#import-geo'),feedback=ctx.el.querySelector('[role=alert]');
+  button.onclick=async()=>{
+    if(button.disabled)return;button.disabled=true;feedback.textContent='Consultando malha oficial…';
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),28000);
+    try{
+      const url=new URL('https://servicodados.ibge.gov.br/api/v3/malhas/municipios/'+encodeURIComponent(city.codigo_ibge));
+      url.searchParams.set('formato','application/vnd.geo+json');url.searchParams.set('qualidade','minima');
+      const response=await fetch(url,{signal:controller.signal});if(!response.ok)throw Error('IBGE indisponível ('+response.status+').');
+      const geo=polygon(await response.json());
+      await ctx.service.salvar({...city,...geo,fonte_geo:'IBGE · malha municipal',geo_atualizado:new Date().toISOString()},city);
+      ctx.notice('Limite municipal salvo.');ctx.render();
+    }catch(error){feedback.textContent=error.message+' Atualize a página para conferir o resultado antes de repetir.';}
+    finally{clearTimeout(timer);button.disabled=false;}
+  };
 }
-function renderTerritorios(){
- const xs=current();
- $("screen").innerHTML=heading("Georreferenciamento municipal","Admin Geral provisiona os limites iniciais; cada Prefeitura recebe seu território já associado ao código IBGE.")+warning+
- '<section class="panel"><div class="panel-head"><h2>Camadas por Prefeitura</h2><span id="geo-status">'+(busy?"Importando geometria oficial...":"Importação inicial assistida por município")+'</span></div><div class="table-wrap"><table class="records"><thead><tr><th>Prefeitura</th><th>IBGE</th><th>Origem territorial</th><th>Georreferenciamento</th><th>Ação</th></tr></thead><tbody>'+
- xs.map(x=>'<tr><td><strong>'+esc(x.nome)+' / '+esc(x.uf)+'</strong></td><td>'+esc(x.codigo_ibge)+'</td>'+
- '<td>'+esc(x.id==="maringa"?"113 bairros IBGE 2022 versionados":x.fonte_geo||"Nenhuma fonte importada")+'</td>'+
- '<td>'+esc(x.geo_atualizado?"Atualizado em "+new Date(x.geo_atualizado).toLocaleDateString("pt-BR"):"Malha pendente")+'</td>'+
- '<td><div class="row-actions"><button class="btn" data-geo="'+esc(x.id)+'"'+(busy?" disabled":"")+'>Importar limite IBGE</button>'+
- '<button class="btn" data-open="'+esc(x.id)+'">Abrir Prefeitura</button></div></td></tr>').join("")+
- '</tbody></table></div></section>'+
- '<section class="panel"><div class="panel-head"><h2>Bairros e zonas operacionais</h2></div><div class="panel-body"><p>Maringá já possui a malha IBGE 2022 com 113 bairros carregável no mapa. Londrina e outros municípios precisam de suas próprias camadas e verificação. Zonas operacionais não são automaticamente criadas a partir de bairros.</p></div></section>';
- $("screen").querySelectorAll("[data-geo]").forEach(x=>x.onclick=()=>syncGeo(x.dataset.geo));
- $("screen").querySelectorAll("[data-open]").forEach(x=>x.onclick=()=>abrirMunicipio(x.dataset.open));
+root.AlertaPlataformaUI.territorio=territorio;
+root.AlertaPlataformaUI.polygon=polygon;
+})(globalThis);
+/* Composição das páginas. Serviços, formulários e visualizações têm contratos próprios. */
+(function(root){
+'use strict';
+const ui=root.AlertaPlataformaUI,el=document.getElementById('screen');
+const service=root.AlertaNuvem?.ativo?root.AlertaNuvem.admin:ui.criarDemo();
+const state={filtros:{busca:'',uf:'',pagina:0},acessosPagina:0,auditoriaPagina:0};
+const cache=new Map();let epoch=0,noticeTimer;
+function notice(message){
+  const target=document.getElementById('notification');target.textContent=message;target.hidden=false;
+  clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>target.hidden=true,7000);
 }
-function render(){
- const p=location.hash.slice(1);
- section=["dashboard","municipios","territorios"].includes(p)?p:"dashboard";
- renderNav();
- if(section==="dashboard")renderDashboard();
- else if(section==="municipios")renderMunicipios();
- else renderTerritorios();
+async function catalogo(uf=''){
+  if(!cache.has(uf))cache.set(uf,service.catalogo(uf).catch(error=>{cache.delete(uf);throw error;}));
+  return cache.get(uf);
 }
-window.addEventListener("hashchange",render);
+async function render(){
+  const current=++epoch;
+  const parts=location.hash.slice(1).split('/');
+  const page=parts[0]||'dashboard';let id;
+  try{id=parts[1]?decodeURIComponent(parts[1]):null;}catch{notice('Endereço inválido.');return;}
+  const active=['nova','editar','acessos','territorio'].includes(page)?'municipios':page;
+  document.querySelectorAll('[data-page]').forEach(link=>{
+    link.classList.toggle('active',link.dataset.page===active);
+    if(link.dataset.page===active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
+  });
+  el.setAttribute('aria-busy','true');el.innerHTML='<p role="status">Carregando…</p>';
+  const ctx={el,service,state,catalogo,notice,render,show(markup){
+    if(epoch!==current)return false;
+    el.innerHTML=(!service.remoto?'<div class="notice">Demonstração local · nenhum dado é gravado no banco.</div>':'')+markup;
+    el.removeAttribute('aria-busy');return true;
+  }};
+  try{
+    if(page==='nova')await ui.editor(ctx,null);
+    else if(page==='editar'&&id)await ui.editor(ctx,id);
+    else if(page==='acessos'&&id)await ui.acessos(ctx,id);
+    else if(page==='administradores')await ui.acessos(ctx,null);
+    else if(page==='auditoria')await ui.auditoria(ctx);
+    else if(page==='territorio'&&id)await ui.territorio(ctx,id);
+    else if(page==='municipios'||page==='territorios')await ui.municipios(ctx);
+    else await ui.dashboard(ctx);
+  }catch(error){
+    if(ctx.show(ui.heading('Não foi possível carregar',error.message)+'<button class="btn" id="retry">Tentar novamente</button>'))el.querySelector('#retry').onclick=render;
+  }
+}
+window.addEventListener('hashchange',()=>{state.acessosPagina=0;render();});
 render();
-})();
+})(globalThis);

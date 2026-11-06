@@ -39,6 +39,8 @@ jobs:
           node --check plataforma/app.js
           node --check backend/boot.js
           node --check backend/repositorio.js
+          node --check backend/admin.js
+          node scripts/gerar-catalogo-sql.mjs --check
       - name: Executar testes funcionais
         run: node --test tests/*.test.cjs gestao/tests/*.test.cjs crise/tests/*.test.cjs plataforma/tests/*.test.cjs tests/backend/*.test.cjs
   permissoes-banco:
@@ -65,3 +67,4 @@ jobs:
             psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f "$migration"
           done
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/permissoes.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/admin-geral.sql

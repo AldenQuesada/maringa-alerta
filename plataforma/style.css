@@ -10,3 +10,13 @@
 #notification{position:fixed;right:22px;bottom:22px;z-index:2000;background:#243a34;color:#cefae0;border:1px solid #4d9577;padding:13px 18px;border-radius:9px;max-width:400px;box-shadow:0 14px 30px #0008;font-size:12px}
 @media(max-width:1050px){.context{display:none}.sidebar{width:205px;flex-basis:205px}.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:720px){.topbar{height:65px;padding:0 10px}.brand strong{font-size:10px}.brand small{font-size:9px}.brand>.logo{width:32px;height:32px;font-size:18px}.session-button{font-size:10px;padding:8px 6px}.shell{height:calc(100dvh - 65px);flex-direction:column}.sidebar{flex:none;width:100%;padding:8px;display:flex;border-right:0;border-bottom:1px solid var(--line)}.caption,.sidebar-bottom{display:none}.sidebar nav{display:flex;overflow-x:auto;gap:5px}.sidebar nav a{white-space:nowrap;padding:8px 11px}.screen{padding:18px 11px 70px}.heading h1{font-size:23px}.panel-body{padding:13px}.panel-head{padding:13px}.form-grid{grid-template-columns:1fr}.stat-grid{gap:7px}.stat{padding:12px}.stat strong{font-size:23px}.records td,.records th{padding:9px 6px}.row-actions{min-width:135px}}
+/* Superfícies e controles acessíveis em computador e celular. */
+:root{color-scheme:dark;scrollbar-color:#455568 #101923}
+*{scrollbar-width:thin;scrollbar-color:#455568 #101923}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:#101923}::-webkit-scrollbar-thumb{background:#455568;border:2px solid #101923;border-radius:8px}
+.btn.add{color:var(--fg);background:#233246}.btn.add>span{color:#ffd34d;font-size:23px;line-height:1;font-weight:900}
+.pagination{display:flex;gap:12px;align-items:center;justify-content:flex-end;flex-wrap:wrap;margin:18px 0;color:var(--muted)}
+.toolbar label{display:grid;gap:5px}.toolbar label input,.toolbar label select{width:100%}
+[role=alert]{color:#ffc1b8;overflow-wrap:anywhere}.records td small{display:block;overflow-wrap:anywhere}
+.form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.field input[readonly]{color:#aebfd1;background:#172230}
+@media(max-width:720px){.form-grid{grid-template-columns:1fr}.toolbar label{width:100%}.pagination{justify-content:flex-start}.screen{padding-bottom:120px}.btn{min-height:44px}.row-actions .btn{min-height:40px}.records{min-width:660px}#notification{left:12px;right:12px;bottom:66px;max-width:none}}

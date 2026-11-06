@@ -5,7 +5,7 @@ const R=require('../../backend/repositorio.js');
 function fixture({reject=false,pause=false}={}){
  const city={id:'maringa',nome:'Maringá',codigo_ibge:'4115200',uf:'PR',status:'ativa'};
  const calls=[];let release;
- const client={from(table){return {select(){return this},order(){return this},async range(){return {data:table==='ma_prefeituras'?[{dados:city,versao:1}]:[],error:null}}}},async rpc(name,args){if(name==='ma_meu_perfil')return {data:{admin_plataforma:true}};calls.push(args);if(pause)await new Promise(r=>release=r);return reject?{error:{message:'offline'}}:{data:null};}};
+ const client={from(table){return {select(){return this},eq(){return this},order(){return this},async range(){return {data:table==='ma_prefeituras'?[{dados:city,versao:1}]:[],error:null}}}},async rpc(name,args){if(name==='ma_meu_perfil')return {data:{admin_plataforma:true}};calls.push(args);if(pause)await new Promise(r=>release=r);return reject?{error:{message:'offline'}}:{data:null};}};
  return {client,calls,release:()=>release()};
 }
 test('escrita só aparece na memória depois de confirmada pelo servidor',async()=>{
@@ -46,10 +46,20 @@ test('transação conserva validações e envia um lote único',async()=>{
  await db.gravar('bases',{nome:'D'});assert.equal(f.calls.length,2);
 });
 test('escopo autorizado não recria município demonstrativo',async()=>{
- const f=fixture();f.client.from=table=>({select(){return this},order(){return this},async range(){return {data:table==='ma_prefeituras'?[{dados:{id:'outro',nome:'Outro',codigo_ibge:'0000001',uf:'PR'},versao:1}]:[]}}});
+ const f=fixture();f.client.from=table=>({select(){return this},eq(){return this},order(){return this},async range(){return {data:table==='ma_prefeituras'?[{dados:{id:'outro',nome:'Outro',codigo_ibge:'0000001',uf:'PR'},versao:1}]:[]}}});
  const remote=await R.criar({client:f.client,dados:D});assert.deepEqual(remote.repositorio().municipios().map(x=>x.id),['outro']);assert.throws(()=>remote.repositorio({municipioId:'maringa'}),/Sem acesso/);
 });
 test('fontes públicas e colaboradores demonstrativos não são importados no modo conectado',async()=>{
  const importer=require('../../dados-territoriais/importacao-publica.js');let called=false;
  const result=await importer.importar({tipo:'supabase',gravar(){called=true}},{});assert.equal(called,false);assert.equal(result.novos,0);
+});
+test('carrega registros apenas da prefeitura selecionada e recusa mudança sem recarga',async()=>{
+ const queries=[];
+ const cities=['a','b'].map(id=>({dados:{id,nome:id,codigo_ibge:id==='a'?'3500105':'3550308',uf:'SP'},versao:1}));
+ const client={from(table){let filter;return {select(){return this},order(){return this},eq(field,value){filter={field,value};return this},async range(){queries.push({table,filter});return {data:table==='ma_prefeituras'?cities.filter(c=>!filter||c.dados.id===filter.value):[]}}}},rpc:async()=>({data:{admin_plataforma:true}})};
+ const remote=await R.criar({client,dados:D,municipioId:'b'});
+ assert.deepEqual(queries.find(q=>q.table==='ma_cadastros').filter,{field:'municipio_id',value:'b'});
+ assert.equal(remote.repositorio().municipioAtivo().id,'b');
+ assert.throws(()=>remote.repositorio({municipioId:'a'}),/Sem acesso/);
+ assert.throws(()=>remote.repositorio().selecionarMunicipio('a'),/nova sessão/);
 });

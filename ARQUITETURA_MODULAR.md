@@ -1,5 +1,7 @@
 # Arquitetura modular canônica — Sistema Integrado de Gestão de Crise
 
+> As seções da intervenção original abaixo documentam a reorganização do protótipo. A integração Supabase posterior está descrita em `backend/README.md`; o estado atual do Admin Geral e os limites ainda existentes estão em `AUDITORIA_ADMIN_GERAL_2026-11-06.md` e na seção final deste documento.
+
 ## Escopo desta intervenção
 
 A modularização reorganiza os **arquivos-fonte** sem criar interfaces, bancos, contas ou caminhos alternativos. Mantém as rotas já existentes: `/index.html` (Mapa de Evento), `/gestao/`, `/plataforma/`, `/mapas/` e `/atendimento/`.
@@ -48,3 +50,7 @@ Continuam pendentes, fora do escopo desta rodada: API persistente central, auten
 - Não criar cópia de coleções, nem múltiplas telas para o mesmo cadastro.
 - Não introduzir navegação profunda para modularizar código.
 - Exigir teste de regressão e validação da versão publicada antes de afirmar funcionamento completo.
+
+## Evolução do Admin Geral — 06/11/2026
+
+A Administração Geral agora possui oito módulos completos e isolados em `src/plataforma/`, com dependências explícitas via `AlertaPlataformaUI` e um serviço de banco próprio em `backend/admin.js`. A concatenação gera o bundle, mas cada fonte tem seu próprio escopo; não compartilham variáveis lexicais entre arquivos. O modo conectado usa somente Supabase, com listagem paginada e guard de admin anterior às consultas. A arquitetura legada dos demais bundles descrita acima ainda permanece; esta revisão não declara o sistema inteiro livre de monólitos. Consulte `AUDITORIA_ADMIN_GERAL_2026-11-06.md`.

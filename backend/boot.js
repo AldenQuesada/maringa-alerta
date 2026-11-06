@@ -29,11 +29,23 @@ try{
  const {data:{session},error}=await client.auth.getSession();if(error)throw error;
  if(session){
   const {data:{user},error:authError}=await client.auth.getUser();if(authError||!user)throw authError||Error('Sessão inválida.');
-  const remote=await AlertaRepositorioSupabase.criar({client,dados:AlertaGestaoDados,onStatus:status});
-  if(entry==='plataforma'&&!remote.perfil.admin_plataforma)throw Error('Esta área requer acesso de Administração Geral.');
+  let remote;
+  if(entry==='plataforma'){
+   const result=await client.rpc('ma_meu_perfil');if(result.error)throw result.error;
+   if(!result.data?.admin_plataforma)throw Error('Esta área requer acesso de Administração Geral.');
+   remote={perfil:result.data,admin:AlertaAdminRemoto.criar(client)};
+  }else {
+   const municipioId=new URLSearchParams(location.search).get('municipio')||sessionStorage.getItem('alerta_contexto_municipal_demo_v1')||null;
+   remote=await AlertaRepositorioSupabase.criar({client,dados:AlertaGestaoDados,municipioId,onStatus:status});
+  }
   window.AlertaNuvem={...remote,ativo:true,email:user.email};
-  const cityKey='alerta_contexto_municipal_demo_v1', available=remote.repositorio().municipios();
-  if(!available.some(p=>p.id===sessionStorage.getItem(cityKey)))sessionStorage.setItem(cityKey,available[0].id);
+  if(remote.repositorio){
+   const cityKey='alerta_contexto_municipal_demo_v1',available=remote.repositorio().municipios();
+   const requested=new URLSearchParams(location.search).get('municipio');
+   if(requested&&!available.some(p=>p.id===requested))throw Error('Sem acesso à prefeitura solicitada.');
+   if(requested)sessionStorage.setItem(cityKey,requested);
+   if(!available.some(p=>p.id===sessionStorage.getItem(cityKey)))sessionStorage.setItem(cityKey,available[0].id);
+  }
   client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){window.AlertaNuvem=null;location.reload();}});
   await start();return;
  }
@@ -43,6 +55,10 @@ function showLogin(error=''){
  document.documentElement.classList.add('backend-pendente');
  gate.innerHTML='<section><small>MARINGÁ ALERTA</small><h1>Acesso à gestão municipal</h1><p>Entre com seu e-mail autorizado. Você receberá um link de acesso, sem precisar criar uma senha.</p><form><label for="backend-email">E-mail</label><input id="backend-email" type="email" autocomplete="email" required><button type="submit">Receber link de acesso</button></form><p role="alert"></p><button type="button" id="backend-reset" hidden>Sair da sessão atual</button><a id="backend-demo">Abrir demonstração local</a></section>';
  gate.querySelector('[role=alert]').textContent=error;
+ if(entry==='plataforma'){
+  gate.querySelector('small').textContent='ADMINISTRAÇÃO GERAL';
+  gate.querySelector('h1').textContent='Acesso à administração do sistema';
+ }
  const url=new URL(location.href);url.searchParams.set('modo','demo');url.hash='';gate.querySelector('a').href=url.href;
  gate.querySelector('#backend-reset').hidden=!error;
  gate.querySelector('#backend-reset').onclick=async()=>{if(client)await client.auth.signOut({scope:'local'});location.reload();};
