@@ -32,7 +32,7 @@
     const q = norm(busca);
     return pessoas.filter(p => {
       const z = zonaDaPessoa(p, bairros);
-      if (escolhidas.size && !escolhidas.has(z)) return false;
+      if (escolhidas.size && !escolhidas.has(z) && !escolhidas.has("bairro:"+norm(p.bairro))) return false;
       if (!q) return true;
       return norm([p.nome,p.telefone,p.endereco,p.bairro,z,p.tipo_pessoa,p.contribuicao,
         ...arr(p.ajudas),...arr(p.maquinas),...arr(p.empreendedores),...arr(p.materiais)]
@@ -45,12 +45,13 @@
   const BENS = new Set(["FORNECER ALIMENTAÇÃO","MATERIAL DE CONSTRUÇÃO","COMBUSTÍVEL"]);
   function fluxoCadastro(p) {
     const passos = [];
+    const demonstrativo=p.status_simulacao==="simulado";
     const bot = texto => passos.push({tipo:"bot",texto});
     const respond = (key, formatter) => {
       const value = p[key];
       if (value === undefined || value === null || value === "" ||
           (Array.isArray(value) && !value.length)) {
-        passos.push({tipo:"ausente",texto:"Resposta não consta no cadastro."});
+        passos.push(demonstrativo?{tipo:"pessoa",texto:Array.isArray(value)?"0 (nenhuma dessas opções)":"Não informado (demonstração)"}:{tipo:"ausente",texto:"Resposta não consta no cadastro."});
         return;
       }
       const valor = typeof formatter === "function" ? formatter(value) :
@@ -85,7 +86,7 @@
     }
     const ofertas = [...new Set(["ajudas","maquinas","empreendedores","materiais"]
       .flatMap(k => arr(p[k])))];
-    bot("Cadastro de colaborador localizado na Gestão Municipal. ✅\n\nOfertas registradas: " +
+    bot((demonstrativo?"Cadastro demonstrativo criado para testar o fluxo.":"Cadastro de colaborador localizado na Gestão Municipal.")+" ✅\n\nOfertas registradas: " +
       ofertas.length + ".\n\nAs mensagens acima foram reconstruídas a partir dos campos salvos; não são conversas WhatsApp enviadas ou recebidas.");
     return passos;
   }
@@ -136,7 +137,7 @@
             '<div id="cv-profile" class="cv-profile"></div>' +
           '</aside>' +
         '</div>' +
-        '<p class="cv-disclaimer">Os registros são lidos diretamente da coleção municipal de colaboradores. O roteiro é uma reconstrução visual, não um histórico real de atendimento por WhatsApp. Nesta versão, os dados ficam neste navegador.</p>' +
+        '<p class="cv-disclaimer">Os ajudantes demonstrativos usam a mesma coleção municipal, identificados como DEMONSTRAÇÃO, sem possibilidade de mobilização real. Os chats são simulações, não mensagens do WhatsApp.</p>' +
       '</section>';
     const raiz = target.querySelector(".cv-root");
     const buscarEl = raiz.querySelector("#cv-search");
@@ -154,13 +155,14 @@
         if (b === SEM_ZONA) return -1;
         return a.localeCompare(b,"pt-BR",{numeric:true});
       });
+      const bairrosSemZona=[...new Set(pessoas.filter(p=>zonaDaPessoa(p,bairros)===SEM_ZONA&&p.bairro).map(p=>String(p.bairro).trim()))].sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true}));
       const contagens = new Map(lista.map(z => [z,0]));
       pessoas.forEach(p => {
         const z = zonaDaPessoa(p,bairros);
         contagens.set(z,(contagens.get(z)||0)+1);
       });
       for (const valor of [...selecionadas]) {
-        if (!contagens.has(valor)) selecionadas.delete(valor);
+        if (!contagens.has(valor) && !(valor.startsWith("bairro:") && pessoas.some(p=>zonaDaPessoa(p,bairros)===SEM_ZONA&&"bairro:"+norm(p.bairro)===valor))) selecionadas.delete(valor);
       }
       get("cv-zones").innerHTML = '<div class="cv-zone-all">' +
         (selecionadas.size ? esc(selecionadas.size + " zona(s) selecionada(s)") : "Todas as zonas") +
@@ -168,7 +170,12 @@
         (lista.length ? lista.map(z => '<label class="cv-zone">' +
           '<input type="checkbox" data-cv-zone="' + esc(z) + '"' + (selecionadas.has(z)?" checked":"") + '>' +
           '<span class="cv-zone-name">' + esc(z) + '</span><span class="cv-zone-count">' + (contagens.get(z)||0) + '</span>' +
-          '</label>').join("") : '<p class="cv-empty-small">Nenhuma zona cadastrada.</p>');
+          '</label>').join("") : '<p class="cv-empty-small">Nenhuma zona cadastrada.</p>') +
+        (bairrosSemZona.length?'<div class="cv-zone-all">Bairros ainda sem zona numerada</div>' + bairrosSemZona.map(b=>{
+           const key="bairro:"+norm(b);
+           const n=pessoas.filter(p=>zonaDaPessoa(p,bairros)===SEM_ZONA&&norm(p.bairro)===norm(b)).length;
+           return '<label class="cv-zone"><input type="checkbox" data-cv-zone="' + esc(key) + '"' + (selecionadas.has(key)?" checked":"") + '><span class="cv-zone-name">' + esc(b) + '</span><span class="cv-zone-count">' + n + '</span></label>';
+        }).join(""):"");
       get("cv-clear").disabled = selecionadas.size === 0;
     }
     function renderLista(pessoas,bairros) {
@@ -178,11 +185,12 @@
         const iniciais = nomePessoa(p).split(/\s+/).slice(0,2).map(v=>v[0]||"").join("").toLocaleUpperCase("pt-BR");
         const ofertas = ["ajudas","maquinas","empreendedores","materiais"].flatMap(k=>arr(p[k]));
         const subtitulo = ofertas.length ? ofertas.slice(0,2).join(" · ") : "Oferta não detalhada";
+        const simulado=p.status_simulacao==="simulado";
         return '<button type="button" class="cv-person' + (ativa===p.id?" is-active":"") +
           '" data-cv-open="' + esc(p.id) + '" aria-pressed="' + (ativa===p.id?"true":"false") + '">' +
           '<span class="cv-avatar" aria-hidden="true">' + esc(iniciais) + '</span><span class="cv-person-main">' +
           '<strong>' + esc(nomePessoa(p)) + '</strong><small>' + esc(z) + " · " + esc(pessoaTipo(p.tipo_pessoa)||"Colaborador") +
-          '</small><span>' + esc(subtitulo) + '</span></span></button>';
+          '</small><span>' + esc(simulado?'DEMONSTRAÇÃO · '+subtitulo:subtitulo) + '</span></span></button>';
       }).join("") : '<div class="cv-list-empty"><strong>Nenhum colaborador encontrado.</strong>' +
         '<p>Cadastre pessoas no módulo Colaboradores ou ajuste os filtros.</p></div>';
     }
@@ -196,10 +204,10 @@
       get("cv-chat-head").innerHTML = '<div class="cv-avatar cv-avatar-chat" aria-hidden="true">' +
         esc(nomePessoa(p).slice(0,1).toLocaleUpperCase("pt-BR")) + '</div><div class="cv-chat-person"><strong>' +
         esc(nomePessoa(p)) + '</strong><span>' + esc(z) + ' · Cadastro de colaborador</span></div>' +
-        '<span class="cv-simulated">Fluxo reconstruído</span>';
+        '<span class="cv-simulated">' + (p.status_simulacao==="simulado"?"Demonstração":"Fluxo reconstruído") + '</span>';
       const passos = fluxoCadastro(p);
       get("cv-transcript").innerHTML =
-        '<div class="cv-flow-note">Histórico ilustrativo baseado nas respostas que constam no cadastro. Campos sem resposta registrada são identificados.</div>' +
+        '<div class="cv-flow-note">' + (p.status_simulacao==="simulado"?"SIMULAÇÃO: percurso montado a partir do ajudante demonstrativo do mapa; não houve conversa real.":"Histórico ilustrativo baseado nas respostas do cadastro. Campos não informados são identificados.") + '</div>' +
         '<div class="cv-message-stream">' + passos.map(m =>
           '<div class="cv-message cv-' + m.tipo + '"><div class="cv-message-label">' +
           (m.tipo==="bot"?"Prefeitura · Pra Somar":m.tipo==="pessoa"?"Dados do colaborador":m.tipo==="selecao"?"Opção do cadastro":"Campo sem registro") +
@@ -217,7 +225,7 @@
       const status = p.checkin_status === "presente" ? "No local" :
         p.checkin_status === "finalizado" ? "Saída registrada" : "Sem check-in ativo";
       get("cv-profile").innerHTML =
-        '<div class="cv-profile-head"><span>CADASTRO CANÔNICO</span><h3>' + esc(nomePessoa(p)) +
+        '<div class="cv-profile-head"><span>' + (p.status_simulacao==="simulado"?"CADASTRO DEMONSTRATIVO":"CADASTRO CANÔNICO") + '</span><h3>' + esc(nomePessoa(p)) +
         '</h3><p>' + esc(pessoaTipo(p.tipo_pessoa)||"Tipo não informado") + '</p></div>' +
         '<dl class="cv-profile-grid">' +
         linha("Telefone / WhatsApp",p.telefone) +
@@ -242,7 +250,8 @@
       construirZonas(pessoas,bairros,zonas);
       const filtradas = filtrarPessoas(pessoas,bairros,selecionadas,busca);
       if (!filtradas.some(p => p.id===ativa)) ativa = filtradas[0]?.id || null;
-      get("cv-total").textContent = pessoas.length + (pessoas.length===1?" cadastro":" cadastros");
+      const exemplos=pessoas.filter(p=>p.status_simulacao==="simulado").length;
+      get("cv-total").textContent = pessoas.length + (pessoas.length===1?" cadastro":" cadastros") + (exemplos?" · "+exemplos+" demonstrações":"");
       renderLista(filtradas,bairros);
       const pessoa = filtradas.find(p => p.id===ativa) || null;
       renderChat(pessoa);
