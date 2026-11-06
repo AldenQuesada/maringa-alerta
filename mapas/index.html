@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b111b">
 <title>Mapas · Maringá Unida</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="./style.css?v=2bb4d691d780">
+<link rel="stylesheet" href="./style.css?v=fe013ae6b3bf">
 <link rel="stylesheet" href="../dados-territoriais/camadas-mapas.css?v=territorio-1">
 </head>
 <body>
@@ -23,10 +23,11 @@
  <main class="workspace">
   <div class="map-area">
    <div id="map" role="application" aria-label="Mapa por zonas"></div>
+   <button id="painel-ajuda-toggle" class="painel-ajuda-toggle" type="button" aria-controls="painel-ajuda" aria-expanded="true" aria-label="Recolher painel" title="Recolher painel" hidden>−</button>
    <div class="map-info"><span class="signal"></span><span id="map-label">Mapa</span><small>Dados locais de demonstração · sem envio real</small></div>
    <div class="map-legend"><span><i class="color-collab"></i>Colaboradores</span><span><i class="color-help"></i>Pedidos</span><span>Marcadores por zona</span></div>
   </div>
-  <aside class="sidebar">
+  <aside id="painel-ajuda" class="sidebar">
    <header class="panel-heading"><p class="eyebrow" id="eyebrow">MAPA</p><h1 id="title">Colaboradores</h1><p id="subtitle">Capacidades disponíveis por zona.</p></header>
    <div class="municipio"><label for="municipio">Prefeitura</label><select id="municipio"></select></div>
    <section class="stats" aria-label="Indicadores">
@@ -57,6 +58,6 @@
 <script src="../dados-territoriais/camadas-mapas.js?v=territorio-1"></script>
 <script src="../dados-territoriais/importacao-publica.js?v=abrigos-1"></script>
 <script src="./inventario.js?v=integracao-1"></script>
-<script src="./app.js?v=1a7e48fdc1ee"></script>
+<script src="./app.js?v=12fdbbf144be"></script>
 </body>
 </html>
