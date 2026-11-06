@@ -8,7 +8,7 @@ function counters(xs){
   $("metric-three-label").textContent="No mapa";
   return;
  }
- const all=TIPO==="ajuda"?app.pedidos():app.oferentes();
+ const all=TIPO==="ajuda"?app.pedidos():colaboradoresDisponiveis();
  const zonas=new Set(all.map(x=>x.zona).filter(Boolean)).size;
  $("metric-one").textContent=all.length;
  $("metric-two").textContent=zonas;
@@ -71,8 +71,8 @@ function colaboradoresAjudaFiltrados(){
  const inventario=INVENTARIO.registros(app.db);
  const permitidos=filtroZona?new Set(INVENTARIO.filtrar(inventario,{modulo:"voluntarios",zona:filtroZona}).map(x=>x.id)):null;
  const busca=INVENTARIO.normal(texto);
- return app.oferentes().filter(p=>{
-  if(permitidos&&!permitidos.has(String(p.id)))return false;
+ return colaboradoresDisponiveis().filter(p=>{
+  if(permitidos&&!(p.registroAnterior?INVENTARIO.normal(p.zona||p.bairro)===INVENTARIO.normal(filtroZona):permitidos.has(String(p.id))))return false;
   return !busca||INVENTARIO.normal([p.nome,p.zona,p.bairro,p.contribuicao,p.ajudas,p.maquinas,p.empreendedores,p.materiais,p.outros].flat().filter(Boolean).join(" ")).includes(busca);
  });
 }
@@ -89,7 +89,14 @@ function renderColaboradoresAjuda(){
  renderEquipeNoElemento(pessoas,lista);
  const registroPorId=new Map(INVENTARIO.registros(app.db).filter(x=>x.modulo==="voluntarios").map(x=>[x.id,x]));
  const grupos=new Map();
- for(const pessoa of pessoas){const zona=registroPorId.get(String(pessoa.id))?.zona||pessoa.zona;if(zona)grupos.set(zona,(grupos.get(zona)||0)+1);}
+ for(const pessoa of pessoas){
+  if(pessoa.registroAnterior&&Array.isArray(pessoa.pos)&&pessoa.pos.length>=2&&pessoa.pos.every(Number.isFinite)){
+   const ic=L.divIcon({html:'<div class="bubble">1</div>',className:"pin collab",iconSize:[44,44],iconAnchor:[22,22]});
+   L.marker(pessoa.pos,{icon:ic,title:pessoa.nome}).bindPopup('<strong>'+esc(pessoa.nome)+'</strong><p>Posição registrada no estado anterior de demonstração.</p>').addTo(marcadores);
+   continue;
+  }
+  const zona=registroPorId.get(String(pessoa.id))?.zona||pessoa.zona;if(zona)grupos.set(zona,(grupos.get(zona)||0)+1);
+ }
  for(const [zona,total] of grupos){
   const pt=pontoZona(zona);if(!pt)continue;
   const icon=L.divIcon({html:'<div class="bubble">'+total+'</div>',className:"pin collab",iconSize:[44,44],iconAnchor:[54,22]});

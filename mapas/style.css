@@ -48,3 +48,7 @@ select,input,textarea{background:#0d1724;border:1px solid #3c5065;color:var(--fg
 .painel-ajuda-toggle:hover{border-color:var(--accent)}
 .ajuda-colaboradores{margin:0 0 18px;padding:0 0 14px;border-top:0;border-bottom:1px solid #37516a}
 @media(max-width:850px){.workspace.painel-recolhido .map-area{height:auto;flex:1;min-height:0}}
+
+/* Os pontos de colaboradores são azuis; cores de situação pertencem ao menu. */
+.color-collab{background:#3ba7ff}
+.pin.collab .bubble{background:#1766a5;border-color:#8bd1ff}
