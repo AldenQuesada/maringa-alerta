@@ -1,7 +1,6 @@
 /* Login primeiro; controladores existentes só iniciam após carregar o repositório autorizado. */
 (async function(){
 'use strict';
-const demo=new URLSearchParams(location.search).get('modo')==='demo';
 const gate=document.createElement('div');gate.id='backend-acesso';
 const scripts=[...document.querySelectorAll('script[type="application/x-maringa-modulo"]')];
 const entry=document.currentScript?.dataset.area||'gestao';
@@ -11,17 +10,15 @@ async function start(){
  document.documentElement.classList.remove('backend-pendente');gate.remove();
  if(window.AlertaNuvem?.ativo){
   const anchor=document.getElementById('session-anchor');if(anchor)anchor.textContent=window.AlertaNuvem.email;
-  for(const a of document.querySelectorAll('a[href]')){const u=new URL(a.href,location.href);if(u.origin===location.origin&&/\/atendimento\//.test(u.pathname)){a.title='Demonstração local · sem gravação no Supabase';const label=a.querySelector('.map-name');if(label)label.textContent+=' · demonstração';}}
+  for(const a of document.querySelectorAll('a[href]')){const u=new URL(a.href,location.href);if(u.origin===location.origin&&/\/atendimento\//.test(u.pathname)){a.hidden=true;a.removeAttribute('href');}}
   const bar=document.createElement('div');bar.id='backend-bar';bar.innerHTML='<span>Conectado · cadastros no Supabase</span><button type="button" data-refresh>Atualizar</button><button type="button" data-logout>Sair</button>';document.body.appendChild(bar);
   bar.querySelector('[data-refresh]').onclick=()=>location.reload();
   bar.querySelector('[data-logout]').onclick=async()=>{await client.auth.signOut({scope:'local'});location.reload();};
- }else{const bar=document.createElement('div');bar.id='backend-bar';bar.textContent='Demonstração local · nenhum dado enviado ao Supabase';document.body.appendChild(bar);}
+ }
 }
-// Manter as duas origens de dados separadas ao navegar.
-document.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a)return;const url=new URL(a.href,location.href);if(url.origin!==location.origin)return;if(demo&&(/\/(gestao|plataforma|mapas)\//.test(url.pathname)||/\/index\.html$/.test(url.pathname))){url.searchParams.set('modo','demo');a.href=url.href;}},true);
 let client;
 try{
- if(demo){await start();return;}
+
  const config=window.MARINGA_SUPABASE;
  if(!config?.publishableKey?.startsWith('sb_publishable_'))throw Error('Configuração pública do Supabase ausente.');
  client=window.supabase.createClient(config.url,config.publishableKey,{auth:{storageKey:'maringa-supabase-auth-v1',flowType:'pkce',detectSessionInUrl:true}});
@@ -29,6 +26,9 @@ try{
  const {data:{session},error}=await client.auth.getSession();if(error)throw error;
  if(session){
   const {data:{user},error:authError}=await client.auth.getUser();if(authError||!user)throw authError||Error('Sessão inválida.');
+  const contrato=await client.from('ma_configuracao').select('documento').eq('id','interface').single();
+  if(contrato.error||!contrato.data)throw Error('Regras do servidor indisponíveis.');
+  AlertaGestaoDados.aplicarConfiguracao(contrato.data.documento);
   const remote=await AlertaRepositorioSupabase.criar({client,dados:AlertaGestaoDados,onStatus:status});
   if(entry==='plataforma'&&!remote.perfil.admin_plataforma)throw Error('Esta área requer acesso de Administração Geral.');
   window.AlertaNuvem={...remote,ativo:true,email:user.email};
@@ -41,9 +41,9 @@ try{
 }catch(error){showLogin(error.message||'Falha ao conectar ao Supabase.');}
 function showLogin(error=''){
  document.documentElement.classList.add('backend-pendente');
- gate.innerHTML='<section><small>MARINGÁ ALERTA</small><h1>Acesso à gestão municipal</h1><p>Entre com seu e-mail autorizado. Você receberá um link de acesso, sem precisar criar uma senha.</p><form><label for="backend-email">E-mail</label><input id="backend-email" type="email" autocomplete="email" required><button type="submit">Receber link de acesso</button></form><p role="alert"></p><button type="button" id="backend-reset" hidden>Sair da sessão atual</button><a id="backend-demo">Abrir demonstração local</a></section>';
+ gate.innerHTML='<section><small>MARINGÁ ALERTA</small><h1>Acesso à gestão municipal</h1><p>Entre com seu e-mail autorizado. Você receberá um link de acesso, sem precisar criar uma senha.</p><form><label for="backend-email">E-mail</label><input id="backend-email" type="email" autocomplete="email" required><button type="submit">Receber link de acesso</button></form><p role="alert"></p><button type="button" id="backend-reset" hidden>Sair da sessão atual</button></section>';
  gate.querySelector('[role=alert]').textContent=error;
- const url=new URL(location.href);url.searchParams.set('modo','demo');url.hash='';gate.querySelector('a').href=url.href;
+
  gate.querySelector('#backend-reset').hidden=!error;
  gate.querySelector('#backend-reset').onclick=async()=>{if(client)await client.auth.signOut({scope:'local'});location.reload();};
  gate.querySelector('form').onsubmit=async e=>{e.preventDefault();const button=e.currentTarget.querySelector('button'),feedback=gate.querySelector('[role=alert]');button.disabled=true;

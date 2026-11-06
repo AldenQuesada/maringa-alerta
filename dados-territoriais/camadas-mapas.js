@@ -22,6 +22,12 @@ function infoFrom(data,source,kind){
  return {features:valid,source,kind,count:valid.length};
 }
 async function carregar(force=false){
+ if(root.AlertaNuvem?.ativo){
+  const db=root.AlertaNuvem.repositorio({municipioId:sessionStorage.getItem('alerta_contexto_municipal_demo_v1')});
+  const grupo=colecao=>{const features=db.lista(colecao).filter(x=>x.verificacao!=='Rejeitado'&&x.geojson).map(x=>({type:'Feature',id:x.id,properties:{...x,geojson:undefined},geometry:typeof x.geojson==='string'?JSON.parse(x.geojson):x.geojson}));return {features,source:'Cadastro municipal no Supabase',kind:'municipal',count:features.length};};
+  const bairros=grupo('bairros'),zonas=grupo('zonas');return {bairros,zonas,zonasNumeradas:zonas,manifest:null};
+ }
+
  if(memory&&!force)return memory;
  memory=(async()=>{
   let manifest=null;try{manifest=await json(asset("maringa-municipal-fonte.json"));}catch(_){}

@@ -1,7 +1,7 @@
 /* ---------- log de auditoria imutavel (cadeia de hash) ---------- */
 const AUDIT_KEY = storageKey('audit');
 let auditLog = [];
-try{ auditLog = JSON.parse(localStorage.getItem(AUDIT_KEY) || "[]"); }catch(e){ auditLog = []; }
+try{ if(!conectado)auditLog = JSON.parse(localStorage.getItem(AUDIT_KEY) || "[]"); }catch(e){ auditLog = []; }
 
 async function sha256(str){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -18,7 +18,7 @@ function auditPush(ator, acao, detalhe, territorios){
     const entrada={ts,ator,acao,detalhe,prev,territorios};
     const hash=await sha256(auditPayload(entrada));
     auditLog.push({...entrada,hash});
-    try{localStorage.setItem(AUDIT_KEY,JSON.stringify(auditLog));}catch(e){}
+    try{!conectado&&localStorage.setItem(AUDIT_KEY,JSON.stringify(auditLog));}catch(e){}
     renderAuditIfOpen();
   }).catch(()=>{});
   return auditSequencia;
@@ -65,7 +65,7 @@ function renderAudit(){
   document.getElementById('audit-tamper').onclick = ()=>{
     if(!auditLog.length){ document.getElementById('audit-result').textContent = 'Não há entradas para adulterar ainda.'; return; }
     auditLog[0].detalhe = auditLog[0].detalhe + ' (editado depois, sem recalcular o hash)';
-    try{ localStorage.setItem(AUDIT_KEY, JSON.stringify(auditLog)); }catch(e){}
+    try{ !conectado&&localStorage.setItem(AUDIT_KEY, JSON.stringify(auditLog)); }catch(e){}
     renderAudit();
   };
 }
