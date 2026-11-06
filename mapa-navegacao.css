@@ -30,14 +30,7 @@
   height: 30px;
 }
 
-/* Fixar o enquadramento atual como a nova vista original dos mapas. */
-.leaflet-control-zoom a.leaflet-control-zoom-save {
- display:flex;align-items:center;justify-content:center;width:26px;height:26px;
- background:#fff;color:#333;text-decoration:none;font-size:22px;line-height:1;
- cursor:pointer;border-top:1px solid #ccc;border-radius:0;
+/* Só zoom + e retorno à posição original. Zoom - fica indisponível. */
+.leaflet-control-zoom.camera-original-fixa .leaflet-control-zoom-out {
+ display:none!important;
 }
-.leaflet-control-zoom a.leaflet-control-zoom-save:hover{background:#f4f4f4;color:#111}
-.leaflet-control-zoom a.leaflet-control-zoom-save:focus-visible {
- outline:2px solid var(--accent,#ffb020);outline-offset:2px
-}
-.leaflet-touch .leaflet-control-zoom a.leaflet-control-zoom-save {width:30px;height:30px}
