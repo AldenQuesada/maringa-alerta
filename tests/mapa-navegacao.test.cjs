@@ -50,6 +50,7 @@ function simularMapa(w=1440,h=900){
    const zoom=Math.log2(Math.min((this.width-padding.x)/(ne.x-sw.x),(this.height-padding.y)/(sw.y-ne.y)));
    return this.options.zoomSnap===0?zoom:Math.floor(zoom);
   },
+  getCenter(){return this.center},
   getZoom(){return this.zoom},getMinZoom(){return this.minZoom},
   setMinZoom(z){this.minZoom=z;if(this.zoom<z)this.zoom=z;return this},
   setMaxBounds(b){this.maxBounds=b&&b.isValid()?b:null;return this},
