@@ -354,11 +354,38 @@ function iniciarCozinhasDemo(){
  cozinhasPontos.forEach((p,i)=>{
   const nome="Cozinha "+String(i+1).padStart(2,"0")+" · simulação";
   const ic=L.divIcon({className:"cozinha-demo",html:'<span>🍲</span>',iconSize:[28,28],iconAnchor:[14,14]});
-  L.marker([p.lat,p.lng],{icon:ic,title:nome}).bindPopup('<strong>'+esc(nome)+'</strong><p>Referência ilustrativa em '+esc(p.label)+'. Não representa cozinha cadastrada ou confirmada.</p>').addTo(cozinhasDemo);
+  L.marker([p.lat,p.lng],{icon:ic,title:nome,keyboard:true})
+   .bindTooltip(esc(nome),{direction:"top"})
+   .on("click",()=>abrirFichaCozinha(nome,p))
+   .addTo(cozinhasDemo);
  });
  $("logistica-status").textContent=cozinhasPontos.length+" cozinhas demonstrativas";
  $("legenda-cozinhas").hidden=false;
  tentarIniciarCaminhao();
+}
+function abrirFichaCozinha(nome,ponto){
+ const painel=$("painel-ajuda"),toggle=$("painel-ajuda-toggle"),ficha=$("ficha-cozinha");
+ if(painel.hidden)toggle.click();
+ $("ficha-cozinha-titulo").textContent=nome;
+ const campos=[
+  ["Responsável","Não informado"],
+  ["Endereço","Não informado"],
+  ["Região de referência",ponto.label+" · localização aproximada"],
+  ["Telefone / WhatsApp","Não informado"],
+  ["Capacidade","Quantidade de pessoas não informada"],
+  ["Refeições por dia","Não informado"],
+  ["Horário de funcionamento","Não informado"],
+  ["Tipo de refeições","Não informado"],
+  ["Itens necessários","Não informado"],
+  ["Situação","A confirmar"]
+ ];
+ const lista=$("ficha-cozinha-dados");lista.replaceChildren();
+ for(const [rotulo,valor] of campos){
+  const linha=document.createElement("div"),dt=document.createElement("dt"),dd=document.createElement("dd");
+  dt.textContent=rotulo;dd.textContent=valor;linha.append(dt,dd);lista.append(linha);
+ }
+ ficha.hidden=false;
+ ficha.scrollIntoView({block:"nearest",behavior:"smooth"});
 }
 function tentarIniciarCaminhao(){
  if(!simulacaoIniciada&&cozinhasPontos.length&&INVENTARIO.registros(app.db).some(x=>x.modulo==="bases"&&x.categoria==="Centro de coleta de donativos"&&x.georreferenciado))iniciarCaminhaoDemo();
@@ -397,6 +424,7 @@ if(TIPO==="ajuda"){
  $("logistica-demo").hidden=false;
  $("iniciar-caminhao").addEventListener("click",iniciarCaminhaoDemo);
  $("notificacao-fechar").addEventListener("click",()=>{$("notificacao-chegada").hidden=true;});
+ $("ficha-cozinha-fechar").addEventListener("click",()=>{$("ficha-cozinha").hidden=true;});
  const toggle=$("painel-ajuda-toggle"),painel=$("painel-ajuda");
  toggle.hidden=false;
  toggle.addEventListener("click",()=>{
