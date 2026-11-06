@@ -79,11 +79,13 @@ function colaboradoresAjudaFiltrados(){
 function renderColaboradoresAjuda(){
  if(TIPO!=="ajuda"||camadaAtual!=="principal")return;
  const pessoas=colaboradoresAjudaFiltrados();
+ $("list-title").textContent="Colaboradores e pedidos";
+ $("list-count").textContent=pessoas.length+" colaboradores · "+dadosFiltrados().length+" pedidos";
  const secao=document.createElement("section");secao.className="ajuda-colaboradores";
  const titulo=document.createElement("h2");titulo.textContent="Colaboradores ("+pessoas.length+")";
  const nota=document.createElement("p");nota.className="presence-note";
  nota.textContent="Mesmos cadastros do Mapa de Colaboradores. A situação selecionada acima filtra os pedidos.";
- const lista=document.createElement("div");secao.append(titulo,nota,lista);$("results").append(secao);
+ const lista=document.createElement("div");secao.append(titulo,nota,lista);$("results").prepend(secao);
  renderEquipeNoElemento(pessoas,lista);
  const registroPorId=new Map(INVENTARIO.registros(app.db).filter(x=>x.modulo==="voluntarios").map(x=>[x.id,x]));
  const grupos=new Map();
@@ -103,6 +105,20 @@ function render(){
   $("command").hidden=false;
   if(TIPO==="ajuda")comandoPrefeituras();else comandoBrigadas();
  }else $("command").hidden=true;
+}
+if(TIPO==="ajuda"){
+ const toggle=$("painel-ajuda-toggle"),painel=$("painel-ajuda");
+ toggle.hidden=false;
+ toggle.addEventListener("click",()=>{
+  const fechado=!painel.hidden;
+  painel.hidden=fechado;
+  document.querySelector(".workspace").classList.toggle("painel-recolhido",fechado);
+  toggle.textContent=fechado?"+":"−";
+  toggle.setAttribute("aria-expanded",String(!fechado));
+  toggle.setAttribute("aria-label",fechado?"Abrir painel":"Recolher painel");
+  toggle.title=fechado?"Abrir painel":"Recolher painel";
+  requestAnimationFrame(()=>map.invalidateSize());
+ });
 }
 $("mostrar-unidades").onchange=e=>{mostrarUnidades=e.target.checked;render();};
 $("camada").onchange=()=>{camadaAtual=$("camada").value;filtroClasse="";texto="";$("busca").value="";configurarCamadas();render();};

@@ -41,3 +41,10 @@ select,input,textarea{background:#0d1724;border:1px solid #3c5065;color:var(--fg
 
 .ajuda-colaboradores{margin:18px 0 8px;padding-top:14px;border-top:1px solid #37516a}
 .ajuda-colaboradores h2{font-size:13px;margin:0 5px;color:var(--fg)}
+
+/* O mapa de ajuda usa a mesma camada escura do Mapa de Evento. */
+.mapa-ajuda .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.92) saturate(.9)}
+.painel-ajuda-toggle{position:absolute;right:12px;top:12px;z-index:800;display:grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid #455870;border-radius:7px;background:#101a27;color:#eaf0f6;font-size:23px;line-height:1;box-shadow:0 2px 10px #0008}
+.painel-ajuda-toggle:hover{border-color:var(--accent)}
+.ajuda-colaboradores{margin:0 0 18px;padding:0 0 14px;border-top:0;border-bottom:1px solid #37516a}
+@media(max-width:850px){.workspace.painel-recolhido .map-area{height:auto;flex:1;min-height:0}}
