@@ -88,22 +88,60 @@ function renderColaboradoresAjuda(){
  const lista=document.createElement("div");secao.append(titulo,nota,lista);$("results").prepend(secao);
  renderEquipeNoElemento(pessoas,lista);
  const registroPorId=new Map(INVENTARIO.registros(app.db).filter(x=>x.modulo==="voluntarios").map(x=>[x.id,x]));
- const grupos=new Map();
+ const ocupacao=new Map();
  for(const pessoa of pessoas){
-  if(pessoa.registroAnterior&&Array.isArray(pessoa.pos)&&pessoa.pos.length>=2&&pessoa.pos.every(Number.isFinite)){
-   const ic=L.divIcon({html:'<div class="bubble">1</div>',className:"pin collab",iconSize:[44,44],iconAnchor:[22,22]});
-   L.marker(pessoa.pos,{icon:ic,title:pessoa.nome}).bindPopup('<strong>'+esc(pessoa.nome)+'</strong><p>Posição registrada no estado anterior de demonstração.</p>').addTo(marcadores);
-   continue;
-  }
-  const zona=registroPorId.get(String(pessoa.id))?.zona||pessoa.zona;if(zona)grupos.set(zona,(grupos.get(zona)||0)+1);
+  const registro=registroPorId.get(String(pessoa.id));
+  const temCheckin=pessoa.checkin_status==="presente"&&pessoa.checkin_lat!=null&&pessoa.checkin_lng!=null&&pessoa.checkin_lat!==""&&pessoa.checkin_lng!==""&&Number.isFinite(Number(pessoa.checkin_lat))&&Number.isFinite(Number(pessoa.checkin_lng));
+  const area=pessoa.bairro||registro?.bairro||pessoa.zona||registro?.zona;
+  const base=temCheckin?{lat:Number(pessoa.checkin_lat),lng:Number(pessoa.checkin_lng)}:pessoa.registroAnterior&&Array.isArray(pessoa.pos)&&pessoa.pos.length>=2&&pessoa.pos.every(Number.isFinite)?{lat:pessoa.pos[0],lng:pessoa.pos[1]}:pontosBairrosOficiais.get(INVENTARIO.normal(area))||pontoZona(pessoa.zona||registro?.zona||area);
+  if(!base)continue;
+  const chave=base.lat+":"+base.lng,indice=(ocupacao.get(chave)||0);ocupacao.set(chave,indice+1);
+  const ic=L.divIcon({html:'<div class="pessoa-azul"></div>',className:"pin collab pessoa-individual",iconSize:[20,20],iconAnchor:[10-((indice%5)-2)*14,10-Math.floor(indice/5)*14]});
+  const local=temCheckin?"Último check-in registrado":pessoa.registroAnterior?"Posição de demonstração anterior":"Localização aproximada da área";
+  L.marker([base.lat,base.lng],{icon:ic,title:pessoa.nome}).bindTooltip('<strong>'+esc(pessoa.nome)+'</strong><br>'+esc(area||"Área não informada")+' · '+esc(local),{direction:"top"}).addTo(marcadores);
  }
- for(const [zona,total] of grupos){
-  const pt=pontoZona(zona);if(!pt)continue;
-  const icon=L.divIcon({html:'<div class="bubble">'+total+'</div>',className:"pin collab",iconSize:[44,44],iconAnchor:[54,22]});
-  L.marker([pt.lat,pt.lng],{icon,title:total+" colaboradores na zona "+zona})
-   .bindPopup('<strong>'+esc(zona)+'</strong><p>'+total+' colaboradores</p><small>Marcador por zona, não representa endereço residencial.</small>')
-   .addTo(marcadores).on("click",()=>{filtroZona=zona;$("zona").value=zona;render();});
+
+}
+const cozinhasDemo=L.layerGroup().addTo(map);
+let cozinhasPontos=[],caminhaoDemo=null,simulacaoRodando=false,simulacaoIniciada=false;
+function iniciarCozinhasDemo(){
+ if(TIPO!=="ajuda"||app.prefeitura()?.id!=="maringa")return;
+ const candidatos=[...pontosBairrosOficiais.values()];
+ cozinhasPontos=LogisticaDemo.selecionar(candidatos,20);
+ cozinhasDemo.clearLayers();
+ cozinhasPontos.forEach((p,i)=>{
+  const nome="Cozinha "+String(i+1).padStart(2,"0")+" · simulação";
+  const ic=L.divIcon({className:"cozinha-demo",html:'<span>🍲</span>',iconSize:[28,28],iconAnchor:[14,14]});
+  L.marker([p.lat,p.lng],{icon:ic,title:nome}).bindPopup('<strong>'+esc(nome)+'</strong><p>Referência ilustrativa em '+esc(p.label)+'. Não representa cozinha cadastrada ou confirmada.</p>').addTo(cozinhasDemo);
+ });
+ $("logistica-status").textContent=cozinhasPontos.length+" cozinhas demonstrativas";
+ $("legenda-cozinhas").hidden=false;
+ tentarIniciarCaminhao();
+}
+function tentarIniciarCaminhao(){
+ if(!simulacaoIniciada&&cozinhasPontos.length&&INVENTARIO.registros(app.db).some(x=>x.modulo==="bases"&&x.categoria==="Centro de coleta de donativos"&&x.georreferenciado))iniciarCaminhaoDemo();
+}
+function iniciarCaminhaoDemo(){
+ if(simulacaoRodando)return;
+ const base=INVENTARIO.registros(app.db).find(x=>x.modulo==="bases"&&x.categoria==="Centro de coleta de donativos"&&x.georreferenciado);
+ if(!base||!cozinhasPontos.length){$("logistica-status").textContent="Aguarde o carregamento dos pontos para iniciar.";return;}
+ simulacaoIniciada=true;simulacaoRodando=true;$("iniciar-caminhao").disabled=true;
+ const origem=[cozinhasPontos[0].lat,cozinhasPontos[0].lng],destino=[base.lat,base.lng];
+ if(caminhaoDemo)map.removeLayer(caminhaoDemo);
+ const ic=L.divIcon({className:"caminhao-demo",html:'<span>🚚</span>',iconSize:[36,36],iconAnchor:[18,18]});
+ caminhaoDemo=L.marker(origem,{icon:ic,title:"Caminhão · simulação"}).bindTooltip("Caminhão em deslocamento simulado",{direction:"top"}).addTo(map);
+ $("notificacao-chegada").hidden=true;$("logistica-status").textContent="Caminhão em deslocamento simulado · 30 s";
+ const inicio=performance.now();
+ function passo(agora){
+  const progresso=Math.min(1,(agora-inicio)/30000);
+  caminhaoDemo.setLatLng(LogisticaDemo.interpolar(origem,destino,progresso));
+  if(progresso<1){requestAnimationFrame(passo);return;}
+  simulacaoRodando=false;$("iniciar-caminhao").disabled=false;$("iniciar-caminhao").textContent="Repetir simulação";
+  $("logistica-status").textContent="Chegada simulada concluída";
+  $("notificacao-texto").textContent="Simulação: caminhão chegou a "+base.nome+". Aviso à primeira-dama preparado apenas como demonstração; nenhuma mensagem foi enviada.";
+  $("notificacao-chegada").hidden=false;
  }
+ requestAnimationFrame(passo);
 }
 function render(){
  const xs=dadosFiltrados();
@@ -114,6 +152,9 @@ function render(){
  }else $("command").hidden=true;
 }
 if(TIPO==="ajuda"){
+ $("logistica-demo").hidden=false;
+ $("iniciar-caminhao").addEventListener("click",iniciarCaminhaoDemo);
+ $("notificacao-fechar").addEventListener("click",()=>{$("notificacao-chegada").hidden=true;});
  const toggle=$("painel-ajuda-toggle"),painel=$("painel-ajuda");
  toggle.hidden=false;
  toggle.addEventListener("click",()=>{
@@ -142,7 +183,7 @@ if(TIPO==="ajuda"){
 }
 void carregarZonasOficiais();
 const fontesPublicas=["../dados-territoriais/maringa-bases-riscos-publicos.json","../dados-territoriais/maringa-abrigos-publicos.json"];
-void Promise.allSettled(fontesPublicas.map(url=>AlertaImportacaoPublica.carregar(app.db,{url}))).then(()=>{configurarCamadas();render();});
+void Promise.allSettled(fontesPublicas.map(url=>AlertaImportacaoPublica.carregar(app.db,{url}))).then(()=>{configurarCamadas();render();if(TIPO==="ajuda")tentarIniciarCaminhao();});
 window.addEventListener("focus",()=>{configurarCamadas();render();});
 if(app.prefeitura()?.id==="maringa"&&globalThis.MaringaBairros)
  territorio=MaringaBairros.iniciar({map,L});

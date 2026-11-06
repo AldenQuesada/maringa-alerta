@@ -2,6 +2,7 @@
 const unidadesMunicipais=L.layerGroup().addTo(map);
 const nomesZonasOficiais=[];
 const pontosZonasOficiais=new Map();
+const pontosBairrosOficiais=new Map();
 let mostrarUnidades=true,zonasConsultadas=false;
 function pontoZona(nome){return app.pontoDaZona(nome)||pontosZonasOficiais.get(INVENTARIO.normal(nome))||null;}
 async function carregarZonasOficiais(){
@@ -9,6 +10,12 @@ async function carregarZonasOficiais(){
  zonasConsultadas=true;
  try{
   const dados=await MaringaBairros.carregar();
+  for(const feature of dados.bairros?.features||[]){
+   const nome=String(feature.properties?.nome||"").trim();
+   if(!nome)continue;
+   const bounds=L.geoJSON(feature).getBounds();if(!bounds?.isValid())continue;
+   const centro=bounds.getCenter();pontosBairrosOficiais.set(INVENTARIO.normal(nome),{lat:centro.lat,lng:centro.lng,label:nome});
+  }
   for(const feature of dados.zonasNumeradas?.features||[]){
    const nome=String(feature.properties?.nome||"").trim();
    if(!/^Zona\s*\d+$/i.test(nome))continue;
@@ -21,7 +28,7 @@ async function carregarZonasOficiais(){
    pontosZonasOficiais.set(INVENTARIO.normal(nome),{lat:centro.lat,lng:centro.lng,label:nome});
    nomesZonasOficiais.push(nome);poligonos.addLayer(layer);
   }
-  zoneSelect();render();
+  zoneSelect();render();if(TIPO==="ajuda")iniciarCozinhasDemo();
  }catch(error){zonasConsultadas=false;console.warn("Zonas numeradas indisponíveis",error);}
 }
 function renderUnidadesMunicipais(){

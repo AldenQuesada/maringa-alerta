@@ -1,0 +1,3 @@
+const test=require('node:test'),assert=require('node:assert/strict'),demo=require('../mapas/logistica-demo.js');
+test('seleciona 20 referências disponíveis sem duplicação',()=>{const pts=Array.from({length:30},(_,i)=>({lat:-23-i/100,lng:-51-i/80}));const result=demo.selecionar(pts,20);assert.equal(result.length,20);assert.equal(new Set(result).size,20);assert.equal(demo.selecionar([],20).length,0)});
+test('trajeto simulado respeita origem, destino e os limites de tempo',()=>{assert.deepEqual(demo.interpolar([0,2],[10,12],0),[0,2]);assert.deepEqual(demo.interpolar([0,2],[10,12],0.5),[5,7]);assert.deepEqual(demo.interpolar([0,2],[10,12],2),[10,12])});

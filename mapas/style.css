@@ -52,3 +52,8 @@ select,input,textarea{background:#0d1724;border:1px solid #3c5065;color:var(--fg
 /* Os pontos de colaboradores são azuis; cores de situação pertencem ao menu. */
 .color-collab{background:#3ba7ff}
 .pin.collab .bubble{background:#1766a5;border-color:#8bd1ff}
+
+.pin.pessoa-individual .pessoa-azul{width:12px;height:12px;background:#3ba7ff;border:2px solid #cae8ff;border-radius:50%;box-shadow:0 0 0 3px #17496a88}
+.cozinha-demo span,.caminhao-demo span{display:grid;place-items:center;width:100%;height:100%;background:#182636;border:1px solid #dfb756;border-radius:50%;font-size:18px;box-shadow:0 2px 8px #0009}.caminhao-demo span{font-size:23px;background:#e7b744}
+.logistica-demo{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);font-size:10px;color:var(--muted)}.logistica-demo button{border:1px solid #8b7120;background:#2b281b;color:#ffd36a;border-radius:6px;padding:7px;font-size:11px}
+.notificacao-chegada{position:absolute;z-index:900;right:12px;bottom:15px;width:min(320px,calc(100% - 24px));padding:12px;background:#153329;color:#e2fff1;border:1px solid #4e9875;border-radius:8px;box-shadow:0 4px 20px #0008}.notificacao-chegada button{float:right;color:inherit;background:transparent;border:0;font-size:18px}.notificacao-chegada p{margin:7px 0 0;line-height:1.4;font-size:11px}
