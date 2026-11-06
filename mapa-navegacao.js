@@ -18,11 +18,15 @@
   return typeof global.location?.search==="string"&&
     new URLSearchParams(global.location.search).get("calibrar")==="1";
  }
- function liberarNavegacao(map,L){
-  // Busca, filtros e seleção de território usam a câmera programaticamente.
-  // Arraste manual só no modo de calibração; fora dele, conforme aprovado, fica bloqueado.
-  if(emCalibracao())map.dragging?.enable?.();
+ function atualizarArraste(map){
+  // Na posição inicial o mapa não se arrasta; depois de aproximar pode explorar.
+  // Ao voltar ao zoom mínimo, o arraste é bloqueado novamente.
+  if(emCalibracao()||map.getZoom()>map.getMinZoom()+0.001)map.dragging?.enable?.();
   else map.dragging?.disable?.();
+ }
+ function liberarNavegacao(map,L){
+  // Filtros e buscas continuam podendo centralizar pelo Leaflet.
+  atualizarArraste(map);
   map.setMaxBounds(L.latLngBounds(AREA_MARINGA).pad(.08));
   map.options.maxBoundsViscosity=1;
   map.zoomControl.getContainer().classList?.remove("camera-original-fixa");
@@ -85,6 +89,7 @@
    liberarNavegacao(map,L);
   }
   enquadrar();
+  map.on("zoomend",()=>atualizarArraste(map));
   const restaurar=()=>{
    if(typeof aoRestaurar==="function")aoRestaurar();
    map.setView([home.lat,home.lng],home.zoom,{animate:false});
@@ -117,6 +122,7 @@
   liberarNavegacao(map,L);
   const restaurar=()=>map.setView([home.lat,home.lng],home.zoom,{animate:false});
   const botao=botaoInicio(map,L,restaurar);
+  map.on("zoomend",()=>atualizarArraste(map));
   map.on("resize",()=>{
     liberarNavegacao(map,L);
     // Mudança de tamanho do painel não pode deslocar a vista inicial aprovada.
