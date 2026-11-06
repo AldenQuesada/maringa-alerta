@@ -280,3 +280,18 @@ test("Preciso de ajuda usa só nome, endereço, telefone e relato da necessidade
  assert.match(conclusao,/urgencia:"Não avaliada"/);
  assert.doesNotMatch(conclusao,/Você pode consultar a situação neste simulador/);
 });
+
+
+test("reiniciar demonstração preserva colaboradores, pedidos e relatos na base municipal",()=>{
+ assert.match(chat,/MaringaCrise\.criar\(\{municipioId:"maringa",escopoMunicipal:true\}\)/,
+  "a rota da Prefeitura Maringá não pode usar município de outra sessão");
+ assert.doesNotMatch(chat,/sessionStorage\.getItem\("alerta_contexto_municipal_demo_v1"\)/);
+ const inicio=chat.indexOf("function reiniciarDemonstracao(){");
+ const fim=chat.indexOf('$("go-home").onclick=',inicio);
+ assert.ok(inicio>=0&&fim>inicio);
+ const reset=chat.slice(inicio,fim);
+ assert.match(reset,/Os cadastros, pedidos e relatos já registrados serão preservados/);
+ assert.doesNotMatch(reset,/dados\.excluir|dados\.gravar|registrarMudanca|rastreio\(|guardarRastreio/);
+ assert.doesNotMatch(chat,/registrarMudanca\("voluntarios"|registrarMudanca\("solicitacoes"|registrarMudanca\("relatos"/);
+ assert.match(page,/Reiniciar a conversa não apaga cadastros, pedidos ou relatos/);
+});
