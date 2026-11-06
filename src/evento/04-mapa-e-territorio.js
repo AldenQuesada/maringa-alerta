@@ -23,7 +23,7 @@ areas.forEach(area=>{
 
 // Mantém navegação dentro da área de Maringá sem interferir na seleção de ocorrências.
 const navegacaoMapa = window.AlertaMapaNavegacao.instalar({
-  map, L, zonas:[
+  map, L, armazenamento:localStorage, chaveVista:'maringa_mapa_evento_vista_original_v1', zonas:[
     ...bairros.map(b=>b.poly),
     ...areasCadastradas.filter(a=>a.layer).map(a=>{
       const limites=a.layer.getBounds();

@@ -50,6 +50,7 @@ function simularMapa(w=1440,h=900){
    const zoom=Math.log2(Math.min((this.width-padding.x)/(ne.x-sw.x),(this.height-padding.y)/(sw.y-ne.y)));
    return this.options.zoomSnap===0?zoom:Math.floor(zoom);
   },
+  getCenter(){return this.center},
   getZoom(){return this.zoom},getMinZoom(){return this.minZoom},
   setMinZoom(z){this.minZoom=z;if(this.zoom<z)this.zoom=z;return this},
   setMaxBounds(b){this.maxBounds=b&&b.isValid()?b:null;return this},
@@ -60,7 +61,7 @@ function simularMapa(w=1440,h=900){
    this.center=unproject(point((a.x+c.x)/2,(a.y+c.y)/2),this.zoom);
    return this;
   },
-  setView(c,z){this.center=c;this.zoom=z;return this},
+  setView(c,z){this.center=Array.isArray(c)?{lat:c[0],lng:c[1]}:c;this.zoom=z;return this},
   getBounds(){
    const p=project(this.center,this.zoom),mid=point(this.width/2,this.height/2);
    const ne=unproject(p.subtract(mid),this.zoom),sw=unproject(p.add(mid),this.zoom);
@@ -173,4 +174,64 @@ test("o botão de centralizar retorna à mesma escala precisa em vez do zoom 13 
  nav.restaurar();
  assert.ok(Math.abs(map.zoom-inicial)<0.000001);
  visaoIncluiTodasAsZonas(map);
+});
+
+test("Evento salva a posição escolhida, trava zoom mínimo e o botão volta exatamente",()=>{
+ const {map,L,container}=simularMapa();
+ const memoria=new Map();
+ const storage={getItem:k=>memoria.get(k)||null,setItem:(k,v)=>memoria.set(k,String(v))};
+ const chave="maringa_mapa_evento_vista_original_v1";
+ const nav=instalar({map,L,zonas:POLIGONOS,armazenamento:storage,chaveVista:chave});
+ assert.equal(container.children.length,2,"Home e Fixar vista compartilham o controle de zoom");
+ map.setView([-23.402,-51.938],15.5);
+ const escolha={stopped:false};
+ nav.botaoSalvar.events.click(escolha);
+ assert.equal(escolha.stopped,true);
+ const salvo=JSON.parse(memoria.get(chave));
+ assert.equal(salvo.zoom,15.5);
+ assert.equal(salvo.lat,-23.402);
+ assert.equal(salvo.lng,-51.938);
+ assert.equal(map.getMinZoom(),15.5);
+ map.setView([-23.398,-51.934],17);
+ nav.botao.events.click({stopped:false});
+ assert.equal(map.zoom,15.5);
+ assert.deepEqual(map.center,{lat:-23.402,lng:-51.938});
+ const novo=simularMapa();
+ instalar({map:novo.map,L:novo.L,zonas:POLIGONOS,armazenamento:storage,chaveVista:chave});
+ assert.equal(novo.map.zoom,15.5);
+ assert.deepEqual(novo.map.center,{lat:-23.402,lng:-51.938});
+ assert.equal(novo.map.getMinZoom(),15.5);
+ assert.ok(novo.map.maxBounds);
+});
+test("Pra Somar conserva sua própria vista e não interfere na posição original do Evento",()=>{
+ const {instalarVistaSalva}=require("../mapa-navegacao.js");
+ const m=new Map();
+ const storage={getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,String(v))};
+ const ev=simularMapa(),help=simularMapa();
+ const a=instalar({map:ev.map,L:ev.L,zonas:POLIGONOS,armazenamento:storage,
+  chaveVista:"maringa_mapa_evento_vista_original_v1"});
+ ev.map.setView([-23.405,-51.94],15);a.botaoSalvar.events.click({stopped:false});
+ const b=instalarVistaSalva({map:help.map,L:help.L,armazenamento:storage,
+  chaveVista:"maringa_pra_somar_vista_original_v1"});
+ help.map.setView([-23.415,-51.93],12.5);b.botaoSalvar.events.click({stopped:false});
+ assert.equal(help.map.getMinZoom(),12.5);
+ help.map.setView([-23.41,-51.928],16);b.restaurar();
+ assert.equal(help.map.zoom,12.5);
+ assert.deepEqual(help.map.center,{lat:-23.415,lng:-51.93});
+ assert.equal(JSON.parse(m.get("maringa_mapa_evento_vista_original_v1")).zoom,15);
+ const helpReload=simularMapa();
+ instalarVistaSalva({map:helpReload.map,L:helpReload.L,armazenamento:storage,
+  chaveVista:"maringa_pra_somar_vista_original_v1"});
+ assert.equal(helpReload.map.getMinZoom(),12.5);
+ assert.deepEqual(helpReload.map.center,{lat:-23.415,lng:-51.93});
+});
+test("a vista original do usuário não altera os dados do mapa e rejeita coordenadas inválidas",()=>{
+ const {instalarVistaSalva}=require("../mapa-navegacao.js");
+ const store=new Map([["maringa_pra_somar_vista_original_v1",JSON.stringify({
+   version:1,lat:45,lng:120,zoom:18,bounds:[[44,119],[46,121]]
+ })]]);
+ const storage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,String(v))};
+ const {map,L}=simularMapa();
+ instalarVistaSalva({map,L,armazenamento:storage,chaveVista:"maringa_pra_somar_vista_original_v1"});
+ assert.deepEqual(map.center,{lat:-23.4205,lng:-51.9333},"coordenadas fora de Maringá não podem reposicionar o mapa");
 });
