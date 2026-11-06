@@ -101,6 +101,10 @@
         itens.map(v => '<span class="cv-offer">' + esc(v) + '</span>').join("") + '</div>' :
         '<p>Não informado</p>') + '</section>';
   }
+  // Ausência de seleção é um estado válido: o usuário pode voltar ao painel de regiões.
+  function manterSelecao(id, pessoas) {
+    return id != null && pessoas.some(p => p.id === id) ? id : null;
+  }
   let rendererAtivo = null;
   let ouvindoStorage = false;
   function montar({target, db, onEdit, onNew} = {}) {
@@ -128,7 +132,7 @@
             '<div id="cv-transcript" class="cv-transcript" aria-live="polite"></div>' +
             '<div class="cv-chat-foot">Visualização do cadastro · sem envio ou recebimento de mensagens</div>' +
           '</section>' +
-          '<aside class="cv-inspector" aria-label="Zonas e dados do colaborador">' +
+          '<aside class="cv-inspector" tabindex="-1" aria-label="Zonas e dados do colaborador">' +
             '<div class="cv-panel-head"><div><strong>Filtrar por zona</strong>' +
             '<small>Marque uma ou mais zonas</small></div>' +
             '<button type="button" id="cv-clear" class="cv-clear" data-cv-clear>Limpar</button></div>' +
@@ -196,12 +200,14 @@
     }
     function renderChat(p) {
       if (!p) {
-        get("cv-chat-head").innerHTML = '<div class="cv-chat-person"><strong>Selecione um colaborador</strong><span>Fluxo de cadastro Pra Somar</span></div>';
+        get("cv-chat-head").innerHTML = '<div class="cv-chat-person"><strong>Nenhuma conversa selecionada</strong><span>Escolha uma região ou abra um colaborador</span></div>';
         get("cv-transcript").innerHTML = '<div class="cv-no-chat"><div aria-hidden="true">◉</div><strong>Nenhuma conversa selecionada</strong><p>Selecione um cadastro à esquerda para visualizar o percurso de atendimento.</p></div>';
         return;
       }
       const z = zonaDaPessoa(p,db.lista("bairros"));
-      get("cv-chat-head").innerHTML = '<div class="cv-avatar cv-avatar-chat" aria-hidden="true">' +
+      get("cv-chat-head").innerHTML =
+        '<button type="button" class="cv-back" data-cv-back aria-label="Desmarcar conversa e voltar às regiões">Voltar às regiões</button>' +
+        '<div class="cv-avatar cv-avatar-chat" aria-hidden="true">' +
         esc(nomePessoa(p).slice(0,1).toLocaleUpperCase("pt-BR")) + '</div><div class="cv-chat-person"><strong>' +
         esc(nomePessoa(p)) + '</strong><span>' + esc(z) + ' · Cadastro de colaborador</span></div>' +
         '<span class="cv-simulated">' + (p.status_simulacao==="simulado"?"Demonstração":"Fluxo reconstruído") + '</span>';
@@ -249,7 +255,8 @@
       const {pessoas,bairros,zonas} = consulta();
       construirZonas(pessoas,bairros,zonas);
       const filtradas = filtrarPessoas(pessoas,bairros,selecionadas,busca);
-      if (!filtradas.some(p => p.id===ativa)) ativa = filtradas[0]?.id || null;
+      ativa = manterSelecao(ativa, filtradas);
+      raiz.classList.toggle("is-conversation-open", ativa !== null);
       const exemplos=pessoas.filter(p=>p.status_simulacao==="simulado").length;
       get("cv-total").textContent = pessoas.length + (pessoas.length===1?" cadastro":" cadastros") + (exemplos?" · "+exemplos+" demonstrações":"");
       renderLista(filtradas,bairros);
@@ -263,6 +270,20 @@
       if (botao.hasAttribute("data-cv-open")) {
         ativa = botao.dataset.cvOpen;
         renderDados();
+        if (typeof window !== "undefined" && window.matchMedia("(max-width:850px)").matches)
+          raiz.querySelector(".cv-chat")?.scrollIntoView({block:"start"});
+      } else if (botao.hasAttribute("data-cv-back")) {
+        // Volta à visão geral sem perder as zonas selecionadas ou a busca.
+        ativa = null;
+        renderDados();
+        const painelRegioes = raiz.querySelector(".cv-inspector");
+        if (painelRegioes) {
+          painelRegioes.scrollTop = 0;
+          get("cv-zones").scrollTop = 0;
+          painelRegioes.focus({preventScroll:true});
+          if (typeof window !== "undefined" && window.matchMedia("(max-width:850px)").matches)
+            painelRegioes.scrollIntoView({block:"start"});
+        }
       } else if (botao.hasAttribute("data-cv-clear")) {
         selecionadas.clear();
         renderDados();
@@ -290,5 +311,5 @@
     }
     renderDados();
   }
-  return {montar,fluxoCadastro,zonaDaPessoa,filtrarPessoas,SEM_ZONA};
+  return {montar,fluxoCadastro,zonaDaPessoa,filtrarPessoas,manterSelecao,SEM_ZONA};
 });
