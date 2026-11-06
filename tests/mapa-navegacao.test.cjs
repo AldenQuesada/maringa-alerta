@@ -69,6 +69,7 @@ function simularMapa(w=1440,h=900){
    return boundsFrom([[sw.lat,ne.lng],[ne.lat,sw.lng]]);
   },
   on(name,fn){events[name]=fn;return this},
+  emit(name){events[name]?.();},
   resize(w2,h2){this.width=w2;this.height=h2;events.resize()}
  };
  const L={
@@ -296,4 +297,48 @@ test("modo calibração do Pra Somar não é substituído pelo preset",()=>{
   if(anterior===undefined)delete globalThis.location;
   else globalThis.location=anterior;
  }
+});
+
+test("nos três mapas: arraste apenas com zoom acima do inicial, volta a travar ao reduzir ou centralizar",()=>{
+ const {instalarVistaSalva}=require("../mapa-navegacao.js");
+ const anterior=globalThis.location;
+ globalThis.location={search:""};
+ try{
+  const casos=[
+   {nome:"evento",setup:({map,L})=>instalar({map,L,zonas:POLIGONOS})},
+   {nome:"colaboradores",setup:({map,L})=>instalarVistaSalva({map,L,identificador:"colaboradores"})},
+   {nome:"pra-somar",setup:({map,L})=>instalarVistaSalva({map,L,identificador:"pra-somar",vistaInicial:{lat:-23.4398505,lng:-51.9680312,zoom:12.7027}})}
+  ];
+  for(const caso of casos){
+   const contexto=simularMapa();
+   const {map}=contexto,nav=caso.setup(contexto),min=map.getMinZoom();
+   assert.equal(map.dragging.enabled,false,caso.nome+" deve abrir sem arraste");
+   map.setView([-23.43,-51.96],min+1);
+   map.emit("zoomend");
+   assert.equal(map.dragging.enabled,true,caso.nome+" deve liberar arraste após zoom +");
+   map.setView([-23.43,-51.96],min);
+   map.emit("zoomend");
+   assert.equal(map.dragging.enabled,false,caso.nome+" deve bloquear arraste no zoom inicial");
+   map.setView([-23.43,-51.96],min+2);
+   map.emit("zoomend");
+   assert.equal(map.dragging.enabled,true,caso.nome+" deve liberar novamente");
+   nav.restaurar();
+   map.emit("zoomend");
+   assert.equal(map.getZoom(),min);
+   assert.equal(map.dragging.enabled,false,caso.nome+" deve bloquear arraste ao voltar à origem");
+  }
+ }finally{
+  if(anterior===undefined)delete globalThis.location;
+  else globalThis.location=anterior;
+ }
+});
+test("Pra Somar usa MARINGÁ Pra Somar no cabeçalho e remove o card flutuante, sem mudar Colaboradores",()=>{
+ const fs=require("node:fs");
+ const html=fs.readFileSync("mapas/index.html","utf8");
+ const source=fs.readFileSync("src/mapas/00-alertar.js","utf8");
+ assert.match(html,/id="map-brand-title"/);
+ assert.match(source,/TIPO==="ajuda"\?"MARINGÁ Pra Somar":"MARINGÁ ALERTA"/);
+ assert.match(source,/if\(TIPO==="ajuda"\)document\.querySelector\("\.map-info"\)\?\.remove\(\)/);
+ assert.match(source,/if\(\$\("map-label"\)\)\$\("map-label"\)\.textContent=/);
+ assert.match(html,/class="map-info"/,"card da tela Colaboradores permanece funcional");
 });
