@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b111b">
 <title>Mapas · Maringá Unida</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="./style.css?v=503170f1e843">
+<link rel="stylesheet" href="./style.css?v=54cc734e2036">
 <link rel="stylesheet" href="../dados-territoriais/camadas-mapas.css?v=territorio-1">
 <link rel="stylesheet" href="../mapa-navegacao.css?v=vista-fixa-1">
 </head>
@@ -31,6 +31,11 @@
   </div>
   <aside id="painel-ajuda" class="sidebar">
    <header class="panel-heading"><p class="eyebrow" id="eyebrow">MAPA</p><h1 id="title">Colaboradores</h1><p id="subtitle">Capacidades disponíveis por zona.</p></header>
+   <section id="ficha-cozinha" class="ficha-cozinha" aria-labelledby="ficha-cozinha-titulo" hidden>
+    <div class="ficha-cozinha-head"><div><small>COZINHA · SIMULAÇÃO</small><h2 id="ficha-cozinha-titulo"></h2></div><button id="ficha-cozinha-fechar" type="button" aria-label="Fechar ficha da cozinha" title="Fechar">×</button></div>
+    <p class="ficha-cozinha-aviso">Ponto ilustrativo. As informações ainda precisam ser cadastradas e confirmadas.</p>
+    <dl id="ficha-cozinha-dados"></dl>
+   </section>
    <div class="municipio"><label for="municipio">Prefeitura</label><select id="municipio"></select></div>
    <section class="stats" aria-label="Indicadores">
     <div><span id="metric-one">0</span><small id="metric-one-label">Cadastros</small></div><div><span id="metric-two">0</span><small id="metric-two-label">Zonas</small></div><div><span id="metric-three">0</span><small id="metric-three-label">Disponíveis</small></div>
@@ -65,6 +70,6 @@
 <script src="../mapa-navegacao.js?v=vista-fixa-1"></script>
 <script src="./colaboradores-referencia.js?v=1"></script>
 <script src="./logistica-demo.js?v=1"></script>
-<script src="./app.js?v=e7e8103c981e"></script>
+<script src="./app.js?v=ede9b70a0a4c"></script>
 </body>
 </html>
