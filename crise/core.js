@@ -80,6 +80,7 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
  function registrarCheckin({colaboradorId,bairro,lat,lng,precisao,geometry,origem="IBGE 2022"}={}) {
   const item=db.registro("voluntarios",colaboradorId);
   if(!item)throw Error("Colaborador não cadastrado nesta Prefeitura.");
+   if(item.status_simulacao==="simulado")throw Error("Cadastro de demonstração não permite check-in real.");
   const origemBairro=String(item.bairro||item.zona||"").trim();
   if(!origemBairro||norm(origemBairro)!==norm(bairro))throw Error("A pessoa só pode registrar presença no bairro de cadastro.");
   if(!Number.isFinite(lat)||!Number.isFinite(lng)||!Number.isFinite(precisao)||precisao>100||precisao<0)
@@ -122,7 +123,8 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
   return db.gravar("voluntarios",campos,existente?.id||null);
  }
  function pontuacaoOferta(pedido,voluntario) {
-  if(pedido.telefone&&mesmoTelefone(pedido.telefone,voluntario.telefone))return -1;
+  if(voluntario.status_simulacao==="simulado")return -1;
+   if(pedido.telefone&&mesmoTelefone(pedido.telefone,voluntario.telefone))return -1;
   if(voluntario.disponibilidade==="Indisponível")return -1;
   const candidatas=COMPATIBILIDADE[pedido.necessidade]||[];
   if(!candidatas.length)return -1; // "Outros" e ajuda financeira pedem verificação.
@@ -179,7 +181,7 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
  }
  function acionarBrigada(zona,descricao=""){
   if(!zona||!zonas().includes(zona))throw Error("Selecione uma zona cadastrada.");
-  const voluntarios=oferentes().filter(x=>norm(x.zona)===norm(zona)&&x.disponibilidade!=="Indisponível");
+  const voluntarios=oferentes().filter(x=>norm(x.zona)===norm(zona)&&x.disponibilidade!=="Indisponível"&&x.status_simulacao!=="simulado");
   const equipes=db.lista("equipes").filter(x=>norm(x.zona)===norm(zona)&&x.status!=="Indisponível");
   const destinatarios=[...voluntarios.map(x=>({id:x.id,nome:x.nome,telefone:x.telefone,tipo:"colaborador"})),
    ...equipes.map(x=>({id:x.id,nome:x.nome,telefone:x.telefone,tipo:"equipe"}))];
