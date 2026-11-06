@@ -80,7 +80,7 @@ async function saveAll(){
  if(!Object.values(stage.grupos).some(v=>v.length)&&!packageData.municipioGeo){notify("Não há dados novos para salvar.");return;}
  if(!confirm("Salvar a implantação no armazenamento deste navegador? Registros já validados não serão sobrescritos. Nenhuma prefeitura externa será notificada."))return;
  try{
-  const result=ctx.db.implantarPacote(packageData);
+  const result=await ctx.db.implantarPacote(packageData);
   stage.grupos={};stage.geo=null;stage.ibge=null;
   const total=Object.values(result.totais).reduce((n,x)=>n+x.novos+x.atualizados,0);
   log("Salvamento",total+" registros gravados ou atualizados. Faça a validação operacional antes de usar.","ok");

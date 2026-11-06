@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="backend-pendente">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -7,6 +7,7 @@
 <meta name="application-version" content="admin-geral-20261104-5">
 <title>Admin Geral · Sistema Integrado de Gestão de Crise</title>
 <link rel="stylesheet" href="./style.css?v=admin-1">
+<link rel="stylesheet" href="../backend/boot.css?v=1">
 </head>
 <body>
 <header class="topbar">
@@ -32,7 +33,11 @@
 </div>
 <div id="notification" role="status" aria-live="polite" hidden></div>
 <script src="../gestao/dados.js?v=gestao-6"></script>
-<script src="./modelo.js?v=admin-3"></script>
-<script src="./app.js?v=admin-5"></script>
+<script type="application/x-maringa-modulo" src="./modelo.js?v=admin-3"></script>
+<script type="application/x-maringa-modulo" src="./app.js?v=admin-5"></script>
+<script src="../backend/vendor/supabase-2.119.0.js"></script>
+<script src="../backend/config.js?v=1"></script>
+<script src="../backend/repositorio.js?v=1"></script>
+<script src="../backend/boot.js?v=1" data-area="plataforma"></script>
 </body>
 </html>

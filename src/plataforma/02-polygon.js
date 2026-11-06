@@ -22,8 +22,8 @@ async function syncGeo(id){
    data=await res.json();
   }finally{clearTimeout(t);}
   const g=polygon(data);
-  central.registrarGeo(id,{lat:g.center[0],lng:g.center[1],bbox:g.bbox,limite_geojson:g.json,fonte:"IBGE · malha municipal"});
-  notice("Limite geográfico de "+p.nome+" salvo no protótipo.");
+  await central.registrarGeo(id,{lat:g.center[0],lng:g.center[1],bbox:g.bbox,limite_geojson:g.json,fonte:"IBGE · malha municipal"});
+  notice("Limite geográfico de "+p.nome+(window.AlertaNuvem?.ativo?" salvo no Supabase.":" salvo no protótipo."));
  }catch(err){notice("Malha não atualizada: "+err.message);}finally{busy=false;renderTerritorios();}
 }
 function renderTerritorios(){

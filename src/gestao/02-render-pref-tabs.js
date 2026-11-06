@@ -22,6 +22,7 @@ function renderTerritorioMunicipal(){
  '</tbody></table></div></section>';
 }
 async function importarBasesERiscosPublicos(){
+ if(db.tipo==="supabase")return;
  const municipio=db.municipioAtivo();
  if(referenciasPublicasConsultadas||municipio?.codigo_ibge!=="4115200")return;
  referenciasPublicasConsultadas=true;
@@ -32,6 +33,7 @@ async function importarBasesERiscosPublicos(){
  if(alterados&&["bases","riscos","abrigos","inicio"].includes(atual))render();
 }
 async function importarUnidadesCNES(){
+ if(db.tipo==="supabase")return;
  if(cnesConsultado||db.municipioAtivo()?.codigo_ibge!=="4115200")return;
  cnesConsultado=true;
  const codigosExistentes=new Set(["saude","emergencias"].flatMap(modulo=>db.lista(modulo)).map(x=>String(x.codigo_cnes||"")).filter(Boolean));
@@ -43,7 +45,7 @@ async function importarUnidadesCNES(){
   if(doc.municipio_ibge!=="4115200"||!Array.isArray(doc.unidades)||doc.unidades.length!==69)throw Error("Base CNES inválida");
   for(const [grupo] of [["saude"],["emergencias"]]){
    const linhas=doc.unidades.filter(x=>x.grupo===grupo&&!codigosExistentes.has(String(x.codigo_cnes))).map(x=>({nome:x.nome,tipo:x.tipo,codigo_cnes:x.codigo_cnes,externalId:"cnes:"+x.codigo_cnes,fonte:"CNES · Ministério da Saúde",url_fonte:doc.url_fonte,verificacao:"Em conferência"}));
-   if(linhas.length)db.importarLote(grupo,linhas);
+   if(linhas.length)await db.importarLote(grupo,linhas);
   }
   if(atual==="estruturas"||atual==="inicio")render();
  }catch(err){toast("Não foi possível importar unidades do CNES: "+err.message);}

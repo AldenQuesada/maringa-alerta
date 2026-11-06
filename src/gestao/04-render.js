@@ -14,7 +14,7 @@ function render(){
  renderNav();
  if(atual==="inicio")renderInicio();
  else if(atual==="conversas"){
-  try{window.MaringaColaboradoresDemo?.garantir(db,window.localStorage)}catch(err){console.warn("Ajudantes demonstrativos não puderam ser importados",err);}
+  try{db.tipo!=="supabase"&&window.MaringaColaboradoresDemo?.garantir(db,window.localStorage)}catch(err){console.warn("Ajudantes demonstrativos não puderam ser importados",err);}
   window.AlertaCentralConversas.montar({target:PAGE,db,onEdit:id=>abrirDrawer(id,"voluntarios"),onNew:()=>abrirDrawer(null,"voluntarios")});
  }
  else if(atual==="territorio")renderTerritorioMunicipal();

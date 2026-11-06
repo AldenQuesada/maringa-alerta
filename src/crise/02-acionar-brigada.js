@@ -23,9 +23,13 @@
     destino_id:destino.id,recurso:String(recurso).trim(),mensagem:msg,status:"Preparada",criado_em:new Date().toISOString()});
   return {pedido:item,mensagem:msg,link:waLink(destino.telefone,msg),destino};
  }
- return {db,prefeitura,zonas,pontoDaZona,oferentes,pedidos,mobilizacoes,apoios,
+ const api={db,prefeitura,zonas,pontoDaZona,oferentes,pedidos,mobilizacoes,apoios,
   encontrarPessoa,encontrarIdentidade,registrarColaborador,registrarPedido,compatíveis,registrarFase,acionarBrigada, situacaoBairro,registrarCheckin,registrarSaida,
   solicitarOutraPrefeitura,mensagemParaColaborador};
+ if(db.tipo==='supabase')for(const name of ['registrarColaborador','registrarPedido','registrarFase','acionarBrigada','registrarCheckin','registrarSaida','solicitarOutraPrefeitura']){
+  api[name]=(...args)=>db.transacao(draft=>criar({repositorio:draft,municipioId,escopoMunicipal})[name](...args));
+ }
+ return api;
 }
 return {criar,COMPATIBILIDADE,norm,telefone,mesmoTelefone,waLink};
 });

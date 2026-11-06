@@ -13,7 +13,7 @@ const ufLabels={AC:"Acre",AL:"Alagoas",AP:"Amapá",AM:"Amazonas",BA:"Bahia",CE:"
 const nameUF=x=>ufLabels[x]||x;
 function notice(txt){let x=$("notification");x.textContent=txt;x.hidden=false;clearTimeout(notifyTimer);notifyTimer=setTimeout(()=>x.hidden=true,4100);}
 function heading(title,description,actions=""){return '<div class="heading"><div><div class="kicker">ADMIN GERAL · TODO O SISTEMA</div><h1>'+esc(title)+'</h1><p>'+esc(description)+'</p></div><div>'+actions+'</div></div>';}
-const warning='<div class="notice"><strong>Ambiente demonstrativo.</strong> Os dados desta Administração Geral são armazenados somente neste navegador. A sessão local não autentica nem protege o banco. Não insira credenciais ou informações privadas reais. A publicação institucional exige backend com login e permissões auditáveis.</div>';
+const warning=globalThis.AlertaNuvem?.ativo?'': '<div class="notice"><strong>Ambiente demonstrativo.</strong> Os dados desta Administração Geral são armazenados somente neste navegador. A sessão local não autentica nem protege o banco. Não insira credenciais ou informações privadas reais. A publicação institucional exige backend com login e permissões auditáveis.</div>';
 function badge(status){const value=status||"implantacao";return '<span class="status '+esc(value)+'">'+esc(value==="implantacao"?"Em implantação":value==="ativa"?"Ativa":value==="suspensa"?"Suspensa":value)+'</span>';}
 function renderNav(){
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===section));
@@ -83,15 +83,17 @@ function openEditor(id=null){
   const record=formCities.find(x=>String(x.id)===$("field-city").value);
   $("field-code").value=String(record?.id||"");
  };}
- $("city-form").onsubmit=e=>{e.preventDefault();
+ $("city-form").onsubmit=async e=>{e.preventDefault();
+  const submit=e.currentTarget.querySelector('[type="submit"]');if(submit.disabled)return;
   const fd=new FormData(e.currentTarget),uf=original?.uf||String(fd.get("uf")||selectedUF);
   const selected=original?{id:original.codigo_ibge,nome:original.nome,uf:{sigla:uf}}:formCities.find(x=>String(x.id)===$("field-city").value);
   if(!selected){notice("Selecione uma Prefeitura consultada no IBGE.");return;}
+  submit.disabled=true;
   try{
-   const p=central.gravarPrefeitura({uf,estado:nameUF(uf),cidade:selected,
+   const p=await central.gravarPrefeitura({uf,estado:nameUF(uf),cidade:selected,
      adminMunicipal:fd.get("admin"),email:fd.get("email"),telefone:fd.get("telefone"),status:fd.get("status")},editing);
-   editing=null;notice("Prefeitura "+p.nome+" salva neste navegador.");renderMunicipios();
-  }catch(err){notice(err.message);}
+   editing=null;notice("Prefeitura "+p.nome+(window.AlertaNuvem?.ativo?" salva no Supabase.":" salva neste navegador."));renderMunicipios();
+  }catch(err){notice(err.message);}finally{submit.disabled=false;}
  };
 }
 function field(name,key,markup){return '<div class="field"><label for="'+esc(key)+'">'+esc(name)+'</label>'+markup+'</div>';}
@@ -149,8 +151,8 @@ async function syncGeo(id){
    data=await res.json();
   }finally{clearTimeout(t);}
   const g=polygon(data);
-  central.registrarGeo(id,{lat:g.center[0],lng:g.center[1],bbox:g.bbox,limite_geojson:g.json,fonte:"IBGE · malha municipal"});
-  notice("Limite geográfico de "+p.nome+" salvo no protótipo.");
+  await central.registrarGeo(id,{lat:g.center[0],lng:g.center[1],bbox:g.bbox,limite_geojson:g.json,fonte:"IBGE · malha municipal"});
+  notice("Limite geográfico de "+p.nome+(window.AlertaNuvem?.ativo?" salvo no Supabase.":" salvo no protótipo."));
  }catch(err){notice("Malha não atualizada: "+err.message);}finally{busy=false;renderTerritorios();}
 }
 function renderTerritorios(){

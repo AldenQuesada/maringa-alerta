@@ -42,6 +42,11 @@
  }
  return {municipios,municipioAtivo,selecionarMunicipio,lista,registro,gravar,importarLote,implantarPacote,atualizarGeo,excluir,estado:estadoVisivel,modo:accessMode,municipioEscopo:scopedId};
 }
-const api={CHAVE,UFS,CATALOGOS,ESQUEMAS,GROUPS,criar};
+const criarLocal=criar;
+function criarAdaptador(storage,options={}){
+ if(global.AlertaNuvem?.ativo&&(storage===undefined||storage===global.localStorage))return global.AlertaNuvem.repositorio(options);
+ return criarLocal(storage,options);
+}
+const api={CHAVE,UFS,CATALOGOS,ESQUEMAS,GROUPS,criar:criarAdaptador,criarLocal};
 global.AlertaGestaoDados=api;if(typeof module==="object"&&module.exports)module.exports=api;
 })(typeof globalThis!=="undefined"?globalThis:window);

@@ -13,7 +13,7 @@ const ufLabels={AC:"Acre",AL:"Alagoas",AP:"Amapá",AM:"Amazonas",BA:"Bahia",CE:"
 const nameUF=x=>ufLabels[x]||x;
 function notice(txt){let x=$("notification");x.textContent=txt;x.hidden=false;clearTimeout(notifyTimer);notifyTimer=setTimeout(()=>x.hidden=true,4100);}
 function heading(title,description,actions=""){return '<div class="heading"><div><div class="kicker">ADMIN GERAL · TODO O SISTEMA</div><h1>'+esc(title)+'</h1><p>'+esc(description)+'</p></div><div>'+actions+'</div></div>';}
-const warning='<div class="notice"><strong>Ambiente demonstrativo.</strong> Os dados desta Administração Geral são armazenados somente neste navegador. A sessão local não autentica nem protege o banco. Não insira credenciais ou informações privadas reais. A publicação institucional exige backend com login e permissões auditáveis.</div>';
+const warning=globalThis.AlertaNuvem?.ativo?'': '<div class="notice"><strong>Ambiente demonstrativo.</strong> Os dados desta Administração Geral são armazenados somente neste navegador. A sessão local não autentica nem protege o banco. Não insira credenciais ou informações privadas reais. A publicação institucional exige backend com login e permissões auditáveis.</div>';
 function badge(status){const value=status||"implantacao";return '<span class="status '+esc(value)+'">'+esc(value==="implantacao"?"Em implantação":value==="ativa"?"Ativa":value==="suspensa"?"Suspensa":value)+'</span>';}
 function renderNav(){
  document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===section));

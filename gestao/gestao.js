@@ -144,6 +144,7 @@ function renderTerritorioMunicipal(){
  '</tbody></table></div></section>';
 }
 async function importarBasesERiscosPublicos(){
+ if(db.tipo==="supabase")return;
  const municipio=db.municipioAtivo();
  if(referenciasPublicasConsultadas||municipio?.codigo_ibge!=="4115200")return;
  referenciasPublicasConsultadas=true;
@@ -154,6 +155,7 @@ async function importarBasesERiscosPublicos(){
  if(alterados&&["bases","riscos","abrigos","inicio"].includes(atual))render();
 }
 async function importarUnidadesCNES(){
+ if(db.tipo==="supabase")return;
  if(cnesConsultado||db.municipioAtivo()?.codigo_ibge!=="4115200")return;
  cnesConsultado=true;
  const codigosExistentes=new Set(["saude","emergencias"].flatMap(modulo=>db.lista(modulo)).map(x=>String(x.codigo_cnes||"")).filter(Boolean));
@@ -165,7 +167,7 @@ async function importarUnidadesCNES(){
   if(doc.municipio_ibge!=="4115200"||!Array.isArray(doc.unidades)||doc.unidades.length!==69)throw Error("Base CNES inválida");
   for(const [grupo] of [["saude"],["emergencias"]]){
    const linhas=doc.unidades.filter(x=>x.grupo===grupo&&!codigosExistentes.has(String(x.codigo_cnes))).map(x=>({nome:x.nome,tipo:x.tipo,codigo_cnes:x.codigo_cnes,externalId:"cnes:"+x.codigo_cnes,fonte:"CNES · Ministério da Saúde",url_fonte:doc.url_fonte,verificacao:"Em conferência"}));
-   if(linhas.length)db.importarLote(grupo,linhas);
+   if(linhas.length)await db.importarLote(grupo,linhas);
   }
   if(atual==="estruturas"||atual==="inicio")render();
  }catch(err){toast("Não foi possível importar unidades do CNES: "+err.message);}
@@ -235,7 +237,7 @@ function render(){
  renderNav();
  if(atual==="inicio")renderInicio();
  else if(atual==="conversas"){
-  try{window.MaringaColaboradoresDemo?.garantir(db,window.localStorage)}catch(err){console.warn("Ajudantes demonstrativos não puderam ser importados",err);}
+  try{db.tipo!=="supabase"&&window.MaringaColaboradoresDemo?.garantir(db,window.localStorage)}catch(err){console.warn("Ajudantes demonstrativos não puderam ser importados",err);}
   window.AlertaCentralConversas.montar({target:PAGE,db,onEdit:id=>abrirDrawer(id,"voluntarios"),onNew:()=>abrirDrawer(null,"voluntarios")});
  }
  else if(atual==="territorio")renderTerritorioMunicipal();
@@ -349,7 +351,7 @@ async function geocodificarPrefeitura(item) {
    const [south,north,west,east]=bb,dy=Math.max((north-south)*.06,.002),dx=Math.max((east-west)*.06,.002);
    geo.bbox=[south-dy,north+dy,west-dx,east+dx];
   }
-  db.atualizarGeo(item.id,geo);
+  await db.atualizarGeo(item.id,geo);
   if(atual==="prefeituras")renderModulo();
  }catch(_){/* O cadastro permanece salvo mesmo sem geocodificação externa. */}
 }
@@ -358,28 +360,30 @@ function toast(msg){
  if(toastTimer)clearTimeout(toastTimer);
  toastTimer=setTimeout(()=>{el.hidden=true;},2800);
 }
-function excluir(id){
+async function excluir(id){
  const item=db.registro(atual,id);if(!item)return;
  const label=item.nome||item.identificacao||"este registro";
  if(!confirm('Excluir "'+label+'"?'))return;
- try{const anterior=db.municipioAtivo()?.id;db.excluir(atual,id);if(atual==="prefeituras"){renderMunicipios();if(anterior!==db.municipioAtivo()?.id){location.reload();return;}}render();if(atual==="bairros")window.dispatchEvent(new Event("gestao:bairros-atualizados"));toast("Cadastro excluído.");}catch(e){toast(e.message);}
+ try{const anterior=db.municipioAtivo()?.id;await db.excluir(atual,id);if(atual==="prefeituras"){renderMunicipios();if(anterior!==db.municipioAtivo()?.id){location.reload();return;}}render();if(atual==="bairros")window.dispatchEvent(new Event("gestao:bairros-atualizados"));toast("Cadastro excluído.");}catch(e){toast(e.message);}
 }
-FORM.addEventListener("submit",e=>{
+FORM.addEventListener("submit",async e=>{
  e.preventDefault();const modulo=drawerModulo||atual;
+ const submit=$("drawer-save");if(submit.disabled)return;
  const data={};
  for(const [k,v] of new FormData(FORM).entries()){if(Object.hasOwn(data,k))data[k]=[].concat(data[k],v);else data[k]=v;}
  for(const f of D.ESQUEMAS[modulo].fields)if(f.type==="multi")data[f.key]=Array.isArray(data[f.key])?data[f.key]:data[f.key]?[data[f.key]]:[];
+ submit.disabled=true;
  try{
-  const item=db.gravar(modulo,data,edicao);
+  const item=await db.gravar(modulo,data,edicao);
   const novo=!edicao;
   fecharDrawer();
   if(modulo==="prefeituras")renderMunicipios();
   render();if(modulo==="bairros")window.dispatchEvent(new Event("gestao:bairros-atualizados"));toast("Cadastro salvo.");
   if(novo&&modulo==="prefeituras")geocodificarPrefeitura(item);
- }catch(err){$("form-error").textContent=err.message;}
+ }catch(err){$("form-error").textContent=err.message;}finally{submit.disabled=false;}
 });
-PAGE.addEventListener("click",e=>{
- if(e.target.closest('[data-importar-tornado]')){try{EventoTornado2026.importar(db);render();toast('Evento histórico disponível no cadastro.');}catch(err){toast(err.message||'Não foi possível importar.');}return;}
+PAGE.addEventListener("click",async e=>{
+ if(e.target.closest('[data-importar-tornado]')){try{if(db.tipo==="supabase")throw Error("Eventos demonstrativos não são enviados ao Supabase.");EventoTornado2026.importar(db);render();toast('Evento histórico disponível no cadastro.');}catch(err){toast(err.message||'Não foi possível importar.');}return;}
 
  const novo=e.target.closest("[data-new]");
  const edit=e.target.closest("[data-edit]");
@@ -444,7 +448,7 @@ abrirMapa.addEventListener("click",e=>{
  if(win){try{win.opener=null;win.focus();}catch(_){}}
  else{const fallback=document.createElement("a");fallback.href=abrirMapa.href;fallback.target="_blank";fallback.rel="noopener noreferrer";document.body.appendChild(fallback);fallback.click();fallback.remove();}
 });
-if(globalThis.AlertaSessao&&globalThis.AlertaSessaoUI&&db.municipioAtivo()){
+if(!window.AlertaNuvem?.ativo&&globalThis.AlertaSessao&&globalThis.AlertaSessaoUI&&db.municipioAtivo()){
  try{
   const local=AlertaSessao.criar({municipioId:db.municipioAtivo().id});
   AlertaSessaoUI.criar({target:$("session-anchor"),sessao:local,municipio:db.municipioAtivo().nome,zonas:db.lista("zonas").map(x=>x.nome),aoMudar:()=>{}});
