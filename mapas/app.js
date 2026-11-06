@@ -485,7 +485,9 @@ municipSelector();renderMunicipio();configurarCamadas();render();
 // O mesmo controlador atende Pra Somar e Colaboradores, sem usar a posição
 // acidentalmente persistida pelas versões anteriores.
 window.AlertaMapaNavegacao.instalarVistaSalva({
- map,L,identificador:TIPO==="ajuda"?"pra-somar":"colaboradores"
+ map,L,identificador:TIPO==="ajuda"?"pra-somar":"colaboradores",
+ // Referência exata escolhida pelo usuário: Pra Somar, não Colaboradores.
+ vistaInicial:TIPO==="ajuda"?{lat:-23.4398505,lng:-51.9680312,zoom:12.7027}:null
 });
 void carregarZonasOficiais();
 const fontesPublicas=["../dados-territoriais/maringa-bases-riscos-publicos.json","../dados-territoriais/maringa-abrigos-publicos.json","../dados-territoriais/maringa-apoio-imagens-2026.json"];
