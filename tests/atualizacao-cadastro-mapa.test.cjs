@@ -40,7 +40,8 @@ test('colaboradores cadastrados no WhatsApp são lidos da mesma coleção pelo M
  const trecho=source.slice(source.indexOf('function pessoasMunicipio(){'),source.indexOf('\nfunction pontoPessoa('));
  assert.ok(trecho.startsWith('function pessoasMunicipio(){'));
  const pessoasMunicipio=vm.runInNewContext(trecho+'\npessoasMunicipio;',{
-  AlertaGestaoDados:{criar:()=>base},tenantId:'maringa',PAPEL_LABEL:{},demoMode:false
+  AlertaGestaoDados:{criar:()=>base},tenantId:'maringa',PAPEL_LABEL:{},demoMode:false,
+  exibirEquipesLegadas:false,voluntarios:[],todosFuncionarios:()=>[]
  });
  const pessoas=pessoasMunicipio();
  const pessoa=pessoas.find(x=>x.id==='cad:'+gravado.id);
