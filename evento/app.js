@@ -5,11 +5,17 @@ const demoMode=new URLSearchParams(location.search).get('demo')==='1';
 const tenantId='maringa';
 const tenantConfig={nome:'Maringá',marca:'MARINGÁ ALERTA',prefixo:'MA'};
 const storageKey=nome=>`alerta_prototipo_v2_${tenantId}_${nome}`;
+ // O cadastro operacional salvo antes da migração continua visível no modo normal.
+ // A ausência de ?demo=1 não apaga nem oculta equipes que já estavam salvas.
+ const estadoAnterior=OperacaoRestauracao.ler(localStorage,storageKey('operacao'),tenantId);
+ const exibirEquipesLegadas=demoMode||
+   (estadoAnterior.estado==='restauravel'&&estadoAnterior.dados.voluntarios.length>0);
+
 // O Mapa de Evento usa somente o contexto local de Maringá.
 
 
 /* ---------- zonas de demonstração sobre o mapa de Maringá ---------- */
-const equipePool = demoMode ? [
+const equipePool = exibirEquipesLegadas ? [
   {nome:"Marcos Teixeira", cargo:"Vereador"},
   {nome:"Fernanda Lopes", cargo:"Secretária de Assistência Social"},
   {nome:"Ricardo Bittencourt", cargo:"Chefe de Defesa Civil"},
@@ -32,9 +38,9 @@ const equipePool = demoMode ? [
 let equipeCursor = 0;
 function nextEquipe(){ return equipePool[(equipeCursor++) % equipePool.length]; }
 
-const equipamentosPool = demoMode ? ["2 motosserras","1 caminhão basculante","1 retroescavadeira","Kit de resgate","Gerador móvel","1 caminhão-pipa","Equipe de eletricistas","Ambulância de apoio"]:[];
+const equipamentosPool = exibirEquipesLegadas ? ["2 motosserras","1 caminhão basculante","1 retroescavadeira","Kit de resgate","Gerador móvel","1 caminhão-pipa","Equipe de eletricistas","Ambulância de apoio"]:[];
 
-const bairros = demoMode ? [
+const bairros = exibirEquipesLegadas ? [
   { nome:"Zona 7", center:[-23.3995,-51.9395],
     poly:[[-23.392,-51.950],[-23.392,-51.930],[-23.408,-51.930],[-23.408,-51.950]] },
   { nome:"Jardim Alvorada", center:[-23.3870,-51.9120],
@@ -214,10 +220,10 @@ for(const [grupo,tipoArea] of [[fontesPublicas?.zonasNumeradas,'Zona'],[fontesPu
     areasCadastradas.push({id,nome,tipoArea,chave:'publico:'+tipoArea+':'+(id||nome),geojson:feature.geometry,fonte:grupo.source});
   });
 }
-const areas = [...areasCadastradas,...(demoMode?bairros.map(b=>({
+const areas = [...areasCadastradas,...(exibirEquipesLegadas?bairros.map(b=>({
   nome:b.nome,chave:'demo:'+b.nome,tipoArea:'Zona demonstrativa',demo:b
 })):[])];
-const camadasVisiveis={Zona:true,Bairro:true,'Zona cartográfica':false,'Zona demonstrativa':demoMode};
+const camadasVisiveis={Zona:true,Bairro:true,'Zona cartográfica':false,'Zona demonstrativa':exibirEquipesLegadas};
 let eventoAtivo=new URLSearchParams(location.search).get('evento')||'';
 let eventosCache=[];const eventosMunicipio=()=>eventosCache;
 let abriuEventoDaUrl=false;
@@ -478,8 +484,8 @@ function pessoasMunicipio(){
       .map(p=>({...p,id:'rh:'+p.id,oficial:true,sub:[p.funcao,...(Array.isArray(p.papeis)?p.papeis:[])].map(papel=>PAPEL_LABEL[papel]||papel).join(' · ')})),
     ...cadastro.lista('voluntarios',tenantId).map(p=>({...p,id:'cad:'+p.id,
       sub:[...['ajudas','maquinas','empreendedores','materiais'].flatMap(chave=>Array.isArray(p[chave])?p[chave]:[]),p.contribuicao].filter(Boolean).join(', ')})),
-    ...(demoMode?todosFuncionarios().map(p=>({...p,oficial:true,sub:PAPEL_LABEL[p.papel],demo:true})):[]),
-    ...(demoMode?voluntarios.map(v=>({...v,zona:v.bairro,sub:(v.contribuicoes||[v.ajuda]).join(', '),demo:true,disponibilidade:estadoPessoa(v.id)})):[])
+    ...(exibirEquipesLegadas?todosFuncionarios().map(p=>({...p,oficial:true,sub:PAPEL_LABEL[p.papel],demo:true})):[]),
+    ...voluntarios.map(v=>({...v,zona:v.bairro,sub:(v.contribuicoes||[v.ajuda]).join(', '),demo:true,disponibilidade:estadoPessoa(v.id)}))
   ].map(p=>({...p,bairroOrigem:p.bairro||p.zona}));
 }
 function pontoPessoa(p){
@@ -603,6 +609,17 @@ function colaboradorAtivo(id){
 function renderCollaborators(){
   const body=document.getElementById('floatwin-body');
   const pessoas=pessoasPainel();
+  const todosCadastrados=pessoasMunicipio().filter(p=>!p.oficial&&!p.demo);
+  const exibidos=pessoas.filter(p=>!p.oficial&&!p.demo).length;
+  const ocultos=Math.max(0,todosCadastrados.length-exibidos);
+  const semTerritorio=todosCadastrados.filter(p=>!String(p.bairroOrigem||'').trim()).length;
+  const avisoRecorte=selecao.size&&ocultos
+    ? ocultos+' colaborador(es) não aparecem no recorte selecionado'+(semTerritorio?' ('+semTerritorio+' sem bairro/zona confirmado).':'.')+' Selecione "Todo o município" para conferir a lista completa.'
+    : !selecao.size&&semTerritorio
+      ? semTerritorio+' colaborador(es) aguardam identificação do bairro ou zona; continuam cadastrados e listados em "Bairro a confirmar".'
+      : !selecao.size&&!todosCadastrados.length
+        ? 'Não há colaboradores cadastrados para Maringá neste navegador. Este protótipo utiliza armazenamento local e não sincroniza cadastros entre dispositivos.'
+        : '';
   const antes=body.scrollTop;
   const comFiltro=filtroOcorrencias&&filtroOcorrencias.descricao()!=='Sem filtros de ocorrência';
   const pessoasEmOcorrencias=new Set(comFiltro?ocorrencias.filter(ocorrenciaVisivel).flatMap(o=>(o.participacoes||[]).map(p=>p.voluntarioId)):[]);
@@ -665,7 +682,7 @@ function renderCollaborators(){
     return diferenca||ordem(a)-ordem(b)||a.nome.localeCompare(b.nome,'pt-BR');
   };
   document.getElementById('fw-count').textContent=pessoas.filter(p=>!p.oficial).length;
-  body.innerHTML=[...grupos.values()].map(grupo=>{
+  body.innerHTML=(avisoRecorte?'<p class="equipe-nota" role="status">'+escHtml(avisoRecorte)+'</p>':'')+[...grupos.values()].map(grupo=>{
     const oficiais=grupo.pessoas.filter(p=>p.oficial).sort(compararPessoas);
     const colaboradores=grupo.pessoas.filter(p=>!p.oficial).sort(compararPessoas);
     const ativos=colaboradores.filter(p=>colaboradorAtivo(p.id)).length;

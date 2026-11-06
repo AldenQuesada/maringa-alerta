@@ -24,10 +24,8 @@ function concluir(){
  try{
   if(role==="colaborador"||role==="solicitacao")answers.zona=zonaPeloEndereco(answers.endereco);
   if(role==="colaborador"){
-   const anterior=app.encontrarPessoa(answers.telefone);
    const outros=String(answers.outros||"").trim();
    const resultado=app.registrarColaborador({...answers,outros,disponibilidade:"A combinar"});
-   registrarMudanca("voluntarios",resultado,anterior);
    identity={nome:resultado.nome,tipo_pessoa:resultado.tipo_pessoa,telefone:resultado.telefone,endereco:resultado.endereco,email:resultado.email,zona:resultado.zona};
    bot("Cadastro de colaborador concluído! ✅\n\nProtocolo de demonstração: "+protocolo("COL",resultado.id)+
     "\nOfertas cadastradas: "+new Set([resultado.ajudas,resultado.maquinas,resultado.empreendedores,resultado.materiais].flat().filter(Boolean)).size+
@@ -36,7 +34,6 @@ function concluir(){
   }else if(role==="solicitacao"){
    // "Outro" é somente a classificação interna; a necessidade fica no texto original do cidadão.
    const pedido=app.registrarPedido({...answers,necessidade:"Outro",descricao:String(answers.descricao||"").trim(),urgencia:"Não avaliada"}).pedido;
-   registrarMudanca("solicitacoes",pedido);
    identity={...identity,nome:pedido.nome,telefone:pedido.telefone,endereco:pedido.endereco,zona:pedido.zona};
    bot("Seu pedido de ajuda foi registrado. ✅\n\nAjuda solicitada: "+pedido.descricao+
     "\nSituação: "+pedido.status+
@@ -53,7 +50,6 @@ function concluir(){
     status:"Em triagem",origem:"Cidadão · simulador",
     criado_em:new Date().toISOString()
    });
-   registrarMudanca("relatos",registro);
    identity={...identity,nome:registro.nome,telefone:registro.telefone};
    bot("Relato recebido para triagem! ✅\n\nProtocolo de demonstração: "+protocolo("OCO",registro.id)+
     "\nEndereço: "+registro.endereco+
@@ -97,18 +93,12 @@ photoInput.addEventListener("change",async()=>{
  finally{$("upload-photo").disabled=false;photoInput.value="";}
 });
 function reiniciarDemonstracao(){
- if(!window.confirm("Reiniciar toda a demonstração? A conversa e os cadastros criados nesta sessão serão apagados deste navegador. Outros cadastros existentes serão preservados."))return;
- let problemas=0;
- for(const rec of rastreio().reverse()){
-  try{if(rec.anterior)dados.gravar(rec.modulo,rec.anterior,rec.id);else dados.excluir(rec.modulo,rec.id);}
-  catch(_){problemas++;}
- }
- guardarRastreio([]);
+ // Reiniciar a conversa NÃO apaga registros municipais, pedidos nem relatos.
+ if(!window.confirm("Reiniciar a conversa? Os cadastros, pedidos e relatos já registrados serão preservados."))return;
  identity=null;role=null;steps=[];answers={};current=null;index=0;arquivosFoto=null;photoInput.value="";
  history.replaceChildren();
  const divisor=document.createElement("div");divisor.className="day-divider";divisor.textContent="HOJE";history.appendChild(divisor);
  form.onsubmit=responderEtapa;
- if(problemas)msg("A conversa foi reiniciada, mas alguns registros locais não puderam ser restaurados.",false,true);
  startMenu();
 }
 $("go-home").onclick=()=>{form.onsubmit=responderEtapa;startMenu();};

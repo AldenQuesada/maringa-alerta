@@ -32,10 +32,10 @@ for(const [grupo,tipoArea] of [[fontesPublicas?.zonasNumeradas,'Zona'],[fontesPu
     areasCadastradas.push({id,nome,tipoArea,chave:'publico:'+tipoArea+':'+(id||nome),geojson:feature.geometry,fonte:grupo.source});
   });
 }
-const areas = [...areasCadastradas,...(demoMode?bairros.map(b=>({
+const areas = [...areasCadastradas,...(exibirEquipesLegadas?bairros.map(b=>({
   nome:b.nome,chave:'demo:'+b.nome,tipoArea:'Zona demonstrativa',demo:b
 })):[])];
-const camadasVisiveis={Zona:true,Bairro:true,'Zona cartográfica':false,'Zona demonstrativa':demoMode};
+const camadasVisiveis={Zona:true,Bairro:true,'Zona cartográfica':false,'Zona demonstrativa':exibirEquipesLegadas};
 let eventoAtivo=new URLSearchParams(location.search).get('evento')||'';
 let eventosCache=[];const eventosMunicipio=()=>eventosCache;
 let abriuEventoDaUrl=false;
