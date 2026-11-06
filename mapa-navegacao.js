@@ -14,7 +14,48 @@
   // Para a vista inicial, a referência são as seis zonas efetivamente desenhadas.
   const PADDING = 24;
 
-  function instalar({ map, L, zonas, aoRestaurar }) {
+
+  // A posição original é apenas uma preferência de câmera local, sem dados de cadastros.
+  function lerVista(storage,key){
+    if(!storage||!key)return null;
+    try {
+      const v=JSON.parse(storage.getItem(key)||"null");
+      if(!v||v.version!==1||![v.lat,v.lng,v.zoom].every(Number.isFinite)
+        ||v.lat < AREA_MARINGA[0][0]-.15||v.lat>AREA_MARINGA[1][0]+.15
+        ||v.lng<AREA_MARINGA[0][1]-.15||v.lng>AREA_MARINGA[1][1]+.15
+        ||v.zoom<2||v.zoom>19
+        ||!Array.isArray(v.bounds)||v.bounds.length!==2
+        ||v.bounds.some(p=>!Array.isArray(p)||p.length!==2||p.some(n=>!Number.isFinite(n))))
+         return null;
+      return v;
+    }catch(_){return null;}
+  }
+  function capturarVista(map,storage,key){
+    if(!storage||!key)return null;
+    const c=map.getCenter(),b=map.getBounds();
+    const v={version:1,lat:c.lat,lng:c.lng,zoom:map.getZoom(),
+      bounds:[[b.getSouth(),b.getWest()],[b.getNorth(),b.getEast()]]};
+    try{storage.setItem(key,JSON.stringify(v));return v;}catch(_){return null;}
+  }
+  function aplicarVista(map,L,v){
+    map.setMaxBounds(L.latLngBounds([]));map.setMinZoom(0);
+    map.setView([v.lat,v.lng],v.zoom,{animate:false});
+    map.setMinZoom(v.zoom);
+    map.setMaxBounds(L.latLngBounds(v.bounds).pad(.1));
+    map.options.maxBoundsViscosity=1;
+  }
+  function botaoFixar(map,L,aoFixar){
+    const b=L.DomUtil.create("a","leaflet-control-zoom-save",map.zoomControl.getContainer());
+    b.href="#";b.setAttribute("role","button");
+    b.setAttribute("aria-label","Fixar esta posição como original");
+    b.title="Fixar esta posição como original";b.textContent="⌖";
+    L.DomEvent.disableClickPropagation(b);
+    L.DomEvent.on(b,"click",e=>{L.DomEvent.stop(e);aoFixar();});
+    L.DomEvent.on(b,"keydown",e=>{if(e.key===" "||e.key==="Spacebar"){L.DomEvent.stop(e);aoFixar();}});
+    return b;
+  }
+
+  function instalar({ map, L, zonas, aoRestaurar, armazenamento=null, chaveVista=null }) {
     if (!map || !L || !map.zoomControl || typeof map.zoomControl.getContainer !== "function") {
       throw new TypeError("Mapa Leaflet com controle de zoom obrigatório.");
     }
@@ -25,6 +66,7 @@
     const limitesMunicipio = L.latLngBounds(AREA_MARINGA);
     const limitesVisaoGeral = L.latLngBounds(zonas.flat());
     let zoomGeralAnterior = null;
+    let vistaSalva=lerVista(armazenamento,chaveVista);
 
     function margem() {
       const tamanho = map.getSize();
@@ -55,12 +97,20 @@
       map.options.maxBoundsViscosity = 1;
     }
 
-    enquadrar();
+    if(vistaSalva){aplicarVista(map,L,vistaSalva);zoomGeralAnterior=vistaSalva.zoom;}
+    else enquadrar();
 
     function restaurar() {
       if (typeof aoRestaurar === "function") aoRestaurar();
-      enquadrar({ animate: true });
+      if(vistaSalva){aplicarVista(map,L,vistaSalva);zoomGeralAnterior=vistaSalva.zoom;}
+      else enquadrar({ animate: true });
     }
+    const botaoSalvar=armazenamento&&chaveVista?botaoFixar(map,L,()=>{
+      const nova=capturarVista(map,armazenamento,chaveVista);
+      if(!nova)return;
+      vistaSalva=nova;zoomGeralAnterior=nova.zoom;aplicarVista(map,L,nova);
+      botaoSalvar.title="Posição original salva. Toque novamente para atualizar.";
+    }):null;
 
     // O terceiro comando pertence ao mesmo bloco + / − do Leaflet.
     const barra = map.zoomControl.getContainer();
@@ -85,8 +135,11 @@
     });
 
     map.on("resize", () => {
-      // O zoom detalhado é preservado; apenas o modo vista geral
-      // é reenquadrado quando a área útil do mapa muda.
+      if(vistaSalva){
+        if(Math.abs(map.getZoom()-vistaSalva.zoom)<.01)aplicarVista(map,L,vistaSalva);
+        else map.setMaxBounds(L.latLngBounds(vistaSalva.bounds).pad(.1));
+        return;
+      }
       if (zoomGeralAnterior !== null && Math.abs(map.getZoom() - zoomGeralAnterior) < 0.01) {
         enquadrar();
       } else {
@@ -94,10 +147,35 @@
       }
     });
 
-    return { restaurar, limites: limitesVisaoGeral, zoomMinimo, botao };
+    return { restaurar, limites: limitesVisaoGeral, zoomMinimo, botao, botaoSalvar };
   }
 
-  const api = { instalar, AREA_MARINGA };
+  // Os mapas standalone usam a mesma regra, sem recriar o mapa nem os seus registros.
+  function instalarVistaSalva({map,L,armazenamento,chaveVista}){
+    let vista=lerVista(armazenamento,chaveVista);
+    if(vista)aplicarVista(map,L,vista);
+    else{map.setMinZoom(map.getZoom());map.options.maxBoundsViscosity=1;}
+    const centro=map.getCenter(),inicio={lat:centro.lat,lng:centro.lng,zoom:map.getZoom()};
+    function restaurar(){
+      if(vista)aplicarVista(map,L,vista);
+      else map.setView([inicio.lat,inicio.lng],inicio.zoom,{animate:false});
+    }
+    const home=L.DomUtil.create("a","leaflet-control-zoom-home",map.zoomControl.getContainer());
+    home.href="#";home.setAttribute("role","button");home.setAttribute("aria-label","Voltar à posição original");
+    home.title="Voltar à posição original";home.textContent="⌂";
+    L.DomEvent.disableClickPropagation(home);
+    L.DomEvent.on(home,"click",e=>{L.DomEvent.stop(e);restaurar();});
+    L.DomEvent.on(home,"keydown",e=>{if(e.key===" "||e.key==="Spacebar"){L.DomEvent.stop(e);restaurar();}});
+    const salvar=botaoFixar(map,L,()=>{
+      const nova=capturarVista(map,armazenamento,chaveVista);
+      if(!nova)return;
+      vista=nova;aplicarVista(map,L,nova);
+      salvar.title="Posição original salva. Toque novamente para atualizar.";
+    });
+    return {restaurar,botao:home,botaoSalvar:salvar};
+  }
+
+  const api = { instalar, instalarVistaSalva, AREA_MARINGA };
   global.AlertaMapaNavegacao = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : window);
