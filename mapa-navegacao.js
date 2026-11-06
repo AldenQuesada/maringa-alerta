@@ -14,10 +14,15 @@
   const size=map.getSize();
   return Math.max(12,Math.min(PADDING,Math.floor(Math.min(size.x,size.y)*.035)));
  }
+ function emCalibracao(){
+  return typeof global.location?.search==="string"&&
+    new URLSearchParams(global.location.search).get("calibrar")==="1";
+ }
  function liberarNavegacao(map,L){
-  // A trava anterior usava o próprio viewport como maxBounds e inutilizava
-  // fitBounds / flyTo / busca / filtro territorial. Não repetir.
-  map.dragging?.enable?.();
+  // Busca, filtros e seleção de território usam a câmera programaticamente.
+  // Arraste manual só no modo de calibração; fora dele, conforme aprovado, fica bloqueado.
+  if(emCalibracao())map.dragging?.enable?.();
+  else map.dragging?.disable?.();
   map.setMaxBounds(L.latLngBounds(AREA_MARINGA).pad(.08));
   map.options.maxBoundsViscosity=1;
   map.zoomControl.getContainer().classList?.remove("camera-original-fixa");
@@ -38,9 +43,8 @@
  function referenciaVisivel(map,identificador){
   // O modo ?calibrar=1 deixa o enquadramento legível para posterior incorporação
   // explícita ao código; nunca altera dados municipais nem salva câmera por engano.
-  if(typeof global.location?.search!=="string"||
-   new URLSearchParams(global.location.search).get("calibrar")!=="1")return;
-  const pai=map.getContainer()?.parentElement,doc=global.document;
+  if(!emCalibracao())return;
+  const pai=map.getContainer?.()?.parentElement,doc=global.document;
   if(!pai||!doc)return;
   const output=doc.createElement("output");
   output.className="mapa-camera-referencia";
