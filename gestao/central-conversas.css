@@ -92,6 +92,8 @@
 .cv-root ::-webkit-scrollbar-track{background:#101925}
 .cv-root ::-webkit-scrollbar-thumb{background:#35495c;border:2px solid #101925;border-radius:10px}
 @media(max-width:1150px){
+  .cv-chat-head{flex-wrap:wrap}
+  .cv-chat-head .cv-back{width:100%;text-align:center}
   .page:has(.cv-root){padding:12px}
   .cv-shell{grid-template-columns:minmax(190px,.84fr) minmax(260px,1.3fr) minmax(205px,.9fr)}
   .cv-simulated{font-size:8px;padding:5px 6px}
