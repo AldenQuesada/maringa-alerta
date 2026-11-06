@@ -22,7 +22,8 @@ html:not(.pagina-pra-somar) #pra-somar-brand-title{display:none!important}
 <link rel="stylesheet" href="../sessao.css?v=sessoes-2">
 <link rel="stylesheet" href="../painel-eventos.css?v=5">
 <link rel="stylesheet" href="./filtros-unidades.css?v=2">
-<link rel="stylesheet" href="./ficha-ponto.css?v=1">
+<link rel="stylesheet" href="../filtros-cadastros.css?v=1">
+<link rel="stylesheet" href="./ficha-ponto.css?v=2">
 <link rel="stylesheet" href="./style.css?v=0b8ccd311a18">
 <link rel="stylesheet" href="../dados-territoriais/camadas-mapas.css?v=territorio-2">
 <link rel="stylesheet" href="../mapa-navegacao.css?v=recuperacao-mapas-1">
@@ -41,7 +42,7 @@ html:not(.pagina-pra-somar) #pra-somar-brand-title{display:none!important}
  <main class="workspace">
   <div class="map-area">
    <div id="map" role="application" aria-label="Mapa por zonas"></div>
-   <section id="eventos-painel" class="eventos-painel mapa-unidades-painel" aria-label="Filtros de unidades" hidden><header id="eventos-painel-head" class="eventos-painel-head"><strong>Filtros de unidades</strong><span class="eventos-painel-acoes"><button type="button" id="eventos-minimizar" aria-label="Minimizar filtros" aria-expanded="true">−</button><button type="button" id="eventos-close" aria-label="Fechar filtros">×</button></span></header><div id="eventos-painel-body" class="eventos-painel-body"><p>Selecione os tipos para mostrar no mapa.</p><div class="filtros-unidades-acoes"><button type="button" id="unidades-todos">Mostrar todos</button><button type="button" id="unidades-nenhum">Ocultar todos</button></div><div id="filtros-unidades" class="filtros-unidades"></div></div></section>
+   <section id="eventos-painel" class="eventos-painel mapa-unidades-painel" aria-label="Filtros de unidades" hidden><header id="eventos-painel-head" class="eventos-painel-head"><strong>Filtros de unidades</strong><span class="eventos-painel-acoes"><button type="button" id="eventos-minimizar" aria-label="Minimizar filtros" aria-expanded="true">−</button><button type="button" id="eventos-close" aria-label="Fechar filtros">×</button></span></header><div id="eventos-painel-body" class="eventos-painel-body"><section id="filtros-cadastros-municipais" aria-label="Camadas do cadastro municipal"></section></div></section>
    <button id="painel-ajuda-toggle" class="painel-ajuda-toggle" type="button" aria-controls="painel-ajuda" aria-expanded="true" aria-label="Abrir painel" title="Abrir painel" hidden>+</button>
    <div class="map-info"><span class="signal"></span><span id="map-label">Mapa</span><small>Dados locais de demonstração · sem envio real</small></div>
    <div id="notificacao-chegada" class="notificacao-chegada" role="status" hidden><strong>Chegada simulada</strong><button id="notificacao-fechar" type="button" aria-label="Fechar notificação">×</button><p id="notificacao-texto"></p></div>
@@ -88,12 +89,12 @@ html:not(.pagina-pra-somar) #pra-somar-brand-title{display:none!important}
 <script src="../mapa-navegacao.js?v=zoom-arraste-1"></script>
 <script src="./colaboradores-referencia.js?v=2"></script>
 <script src="./logistica-demo.js?v=1"></script>
-<script src="./ficha-ponto.js?v=1"></script>
+<script src="./ficha-ponto.js?v=2"></script>
 <script src="../gestao/acoes-cabecalho.js?v=mapas-filtros-2"></script>
 <script src="../sessao.js?v=sessoes-1"></script>
 <script src="../sessao-ui.js?v=sessoes-2"></script>
 <script src="../painel-eventos.js?v=2"></script>
-<script src="./filtros-unidades.js?v=2"></script>
-<script src="./app.js?v=filtros-unidades-2"></script>
+<script src="../filtros-cadastros.js?v=1"></script>
+<script src="./app.js?v=filtros-canonicos-1"></script>
 </body>
 </html>

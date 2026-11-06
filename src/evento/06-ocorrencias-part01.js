@@ -8,6 +8,7 @@ function badgeChip(label, color){
 }
 
 function openOcorrencia(o){
+  if(document.getElementById('panel').classList.contains('com-ficha-ponto')) painelPonto.fechar();
   currentPanelOcId=o.id;
   const panel=document.getElementById('panel'), body=document.getElementById('panel-body');
   const [badgeClass,badgeLabel]=o.confirmado===false?['ativa','EM TRIAGEM']:(STATUS_BADGE[o.status]||STATUS_BADGE.ativa);

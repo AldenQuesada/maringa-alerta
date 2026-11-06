@@ -575,7 +575,7 @@ function atualizarCadastroMapa(){
   filtroOcorrencias?.atualizarOpcoes();
   atualizarRecorte();
   montarMarcadoresPublicos();
-  if(filtrosMunicipaisProntos)atualizarFiltroCadastros();
+  atualizarFiltroCadastros();
 }
 window.addEventListener('storage',e=>{
   if(e.key===AlertaGestaoDados.CHAVE) atualizarCadastroMapa();
@@ -783,6 +783,7 @@ function badgeChip(label, color){
 }
 
 function openOcorrencia(o){
+  if(document.getElementById('panel').classList.contains('com-ficha-ponto')) painelPonto.fechar();
   currentPanelOcId=o.id;
   const panel=document.getElementById('panel'), body=document.getElementById('panel-body');
   const [badgeClass,badgeLabel]=o.confirmado===false?['ativa','EM TRIAGEM']:(STATUS_BADGE[o.status]||STATUS_BADGE.ativa);
@@ -2122,30 +2123,20 @@ processarFilaOffline();
 const buscaMapa=document.getElementById('event-search');
 const resultadosMapa=document.getElementById('event-results');
 const INVENTARIO=globalThis.AlertaInventarioMapas;
-const filtrosMunicipais={modulo:"todos",classe:"",busca:""};
-let filtrosMunicipaisProntos=false,mostrarUnidadesEvento=true;
+let filtrosCadastros;
 const listarRecursosPublicos=()=>INVENTARIO.registros(gestao).filter(x=>!x.privado);
-const linhasInventario=()=>INVENTARIO.filtrar(INVENTARIO.registros(gestao),filtrosMunicipais)
- .filter(x=>noRecorte(x.zona||x.bairro));
+const linhasInventario=()=>filtrosCadastros?filtrosCadastros.rows():[];
 const layerRecursosPublicos=L.layerGroup().addTo(map);
+const painelPonto=FichaPonto.criar({painel:document.getElementById('panel'),abrirPainel:()=>{currentPanelOcId=null;document.getElementById('panel').classList.add('open')},aoFechar:()=>document.getElementById('panel').classList.remove('open'),obterRegistro:(modulo,id)=>gestao.registro(modulo,id),waLink:MaringaCrise.waLink});
 let marcadorBusca;
 function montarMarcadoresPublicos(){
  layerRecursosPublicos.clearLayers();
- if(!mostrarUnidadesEvento)return 0;
+ if(!filtrosCadastros?.mostrar())return 0;
  const registros=linhasInventario().filter(x=>x.georreferenciado&&!x.privado);
  for(const r of registros){
-  const doacoes=r.modulo==='bases'&&r.categoria==='Centro de coleta de donativos';
   const simbolo=INVENTARIO.simbolo(r);
   const ic=L.divIcon({className:'ponto-publico-marker',html:'<span title="'+escHtml(r.nome)+'">'+simbolo+'</span>',iconSize:[30,30],iconAnchor:[15,30]});
-  const source=r.fonteUrl?'<a href="'+escHtml(r.fonteUrl)+'" target="_blank" rel="noopener">Fonte pública</a>':'';
-  const route=r.endereco?'<a href="https://www.google.com/maps/search/?api=1&amp;query='+encodeURIComponent(r.endereco+', Maringá, PR')+'" target="_blank" rel="noopener">Ver endereço no mapa</a>':'';
-  const conteudo=doacoes?'<p>Donativos: '+escHtml(r.donativos||'Confirmar antes da entrega')+' · '+escHtml(r.horario||'Horário a confirmar')+'</p>':
-   r.modulo==='abrigos'?'<p>Capacidade total publicada: '+escHtml(r.capacidadeTotal??'Não informada')+' · Vagas livres: '+escHtml(r.vagasLivres??'A confirmar')+'</p><p>'+escHtml(r.orientacao||'Confirme a disponibilidade com a instituição')+'</p>':
-   r.detalhes?'<p>'+escHtml(r.detalhes.slice(0,350))+'</p>':'';
-  const contato=r.telefone?'<p>Contato: '+escHtml(r.telefone)+'</p>':'';
-  const aviso='<small>'+escHtml(r.precisao||'Localização cadastrada')+' · '+escHtml(r.classe||'Em conferência')+'. Confirmar antes do deslocamento.</small>';
-  const popup='<div class="ponto-publico-popup"><strong>'+simbolo+' '+escHtml(r.nome)+'</strong><p>'+escHtml(r.endereco||'Endereço não informado')+'</p>'+conteudo+contato+aviso+'<div>'+[route,source].filter(Boolean).join(' · ')+'</div></div>';
-  L.marker([r.lat,r.lng],{icon:ic,title:r.nome}).bindPopup(popup).addTo(layerRecursosPublicos);
+  L.marker([r.lat,r.lng],{icon:ic,title:r.nome}).bindTooltip('<strong>'+escHtml(r.nome)+'</strong><br>'+escHtml(r.endereco||'Endereço não informado'),{direction:'top'}).on('click',()=>painelPonto.abrir(r)).addTo(layerRecursosPublicos);
  }
  return registros.length;
 }
@@ -2155,57 +2146,9 @@ void Promise.allSettled(["dados-territoriais/maringa-bases-riscos-publicos.json"
  atualizarFiltroCadastros();
 }).catch(error=>console.warn("Referências municipais de abrigo e apoio indisponíveis",error));
 montarMarcadoresPublicos();
-function atualizarFiltroCadastros(){
- if(!INVENTARIO)return;
- const el=document.getElementById("mun-rows"),status=document.getElementById("mun-status"),count=document.getElementById("mun-count");
- if(!el||!status||!count)return;
- const xs=linhasInventario()||[];
- count.textContent="("+xs.length+")";
- status.textContent=xs.length+" registros; "+xs.filter(x=>x.georreferenciado).length+" com ponto geográfico.";
- el.innerHTML=xs.map(x=>{
-  const route=x.endereco?'<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query='+encodeURIComponent(x.endereco+", Maringá, PR")+'">Ver endereço</a>':"";
-  return '<div class="mun-row"><div><strong>'+escHtml(x.nome)+'</strong><small>'+escHtml(x.moduloNome)+' · '+escHtml(x.zona||x.bairro||"Zona não informada")+' · '+escHtml(x.classe)+'</small>'+
-   (x.precisao?'<small>'+escHtml(x.precisao)+'</small>':'')+'</div><div class="mun-row-actions">'+
-   (x.georreferenciado?'<button type="button" data-mun-loc="'+escHtml(x.chave)+'">Localizar</button>':'<small>Sem coordenadas</small>')+
-   route+'<a target="_blank" rel="noopener" href="gestao/#'+encodeURIComponent(x.modulo)+'">Cadastro</a></div></div>';
- }).join("")||'<p class="mun-empty">Nenhum registro corresponde aos filtros.</p>';
- el.querySelectorAll("[data-mun-loc]").forEach(btn=>btn.onclick=()=>{
-  const x=xs.find(item=>item.chave===btn.dataset.munLoc);
-  if(x?.georreferenciado)map.flyTo([x.lat,x.lng],Math.max(map.getZoom(),15));
- });
-}
-function atualizarClassesCadastros(){
- if(!INVENTARIO)return;
- const el=document.getElementById("mun-classe");
- if(!el)return;
- const subset=INVENTARIO.filtrar(INVENTARIO.registros(gestao),{modulo:filtrosMunicipais.modulo});
- el.innerHTML='<option value="">Todos os tipos e situações</option>'+
-  INVENTARIO.classes(subset).map(x=>'<option value="'+escHtml(x)+'">'+escHtml(x)+'</option>').join("");
- el.value=filtrosMunicipais.classe;
-}
-function iniciarFiltrosCadastros(){
- if(!INVENTARIO||filtrosMunicipaisProntos)return;
- const campo=document.getElementById("mun-camada"),bt=document.getElementById("mun-toggle"),body=document.getElementById("mun-body"),search=document.getElementById("mun-busca");
- const toggle=document.getElementById("mun-mostrar");
- if(!campo||!bt||!body||!search)return;
- filtrosMunicipaisProntos=true;
- bt.dataset.ready="1";
- if(toggle)toggle.onchange=e=>{mostrarUnidadesEvento=e.target.checked;montarMarcadoresPublicos();};
- const groups=new Map();
- for(const x of INVENTARIO.resumo(gestao)){
-  if(!groups.has(x.grupo))groups.set(x.grupo,[]);
-  groups.get(x.grupo).push(x);
- }
- campo.innerHTML='<option value="todos">Todos os cadastros</option>'+
-  [...groups].map(([group,itens])=>'<optgroup label="'+escHtml(group)+'">'+itens.map(x=>'<option value="'+escHtml(x.id)+'">'+escHtml(x.nome)+' ('+x.total+')</option>').join("")+'</optgroup>').join("");
- bt.onclick=()=>{body.hidden=!body.hidden;bt.setAttribute("aria-expanded",String(!body.hidden));if(!body.hidden)atualizarFiltroCadastros();};
- campo.onchange=()=>{filtrosMunicipais.modulo=campo.value;filtrosMunicipais.classe="";atualizarClassesCadastros();atualizarFiltroCadastros();montarMarcadoresPublicos();};
- document.getElementById("mun-classe").onchange=e=>{filtrosMunicipais.classe=e.target.value;atualizarFiltroCadastros();montarMarcadoresPublicos();};
- search.oninput=()=>{filtrosMunicipais.busca=search.value;atualizarFiltroCadastros();montarMarcadoresPublicos();};
- atualizarClassesCadastros();
- atualizarFiltroCadastros();
-}
-iniciarFiltrosCadastros();
+function atualizarFiltroCadastros(){filtrosCadastros?.atualizar();}
+filtrosCadastros=FiltrosCadastros.montar({alvo:document.getElementById('filtros-cadastros-municipais'),inventario:INVENTARIO,db:gestao,recorte:x=>noRecorte(x.zona||x.bairro),aoMudar:()=>montarMarcadoresPublicos(),localizar:x=>map.flyTo([x.lat,x.lng],Math.max(map.getZoom(),15))});
+montarMarcadoresPublicos();
 function incluirTerritorio(territorio){
   if(noRecorte(territorio)) return;
   const area=areas.find(a=>a.tipoArea==='Bairro'&&pertence(a,territorio))||areas.find(a=>pertence(a,territorio));

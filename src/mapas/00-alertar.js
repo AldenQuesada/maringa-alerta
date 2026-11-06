@@ -92,7 +92,7 @@ function colaboradoresDisponiveis(){
 }
 function dadosFiltrados(){
  const inventario=INVENTARIO.registros(app.db);
- if(camadaAtual!=="principal")return INVENTARIO.filtrar(inventario,{modulo:camadaAtual,zona:filtroZona,classe:filtroClasse,busca:texto}).filter(filtrosUnidades.aceita);
+ if(camadaAtual!=="principal")return INVENTARIO.filtrar(inventario,{modulo:camadaAtual,zona:filtroZona,classe:filtroClasse,busca:texto}).filter(filtrosCadastros.aceita);
 
  const xs=TIPO==="ajuda"?app.pedidos():colaboradoresDisponiveis();
  return xs.filter(x=>{

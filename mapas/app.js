@@ -92,7 +92,7 @@ function colaboradoresDisponiveis(){
 }
 function dadosFiltrados(){
  const inventario=INVENTARIO.registros(app.db);
- if(camadaAtual!=="principal")return INVENTARIO.filtrar(inventario,{modulo:camadaAtual,zona:filtroZona,classe:filtroClasse,busca:texto}).filter(filtrosUnidades.aceita);
+ if(camadaAtual!=="principal")return INVENTARIO.filtrar(inventario,{modulo:camadaAtual,zona:filtroZona,classe:filtroClasse,busca:texto}).filter(filtrosCadastros.aceita);
 
  const xs=TIPO==="ajuda"?app.pedidos():colaboradoresDisponiveis();
  return xs.filter(x=>{
@@ -141,13 +141,11 @@ async function carregarZonasOficiais(){
  }catch(error){zonasConsultadas=false;console.warn("Zonas numeradas indisponíveis",error);}
 }
 const fichaPonto=FichaPonto.criar({painel:$("painel-ajuda"),abrirPainel:()=>{if($("painel-ajuda").hidden)$("painel-ajuda-toggle").click();},obterRegistro:(modulo,id)=>app.db.registro(modulo,id),waLink:MaringaCrise.waLink});
-const filtrosUnidades=FiltrosUnidades.criar({alvo:$("filtros-unidades"),ler:()=>INVENTARIO.registros(app.db),aoMudar:()=>render()});
-$("unidades-todos").onclick=()=>filtrosUnidades.selecionarTodos(true);
-$("unidades-nenhum").onclick=()=>filtrosUnidades.selecionarTodos(false);
+const filtrosCadastros=FiltrosCadastros.montar({alvo:$("filtros-cadastros-municipais"),inventario:INVENTARIO,db:app.db,baseGestao:"../gestao/",recorte:x=>!filtroZona||INVENTARIO.filtrar([x],{zona:filtroZona}).length>0,aoMudar:()=>render(),localizar:x=>map.flyTo([x.lat,x.lng],Math.max(map.getZoom(),15))});
 function renderUnidadesMunicipais(){
  unidadesMunicipais.clearLayers();
  const todos=INVENTARIO.registros(app.db).filter(x=>x.georreferenciado&&!x.privado);
- const visiveis=camadaAtual==="principal"&&mostrarUnidades?INVENTARIO.filtrar(todos,{zona:filtroZona,busca:texto}).filter(filtrosUnidades.aceita):[];
+ const visiveis=camadaAtual==="principal"&&mostrarUnidades&&filtrosCadastros.mostrar()?filtrosCadastros.rows().filter(x=>x.georreferenciado&&!x.privado).filter(x=>INVENTARIO.filtrar([x],{zona:filtroZona,busca:texto}).length):[];
  const indicador=$("mostrar-unidades-texto");
  if(indicador)indicador.textContent="Mostrar unidades e recursos ("+todos.length+" georreferenciados)";
  for(const x of visiveis){
@@ -488,7 +486,7 @@ $("zona").onchange=()=>{filtroZona=$("zona").value;render();};
 $("filtro").onchange=()=>{filtroClasse=$("filtro").value;render();};
 $("busca").oninput=()=>{texto=$("busca").value;render();};
 window.addEventListener("storage",event=>{if(event.key===AlertaGestaoDados.CHAVE)location.reload();});
-PainelEventos.iniciar({painel:$("eventos-painel"),barra:$("eventos-painel-head"),abrir:$("eventos-open"),fechar:$("eventos-close"),area:document.querySelector(".map-area"),aoAbrir:()=>filtrosUnidades.atualizar()});
+PainelEventos.iniciar({painel:$("eventos-painel"),barra:$("eventos-painel-head"),abrir:$("eventos-open"),fechar:$("eventos-close"),area:document.querySelector(".map-area"),aoAbrir:()=>filtrosCadastros.atualizar()});
 if(globalThis.AlertaSessao&&globalThis.AlertaSessaoUI&&app.prefeitura())AlertaSessaoUI.criar({target:$("session-anchor"),sessao:AlertaSessao.criar({municipioId:app.prefeitura().id}),municipio:app.prefeitura().nome,zonas:app.zonas(),aoMudar:()=>{}});
 municipSelector();renderMunicipio();configurarCamadas();render();
 // O mesmo controlador atende Pra Somar e Colaboradores, sem usar a posição

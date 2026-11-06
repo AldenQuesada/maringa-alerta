@@ -96,7 +96,7 @@ function atualizarCadastroMapa(){
   filtroOcorrencias?.atualizarOpcoes();
   atualizarRecorte();
   montarMarcadoresPublicos();
-  if(filtrosMunicipaisProntos)atualizarFiltroCadastros();
+  atualizarFiltroCadastros();
 }
 window.addEventListener('storage',e=>{
   if(e.key===AlertaGestaoDados.CHAVE) atualizarCadastroMapa();
