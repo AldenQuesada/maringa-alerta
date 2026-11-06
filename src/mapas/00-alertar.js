@@ -9,10 +9,10 @@ let app=MaringaCrise.criar({municipioId:cidadeContexto(),escopoMunicipal:true}),
 const INVENTARIO=globalThis.AlertaInventarioMapas;
 let territorio=null;
 let toastTimer;
-const nomeTipo=TIPO==="ajuda"?"Mapa da Ajuda":"Mapa de Colaboradores";
+const nomeTipo=TIPO==="ajuda"?"Pra Somar Maringá":"Mapa de Colaboradores";
 document.title=nomeTipo+" | "+(app.prefeitura()?.nome||"Município")+" · Sistema Integrado de Crise";
 $("nav-"+TIPO).classList.add("active");
-$("title").textContent=TIPO==="ajuda"?"Ajuda pós-evento":"Colaboradores por zona";
+$("title").textContent=TIPO==="ajuda"?"Pra Somar Maringá":"Colaboradores por zona";
 $("eyebrow").textContent=TIPO==="ajuda"?"RECUPERAÇÃO PÓS-EVENTO":"REDE DE COLABORADORES";
 $("subtitle").textContent=TIPO==="ajuda"?"Pessoas e empresas que precisam de apoio após uma crise.":"Pessoas físicas, empresas e recursos disponíveis antes da emergência.";
 $("map-label").textContent=nomeTipo+" · "+(app.prefeitura()?.nome||"Município");
