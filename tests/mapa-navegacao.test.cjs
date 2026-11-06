@@ -100,7 +100,7 @@ test("a vista inicial inclui Vila Esperança e todas as seis zonas com margem",(
  const {map,L,container}=simularMapa();
  const nav=instalar({map,L,zonas:POLIGONOS});
  visaoIncluiTodasAsZonas(map);
- assert.equal(nav.botao.attributes["aria-label"],"Voltar à vista inicial de Maringá");
+ assert.equal(nav.botao.attributes["aria-label"],"Voltar à posição original");
  assert.equal(container.children.length,1);
  assert.equal(map.options.maxBoundsViscosity,1);
  assert.ok(nav.limites.getNorth()>=-23.374);
@@ -222,5 +222,5 @@ test("CSS mantém o botão menos; módulo não impõe maxBounds da própria câm
  assert.doesNotMatch(src,/map\.setMaxBounds\(map\.getBounds\(\)\)/);
  assert.doesNotMatch(src,/map\.dragging\?\.disable/);
  assert.match(src,/map\.dragging\?\.enable/);
- assert.match(src,/new URLSearchParams\(global\.location\.search\)\.get\("calibrar"\)==="1"/);
+ assert.match(src,/new URLSearchParams\(global\.location\.search\)\.get\("calibrar"\)!=="1"/);
 });
