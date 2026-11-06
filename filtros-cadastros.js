@@ -22,7 +22,8 @@ function montar({alvo,inventario,db,recorte=()=>true,aoMudar=()=>{},localizar=()
   for(const x of items){const k=key(x),v=unique.get(k)||{nome:x.categoria||'Não informado',grupo:x.moduloNome,total:0};v.total++;unique.set(k,v)}
   q('.mun-tipos').innerHTML=[...unique].sort((a,b)=>(a[1].grupo+a[1].nome).localeCompare(b[1].grupo+b[1].nome,'pt-BR')).map(([k,v])=>'<label><input type="checkbox" data-chave="'+esc(k)+'" '+(!ocultos.has(k)?'checked':'')+'> '+esc(v.grupo+' · '+v.nome+' ('+v.total+')')+'</label>').join('')||'<p>Nenhuma unidade cadastrada.</p>';
  }
- function atualizar(){opcoes();tipos();const xs=rows();q('#mun-count').textContent='('+xs.length+')';q('#mun-status').textContent=xs.length+' registros; '+xs.filter(x=>x.georreferenciado).length+' com ponto geográfico.';
+ function abrir(){body.hidden=false;toggle.setAttribute('aria-expanded','true');atualizar();}
+ function atualizar(){opcoes();tipos();const xs=rows(),pontos=xs.filter(x=>x.georreferenciado).length,semPonto=xs.filter(x=>!x.georreferenciado&&['saude','emergencias','parceiros','bases','abrigos'].includes(x.modulo)).length;q('#mun-count').textContent='('+xs.length+')';q('#mun-status').textContent=xs.length+' registros; '+pontos+' com ponto geográfico.'+(semPonto?' '+semPonto+' estruturas sem coordenadas confirmadas: disponíveis na lista.':'');
   q('#mun-rows').innerHTML=xs.map(x=>'<div class="mun-row"><div><strong>'+esc(x.nome)+'</strong><small>'+esc(x.moduloNome)+' · '+esc(x.zona||x.bairro||'Zona não informada')+' · '+esc(x.classe)+'</small></div><div class="mun-row-actions">'+(x.georreferenciado?'<button type="button" data-mun-loc="'+esc(x.chave)+'">Localizar</button>':'<small>Sem coordenadas</small>')+'<a target="_blank" rel="noopener" href="'+baseGestao+'#'+encodeURIComponent(x.modulo)+'">Cadastro</a></div></div>').join('')||'<p class="mun-empty">Nenhum registro corresponde aos filtros.</p>';
  }
  function mudar(){atualizar();aoMudar()}
@@ -30,7 +31,7 @@ function montar({alvo,inventario,db,recorte=()=>true,aoMudar=()=>{},localizar=()
  q('.mun-tipos').onchange=e=>{if(!e.target.dataset.chave)return;if(e.target.checked)ocultos.delete(e.target.dataset.chave);else ocultos.add(e.target.dataset.chave);mudar()};
  alvo.querySelectorAll('[data-tipos]').forEach(b=>b.onclick=()=>{ocultos.clear();if(b.dataset.tipos==='nenhum')for(const x of inventario.registros(db))if(['saude','emergencias','parceiros','bases','abrigos'].includes(x.modulo)&&!x.privado)ocultos.add(key(x));mudar()});
  q('#mun-rows').onclick=e=>{const btn=e.target.closest('[data-mun-loc]');if(btn){const x=rows().find(x=>x.chave===btn.dataset.munLoc);if(x)localizar(x)}};
- atualizar();return {atualizar,rows,aceita:x=>!ocultos.has(key(x)),mostrar:()=>q('#mun-mostrar').checked};
+ atualizar();return {abrir,atualizar,rows,aceita:x=>!ocultos.has(key(x)),mostrar:()=>q('#mun-mostrar').checked};
 }
 root.FiltrosCadastros={montar};
 })(window);

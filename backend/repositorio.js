@@ -44,10 +44,16 @@ async function criar({client,dados,onStatus=()=>{}}){
   return {db:dados.criarLocal(store,{...options,semBootstrap:true}),read:()=>JSON.parse(value)};
  }
  state=local(state,{}).db.estado();
+ let readState=null;const readCache=new Map();
  function repositorio(options={}){
   const scope=options.municipioId;
   if(scope&&!state.prefeituras.some(p=>p.id===scope))throw Error('Sem acesso à prefeitura selecionada.');
-  const leitura=name=>(...args)=>copy(local(state,options).db[name](...args));
+  const leitura=name=>(...args)=>{
+   if(readState!==state){readCache.clear();readState=state;}
+   const k=JSON.stringify([options,name,args]);
+   if(!readCache.has(k))readCache.set(k,copy(local(state,options).db[name](...args)));
+   return copy(readCache.get(k));
+  };
   function transacao(fn){
    const run=queue.then(async()=>{
     if(needsReload)throw Error(reloadMessage);

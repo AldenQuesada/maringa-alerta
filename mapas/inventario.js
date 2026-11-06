@@ -60,6 +60,7 @@ function transformar(modulo,registro,relacao){
   registro.itens_aceitos,
   registro.recursos,
   registro.servicos,
+  registro.disponibilidade?('Disponibilidade do apoio: '+registro.disponibilidade):'',
   registro.urgencia,
   registro.descricao,
   registro.observacoes,

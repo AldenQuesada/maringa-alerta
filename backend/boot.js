@@ -11,14 +11,14 @@ async function start(){
  document.documentElement.classList.remove('backend-pendente');gate.remove();
  if(window.AlertaNuvem?.ativo){
   const anchor=document.getElementById('session-anchor');if(anchor)anchor.textContent=window.AlertaNuvem.email;
-  for(const a of document.querySelectorAll('a[href]')){const u=new URL(a.href,location.href);if(u.origin===location.origin&&(/\/atendimento\//.test(u.pathname)||/\/index\.html$/.test(u.pathname))){a.title='Demonstração local · sem gravação no Supabase';const label=a.querySelector('.map-name');if(label)label.textContent+=' · demonstração';}}
+  for(const a of document.querySelectorAll('a[href]')){const u=new URL(a.href,location.href);if(u.origin===location.origin&&/\/atendimento\//.test(u.pathname)){a.title='Demonstração local · sem gravação no Supabase';const label=a.querySelector('.map-name');if(label)label.textContent+=' · demonstração';}}
   const bar=document.createElement('div');bar.id='backend-bar';bar.innerHTML='<span>Conectado · cadastros no Supabase</span><button type="button" data-refresh>Atualizar</button><button type="button" data-logout>Sair</button>';document.body.appendChild(bar);
   bar.querySelector('[data-refresh]').onclick=()=>location.reload();
   bar.querySelector('[data-logout]').onclick=async()=>{await client.auth.signOut({scope:'local'});location.reload();};
  }else{const bar=document.createElement('div');bar.id='backend-bar';bar.textContent='Demonstração local · nenhum dado enviado ao Supabase';document.body.appendChild(bar);}
 }
 // Manter as duas origens de dados separadas ao navegar.
-document.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a)return;const url=new URL(a.href,location.href);if(url.origin!==location.origin)return;if(demo&&/\/(gestao|plataforma|mapas)\//.test(url.pathname)){url.searchParams.set('modo','demo');a.href=url.href;}},true);
+document.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a)return;const url=new URL(a.href,location.href);if(url.origin!==location.origin)return;if(demo&&(/\/(gestao|plataforma|mapas)\//.test(url.pathname)||/\/index\.html$/.test(url.pathname))){url.searchParams.set('modo','demo');a.href=url.href;}},true);
 let client;
 try{
  if(demo){await start();return;}

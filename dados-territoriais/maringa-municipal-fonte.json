@@ -1,16 +1,1 @@
-{
-  "consulta_em_utc": "2026-11-04T14:55:31.152304+00:00",
-  "camadas": {
-    "bairros-municipais": {
-      "status": "indisponivel",
-      "erro": "<urlopen error timed out>",
-      "source": "https://geoproc.maringa.pr.gov.br/arcgis/rest/services/SIGMARINGA/MAPA_BASE/MapServer/7"
-    },
-    "zonas-cartograficas": {
-      "status": "indisponivel",
-      "erro": "<urlopen error timed out>",
-      "source": "https://geoproc.maringa.pr.gov.br/arcgis/rest/services/SIGMARINGA/MAPA_BASE/MapServer/10"
-    }
-  },
-  "nota": "Zonas de uso/censo/cartografia não são zonas operacionais homologadas pela Defesa Civil."
-}
+{"consulta_em_utc":"2026-11-06","camadas":{"bairros-municipais":{"status":"indisponivel","erro":"<urlopen error timed out>","source":"https://geoproc.maringa.pr.gov.br/arcgis/rest/services/SIGMARINGA/MAPA_BASE/MapServer/7"},"zonas-cartograficas":{"status":"sucesso","count":61,"poligonos_fonte":66,"source":"https://geoproc.maringa.pr.gov.br/arcgis/rest/services/SIGMARINGA/MAPA_BASE/MapServer/10","nota":"Zonas cartográficas municipais; não são áreas de comando operacional homologadas."}},"nota":"Zonas de uso/censo/cartografia não são zonas operacionais homologadas pela Defesa Civil."}

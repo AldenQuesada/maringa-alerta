@@ -20,7 +20,7 @@ test("todos os bundles publicados correspondem byte a byte aos módulos de orige
 });
 test("Mapa de Evento carrega CSS e JS externos versionados e com cache correspondente",()=>{
  const html=file("index.html"),sw=file("sw.js");
- const script=html.match(/<script src="evento\/app\.js\?v=([^"]+)"><\/script>/);
+ const script=html.match(/<script type="application\/x-maringa-modulo" src="evento\/app\.js\?v=([^"]+)"><\/script>/);
  const stylesheet=html.match(/<link rel="stylesheet" href="evento\/style\.css\?v=([^"]+)">/);
  assert.ok(script&&stylesheet,"Bundle e estilos externos");
  assert.equal(script[1],stylesheet[1],"Mesmo release para os recursos do mapa");

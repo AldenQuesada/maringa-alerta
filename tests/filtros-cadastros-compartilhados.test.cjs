@@ -10,6 +10,7 @@ test('o filtro compartilhado controla vários tipos sem alterar os cadastros',()
  const data={bases:[{id:'a',nome:'Água',tipo:'Água',lat:-23,lng:-51},{id:'b',nome:'Banho',tipo:'Banho',lat:-23,lng:-51},{id:'c',nome:'Doação',tipo:'Doação',lat:-23,lng:-51}],bairros:[]};
  const db={lista:(nome)=>data[nome]||[]},el=alvoFake();let mudancas=0;
  const f=window.FiltrosCadastros.montar({alvo:el,inventario:M,db,aoMudar:()=>mudancas++});
+ f.abrir();assert.equal(el.nodes.get('#mun-body').hidden,false);
  assert.equal(f.rows().length,3);el.botoes[1].onclick();assert.equal(f.rows().length,0);
  const change=el.nodes.get('.mun-tipos').onchange;change({target:{dataset:{chave:'bases::Água'},checked:true}});change({target:{dataset:{chave:'bases::Banho'},checked:true}});
  assert.deepEqual(Array.from(f.rows(),x=>x.nome),['Água','Banho']);assert.equal(data.bases.length,3);assert.equal(mudancas,3);

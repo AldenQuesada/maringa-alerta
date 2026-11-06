@@ -54,7 +54,7 @@ function fecharMenuMobile(){
 
 iniciarControlesDemo();
 if(window.innerWidth<=860)document.getElementById('floatwin-min').click();
-const recuperacao=OperacaoRestauracao.ler(localStorage,storageKey('operacao'),tenantId);
+const recuperacao=conectado?{estado:'vazio'}:OperacaoRestauracao.ler(localStorage,storageKey('operacao'),tenantId);
 if(recuperacao.estado==='bloqueado'){
   const overlay=document.createElement('div');overlay.className='recuperacao-overlay';
   overlay.innerHTML='<section class="recuperacao-card" role="alertdialog" aria-modal="true" aria-labelledby="recuperacao-title"><h2 id="recuperacao-title">Seus dados foram preservados</h2><p id="recuperacao-motivo"></p><p>O mapa foi interrompido para impedir que os dados sejam substituídos. Salve uma cópia e procure suporte para recuperar o conteúdo.</p><button type="button" id="recuperacao-backup">Baixar cópia dos dados</button></section>';
@@ -97,7 +97,7 @@ filtroOcorrencias=FiltrosOcorrencias.montar({target:document.getElementById('fil
 document.getElementById('fil-toggle').click();
 PainelEventos.iniciar({painel:document.getElementById('eventos-painel'),barra:document.getElementById('eventos-painel-head'),
  abrir:document.getElementById('eventos-open'),fechar:document.getElementById('eventos-close'),area:document.getElementById('mapwrap'),
- aoAbrir:()=>filtroOcorrencias.atualizarOpcoes()});
+ aoAbrir:()=>{filtroOcorrencias.atualizarOpcoes();filtrosCadastros?.abrir();}});
 setInterval(()=>{const f=filtroOcorrencias.obter();if(f.horas||f.espera)atualizarRecorte();},30000);
 estadoPronto=true;
 saveAdminState();

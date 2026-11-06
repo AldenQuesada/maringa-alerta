@@ -1,13 +1,14 @@
 
 (async function(){
 "use strict";
-const demoMode=new URLSearchParams(location.search).get('demo')==='1';
-const tenantId='maringa';
-const tenantConfig={nome:'Maringá',marca:'MARINGÁ ALERTA',prefixo:'MA'};
+const conectado=!!globalThis.AlertaNuvem?.ativo;
+const demoMode=!conectado&&(new URLSearchParams(location.search).get('demo')==='1'||new URLSearchParams(location.search).get('modo')==='demo');
+const tenantId=conectado?(sessionStorage.getItem('alerta_contexto_municipal_demo_v1')||'maringa'):'maringa';
+const tenantConfig={nome:conectado?AlertaGestaoDados.criar(undefined,{municipioId:tenantId}).municipioAtivo().nome:'Maringá',marca:'MARINGÁ ALERTA',prefixo:'MA'};
 const storageKey=nome=>`alerta_prototipo_v2_${tenantId}_${nome}`;
  // O cadastro operacional salvo antes da migração continua visível no modo normal.
  // A ausência de ?demo=1 não apaga nem oculta equipes que já estavam salvas.
- const estadoAnterior=OperacaoRestauracao.ler(localStorage,storageKey('operacao'),tenantId);
+ const estadoAnterior=conectado?{estado:'vazio'}:OperacaoRestauracao.ler(localStorage,storageKey('operacao'),tenantId);
  const exibirEquipesLegadas=demoMode||
    (estadoAnterior.estado==='restauravel'&&estadoAnterior.dados.voluntarios.length>0);
 
@@ -78,9 +79,11 @@ function todosFuncionarios(){
 /* ---------- persistencia local das edicoes da administracao ---------- */
 const ADMIN_KEY = storageKey("admin");
 function loadAdminState(){
+  if(conectado)return null;
   try{ return JSON.parse(localStorage.getItem(ADMIN_KEY) || (tenantId==='maringa'?localStorage.getItem("maringa_admin_v1"):null) || "null"); }catch(e){ return null; }
 }
 function saveAdminState(){
+  if(conectado)return;
   try{
     localStorage.setItem(ADMIN_KEY, JSON.stringify({
       funcionarios: todosFuncionarios().map(p=>({id:p.id, nome:p.nome, cargo:p.cargo, tel:p.tel})),
@@ -204,7 +207,7 @@ function randPointInBox(poly){
 }
 
 let ocorrencias = [], voluntarios = [], idCounter = 1;
-const gestao = AlertaGestaoDados.criar();
+const gestao = AlertaGestaoDados.criar(undefined,{municipioId:tenantId});
 const normalizarTerritorio = texto => String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
 const areasCadastradas = ['zonas','bairros'].flatMap(tipo =>
   gestao.lista(tipo,tenantId).filter(area=>area.verificacao!=='Rejeitado')
@@ -212,7 +215,7 @@ const areasCadastradas = ['zonas','bairros'].flatMap(tipo =>
 );
 const fontesPublicas=await MaringaBairros.carregar().catch(()=>null);
 const chaveZona = nome => {const match=normalizarTerritorio(nome).match(/^zona\s*0*(\d+)$/);return match ? String(Number(match[1])) : '';};
-for(const [grupo,tipoArea] of [[fontesPublicas?.zonasNumeradas,'Zona'],[fontesPublicas?.bairros,'Bairro'],[fontesPublicas?.zonas,'Zona cartográfica']]){
+for(const [grupo,tipoArea] of (conectado?[]:[[fontesPublicas?.zonasNumeradas,'Zona'],[fontesPublicas?.bairros,'Bairro'],[fontesPublicas?.zonas,'Zona cartográfica']])){
   grupo?.features.forEach(feature=>{
     const {id,nome}=feature.properties;
     const existente=areasCadastradas.find(area=>area.tipoArea===tipoArea && (normalizarTerritorio(area.nome)===normalizarTerritorio(nome) || (tipoArea==='Zona' && chaveZona(nome) && chaveZona(area.nome)===chaveZona(nome))));
@@ -1610,7 +1613,7 @@ if('serviceWorker' in navigator){
 }
 const OFFLINE_QUEUE_KEY = storageKey('offline');
 let filaOffline = [];
-try{ filaOffline = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]'); }catch(e){ filaOffline = []; }
+try{ if(!conectado)filaOffline = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]'); }catch(e){ filaOffline = []; }
 
 function atualizarBannerOffline(){
   document.getElementById('offline-banner').hidden = navigator.onLine;
@@ -1664,7 +1667,10 @@ function selecionarPerfilDemo(perfil) {
   }
   if(!canAdmin())document.getElementById('audit-overlay').hidden=true;
 }
-if(window.AlertaSessao && window.AlertaSessaoUI){
+if(conectado){
+  selecionarPerfilDemo({tipo:'visualizacao'});
+  document.getElementById('session-anchor').textContent=window.AlertaNuvem.email;
+}else if(window.AlertaSessao && window.AlertaSessaoUI){
   const servicoSessao = AlertaSessao.criar({ municipioId:tenantId });
   const sessaoAtual = servicoSessao.obterSessao();
   selecionarPerfilDemo(sessaoAtual?.conta?.perfil || {tipo:'visualizacao'});
@@ -1947,6 +1953,7 @@ function salvarAnexos(o){
 }
 
 function salvarPrototipo(){
+  if(conectado)return false;
   if(!estadoPronto)return;
   try{
     const dados={versao:1,tenantId,idCounter,eventStart,
@@ -2069,7 +2076,7 @@ function fecharMenuMobile(){
 
 iniciarControlesDemo();
 if(window.innerWidth<=860)document.getElementById('floatwin-min').click();
-const recuperacao=OperacaoRestauracao.ler(localStorage,storageKey('operacao'),tenantId);
+const recuperacao=conectado?{estado:'vazio'}:OperacaoRestauracao.ler(localStorage,storageKey('operacao'),tenantId);
 if(recuperacao.estado==='bloqueado'){
   const overlay=document.createElement('div');overlay.className='recuperacao-overlay';
   overlay.innerHTML='<section class="recuperacao-card" role="alertdialog" aria-modal="true" aria-labelledby="recuperacao-title"><h2 id="recuperacao-title">Seus dados foram preservados</h2><p id="recuperacao-motivo"></p><p>O mapa foi interrompido para impedir que os dados sejam substituídos. Salve uma cópia e procure suporte para recuperar o conteúdo.</p><button type="button" id="recuperacao-backup">Baixar cópia dos dados</button></section>';
@@ -2112,7 +2119,7 @@ filtroOcorrencias=FiltrosOcorrencias.montar({target:document.getElementById('fil
 document.getElementById('fil-toggle').click();
 PainelEventos.iniciar({painel:document.getElementById('eventos-painel'),barra:document.getElementById('eventos-painel-head'),
  abrir:document.getElementById('eventos-open'),fechar:document.getElementById('eventos-close'),area:document.getElementById('mapwrap'),
- aoAbrir:()=>filtroOcorrencias.atualizarOpcoes()});
+ aoAbrir:()=>{filtroOcorrencias.atualizarOpcoes();filtrosCadastros?.abrir();}});
 setInterval(()=>{const f=filtroOcorrencias.obter();if(f.horas||f.espera)atualizarRecorte();},30000);
 estadoPronto=true;
 saveAdminState();

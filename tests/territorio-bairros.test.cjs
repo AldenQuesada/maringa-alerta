@@ -33,7 +33,7 @@ test("cada bairro tem geometria georreferenciada para Maringá e identificador",
 test("bairros municipais não disponíveis não são apresentados como homologados",()=>{
  const municipal=JSON.parse(read("dados-territoriais/maringa-municipal-fonte.json"));
  assert.equal(municipal.camadas["bairros-municipais"].status,"indisponivel");
- assert.equal(municipal.camadas["zonas-cartograficas"].status,"indisponivel");
+ assert.equal(municipal.camadas["zonas-cartograficas"].status,"sucesso");
  assert.match(municipal.nota,/não são zonas operacionais/i);
 });
 test("os três mapas carregam a mesma camada de bairros",()=>{
@@ -75,6 +75,7 @@ test("carregador usa IBGE preferencialmente quando GeoMaringá não responde",as
   URL,
   fetch:async(input)=>{
    const name=new URL(input).pathname.split("/").at(-1);
+   if(name==='maringa-municipal-fonte.json')return {ok:true,json:async()=>({camadas:{}})};
    const found=fs.existsSync(path.join(root,"dados-territoriais",name));
    return {ok:found,json:async()=>JSON.parse(read("dados-territoriais/"+name))};
   }

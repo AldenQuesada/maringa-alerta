@@ -15,6 +15,7 @@ function zonasOficiais(){
  if(zonasPromise)return zonasPromise;
  const p=db().municipioAtivo();
  if(!p||p.id!=="maringa")return Promise.resolve([]);
+ if(db().tipo==="supabase")return Promise.resolve(db().lista("zonas"));
  const url="https://servicodados.ibge.gov.br/api/v1/localidades/municipios/"+encodeURIComponent(p.codigo_ibge)+"/subdistritos";
  zonasPromise=fetch(url,{cache:"force-cache"}).then(r=>{if(!r.ok)throw Error("Consulta IBGE indisponível");return r.json();}).catch(()=>fetch("https://servicodados.ibge.gov.br/api/v1/localidades/distritos/411520005/subdistritos",{cache:"force-cache"}).then(r=>{if(!r.ok)throw Error("Consulta IBGE indisponível");return r.json();})).then(rows=>{
   if(!Array.isArray(rows))throw Error("Resposta territorial inválida");

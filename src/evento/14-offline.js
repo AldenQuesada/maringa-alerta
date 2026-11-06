@@ -4,7 +4,7 @@ if('serviceWorker' in navigator){
 }
 const OFFLINE_QUEUE_KEY = storageKey('offline');
 let filaOffline = [];
-try{ filaOffline = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]'); }catch(e){ filaOffline = []; }
+try{ if(!conectado)filaOffline = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]'); }catch(e){ filaOffline = []; }
 
 function atualizarBannerOffline(){
   document.getElementById('offline-banner').hidden = navigator.onLine;

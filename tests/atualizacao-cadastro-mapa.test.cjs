@@ -64,7 +64,7 @@ test('menu de colaboradores sinaliza registros ocultos por filtro e sem bairro v
 test('equipes previamente persistidas continuam visíveis sem ?demo=1',()=>{
  const restauracao=require('../operacao-restauracao.js');
  const texto=fs.readFileSync('src/evento/00-contexto.js','utf8');
- const inicio=texto.indexOf('const demoMode=');
+ const inicio=texto.indexOf('const conectado=');
  const fim=texto.indexOf('// O Mapa de Evento usa somente',inicio);
  assert.ok(inicio>=0&&fim>inicio,'verificação de estado operacional ausente');
  const codigo=texto.slice(inicio,fim)+'\n({demoMode,exibirEquipesLegadas})';
@@ -82,6 +82,9 @@ test('equipes previamente persistidas continuam visíveis sem ?demo=1',()=>{
  assert.equal(vm.runInNewContext(codigo,{...ctx,localStorage:{getItem:()=>null}}).exibirEquipesLegadas,false,
   'sem arquivo salvo não se pode inventar equipes');
  assert.equal(vm.runInNewContext(codigo,{...ctx,location:{search:'?demo=1'},localStorage:{getItem:()=>null}}).exibirEquipesLegadas,true);
+ const online=vm.runInNewContext(codigo,{...ctx,AlertaNuvem:{ativo:true},sessionStorage:{getItem:()=> 'maringa'},AlertaGestaoDados:{criar:()=>({municipioAtivo:()=>({nome:'Maringá'})})},location:{search:'?demo=1'}});
+ assert.equal(online.exibirEquipesLegadas,false,'A sessão real não restaura pessoas da demonstração local');
+ assert.equal(online.demoMode,false);
  assert.match(fs.readFileSync('src/evento/01-regioes-demonstrativas.js','utf8'),/const bairros = exibirEquipesLegadas \?/);
  assert.match(fs.readFileSync('src/evento/03-equipes-demonstrativas-part02.js','utf8'),/'Zona demonstrativa':exibirEquipesLegadas/);
  assert.match(fs.readFileSync('src/evento/16-atendimento-simulado-part04.js','utf8'),
