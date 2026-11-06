@@ -9,7 +9,8 @@ function responderEtapa(e){
   gravarResposta(resultado.opcoes,valor);
   return;
  }
- if(current.key==="telefone"||current.key==="consulta_telefone"||current.key==="fase_telefone"){
+ if(current.key==="ponto_capacidade"&&valor&&!/^\d+$/.test(valor)){msg("Informe um número de pessoas ou pule esta pergunta.",false,true);input.focus();return;}
+ if(current.key==="ponto_telefone"||current.key==="telefone"||current.key==="consulta_telefone"||current.key==="fase_telefone"){
   const n=MaringaCrise.telefone(valor);
   if(n.length<10||n.length>13){msg("Informe um telefone válido com DDD.",false,true);input.focus();return;}
  }

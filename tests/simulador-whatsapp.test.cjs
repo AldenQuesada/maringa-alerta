@@ -212,9 +212,12 @@ test("cadastro de colaborador segue somente campos e ordem do formulário aprova
  const fluxo=definirSteps("colaborador");
  assert.deepEqual(Array.from(fluxo.map(s=>s.key)),[
   "nome","tipo_pessoa","endereco","telefone",
-  "ajudas","maquinas","empreendedores","outros","materiais","forma_entrega_doacao"
+  "ajudas","maquinas","empreendedores","outros","materiais","forma_entrega_doacao",
+  "ponto_publico","ponto_tipo","ponto_nome","ponto_responsavel","ponto_endereco","ponto_telefone","ponto_funcao","ponto_horario","ponto_capacidade"
  ]);
- assert.equal(fluxo.length,10);
+ assert.equal(fluxo.length,19);
+ assert.equal(fluxo.find(s=>s.key==="ponto_nome").quando({ponto_publico:"Não"}),false);
+ assert.equal(fluxo.find(s=>s.key==="ponto_nome").quando({ponto_publico:"Sim, cadastrar ponto público"}),true);
  assert.equal(fluxo.some(s=>s.key==="email"||s.key==="disponibilidade"||s.key==="zona"),false);
  assert.equal(fluxo.find(s=>s.key==="tipo_pessoa").kind,"single");
  for(const grupo of ["ajudas","maquinas","empreendedores","materiais"])assert.equal(fluxo.find(s=>s.key===grupo).kind,"multi");

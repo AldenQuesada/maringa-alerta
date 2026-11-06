@@ -268,7 +268,8 @@
       "lat": -23.4040242,
       "lng": -51.8989294,
       "geo_status": "Referência aproximada da avenida no Jardim Novo Oásis; número não verificado.",
-      "geo_fonte": "https://www.openstreetmap.org/way/856095693"
+      "geo_fonte": "https://www.openstreetmap.org/way/856095693",
+      "responsavel": "Pastor Gabriel"
     }
   ]
 }

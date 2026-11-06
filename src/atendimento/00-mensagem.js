@@ -90,7 +90,16 @@ function definirSteps(papel){
   {key:"outros",q:"Especifique qual outra ajuda, equipamento ou apoio você pode oferecer.",kind:"text",required:true,
    quando:a=>["ajudas","maquinas","empreendedores"].some(grupo=>(a[grupo]||[]).includes("OUTRO"))},
   {key:"materiais",q:"MATERIAL CONSTRUÇÃO / COMBUSTÍVEL",kind:"multi",opts:catalogos.materiais},
-  {key:"forma_entrega_doacao",q:"Como você disponibiliza sua doação?",kind:"single",opts:catalogos.formas_entrega_doacao,quando:ofereceBens}
+  {key:"forma_entrega_doacao",q:"Como você disponibiliza sua doação?",kind:"single",opts:catalogos.formas_entrega_doacao,quando:ofereceBens},
+  {key:"ponto_publico",q:"Você oferece um ponto de atendimento e autoriza publicar seu nome, endereço, serviço e telefone nos mapas?",kind:"single",opts:["Sim, cadastrar ponto público","Não"],required:true},
+  {key:"ponto_tipo",q:"Qual é o tipo do ponto?",kind:"single",opts:["Ponto de água potável","Ponto de banho","Centro de coleta de donativos","Outro"],quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"},
+  {key:"ponto_nome",q:"Qual é o nome do ponto de atendimento?",kind:"text",required:true,quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"},
+  {key:"ponto_responsavel",q:"Qual é o nome do responsável pelo ponto?",kind:"text",required:true,quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"},
+  {key:"ponto_endereco",q:"Qual é o endereço do ponto? Informe rua, número, bairro e cidade.",kind:"text",required:true,quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"},
+  {key:"ponto_telefone",q:"Qual é o telefone do ponto com DDD?",kind:"tel",required:true,quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"},
+  {key:"ponto_funcao",q:"O que o ponto oferece?",kind:"text",required:true,quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"},
+  {key:"ponto_horario",q:"Qual é o horário de atendimento?",kind:"text",optional:true,quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"},
+  {key:"ponto_capacidade",q:"Quantas pessoas o ponto consegue atender? Informe um número ou pule se não souber.",kind:"text",optional:true,quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"}
  ];
  if(papel==="solicitacao")return [...base,
   {key:"descricao",q:"Do que você precisa? Descreva a ajuda que está solicitando.",kind:"text",required:true}
@@ -192,7 +201,7 @@ function mostrarRevisao(){
   bot("Selecione pelo menos um tipo de colaboração para concluir.",true);
   index=steps.findIndex(s=>s.key==="ajudas");proxima();return;
  }
- const labels={nome:"Nome",tipo_pessoa:"Pessoa",telefone:"Telefone",email:"E-mail",endereco:"Endereço",zona:"Zona",ajudas:"Ajuda a pessoas",maquinas:"Máquinas e equipamentos",empreendedores:"Empreendedores",materiais:"Materiais e combustível",forma_entrega_doacao:"Entrega da doação",disponibilidade:"Disponibilidade",necessidade:"Necessidade",descricao:role==="solicitacao"?"Ajuda solicitada":"Detalhes",modo_recebimento:"Recebimento",urgencia:"Urgência",endereco_ocorrencia:"Local da ocorrência",pessoas_no_local:"Pessoas no local",necessidade_relato:"Descrição",foto:"Fotografia",outros:"Especificar outros",outros_ajudas:"Outros serviços",outros_maquinas:"Outros equipamentos",outros_empreendedores:"Outros apoios"};
+ const labels={ponto_publico:"Divulgar ponto",ponto_tipo:"Tipo de ponto",ponto_nome:"Nome do ponto",ponto_responsavel:"Responsável",ponto_endereco:"Endereço do ponto",ponto_telefone:"Telefone do ponto",ponto_funcao:"Serviço oferecido",ponto_horario:"Horário de atendimento",ponto_capacidade:"Capacidade em pessoas",nome:"Nome",tipo_pessoa:"Pessoa",telefone:"Telefone",email:"E-mail",endereco:"Endereço",zona:"Zona",ajudas:"Ajuda a pessoas",maquinas:"Máquinas e equipamentos",empreendedores:"Empreendedores",materiais:"Materiais e combustível",forma_entrega_doacao:"Entrega da doação",disponibilidade:"Disponibilidade",necessidade:"Necessidade",descricao:role==="solicitacao"?"Ajuda solicitada":"Detalhes",modo_recebimento:"Recebimento",urgencia:"Urgência",endereco_ocorrencia:"Local da ocorrência",pessoas_no_local:"Pessoas no local",necessidade_relato:"Descrição",foto:"Fotografia",outros:"Especificar outros",outros_ajudas:"Outros serviços",outros_maquinas:"Outros equipamentos",outros_empreendedores:"Outros apoios"};
  const linhas=Object.entries(answers).filter(([k,v])=>labels[k]&&v!==""&&v!=null&&(!Array.isArray(v)||v.length)).map(([k,v])=>labels[k]+": "+(Array.isArray(v)?v.join(", "):k==="foto"?"Imagem anexada":String(v)));
  bot("Confira suas informações antes de concluir:\n\n"+linhas.join("\n")+"\n\nEstá tudo correto?");
  const acoes=[["✓ Confirmar e concluir",()=>concluir(),"submit"],["✎ Corrigir respostas",()=>{index=0;bot("Vamos revisar suas respostas. As escolhas anteriores foram preservadas.");proxima();}]];

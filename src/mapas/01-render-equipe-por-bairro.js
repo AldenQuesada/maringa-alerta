@@ -70,7 +70,7 @@ function renderMarkers(xs){
   for(const x of xs.filter(x=>x.georreferenciado)){
    const icon=INVENTARIO.simbolo(x);
    const ic=L.divIcon({className:"pin canonical-map-pin",html:'<span class="canonical-pin">'+icon+'</span>',iconSize:[32,32],iconAnchor:[16,32]});
-   L.marker([x.lat,x.lng],{icon:ic,title:x.nome}).bindPopup('<strong>'+esc(x.nome)+'</strong><p>'+esc(x.moduloNome)+' · '+esc(x.classe)+'</p><small>'+esc(x.precisao||"Localização cadastrada")+'</small>').addTo(marcadores);
+   L.marker([x.lat,x.lng],{icon:ic,title:x.nome}).bindTooltip('<strong>'+esc(x.nome)+'</strong><br>'+esc(x.endereco||"Endereço não informado"),{direction:"top"}).on("click",()=>fichaPonto.abrir(x)).addTo(marcadores);
   }
   return;
  }
