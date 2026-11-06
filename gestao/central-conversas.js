@@ -122,7 +122,9 @@
         '<button class="cv-new" type="button" data-cv-new aria-label="Cadastrar novo colaborador">+ Novo colaborador</button></div></header>' +
         '<div class="cv-shell">' +
           '<aside class="cv-inbox" aria-label="Conversas dos colaboradores">' +
-            '<div class="cv-panel-head"><div><strong>Conversas</strong><small id="cv-visible-count">0 colaboradores</small></div></div>' +
+            '<div class="cv-panel-head cv-inbox-head"><div class="cv-heading-copy"><strong>Conversas</strong><small id="cv-visible-count">0 colaboradores</small></div>' +
+              '<button class="cv-all" type="button" data-cv-all aria-label="Mostrar todas as conversas e regiões" title="Todas as conversas e regiões">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10Z"/><path d="M9 21v-7h6v7"/></svg><span>Todas</span></button></div>' +
             '<div class="cv-search-wrap"><label for="cv-search">Buscar colaborador</label>' +
             '<input id="cv-search" type="search" placeholder="Nome, telefone, bairro ou oferta" autocomplete="off"></div>' +
             '<div id="cv-conversation-list" class="cv-inbox-list" aria-label="Lista de conversas"></div>' +
@@ -206,7 +208,6 @@
       }
       const z = zonaDaPessoa(p,db.lista("bairros"));
       get("cv-chat-head").innerHTML =
-        '<button type="button" class="cv-back" data-cv-back aria-label="Desmarcar conversa e voltar às regiões">Voltar às regiões</button>' +
         '<div class="cv-avatar cv-avatar-chat" aria-hidden="true">' +
         esc(nomePessoa(p).slice(0,1).toLocaleUpperCase("pt-BR")) + '</div><div class="cv-chat-person"><strong>' +
         esc(nomePessoa(p)) + '</strong><span>' + esc(z) + ' · Cadastro de colaborador</span></div>' +
@@ -271,11 +272,15 @@
         ativa = botao.dataset.cvOpen;
         renderDados();
         if (typeof window !== "undefined" && window.matchMedia("(max-width:850px)").matches)
-          raiz.querySelector(".cv-chat")?.scrollIntoView({block:"start"});
-      } else if (botao.hasAttribute("data-cv-back")) {
-        // Volta à visão geral sem perder as zonas selecionadas ou a busca.
+          raiz.querySelector(".cv-inbox-head")?.scrollIntoView({block:"start"});
+      } else if (botao.hasAttribute("data-cv-all")) {
+        // "Todas": nenhuma conversa ativa, sem busca nem filtro de região.
         ativa = null;
+        selecionadas.clear();
+        busca = "";
+        buscarEl.value = "";
         renderDados();
+        get("cv-conversation-list").scrollTop = 0;
         const painelRegioes = raiz.querySelector(".cv-inspector");
         if (painelRegioes) {
           painelRegioes.scrollTop = 0;
