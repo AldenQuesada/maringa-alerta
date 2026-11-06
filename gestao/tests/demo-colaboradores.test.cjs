@@ -80,6 +80,7 @@ test('não importa ajudantes para outra prefeitura e não mistura municípios',(
 
 test('cadastros simulados nunca podem virar destinos de brigada nem de pedidos reais, mesmo com disponibilidade alterada',()=>{
  const {db,storage}=preparar();
+ db.gravar('zonas',{nome:'Zona 7'});
  demo.garantir(db,storage);
  let p=db.lista('voluntarios').find(x=>x.zona==='Zona 7');
  assert.ok(p);
