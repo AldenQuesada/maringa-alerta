@@ -342,3 +342,17 @@ test("Pra Somar usa MARINGÁ Pra Somar no cabeçalho e remove o card flutuante, 
  assert.match(source,/if\(\$\("map-label"\)\)\$\("map-label"\)\.textContent=/);
  assert.match(html,/class="map-info"/,"card da tela Colaboradores permanece funcional");
 });
+
+test("Pra Somar oculta card e mostra MARINGÁ Pra Somar antes do app.js, inclusive com JS antigo no cache",()=>{
+ const html=require("node:fs").readFileSync("mapas/index.html","utf8");
+ const prefix=html.slice(0,html.indexOf("</head>"));
+ assert.match(prefix,/document\.documentElement\.classList\.add\("pagina-pra-somar"\)/);
+ assert.match(prefix,/html\.pagina-pra-somar \.map-info\{display:none!important\}/);
+ assert.match(prefix,/html\.pagina-pra-somar #map-brand-title\{display:none!important\}/);
+ assert.match(prefix,/html:not\(\.pagina-pra-somar\) #pra-somar-brand-title\{display:none!important\}/);
+ assert.match(html,/<strong id="pra-somar-brand-title">MARINGÁ Pra Somar<\/strong>/);
+ assert.match(html,/<strong id="map-brand-title">MARINGÁ ALERTA<\/strong>/);
+ assert.match(html,/class="map-info"/,"o card de Colaboradores continua disponível");
+ assert.ok(html.indexOf('classList.add("pagina-pra-somar")')<html.indexOf('class="map-info"'),
+   "a rota precisa ser detectada antes de renderizar o card");
+});

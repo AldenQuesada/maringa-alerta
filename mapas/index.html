@@ -4,6 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b111b">
+<script>
+/* Modo Pra Somar identificado antes dos assets cacheados do mapa. */
+if(new URLSearchParams(location.search).get("tipo")==="ajuda"){
+ document.documentElement.classList.add("pagina-pra-somar");
+}
+</script>
+<style>
+/* Retirar o card sobre o mapa mesmo com bundle JavaScript anterior em cache. */
+html.pagina-pra-somar .map-info{display:none!important}
+html.pagina-pra-somar #map-brand-title{display:none!important}
+html:not(.pagina-pra-somar) #pra-somar-brand-title{display:none!important}
+</style>
 <title>Mapas · Maringá Unida</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="./ficha-ponto.css?v=1">
@@ -14,7 +26,7 @@
 <body>
 <div class="layout">
  <header class="top">
-  <div class="brand"><a class="brand-link" href="../gestao/" title="Voltar à Gestão">M<span class="brand-dot">•</span></a><div class="brand-name"><strong id="map-brand-title">MARINGÁ ALERTA</strong><small>Sistema Integrado de Gestão de Crise</small></div></div>
+  <div class="brand"><a class="brand-link" href="../gestao/" title="Voltar à Gestão">M<span class="brand-dot">•</span></a><div class="brand-name"><strong id="map-brand-title">MARINGÁ ALERTA</strong><strong id="pra-somar-brand-title">MARINGÁ Pra Somar</strong><small>Sistema Integrado de Gestão de Crise</small></div></div>
   <nav class="maps-nav" aria-label="Trocar de mapa">
    <a href="../index.html" target="_blank" rel="noopener noreferrer">Evento <span aria-hidden="true">↗</span></a>
    <a id="nav-colaboradores" href="?tipo=colaboradores">Colaboradores</a>
