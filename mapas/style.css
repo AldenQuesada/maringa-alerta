@@ -66,3 +66,6 @@ select,input,textarea{background:#0d1724;border:1px solid #3c5065;color:var(--fg
 .mapa-ajuda .panel-heading{position:relative;padding-right:55px}
 .painel-ajuda-recolher{position:absolute;top:12px;right:12px;width:36px;height:36px;border:1px solid #455870;border-radius:7px;background:#101a27;color:#eaf0f6;font-size:23px;line-height:1}
 .painel-ajuda-recolher:hover{border-color:var(--accent)}
+
+.novo-colaborador-demo span{display:grid;place-items:center;width:30px;height:30px;border:2px solid #d4f2ff;border-radius:50%;background:#218be0;color:#fff;font-weight:800;font-size:23px;box-shadow:0 0 0 7px #218be055;animation:novo-colab-pulso 1.3s ease-in-out infinite}
+@keyframes novo-colab-pulso{50%{box-shadow:0 0 0 13px #218be011}}

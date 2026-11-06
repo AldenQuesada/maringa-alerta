@@ -28,3 +28,7 @@
  .maringa-territorio-control .territory-options{gap:5px}
  .maringa-territorio-control .territory-options label{font-size:10px}
 }
+
+.maringa-territorio-control .territory-toggle{float:right;display:grid;place-items:center;width:32px;height:32px;border:1px solid #455870;border-radius:6px;background:#101a27;color:#eaf0f6;font-size:22px;line-height:1;cursor:pointer}
+.maringa-territorio-control.territory-recolhido{width:auto;padding:3px;min-width:0}
+.maringa-territorio-control .territory-content[hidden]{display:none}

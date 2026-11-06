@@ -60,7 +60,7 @@ async function carregar(force=false){
  })().catch(err=>{memory=null;throw err;});
  return memory;
 }
-function iniciar({map,L,simulatedLayers=[]}){
+function iniciar({map,L,simulatedLayers=[],recolherInicial=false}){
  if(!map||!L)throw Error("Mapa Leaflet obrigatório");
  const control=L.control({position:"topleft"});
  let layerB=null,layerZ=null,selected=null,visibleB=true,visibleZ=false,showDemo=true,isDestroyed=false,data=null;
@@ -128,6 +128,14 @@ function iniciar({map,L,simulatedLayers=[]}){
   '<label><input type="checkbox" name="zonas"> Zonas cartográficas</label>'+
   '<label><input type="checkbox" name="demo" checked> 6 zonas operacionais demonstrativas</label></div>'+
   '<small class="territory-count">Aguardando fonte territorial</small>';
+  if(recolherInicial){
+   const conteudo=document.createElement("div");conteudo.className="territory-content";
+   while(box.firstChild)conteudo.append(box.firstChild);
+   const toggle=document.createElement("button");toggle.type="button";toggle.className="territory-toggle";toggle.textContent="+";
+   toggle.title="Abrir territórios";toggle.setAttribute("aria-label","Abrir territórios");toggle.setAttribute("aria-expanded","false");
+   conteudo.hidden=true;box.classList.add("territory-recolhido");box.append(toggle,conteudo);
+   toggle.onclick=()=>{conteudo.hidden=!conteudo.hidden;box.classList.toggle("territory-recolhido",conteudo.hidden);toggle.textContent=conteudo.hidden?"+":"−";toggle.title=conteudo.hidden?"Abrir territórios":"Recolher territórios";toggle.setAttribute("aria-label",toggle.title);toggle.setAttribute("aria-expanded",String(!conteudo.hidden));};
+  }
   L.DomEvent.disableClickPropagation(box);L.DomEvent.disableScrollPropagation(box);
   box.querySelector('[name="bairros"]').onchange=e=>{visibleB=e.target.checked;update();};
   box.querySelector('[name="zonas"]').onchange=e=>{visibleZ=e.target.checked;update();};
