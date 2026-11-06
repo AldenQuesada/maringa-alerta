@@ -1,7 +1,7 @@
 // cache minimo do shell do app para abrir mesmo sem internet depois do primeiro carregamento.
 // protocolo real de missao critica precisaria de fila de sincronizacao mais robusta (Background Sync API);
 // isto aqui cobre o caso mais comum: internet caiu, mas o navegador ja tinha a pagina aberta/carregada antes.
-const CACHE_NAME = "maringa-alerta-shell-v51";
+const CACHE_NAME = "maringa-alerta-shell-v52";
 const SHELL_FILES = ["./", "./index.html", "./evento/app.js?v=filtros-canonicos-1", "./evento/style.css?v=filtros-canonicos-1", "./gestao/dados.js?v=ficha-ponto-20261106", "./dados-territoriais/importacao-publica.js?v=apoios-1", "./dados-territoriais/maringa-bases-riscos-publicos.json", "./dados-territoriais/maringa-abrigos-publicos.json", "./mapas/inventario.js?v=ficha-ponto-20261106", "./cadastro-ocorrencia.js?v=4", "./cadastro-ocorrencia-mapa.js?v=3", "./cadastro-ocorrencia.css?v=3", "./filtros-cadastros.js?v=1", "./filtros-cadastros.css?v=1", "./crise/core.js?v=1", "./mapas/ficha-ponto.js?v=2", "./mapas/ficha-ponto.css?v=2", "./filtros-ocorrencias.js?v=1", "./filtros-ocorrencias.css?v=1", "./eventos-mapa.js?v=1", "./evento-referencias.js?v=2", "./evento-tornado-2026.js?v=1", "./painel-eventos.js?v=2", "./painel-eventos.css?v=5", "./operacao-restauracao.js?v=1", "./operacao-restauracao.css?v=1", "./gestao/acoes-cabecalho.js?v=mapas-filtros-2", "./gestao/acoes-cabecalho.css?v=acoes-2", "./dados-territoriais/camadas-mapas.js?v=territorio-2", "./fluxo-ajuda.js?v=sessoes-1", "./prototipo.css?v=evento-10", "./sessao.js?v=sessoes-1", "./sessao-ui.js?v=sessoes-2", "./sessao.css?v=sessoes-2", "./mapa-navegacao.js?v=zoom-arraste-1", "./mapa-navegacao.css?v=recuperacao-mapas-1"];
 
 self.addEventListener("install", (event) => {
@@ -29,16 +29,18 @@ self.addEventListener("fetch", (event) => {
   // Não armazenar tiles de terceiros neste cache do aplicativo.
   if (url.origin !== self.location.origin) return;
   const simulador = url.pathname.includes("/atendimento/");
+  const areaAutenticada = /\/(gestao|plataforma|mapas)\//.test(url.pathname);
   event.respondWith(
-    fetch(event.request, simulador ? { cache: "no-store" } : undefined)
+    fetch(event.request, simulador ? { cache: "no-store" } : areaAutenticada ? { cache: "no-store" } : undefined)
       .then((res) => {
-        if (res.ok) {
+        if (res.ok && !areaAutenticada && !url.searchParams.has("code")) {
           const copy = res.clone();
           event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)));
         }
         return res;
       })
       .catch(async () => {
+        if (areaAutenticada) return new Response("Gestão indisponível offline. Conecte-se à internet para acessar o Supabase.", { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" } });
         const cached = await caches.match(event.request);
         if (cached) return cached;
         if (event.request.mode === "navigate") {

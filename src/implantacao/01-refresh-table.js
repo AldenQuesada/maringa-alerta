@@ -64,7 +64,7 @@ function openEditor(x){
  '<input name="'+k+'" type="text" value="'+esc(x[k]??"")+'">')+'</label>').join("")+'</div>'+
  '<div class="mi-edit-actions"><button class="btn btn-primary" type="submit">Salvar conferência</button><button id="mi-cancel-edit" type="button" class="btn">Cancelar</button></div></form>';
  $("mi-cancel-edit").onclick=()=>{target.hidden=true;activeEdit=null;};
- $("mi-edit-form").onsubmit=e=>{e.preventDefault();const form=new FormData(e.currentTarget),v={...activeEdit};
+ $("mi-edit-form").onsubmit=async e=>{e.preventDefault();const form=new FormData(e.currentTarget),v={...activeEdit};
   for(const [k,value] of form.entries())v[k]=String(value).trim();
   const locationGiven=String(v.lat||"").trim()||String(v.lng||"").trim();
   const xy=C.normalizeCoordinates(v.lat,v.lng);
@@ -77,7 +77,7 @@ function openEditor(x){
    try{
     const module=tab,old=ctx.db.registro(module,activeEdit.id);
     if(old){const schema=D.ESQUEMAS[module];const fields={};for(const f of schema.fields)fields[f.key]=v[f.key]??old[f.key]??"";
-     ctx.db.gravar(module,fields,old.id);}
+     await ctx.db.gravar(module,fields,old.id);}
     else addStage(tab,[v]);
    }catch(err){notify(err.message);return;}
   }

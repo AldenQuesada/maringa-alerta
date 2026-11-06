@@ -13,6 +13,7 @@ const originalUrl=typeof document!=="undefined"&&document.currentScript?.src?
 const normal=x=>String(x??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
 const preenchido=x=>x!==undefined&&x!==null&&x!=="";
 function importar(db,documento){
+ if(db.tipo==="supabase")return Promise.resolve({novos:0,atualizados:0,preservados:0});
  if(db.municipioAtivo()?.codigo_ibge!=="4115200"||!documento||documento.municipio_ibge!=="4115200")return {novos:0,atualizados:0,preservados:0};
  const stats={novos:0,atualizados:0,preservados:0};
  for(const modulo of MODULES){

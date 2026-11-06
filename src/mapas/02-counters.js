@@ -28,10 +28,10 @@ function comandoBrigadas(){
  '<button type="submit" class="btn btn-main">Ativar brigada · simulação</button></form>'+
  '<div id="command-output" class="command-output" hidden></div><p class="notice">Um clique prepara a mobilização de todos os colaboradores e equipes disponíveis da zona. O envio individual pelo WhatsApp só ocorre após uma ação externa; a API de disparo ainda não está integrada.</p>';
  opts($("brigada-zona"),app.zonas(),filtroZona,'<option value="">Escolha a zona</option>');
- $("brigada-form").onsubmit=e=>{
+ $("brigada-form").onsubmit=async e=>{
   e.preventDefault();
   try{
-   const result=app.acionarBrigada($("brigada-zona").value,$("brigada-mensagem").value);
+   const result=await app.acionarBrigada($("brigada-zona").value,$("brigada-mensagem").value);
    const out=$("command-output");out.hidden=false;
    out.innerHTML='<strong>Mobilização preparada</strong><p>'+result.destinatarios.length+' destinatários na zona '+esc($("brigada-zona").value)+'. Nenhuma mensagem foi enviada automaticamente.</p>'+
     (result.envios.map(x=>'<div class="output-item"><span>'+esc(x.nome)+' · '+esc(x.tipo)+'</span>'+(x.link?'<a href="'+esc(x.link)+'" target="_blank" rel="noopener noreferrer">Abrir WhatsApp ↗</a>':'<span>Sem telefone</span>')+'</div>').join("")||'<div>Cadastre colaboradores ou equipes para essa zona.</div>');
@@ -54,10 +54,10 @@ function comandoPrefeituras(){
   $("inter-form").querySelector('button[type="submit"]').disabled=true;
   $("command-content").insertAdjacentHTML("beforeend",'<p class="notice">Cadastre outra prefeitura na <a href="../gestao/#prefeituras">Gestão</a> para simular o pedido.</p>');
  }
- $("inter-form").onsubmit=e=>{
+ $("inter-form").onsubmit=async e=>{
   e.preventDefault();
   try{
-   const x=app.solicitarOutraPrefeitura($("inter-destino").value,$("inter-recurso").value);
+   const x=await app.solicitarOutraPrefeitura($("inter-destino").value,$("inter-recurso").value);
    const out=$("command-output");out.hidden=false;
    out.innerHTML='<strong>Pedido preparado para '+esc(x.destino.nome)+'</strong>'+
     '<p>Registrado na prefeitura de origem; não transmitido ao destinatário.</p>'+
@@ -111,6 +111,7 @@ const cozinhasDemo=L.layerGroup().addTo(map);
 let cozinhasPontos=[],caminhaoDemo=null,simulacaoRodando=false,simulacaoIniciada=false,cicloAtivo=true,frameCaminhao=null,reinicioCaminhao=null,contadorDemo=0;
 const novosColaboradoresDemo=L.layerGroup().addTo(map);
 function iniciarCozinhasDemo(){
+ if(app.db.tipo==="supabase")return;
  if(TIPO!=="ajuda"||app.prefeitura()?.id!=="maringa")return;
  const candidatos=[...pontosBairrosOficiais.values()];
  cozinhasPontos=LogisticaDemo.selecionar(candidatos,20);
@@ -152,6 +153,7 @@ function abrirFichaCozinha(nome,ponto){
  ficha.scrollIntoView({block:"nearest",behavior:"smooth"});
 }
 function tentarIniciarCaminhao(){
+ if(app.db.tipo==="supabase")return;
  if(cicloAtivo&&!simulacaoIniciada&&cozinhasPontos.length&&INVENTARIO.registros(app.db).some(x=>x.modulo==="bases"&&x.categoria==="Centro de coleta de donativos"&&x.georreferenciado))iniciarCaminhaoDemo();
 }
 async function avisarNoDispositivo(mensagem){
@@ -163,6 +165,7 @@ async function avisarNoDispositivo(mensagem){
  }catch(_){console.warn("Não foi possível exibir o aviso do navegador.");}
 }
 function iniciarCaminhaoDemo(){
+ if(app.db.tipo==="supabase")return;
  if(simulacaoRodando)return;
  const base=INVENTARIO.registros(app.db).find(x=>x.modulo==="bases"&&x.categoria==="Centro de coleta de donativos"&&x.georreferenciado);
  if(!base||!cozinhasPontos.length){$("logistica-status").textContent="Aguarde o carregamento dos pontos para iniciar.";return;}
@@ -200,7 +203,7 @@ function render(){
  }else $("command").hidden=true;
 }
 if(TIPO==="ajuda"){
- $("logistica-demo").hidden=false;
+ $("logistica-demo").hidden=app.db.tipo==="supabase";
  $("avisos-navegador").addEventListener("click",async()=>{
   if(!("Notification" in window)){alertar("Notificações do navegador indisponíveis neste dispositivo.");return;}
   try{
@@ -240,7 +243,7 @@ $("filtro").onchange=()=>{filtroClasse=$("filtro").value;render();};
 $("busca").oninput=()=>{texto=$("busca").value;render();};
 window.addEventListener("storage",event=>{if(event.key===AlertaGestaoDados.CHAVE)location.reload();});
 PainelEventos.iniciar({painel:$("eventos-painel"),barra:$("eventos-painel-head"),abrir:$("eventos-open"),fechar:$("eventos-close"),area:document.querySelector(".map-area"),aoAbrir:()=>filtrosCadastros.atualizar()});
-if(globalThis.AlertaSessao&&globalThis.AlertaSessaoUI&&app.prefeitura())AlertaSessaoUI.criar({target:$("session-anchor"),sessao:AlertaSessao.criar({municipioId:app.prefeitura().id}),municipio:app.prefeitura().nome,zonas:app.zonas(),aoMudar:()=>{}});
+if(!globalThis.AlertaNuvem?.ativo&&globalThis.AlertaSessao&&globalThis.AlertaSessaoUI&&app.prefeitura())AlertaSessaoUI.criar({target:$("session-anchor"),sessao:AlertaSessao.criar({municipioId:app.prefeitura().id}),municipio:app.prefeitura().nome,zonas:app.zonas(),aoMudar:()=>{}});
 municipSelector();renderMunicipio();configurarCamadas();render();
 // O mesmo controlador atende Pra Somar e Colaboradores, sem usar a posição
 // acidentalmente persistida pelas versões anteriores.

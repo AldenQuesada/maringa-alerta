@@ -37,5 +37,31 @@ jobs:
           node --check gestao/catalogo-bairros.js
           node --check plataforma/modelo.js
           node --check plataforma/app.js
+          node --check backend/boot.js
+          node --check backend/repositorio.js
       - name: Executar testes funcionais
-        run: node --test tests/*.test.cjs gestao/tests/*.test.cjs crise/tests/*.test.cjs plataforma/tests/*.test.cjs
+        run: node --test tests/*.test.cjs gestao/tests/*.test.cjs crise/tests/*.test.cjs plataforma/tests/*.test.cjs tests/backend/*.test.cjs
+  permissoes-banco:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: teste-local-descartavel
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: teste-local-descartavel
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar migrações e isolamento no banco descartável
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/bootstrap-local.sql
+          for migration in supabase/migrations/*.sql; do
+            psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f "$migration"
+          done
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/permissoes.sql

@@ -18,8 +18,8 @@ function renderEquipeNoElemento(xs,el){
     '</div>').join("")+'</section>';
  }).join("")+'<p class="presence-note">Check-in local experimental: exige permissão GPS, precisão de até 100 m e polígono de bairro compatível. Não comprova identidade nem sincroniza entre dispositivos.</p>';
  el.querySelectorAll("[data-checkin]").forEach(b=>b.onclick=()=>void iniciarCheckin(b.dataset.checkin,b));
- el.querySelectorAll("[data-saida]").forEach(b=>b.onclick=()=>{
-  try{app.registrarSaida(b.dataset.saida);render();alertar("Saída registrada neste navegador.");}catch(err){alertar(err.message);}
+ el.querySelectorAll("[data-saida]").forEach(b=>b.onclick=async()=>{
+  try{await app.registrarSaida(b.dataset.saida);render();alertar("Saída registrada.");}catch(err){alertar(err.message);}
  });
 }
 async function iniciarCheckin(id,button){
@@ -33,7 +33,7 @@ async function iniciarCheckin(id,button){
   const f=dados?.bairros?.features?.find(x=>String(x.properties?.nome||"").localeCompare(bairro,"pt-BR",{sensitivity:"base"})===0);
   if(!f)throw Error("Bairro não encontrado na malha territorial. Confira o cadastro; não foi registrado check-in.");
   const coords=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(p=>resolve(p.coords),reject,{enableHighAccuracy:true,maximumAge:0,timeout:20000}));
-  app.registrarCheckin({colaboradorId:id,bairro,lat:coords.latitude,lng:coords.longitude,precisao:coords.accuracy,geometry:f.geometry,origem:dados.bairros.source});
+  await app.registrarCheckin({colaboradorId:id,bairro,lat:coords.latitude,lng:coords.longitude,precisao:coords.accuracy,geometry:f.geometry,origem:dados.bairros.source});
   render();alertar("Check-in registrado no bairro "+bairro+" neste navegador.");
  }catch(err){alertar("Check-in não confirmado: "+(err.message||"GPS indisponível"));button.disabled=false;button.textContent="Check-in GPS";}
 }
@@ -41,7 +41,7 @@ function renderCards(xs) {
  const el=$("results");$("list-count").textContent=xs.length+" registro"+(xs.length===1?"":"s");
  if(camadaAtual!=="principal"){
   el.innerHTML=xs.map(x=>'<article class="result canonical-result"><div class="result-top"><strong>'+esc(x.nome)+'</strong><span class="result-tag">'+esc(x.classe)+'</span></div><small>'+esc(x.moduloNome)+' · '+esc(x.zona||x.bairro||"Sem zona vinculada")+'</small><small>'+esc(x.detalhes.slice(0,180))+'</small><div class="canonical-actions">'+(x.georreferenciado?'<button type="button" data-loc="'+esc(x.chave)+'">Localizar</button>':'<small>Sem coordenadas</small>')+'<a href="../gestao/#'+encodeURIComponent(x.modulo)+'" target="_blank" rel="noopener">Abrir cadastro</a></div></article>').join("")||'<p class="empty">Nenhum registro neste filtro.</p>';
-  el.querySelectorAll("[data-loc]").forEach(b=>b.onclick=()=>{const x=xs.find(y=>y.chave===b.dataset.loc);if(x?.georreferenciado)map.flyTo([x.lat,x.lng],Math.max(map.getZoom(),15));});
+  el.querySelectorAll("[data-loc]").forEach(b=>b.onclick=async()=>{const x=xs.find(y=>y.chave===b.dataset.loc);if(x?.georreferenciado)map.flyTo([x.lat,x.lng],Math.max(map.getZoom(),15));});
   return;
  }
  if(TIPO==="colaboradores"){renderEquipePorBairro(xs);return;}

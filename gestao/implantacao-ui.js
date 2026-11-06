@@ -148,7 +148,7 @@ function openEditor(x){
  '<input name="'+k+'" type="text" value="'+esc(x[k]??"")+'">')+'</label>').join("")+'</div>'+
  '<div class="mi-edit-actions"><button class="btn btn-primary" type="submit">Salvar conferência</button><button id="mi-cancel-edit" type="button" class="btn">Cancelar</button></div></form>';
  $("mi-cancel-edit").onclick=()=>{target.hidden=true;activeEdit=null;};
- $("mi-edit-form").onsubmit=e=>{e.preventDefault();const form=new FormData(e.currentTarget),v={...activeEdit};
+ $("mi-edit-form").onsubmit=async e=>{e.preventDefault();const form=new FormData(e.currentTarget),v={...activeEdit};
   for(const [k,value] of form.entries())v[k]=String(value).trim();
   const locationGiven=String(v.lat||"").trim()||String(v.lng||"").trim();
   const xy=C.normalizeCoordinates(v.lat,v.lng);
@@ -161,7 +161,7 @@ function openEditor(x){
    try{
     const module=tab,old=ctx.db.registro(module,activeEdit.id);
     if(old){const schema=D.ESQUEMAS[module];const fields={};for(const f of schema.fields)fields[f.key]=v[f.key]??old[f.key]??"";
-     ctx.db.gravar(module,fields,old.id);}
+     await ctx.db.gravar(module,fields,old.id);}
     else addStage(tab,[v]);
    }catch(err){notify(err.message);return;}
   }
@@ -258,7 +258,7 @@ async function saveAll(){
  if(!Object.values(stage.grupos).some(v=>v.length)&&!packageData.municipioGeo){notify("Não há dados novos para salvar.");return;}
  if(!confirm("Salvar a implantação no armazenamento deste navegador? Registros já validados não serão sobrescritos. Nenhuma prefeitura externa será notificada."))return;
  try{
-  const result=ctx.db.implantarPacote(packageData);
+  const result=await ctx.db.implantarPacote(packageData);
   stage.grupos={};stage.geo=null;stage.ibge=null;
   const total=Object.values(result.totais).reduce((n,x)=>n+x.novos+x.atualizados,0);
   log("Salvamento",total+" registros gravados ou atualizados. Faça a validação operacional antes de usar.","ok");
@@ -309,7 +309,7 @@ function openRH(person=null,reference=null){
  parent.querySelector('[name="orgao"]').setAttribute("list","rh-orgs");
  parent.querySelector('[name="zona"]').setAttribute("list","rh-zones");
  $("rh-cancel").onclick=()=>{parent.hidden=true;rhEdit=null;};
- $("rh-form").onsubmit=e=>{
+ $("rh-form").onsubmit=async e=>{
   e.preventDefault();const form=e.currentTarget,data=new FormData(form),obj={};
   for(const [k,v] of data.entries()){
    if(k==="papeis"){obj.papeis??=[];obj.papeis.push(v);}
@@ -319,7 +319,7 @@ function openRH(person=null,reference=null){
   if(!obj.nome||!obj.funcao){notify("Nome e função são obrigatórios.");return;}
   obj.papeis=obj.papeis.filter(k=>k!==obj.funcao);
   try{
-   ctx.db.gravar("pessoas",obj,rhEdit);
+   await ctx.db.gravar("pessoas",obj,rhEdit);
    rhEdit=null;notify("Pessoa cadastrada na hierarquia local.");renderRH();
   }catch(err){notify(err.message);}
  };

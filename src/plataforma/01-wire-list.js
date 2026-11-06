@@ -28,14 +28,14 @@ function openEditor(id=null){
   const record=formCities.find(x=>String(x.id)===$("field-city").value);
   $("field-code").value=String(record?.id||"");
  };}
- $("city-form").onsubmit=e=>{e.preventDefault();
+ $("city-form").onsubmit=async e=>{e.preventDefault();
   const fd=new FormData(e.currentTarget),uf=original?.uf||String(fd.get("uf")||selectedUF);
   const selected=original?{id:original.codigo_ibge,nome:original.nome,uf:{sigla:uf}}:formCities.find(x=>String(x.id)===$("field-city").value);
   if(!selected){notice("Selecione uma Prefeitura consultada no IBGE.");return;}
   try{
-   const p=central.gravarPrefeitura({uf,estado:nameUF(uf),cidade:selected,
+   const p=await central.gravarPrefeitura({uf,estado:nameUF(uf),cidade:selected,
      adminMunicipal:fd.get("admin"),email:fd.get("email"),telefone:fd.get("telefone"),status:fd.get("status")},editing);
-   editing=null;notice("Prefeitura "+p.nome+" salva neste navegador.");renderMunicipios();
+   editing=null;notice("Prefeitura "+p.nome+(window.AlertaNuvem?.ativo?" salva no Supabase.":" salva neste navegador."));renderMunicipios();
   }catch(err){notice(err.message);}
  };
 }

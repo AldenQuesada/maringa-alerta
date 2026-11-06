@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="backend-pendente">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -27,6 +27,7 @@ html:not(.pagina-pra-somar) #pra-somar-brand-title{display:none!important}
 <link rel="stylesheet" href="./style.css?v=0b8ccd311a18">
 <link rel="stylesheet" href="../dados-territoriais/camadas-mapas.css?v=territorio-2">
 <link rel="stylesheet" href="../mapa-navegacao.css?v=recuperacao-mapas-1">
+<link rel="stylesheet" href="../backend/boot.css?v=1">
 </head>
 <body>
 <div class="layout">
@@ -79,22 +80,26 @@ html:not(.pagina-pra-somar) #pra-somar-brand-title{display:none!important}
  </main>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script type="application/x-maringa-modulo" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="../gestao/dados.js?v=ficha-ponto-20261106"></script>
-<script src="../crise/core.js?v=ficha-ponto-20261106"></script>
-<script src="../dados-territoriais/camadas-mapas.js?v=territorio-3"></script>
-<script src="../dados-territoriais/importacao-publica.js?v=abrigos-1"></script>
-<script src="./inventario.js?v=ficha-ponto-20261106"></script>
-<script src="../operacao-restauracao.js?v=1"></script>
-<script src="../mapa-navegacao.js?v=zoom-arraste-1"></script>
-<script src="./colaboradores-referencia.js?v=2"></script>
-<script src="./logistica-demo.js?v=1"></script>
-<script src="./ficha-ponto.js?v=2"></script>
-<script src="../gestao/acoes-cabecalho.js?v=mapas-filtros-2"></script>
-<script src="../sessao.js?v=sessoes-1"></script>
-<script src="../sessao-ui.js?v=sessoes-2"></script>
-<script src="../painel-eventos.js?v=2"></script>
-<script src="../filtros-cadastros.js?v=1"></script>
-<script src="./app.js?v=filtros-canonicos-1"></script>
+<script type="application/x-maringa-modulo" src="../crise/core.js?v=ficha-ponto-20261106"></script>
+<script type="application/x-maringa-modulo" src="../dados-territoriais/camadas-mapas.js?v=territorio-3"></script>
+<script type="application/x-maringa-modulo" src="../dados-territoriais/importacao-publica.js?v=abrigos-1"></script>
+<script type="application/x-maringa-modulo" src="./inventario.js?v=ficha-ponto-20261106"></script>
+<script type="application/x-maringa-modulo" src="../operacao-restauracao.js?v=1"></script>
+<script type="application/x-maringa-modulo" src="../mapa-navegacao.js?v=zoom-arraste-1"></script>
+<script type="application/x-maringa-modulo" src="./colaboradores-referencia.js?v=2"></script>
+<script type="application/x-maringa-modulo" src="./logistica-demo.js?v=1"></script>
+<script type="application/x-maringa-modulo" src="./ficha-ponto.js?v=2"></script>
+<script type="application/x-maringa-modulo" src="../gestao/acoes-cabecalho.js?v=mapas-filtros-2"></script>
+<script type="application/x-maringa-modulo" src="../sessao.js?v=sessoes-1"></script>
+<script type="application/x-maringa-modulo" src="../sessao-ui.js?v=sessoes-2"></script>
+<script type="application/x-maringa-modulo" src="../painel-eventos.js?v=2"></script>
+<script type="application/x-maringa-modulo" src="../filtros-cadastros.js?v=1"></script>
+<script type="application/x-maringa-modulo" src="./app.js?v=filtros-canonicos-1"></script>
+<script src="../backend/vendor/supabase-2.119.0.js"></script>
+<script src="../backend/config.js?v=1"></script>
+<script src="../backend/repositorio.js?v=1"></script>
+<script src="../backend/boot.js?v=1" data-area="mapas"></script>
 </body>
 </html>

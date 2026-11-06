@@ -35,10 +35,10 @@ function waLink(numero,mensagem) {
  const full=n.startsWith("55")?n:"55"+n;
  return "https://wa.me/"+full+"?text="+encodeURIComponent(String(mensagem||"").slice(0,LIMITE_MENSAGEM));
 }
-function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal=false}={}) {
+function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal=false,repositorio=null}={}) {
  const D=root.AlertaGestaoDados;
  if(!D)throw Error("Carregue gestao/dados.js primeiro.");
- const db=D.criar(armazenamento,escopoMunicipal&&municipioId?{municipioId}:{});
+ const db=repositorio||D.criar(armazenamento,escopoMunicipal&&municipioId?{municipioId}:{});
  if(municipioId&&db.municipioAtivo()?.id!==municipioId&&!escopoMunicipal)db.selecionarMunicipio(municipioId);
  const prefeitura=()=>db.municipioAtivo();
  function zonas() {

@@ -41,7 +41,7 @@ function openRH(person=null,reference=null){
  parent.querySelector('[name="orgao"]').setAttribute("list","rh-orgs");
  parent.querySelector('[name="zona"]').setAttribute("list","rh-zones");
  $("rh-cancel").onclick=()=>{parent.hidden=true;rhEdit=null;};
- $("rh-form").onsubmit=e=>{
+ $("rh-form").onsubmit=async e=>{
   e.preventDefault();const form=e.currentTarget,data=new FormData(form),obj={};
   for(const [k,v] of data.entries()){
    if(k==="papeis"){obj.papeis??=[];obj.papeis.push(v);}
@@ -51,7 +51,7 @@ function openRH(person=null,reference=null){
   if(!obj.nome||!obj.funcao){notify("Nome e função são obrigatórios.");return;}
   obj.papeis=obj.papeis.filter(k=>k!==obj.funcao);
   try{
-   ctx.db.gravar("pessoas",obj,rhEdit);
+   await ctx.db.gravar("pessoas",obj,rhEdit);
    rhEdit=null;notify("Pessoa cadastrada na hierarquia local.");renderRH();
   }catch(err){notify(err.message);}
  };

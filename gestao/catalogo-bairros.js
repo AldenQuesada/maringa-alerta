@@ -52,7 +52,7 @@ async function render(){
   const existentes=new Set(db().lista("zonas").map(x=>norm(x.nome)));
   const faltantes=oficiais.filter(x=>!existentes.has(norm(x.nome))).map(x=>({...x,tipo:"Zona numerada",verificacao:"Em conferência"}));
   if(faltantes.length){
-   try{db().importarLote("zonas",faltantes);}catch(err){/* A consulta continua acessível mesmo quando o navegador não permite salvar. */}
+   try{if(db().tipo==="supabase")return;db().importarLote("zonas",faltantes);}catch(err){/* A consulta continua acessível mesmo quando o navegador não permite salvar. */}
   }
  }
  const registros=db().lista(type);

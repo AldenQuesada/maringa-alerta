@@ -86,6 +86,7 @@ function renderMunicipio(){
  zoneSelect();setTimeout(()=>map.invalidateSize(),100);
 }
 function colaboradoresDisponiveis(){
+ if(app.db.tipo==="supabase")return app.oferentes();
  const municipio=app.prefeitura()?.id;
  const anterior=municipio?OperacaoRestauracao.ler(localStorage,`alerta_prototipo_v2_${municipio}_operacao`,municipio):null;
  return ColaboradoresReferencia.listar(app.oferentes(),anterior);

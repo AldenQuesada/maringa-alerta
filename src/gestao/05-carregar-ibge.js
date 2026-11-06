@@ -36,7 +36,7 @@ async function geocodificarPrefeitura(item) {
    const [south,north,west,east]=bb,dy=Math.max((north-south)*.06,.002),dx=Math.max((east-west)*.06,.002);
    geo.bbox=[south-dy,north+dy,west-dx,east+dx];
   }
-  db.atualizarGeo(item.id,geo);
+  await db.atualizarGeo(item.id,geo);
   if(atual==="prefeituras")renderModulo();
  }catch(_){/* O cadastro permanece salvo mesmo sem geocodificação externa. */}
 }
@@ -45,19 +45,19 @@ function toast(msg){
  if(toastTimer)clearTimeout(toastTimer);
  toastTimer=setTimeout(()=>{el.hidden=true;},2800);
 }
-function excluir(id){
+async function excluir(id){
  const item=db.registro(atual,id);if(!item)return;
  const label=item.nome||item.identificacao||"este registro";
  if(!confirm('Excluir "'+label+'"?'))return;
- try{const anterior=db.municipioAtivo()?.id;db.excluir(atual,id);if(atual==="prefeituras"){renderMunicipios();if(anterior!==db.municipioAtivo()?.id){location.reload();return;}}render();if(atual==="bairros")window.dispatchEvent(new Event("gestao:bairros-atualizados"));toast("Cadastro excluído.");}catch(e){toast(e.message);}
+ try{const anterior=db.municipioAtivo()?.id;await db.excluir(atual,id);if(atual==="prefeituras"){renderMunicipios();if(anterior!==db.municipioAtivo()?.id){location.reload();return;}}render();if(atual==="bairros")window.dispatchEvent(new Event("gestao:bairros-atualizados"));toast("Cadastro excluído.");}catch(e){toast(e.message);}
 }
-FORM.addEventListener("submit",e=>{
+FORM.addEventListener("submit",async e=>{
  e.preventDefault();const modulo=drawerModulo||atual;
  const data={};
  for(const [k,v] of new FormData(FORM).entries()){if(Object.hasOwn(data,k))data[k]=[].concat(data[k],v);else data[k]=v;}
  for(const f of D.ESQUEMAS[modulo].fields)if(f.type==="multi")data[f.key]=Array.isArray(data[f.key])?data[f.key]:data[f.key]?[data[f.key]]:[];
  try{
-  const item=db.gravar(modulo,data,edicao);
+  const item=await db.gravar(modulo,data,edicao);
   const novo=!edicao;
   fecharDrawer();
   if(modulo==="prefeituras")renderMunicipios();
@@ -65,8 +65,8 @@ FORM.addEventListener("submit",e=>{
   if(novo&&modulo==="prefeituras")geocodificarPrefeitura(item);
  }catch(err){$("form-error").textContent=err.message;}
 });
-PAGE.addEventListener("click",e=>{
- if(e.target.closest('[data-importar-tornado]')){try{EventoTornado2026.importar(db);render();toast('Evento histórico disponível no cadastro.');}catch(err){toast(err.message||'Não foi possível importar.');}return;}
+PAGE.addEventListener("click",async e=>{
+ if(e.target.closest('[data-importar-tornado]')){try{if(db.tipo==="supabase")throw Error("Eventos demonstrativos não são enviados ao Supabase.");EventoTornado2026.importar(db);render();toast('Evento histórico disponível no cadastro.');}catch(err){toast(err.message||'Não foi possível importar.');}return;}
 
  const novo=e.target.closest("[data-new]");
  const edit=e.target.closest("[data-edit]");
@@ -131,7 +131,7 @@ abrirMapa.addEventListener("click",e=>{
  if(win){try{win.opener=null;win.focus();}catch(_){}}
  else{const fallback=document.createElement("a");fallback.href=abrirMapa.href;fallback.target="_blank";fallback.rel="noopener noreferrer";document.body.appendChild(fallback);fallback.click();fallback.remove();}
 });
-if(globalThis.AlertaSessao&&globalThis.AlertaSessaoUI&&db.municipioAtivo()){
+if(!window.AlertaNuvem?.ativo&&globalThis.AlertaSessao&&globalThis.AlertaSessaoUI&&db.municipioAtivo()){
  try{
   const local=AlertaSessao.criar({municipioId:db.municipioAtivo().id});
   AlertaSessaoUI.criar({target:$("session-anchor"),sessao:local,municipio:db.municipioAtivo().nome,zonas:db.lista("zonas").map(x=>x.nome),aoMudar:()=>{}});
