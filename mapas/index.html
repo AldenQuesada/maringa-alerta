@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b111b">
 <title>Mapas · Maringá Unida</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="./style.css?v=26683f7a63c1">
+<link rel="stylesheet" href="./style.css?v=503170f1e843">
 <link rel="stylesheet" href="../dados-territoriais/camadas-mapas.css?v=territorio-1">
 <link rel="stylesheet" href="../mapa-navegacao.css?v=vista-fixa-1">
 </head>
@@ -26,7 +26,8 @@
    <div id="map" role="application" aria-label="Mapa por zonas"></div>
    <button id="painel-ajuda-toggle" class="painel-ajuda-toggle" type="button" aria-controls="painel-ajuda" aria-expanded="true" aria-label="Recolher painel" title="Recolher painel" hidden>−</button>
    <div class="map-info"><span class="signal"></span><span id="map-label">Mapa</span><small>Dados locais de demonstração · sem envio real</small></div>
-   <div class="map-legend"><span><i class="color-collab"></i>Colaboradores</span><span><i class="color-help"></i>Pedidos</span><span>Marcadores por zona</span></div>
+   <div id="notificacao-chegada" class="notificacao-chegada" role="status" hidden><strong>Chegada simulada</strong><button id="notificacao-fechar" type="button" aria-label="Fechar notificação">×</button><p id="notificacao-texto"></p></div>
+   <div class="map-legend"><span><i class="color-collab"></i>Colaboradores</span><span><i class="color-help"></i>Pedidos</span><span>Localização aproximada quando sem GPS</span><span id="legenda-cozinhas" hidden>🍲 Cozinhas simuladas</span></div>
   </div>
   <aside id="painel-ajuda" class="sidebar">
    <header class="panel-heading"><p class="eyebrow" id="eyebrow">MAPA</p><h1 id="title">Colaboradores</h1><p id="subtitle">Capacidades disponíveis por zona.</p></header>
@@ -43,6 +44,7 @@
     <div class="filter-search"><label for="busca">Buscar</label><input id="busca" type="search" placeholder="Alimentos, telhas, limpeza..."></div>
     <label class="filter-toggle"><input type="checkbox" id="mostrar-unidades" checked> <span id="mostrar-unidades-texto">Mostrar unidades e recursos</span></label>
    </section>
+   <section id="logistica-demo" class="logistica-demo" hidden><button id="iniciar-caminhao" type="button">Simular caminhão</button><span id="logistica-status" role="status">20 cozinhas demonstrativas</span></section>
    <div class="list-heading"><strong id="list-title">Registros</strong><span id="list-count">0</span></div>
    <div class="results" id="results" aria-live="polite"></div>
    <section class="command" id="command">
@@ -62,6 +64,7 @@
 <script src="../operacao-restauracao.js?v=1"></script>
 <script src="../mapa-navegacao.js?v=vista-fixa-1"></script>
 <script src="./colaboradores-referencia.js?v=1"></script>
-<script src="./app.js?v=a15f97911895"></script>
+<script src="./logistica-demo.js?v=1"></script>
+<script src="./app.js?v=e7e8103c981e"></script>
 </body>
 </html>
