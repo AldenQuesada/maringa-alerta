@@ -43,6 +43,7 @@ function simularMapa(w=1440,h=900){
  const map={
   width:w,height:h,zoom:13,minZoom:0,center:{lat:-23.4205,lng:-51.9333},options:{zoomSnap:0},
   zoomControl:{getContainer:()=>container},
+  dragging:{enabled:true,disable(){this.enabled=false;}},
   getSize(){return point(this.width,this.height)},project,unproject,
   getBoundsZoom(b,inside,padding=point(0,0)){
    assert.equal(inside,false,"o municipio precisa caber na tela, nunca o contrario");
@@ -245,4 +246,15 @@ test("a vista original do usuário não altera os dados do mapa e rejeita coorde
  const {map,L}=simularMapa();
  instalarVistaSalva({map,L,armazenamento:storage,chaveVista:"maringa_pra_somar_vista_original_v1"});
  assert.deepEqual(map.center,{lat:-23.4205,lng:-51.9333},"coordenadas fora de Maringá não podem reposicionar o mapa");
+});
+
+test("o arraste é bloqueado tanto no Evento quanto no Pra Somar",()=>{
+ const {instalarVistaSalva}=require("../mapa-navegacao.js");
+ const {map:evento,L}=simularMapa();
+ instalar({map:evento,L,zonas:POLIGONOS});
+ assert.equal(evento.dragging.enabled,false);
+ const {map:ajuda,L:outroL}=simularMapa();
+ const local={getItem:()=>null,setItem:()=>{}};
+ instalarVistaSalva({map:ajuda,L:outroL,armazenamento:local,chaveVista:"maringa_pra_somar_vista_original_v1"});
+ assert.equal(ajuda.dragging.enabled,false);
 });

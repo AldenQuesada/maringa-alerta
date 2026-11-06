@@ -57,6 +57,7 @@
     const limitesVisaoGeral = L.latLngBounds(zonas.flat());
     let zoomGeralAnterior = null;
     let vistaSalva=lerVista(armazenamento,chaveVista);
+    map.dragging?.disable?.(); // Câmara fixa: usuário não pode arrastar o mapa para cima/baixo/lados.
 
     function margem() {
       const tamanho = map.getSize();
@@ -135,6 +136,7 @@
 
   // No Pra Somar a vista é travada automaticamente, sem botão extra e sem exigir cliques.
   function instalarVistaSalva({map,L,armazenamento,chaveVista}){
+    map.dragging?.disable?.(); // No Pra Somar também não é permitido arrastar o mapa.
     let vista=lerVista(armazenamento,chaveVista);
     if(!vista)vista=capturarVista(map,armazenamento,chaveVista);
     aplicarVista(map,L,vista);
