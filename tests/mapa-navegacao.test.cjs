@@ -43,7 +43,7 @@ function simularMapa(w=1440,h=900){
  const map={
   width:w,height:h,zoom:13,minZoom:0,center:{lat:-23.4205,lng:-51.9333},options:{zoomSnap:0},
   zoomControl:{getContainer:()=>container},
-  dragging:{enabled:true,disable(){this.enabled=false;}},
+  dragging:{enabled:true,disable(){this.enabled=false;},enable(){this.enabled=true;}},
   getSize(){return point(this.width,this.height)},project,unproject,
   getBoundsZoom(b,inside,padding=point(0,0)){
    assert.equal(inside,false,"o municipio precisa caber na tela, nunca o contrario");
@@ -100,7 +100,7 @@ test("a vista inicial inclui Vila Esperança e todas as seis zonas com margem",(
  const {map,L,container}=simularMapa();
  const nav=instalar({map,L,zonas:POLIGONOS});
  visaoIncluiTodasAsZonas(map);
- assert.equal(nav.botao.attributes["aria-label"],"Voltar à vista inicial de Maringá");
+ assert.equal(nav.botao.attributes["aria-label"],"Voltar à posição original");
  assert.equal(container.children.length,1);
  assert.equal(map.options.maxBoundsViscosity,1);
  assert.ok(nav.limites.getNorth()>=-23.374);
@@ -145,15 +145,16 @@ test("acionamento por espaço retorna para a vista completa",()=>{
  assert.equal(evt.stopped,true);
  visaoIncluiTodasAsZonas(map);
 });
-test("sem arrastar o mapa além do enquadramento inicial, mesmo em modo legado",()=>{
+test("limites permitem a movimentação dentro de Maringá para busca e filtros",()=>{
  const {map,L}=simularMapa(1024,768);
  instalar({map,L,zonas:POLIGONOS});
- const viewport=map.getBounds(),limite=map.maxBounds,epsilon=1e-7;
- for(const lado of ["North","South","East","West"])
-  assert.ok(Math.abs(limite["get"+lado]()-viewport["get"+lado]())<epsilon,"limite "+lado+" não coincide com a vista original");
+ assert.ok(map.maxBounds.getSouth()<=AREA_MARINGA[0][0]);
+ assert.ok(map.maxBounds.getNorth()>=AREA_MARINGA[1][0]);
+ assert.ok(map.maxBounds.getWest()<=AREA_MARINGA[0][1]);
+ assert.ok(map.maxBounds.getEast()>=AREA_MARINGA[1][1]);
+ assert.equal(map.dragging.enabled,true);
  assert.equal(map.getMinZoom(),map.getZoom());
 });
-
 
 test("zoom preciso reduz o espaço vazio superior sem cortar Vila Esperança no desktop",()=>{
  for(const [w,h] of [[1440,900],[1024,768],[1920,1080]]) {
@@ -179,82 +180,47 @@ test("o botão de centralizar retorna à mesma escala precisa em vez do zoom 13 
  visaoIncluiTodasAsZonas(map);
 });
 
-test("Mapa de Evento fixa a posição na abertura, não cria botão extra e retorna à origem",()=>{
- const {map,L,container}=simularMapa();
- const memoria=new Map();
- const storage={getItem:k=>memoria.get(k)||null,setItem:(k,v)=>memoria.set(k,String(v))};
- const chave="maringa_mapa_evento_vista_original_v1";
- const nav=instalar({map,L,zonas:POLIGONOS,armazenamento:storage,chaveVista:chave});
- assert.equal(container.children.length,1,"Somente o botão original junto aos controles + e -");
- assert.equal(nav.botaoSalvar,undefined,"Não pode existir a etapa extra Fixar");
- const salvo=JSON.parse(memoria.get(chave));
- assert.equal(salvo.zoom,map.getZoom());
- assert.equal(salvo.lat,map.getCenter().lat);
- assert.equal(salvo.lng,map.getCenter().lng);
- assert.equal(map.getMinZoom(),salvo.zoom);
- assert.ok(Math.abs(map.maxBounds.getNorth()-map.getBounds().getNorth())<1e-7);
- map.setView([-23.398,-51.934],salvo.zoom+2);
- nav.botao.events.click({stopped:false});
- assert.equal(map.zoom,salvo.zoom);
- assert.deepEqual(map.center,{lat:salvo.lat,lng:salvo.lng});
- const novo=simularMapa();
- instalar({map:novo.map,L:novo.L,zonas:POLIGONOS,armazenamento:storage,chaveVista:chave});
- assert.equal(novo.map.zoom,salvo.zoom);
- assert.deepEqual(novo.map.center,{lat:salvo.lat,lng:salvo.lng});
- assert.equal(novo.map.getMinZoom(),salvo.zoom);
-});
-test("Pra Somar trava automaticamente na posição inicial e mantém câmera independente do Evento",()=>{
- const {instalarVistaSalva}=require("../mapa-navegacao.js");
- const m=new Map();
- const storage={getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,String(v))};
- const ev=simularMapa(),help=simularMapa();
- const chaveEvento="maringa_mapa_evento_vista_original_v1";
- const chaveAjuda="maringa_pra_somar_vista_original_v1";
- // Posição anterior já salva em uma sessão anterior: deve ser preservada exatamente.
- m.set(chaveEvento,JSON.stringify({version:1,lat:-23.405,lng:-51.94,zoom:15,
-  bounds:[[-23.414,-51.952],[-23.396,-51.928]]}));
- instalar({map:ev.map,L:ev.L,zonas:POLIGONOS,armazenamento:storage,chaveVista:chaveEvento});
- help.map.setView([-23.415,-51.93],12.5);
- const b=instalarVistaSalva({map:help.map,L:help.L,armazenamento:storage,chaveVista:chaveAjuda});
- assert.equal(help.container.children.length,1,"Somente botão voltar, sem Fixar");
- assert.equal(b.botaoSalvar,undefined);
- assert.equal(help.map.getMinZoom(),12.5);
- assert.equal(help.map.maxBounds.getNorth(),help.map.getBounds().getNorth());
- help.map.setView([-23.41,-51.928],16);b.restaurar();
- assert.equal(help.map.zoom,12.5);
- assert.deepEqual(help.map.center,{lat:-23.415,lng:-51.93});
- assert.equal(JSON.parse(m.get(chaveEvento)).zoom,15);
- assert.equal(ev.map.zoom,15);
- const helpReload=simularMapa();
- instalarVistaSalva({map:helpReload.map,L:helpReload.L,armazenamento:storage,chaveVista:chaveAjuda});
- assert.equal(helpReload.map.getMinZoom(),12.5);
- assert.deepEqual(helpReload.map.center,{lat:-23.415,lng:-51.93});
-});
-test("a interface tem só zoom positivo e botão de retorno, sem botão Fixar",()=>{
- const css=require("node:fs").readFileSync("mapa-navegacao.css","utf8");
- const nav=require("node:fs").readFileSync("mapa-navegacao.js","utf8");
- assert.match(css,/\.leaflet-control-zoom\.camera-original-fixa \.leaflet-control-zoom-out/);
- assert.doesNotMatch(nav,/botaoFixar|botaoSalvar|Fixar esta posição/);
- assert.match(nav,/map\.setMaxBounds\(L\.latLngBounds\(v\.bounds\)\)/);
-});
-test("a vista original do usuário não altera os dados do mapa e rejeita coordenadas inválidas",()=>{
- const {instalarVistaSalva}=require("../mapa-navegacao.js");
- const store=new Map([["maringa_pra_somar_vista_original_v1",JSON.stringify({
-   version:1,lat:45,lng:120,zoom:18,bounds:[[44,119],[46,121]]
- })]]);
- const storage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,String(v))};
- const {map,L}=simularMapa();
- instalarVistaSalva({map,L,armazenamento:storage,chaveVista:"maringa_pra_somar_vista_original_v1"});
- assert.deepEqual(map.center,{lat:-23.4205,lng:-51.9333},"coordenadas fora de Maringá não podem reposicionar o mapa");
-});
 
-test("o arraste é bloqueado tanto no Evento quanto no Pra Somar",()=>{
+test("Evento recupera zoom, arraste e retorno sem ler preferências antigas incorretas",()=>{
+ const {map,L,container}=simularMapa();
+ const storage={getItem:()=>{throw Error("Câmera não deve ler storage legado");},
+  setItem:()=>{throw Error("Câmera não deve gravar storage automaticamente");}};
+ const nav=instalar({map,L,zonas:POLIGONOS,armazenamento:storage,chaveVista:"maringa_mapa_evento_vista_original_v1"});
+ assert.equal(container.children.length,1,"Apenas botão retornar: nenhuma etapa de fixar posição");
+ assert.equal(map.dragging.enabled,true);
+ const home={...map.center,zoom:map.zoom};
+ map.setView([-23.403,-51.937],home.zoom+2);
+ nav.botao.events.click({stopped:false});
+ assert.equal(map.zoom,home.zoom);
+ assert.ok(Math.abs(map.center.lat-home.lat)<1e-7);
+ assert.ok(Math.abs(map.center.lng-home.lng)<1e-7);
+ assert.equal(map.getMinZoom(),home.zoom);
+});
+test("Pra Somar e Colaboradores recebem a mesma navegação sem reutilizar posição errada",()=>{
  const {instalarVistaSalva}=require("../mapa-navegacao.js");
- const {map:evento,L}=simularMapa();
- instalar({map:evento,L,zonas:POLIGONOS});
- assert.equal(evento.dragging.enabled,false);
- const {map:ajuda,L:outroL}=simularMapa();
- const local={getItem:()=>null,setItem:()=>{}};
- instalarVistaSalva({map:ajuda,L:outroL,armazenamento:local,chaveVista:"maringa_pra_somar_vista_original_v1"});
- assert.equal(ajuda.dragging.enabled,false);
+ for(const identificador of ["pra-somar","colaboradores"]){
+  const {map,L,container}=simularMapa();
+  const storage={getItem:()=>JSON.stringify({version:1,lat:-23.45,lng:-51.96,zoom:17}),
+   setItem:()=>{throw Error("não gravar");}};
+  map.setView([-23.415,-51.93],12.5);
+  const nav=instalarVistaSalva({map,L,armazenamento:storage,chaveVista:"antiga",identificador});
+  assert.equal(map.dragging.enabled,true);
+  assert.equal(map.getMinZoom(),12.5);
+  assert.equal(container.children.length,1);
+  map.setView([-23.411,-51.932],16);
+  nav.restaurar();
+  assert.equal(map.zoom,12.5);
+  assert.deepEqual(map.center,{lat:-23.415,lng:-51.93});
+  assert.ok(map.maxBounds.getNorth()>=AREA_MARINGA[1][0]);
+ }
+});
+test("CSS mantém o botão menos; módulo não impõe maxBounds da própria câmera",()=>{
+ const fs=require("node:fs");
+ const css=fs.readFileSync("mapa-navegacao.css","utf8");
+ const src=fs.readFileSync("mapa-navegacao.js","utf8");
+ assert.doesNotMatch(css,/display:\s*none\s*!important/);
+ assert.doesNotMatch(src,/map\.setMaxBounds\(map\.getBounds\(\)\)/);
+ assert.doesNotMatch(src,/map\.dragging\?\.disable/);
+ assert.match(src,/map\.dragging\?\.enable/);
+ assert.match(src,/new URLSearchParams\(global\.location\.search\)\.get\("calibrar"\)!=="1"/);
 });
