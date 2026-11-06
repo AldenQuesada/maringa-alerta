@@ -243,3 +243,57 @@ test("modo calibração permite arrastar para escolher a referência nos três m
   else globalThis.location=anterior;
  }
 });
+
+test("Pra Somar abre na câmera exata aprovada, sem afetar Colaboradores",()=>{
+ const {instalarVistaSalva}=require("../mapa-navegacao.js");
+ const anterior=globalThis.location;
+ globalThis.location={search:""};
+ try{
+  const {map,L}=simularMapa();
+  map.setView([-23.4205,-51.9333],12);
+  const n=instalarVistaSalva({map,L,identificador:"pra-somar",
+   vistaInicial:{lat:-23.4398505,lng:-51.9680312,zoom:12.7027}});
+  assert.equal(map.center.lat,-23.4398505);
+  assert.equal(map.center.lng,-51.9680312);
+  assert.equal(map.zoom,12.7027);
+  assert.equal(map.getMinZoom(),12.7027);
+  assert.equal(map.dragging.enabled,false);
+  map.setView([-23.41,-51.94],15);
+  n.restaurar();
+  assert.deepEqual(map.center,{lat:-23.4398505,lng:-51.9680312});
+  assert.equal(map.zoom,12.7027);
+  const colab=simularMapa();
+  colab.map.setView([-23.42,-51.934],12);
+  instalarVistaSalva({map:colab.map,L:colab.L,identificador:"colaboradores",vistaInicial:null});
+  assert.deepEqual(colab.map.center,{lat:-23.42,lng:-51.934});
+  assert.equal(colab.map.zoom,12);
+  map.resize(1024,768);
+  assert.deepEqual(map.center,{lat:-23.4398505,lng:-51.9680312});
+  assert.equal(map.zoom,12.7027);
+ }finally{
+  if(anterior===undefined)delete globalThis.location;
+  else globalThis.location=anterior;
+ }
+});
+test("câmera institucional do Pra Somar vem da fonte, não do navegador ou de outra prefeitura",()=>{
+ const fs=require("node:fs");
+ const source=fs.readFileSync("src/mapas/02-counters.js","utf8");
+ assert.match(source,/vistaInicial:TIPO==="ajuda"\?\{lat:-23\.4398505,lng:-51\.9680312,zoom:12\.7027\}:null/);
+ assert.doesNotMatch(source,/maringa_pra_somar_vista_original_v1/);
+});
+test("modo calibração do Pra Somar não é substituído pelo preset",()=>{
+ const {instalarVistaSalva}=require("../mapa-navegacao.js");
+ const anterior=globalThis.location;
+ globalThis.location={search:"?tipo=ajuda&calibrar=1"};
+ try{
+  const {map,L}=simularMapa();
+  map.setView([-23.419,-51.947],13.2);
+  instalarVistaSalva({map,L,vistaInicial:{lat:-23.4398505,lng:-51.9680312,zoom:12.7027}});
+  assert.deepEqual(map.center,{lat:-23.419,lng:-51.947});
+  assert.equal(map.zoom,13.2);
+  assert.equal(map.dragging.enabled,true);
+ }finally{
+  if(anterior===undefined)delete globalThis.location;
+  else globalThis.location=anterior;
+ }
+});
