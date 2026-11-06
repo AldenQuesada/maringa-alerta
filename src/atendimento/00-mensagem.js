@@ -2,23 +2,13 @@
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
-const app=MaringaCrise.criar({municipioId:sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa",escopoMunicipal:true});
+const app=MaringaCrise.criar({municipioId:"maringa",escopoMunicipal:true}); // Esta rota é exclusiva da Prefeitura de Maringá.
 const dados=app.db, catalogos=AlertaGestaoDados.CATALOGOS;
 const municipio=app.prefeitura()?.nome||"Município";
 const history=$("history"),options=$("options"),form=$("reply-form"),input=$("reply");
 const uploadArea=$("upload-area"),photoInput=$("photo-input"),photoPreview=$("photo-preview");
 let identity=null,role=null,answers={},steps=[],index=0,current=null,arquivosFoto=null;
-const registroKey="maringa_simulador_registros_v2";
 const hora=()=>new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
-const rastreio=()=>{try{return JSON.parse(sessionStorage.getItem(registroKey)||"[]")}catch(_){return []}};
-const guardarRastreio=itens=>sessionStorage.setItem(registroKey,JSON.stringify(itens));
-function registrarMudanca(modulo,item,anterior=null){
- const itens=rastreio();
- if(!itens.some(x=>x.modulo===modulo&&x.id===item.id)){
-  itens.push({modulo,id:item.id,anterior:anterior?JSON.parse(JSON.stringify(anterior)):null});
-  guardarRastreio(itens);
- }
-}
 function msg(texto,person=false,notice=false,imagem=null){
  const el=document.createElement("div");el.className="message"+(person?" person":"")+(notice?" notice":"");
  if(imagem){
