@@ -1,0 +1,37 @@
+name: Publicar site no GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Não cancelar uma publicação em andamento: ela precisa liberar o Pages.
+# Se houver novos commits, somente o último pendente será publicado em seguida.
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Obter arquivos
+        uses: actions/checkout@v4
+      - name: Configurar Pages
+        uses: actions/configure-pages@v5
+      - name: Preparar conteúdo do site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Publicar
+        id: deployment
+        uses: actions/deploy-pages@v4
