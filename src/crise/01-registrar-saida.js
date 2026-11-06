@@ -31,7 +31,8 @@
   return db.gravar("voluntarios",campos,existente?.id||null);
  }
  function pontuacaoOferta(pedido,voluntario) {
-  if(pedido.telefone&&mesmoTelefone(pedido.telefone,voluntario.telefone))return -1;
+  if(voluntario.status_simulacao==="simulado")return -1;
+   if(pedido.telefone&&mesmoTelefone(pedido.telefone,voluntario.telefone))return -1;
   if(voluntario.disponibilidade==="Indisponível")return -1;
   const candidatas=COMPATIBILIDADE[pedido.necessidade]||[];
   if(!candidatas.length)return -1; // "Outros" e ajuda financeira pedem verificação.

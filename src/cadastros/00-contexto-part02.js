@@ -13,4 +13,4 @@
  F("empreendedores","Apoio para empreendedores","multi",{options:CATALOGOS.empreendedores}),F("materiais","Material / combustível","multi",{options:CATALOGOS.materiais}),
  F("forma_entrega_doacao","Retirada ou entrega da doação","select",{options:CATALOGOS.formas_entrega_doacao}),
  F("outros","Especificar outros","textarea"),F("checkin_status","Estado do check-in","hidden"),F("checkin_bairro","Bairro do check-in","hidden"),F("checkin_em","Chegada registrada","hidden"),F("checkout_em","Saída registrada","hidden"),F("checkin_lat","Latitude do check-in","hidden"),F("checkin_lng","Longitude do check-in","hidden"),F("checkin_precisao","Precisão GPS","hidden"),F("checkin_fonte","Origem territorial","hidden"),F("checkin_tipo","Tipo de validação","hidden"),F("disponibilidade","Disponibilidade","select",{options:["Disponível","Indisponível","A combinar"]}),
- F("contribuicao","Observações da oferta","textarea")]},
+ F("contribuicao","Observações da oferta","textarea"),F("status_simulacao","Registro demonstrativo","hidden"),F("origem_cadastro","Origem do cadastro","hidden"),F("origem_id_legado","Identificador legado","hidden")]},

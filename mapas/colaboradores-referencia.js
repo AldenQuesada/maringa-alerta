@@ -4,7 +4,7 @@
 function listar(cadastrados,estado){
  const lista=Array.isArray(cadastrados)?cadastrados:[];
  const telefones=new Set(lista.map(p=>String(p.telefone||p.tel||'').replace(/\D/g,'')).filter(Boolean));
- const ids=new Set(lista.map(p=>String(p.id)));
+ const ids=new Set(lista.flatMap(p=>[String(p.id),String(p.origem_id_legado||"")]).filter(Boolean));
  const anteriores=estado?.estado==='restauravel'?estado.dados.voluntarios:[];
  return [...lista,...anteriores.filter(p=>{
   const telefone=String(p.telefone||p.tel||'').replace(/\D/g,'');
