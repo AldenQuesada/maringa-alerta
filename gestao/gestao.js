@@ -77,10 +77,10 @@ function renderInicio(){
  PAGE.innerHTML=topo("Painel de gestão","Cadastros e recursos para organizar a atuação de cada prefeitura.")+
  '<div class="dashboard-grid">'+resumoCard("Bairros",numero("bairros"),"layers","Nesta prefeitura")+resumoCard("Zonas",numero("zonas"),"layers","Na prefeitura selecionada")+resumoCard("Equipes",numero("equipes"),"users","Recuperação e apoio")+resumoCard("Instituições",numero("saude")+numero("emergencias")+numero("parceiros"),"hospital","Serviços cadastrados")+'</div>'+
  '<div class="dash-layout"><section class="section-card"><header class="section-card-head"><h2>Organizar cadastros</h2></header><div class="section-card-body">'+
- entradas.map(([n,d,m])=>'<div class="overview-entry"><div><strong>'+esc(n)+'</strong><p>'+esc(d)+'</p></div><a class="mini-action" href="#'+m+'">Abrir '+icon("chevron")+'</a></div>').join("")+
+ entradas.map(([n,d,m])=>'<div class="overview-entry"><div><strong>'+esc(n)+'</strong><p>'+esc(d)+'</p></div><a class="mini-action" href="#'+m+'">Abrir '+""+'</a></div>').join("")+
  '</div></section><section class="section-card"><header class="section-card-head"><h2>Hierarquia municipal</h2></header><div class="section-card-body"><div class="hierarchy">'+
- '<div class="hierarchy-step"><strong>Prefeitura</strong><small>Administração municipal e território</small></div><div class="hierarchy-arrow">↓</div>'+
- '<div class="hierarchy-step"><strong>Responsáveis e coordenadores</strong><small>Zonas, substituições e equipes</small></div><div class="hierarchy-arrow">↓</div>'+
+ '<div class="hierarchy-step"><strong>Prefeitura</strong><small>Administração municipal e território</small></div>'+
+ '<div class="hierarchy-step"><strong>Responsáveis e coordenadores</strong><small>Zonas, substituições e equipes</small></div>'+
  '<div class="hierarchy-step"><strong>Equipes e instituições</strong><small>Recursos, contatos e capacidade operacional</small></div>'+
  '</div></div></section></div>';
  PAGE.innerHTML+='<section class="section-card crisis-links"><div class="section-card-body"><strong>Três mapas integrados</strong><p class="page-subtitle">O Mapa de Evento preserva a aplicação original. O Mapa de Colaboradores mostra as capacidades cadastradas; o Mapa da Ajuda mostra demandas pós-evento.</p><div class="heading-actions"><a class="btn" href="../index.html" target="_blank" rel="noopener">Mapa de Evento</a><a class="btn" href="../mapas/?tipo=colaboradores" target="_blank" rel="noopener">Mapa de Colaboradores</a><a class="btn" href="../mapas/?tipo=ajuda" target="_blank" rel="noopener">Mapa da Ajuda</a><a class="btn btn-primary" href="../atendimento/" target="_blank" rel="noopener">Testar atendimento WhatsApp</a></div></div></section>';
@@ -223,7 +223,7 @@ function renderModulo(){
 }
 function render(){
  if(db.municipioAtivo()?.status==="suspensa"){
-  PAGE.innerHTML=topo("Município suspenso","O Admin Geral suspendeu este ambiente de demonstração. A gestão municipal não pode operar até reativação.");
+  PAGE.innerHTML=topo("Município suspenso","O Admin Geral suspendeu este município. A gestão municipal não pode operar até reativação.");
   return;
  }
  const hash=decodeURIComponent(location.hash.replace(/^#/,""))||"inicio";
@@ -231,6 +231,7 @@ function render(){
  if(["saude","emergencias","parceiros"].includes(hash))estruturaTipo=hash;
  const alias=hash==="prefeituras"||hash==="implantacao"||hash==="pessoas"?"territorio":hash==="bairros"||hash==="zonas"?"geoterritorialidade":["saude","emergencias","parceiros"].includes(hash)?"estruturas":hash;
  const proximo=alias==="inicio"||alias==="conversas"||alias==="estruturas"||alias==="geoterritorialidade"||Object.hasOwn(D.ESQUEMAS,alias)?alias:"inicio";
+ if(db.tipo==='supabase'&&!AlertaPermissoesUI.podeRota(db,proximo)){PAGE.innerHTML=topo('Acesso restrito','Seu vínculo não permite consultar este cadastro.');return;}
  if(proximo!==atual)pesquisa="";
  atual=proximo;
  document.title=(atual==="inicio"?"Gestão":atual==="conversas"?"Central de Conversas":atual==="estruturas"?"Estruturas":atual==="geoterritorialidade"?"Geoterritorialidade":D.ESQUEMAS[atual].label)+" | Gestão Municipal";
@@ -256,17 +257,18 @@ function campoHTML(f,valor){
  if(f.type==="multi"){const current=Array.isArray(valor)?valor:String(valor||"").split(";").map(x=>x.trim()).filter(Boolean);
  return '<fieldset class="field multi-field"><legend>'+esc(f.label)+'</legend><div class="multi-choices">'+(f.options||[]).map(opt=>'<label class="multi-option"><input type="checkbox" name="'+esc(f.key)+'" value="'+esc(opt)+'"'+(current.includes(opt)?' checked':'')+'/><span>'+esc(opt)+'</span></label>').join("")+'</div></fieldset>';}
  if(f.type==="textarea")return '<div class="field">'+label+'<textarea id="'+id+'" name="'+esc(f.key)+'"'+required+'>'+v+'</textarea></div>';
- if(f.type==="select"||f.type==="uf"||f.type==="zone"||f.type==="team"||f.type==="person"||f.type==="structure"||f.type==="eventoMapa"){
-  const options=f.type==="eventoMapa"?db.lista("eventos").filter(x=>x.id!==edicao):f.type==="uf"?D.UFS:f.type==="zone"?db.lista("zonas").map(x=>x.nome):f.type==="team"?db.lista("equipes").map(x=>x.nome):f.type==="person"?db.lista("pessoas").map(x=>({id:x.id,nome:x.nome})):f.type==="structure"?structures().map(x=>({id:x.id,nome:x.nome})):f.options||[];
+ if(f.type==="colaborador"||f.type==="municipio"||f.type==="select"||f.type==="uf"||f.type==="zone"||f.type==="team"||f.type==="person"||f.type==="structure"||f.type==="eventoMapa"){
+  const options=f.type==="colaborador"?db.lista("voluntarios").map(x=>({id:x.id,nome:x.nome})):f.type==="municipio"?db.municipios().filter(x=>x.id!==db.municipioAtivo()?.id&&x.status==="ativa"):f.type==="eventoMapa"?db.lista("eventos").filter(x=>x.id!==edicao):f.type==="uf"?D.UFS:f.type==="zone"?db.lista("zonas").map(x=>x.nome):f.type==="team"?db.lista("equipes").map(x=>({id:x.id,nome:x.nome})):f.type==="person"?db.lista("pessoas").map(x=>({id:x.id,nome:x.nome})):f.type==="structure"?structures().map(x=>({id:x.id,nome:x.nome})):f.options||[];
   return '<div class="field">'+label+'<select id="'+id+'" name="'+esc(f.key)+'"'+required+'><option value="">Selecionar</option>'+options.map(o=>'<option value="'+esc(o.id??o)+'"'+(String(o.id??o)===String(valor)?" selected":"")+'>'+esc(o.nome??o)+'</option>').join("")+'</select></div>';
  }
  const type=f.type==="number"?"number":f.type==="date"?"date":f.type==="tel"?"tel":f.type==="email"?"email":"text";
- const attr=type==="number"?' min="0" step="any"':"";
+ const attr=type==="number"?' min="'+esc(f.min??0)+'" step="'+esc(f.step??'any')+'"':"";
  const list=f.type==="city"?' list="ibge-cidades" autocomplete="off"':"";
  return '<div class="field">'+label+'<input id="'+id+'" name="'+esc(f.key)+'" type="'+type+'" value="'+v+'"'+required+attr+list+'></div>';
 }
 function abrirDrawer(id=null,modulo=atual,prefill=null){
  if(modulo==="inicio")return;
+ if(db.tipo==='supabase'&&!db.pode(modulo,'gravar')){toast('Você não tem permissão para alterar este cadastro.');return;}
  drawerModulo=modulo;
  const def=D.ESQUEMAS[modulo];
  const item=id?db.registro(modulo,id):null;
@@ -275,7 +277,7 @@ function abrirDrawer(id=null,modulo=atual,prefill=null){
  ultimoFoco=document.activeElement;
  $("drawer-eyebrow").textContent=def.label;
  $("drawer-title").textContent=(id?"Editar ":"Novo cadastro · ")+def.singular;
- $("cadastro-campos").innerHTML=def.fields.map(f=>campoHTML(f,item?.[f.key]??prefill?.[f.key])).join("")+(atual==="prefeituras"?'<datalist id="ibge-cidades"></datalist>':"");
+ $("cadastro-campos").innerHTML=def.fields.map(f=>campoHTML(db.tipo==='supabase'?AlertaPermissoesUI.campo(f,item,def.collection,window.AlertaRegrasOperacionais):f,item?.[f.key]??prefill?.[f.key])).join("")+(atual==="prefeituras"?'<datalist id="ibge-cidades"></datalist>':"");
  if(modulo==="relatos" && typeof item?.foto==="string" && /^data:image\/jpeg;base64,/.test(item.foto)){
   const foto=document.createElement("img");
   foto.src=item.foto;foto.alt="Foto da ocorrência informada pelo cidadão";
@@ -361,6 +363,7 @@ function toast(msg){
  toastTimer=setTimeout(()=>{el.hidden=true;},2800);
 }
 async function excluir(id){
+ if(db.tipo==='supabase'&&!db.pode(atual,'excluir')){toast('Você não tem permissão para excluir este cadastro.');return;}
  const item=db.registro(atual,id);if(!item)return;
  const label=item.nome||item.identificacao||"este registro";
  if(!confirm('Excluir "'+label+'"?'))return;

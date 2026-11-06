@@ -4,6 +4,7 @@
 const gate=document.createElement('div');gate.id='backend-acesso';
 const scripts=[...document.querySelectorAll('script[type="application/x-maringa-modulo"]')];
 const entry=document.currentScript?.dataset.area||'gestao';
+const permissionsUrl=new URL('permissoes-ui.js',document.currentScript.src).href;
 function status(kind,message){const bar=document.getElementById('backend-bar');if(bar){bar.dataset.status=kind;bar.querySelector('span').textContent=message||({salvando:'Salvando no Supabase…',salvo:'Conectado · cadastros no Supabase',erro:'Não foi possível salvar. Revise o aviso e tente novamente.'}[kind]||'Conectado ao Supabase');}}
 async function start(){
  for(const item of scripts)await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=item.src;s.onload=resolve;s.onerror=()=>reject(Error('Não foi possível carregar '+new URL(item.src).pathname));document.body.appendChild(s);});
@@ -29,12 +30,20 @@ try{
   const contrato=await client.from('ma_configuracao').select('documento').eq('id','interface').single();
   if(contrato.error||!contrato.data)throw Error('Regras do servidor indisponíveis.');
   AlertaGestaoDados.aplicarConfiguracao(contrato.data.documento);
+  const operacao=await client.from('ma_configuracao').select('documento').eq('id','operacao').single();
+  if(operacao.error||!operacao.data)throw Error('Regras operacionais indisponíveis.');
+  window.AlertaRegrasOperacionais=operacao.data.documento;
   const remote=await AlertaRepositorioSupabase.criar({client,dados:AlertaGestaoDados,onStatus:status});
   if(entry==='plataforma'&&!remote.perfil.admin_plataforma)throw Error('Esta área requer acesso de Administração Geral.');
   window.AlertaNuvem={...remote,ativo:true,email:user.email};
   const cityKey='alerta_contexto_municipal_demo_v1', available=remote.repositorio().municipios();
   if(!available.some(p=>p.id===sessionStorage.getItem(cityKey)))sessionStorage.setItem(cityKey,available[0].id);
   client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){window.AlertaNuvem=null;location.reload();}});
+  if(entry!=='plataforma'){
+   await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=permissionsUrl;script.onload=resolve;script.onerror=reject;document.head.appendChild(script);});
+   AlertaPermissoesUI.instalar({document,db:remote.repositorio({municipioId:sessionStorage.getItem(cityKey)}),location,MutationObserver});
+  }
+  window.addEventListener('focus',()=>remote.atualizarPermissoes().then(changed=>{if(changed)location.reload();else window.dispatchEvent(new Event('backend:permissoes'));}).catch(()=>location.reload()));
   await start();return;
  }
  showLogin();

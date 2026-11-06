@@ -32,7 +32,7 @@ do $$begin if exists(select 1 from public.ma_cadastros) or exists(select 1 from 
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000004',true);
 do $$begin
  if (select count(*) from public.ma_cadastros)<>1 then raise exception 'Leitor não pode consultar';end if;
- begin perform public.ma_aplicar_alteracoes('[{"operacao":"atualizar","colecao":"bases","municipio_id":"maringa","id":"local-1","versao":2,"dados":{"id":"local-1","municipioId":"maringa"}}]');raise exception 'Leitor alterou registro';exception when serialization_failure then null;end;
+ begin perform public.ma_aplicar_alteracoes('[{"operacao":"atualizar","colecao":"bases","municipio_id":"maringa","id":"local-1","versao":2,"dados":{"id":"local-1","municipioId":"maringa"}}]');raise exception 'Leitor alterou registro';exception when insufficient_privilege then null;end;
 end$$;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',true);
 select public.ma_aplicar_alteracoes('[{"operacao":"inserir","colecao":"prefeituras","id":"nova","dados":{"id":"nova","nome":"Nova local","codigo_ibge":"0000003","uf":"PR"}}]');

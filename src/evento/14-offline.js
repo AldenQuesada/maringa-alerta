@@ -10,12 +10,14 @@ function atualizarBannerOffline(){
   document.getElementById('offline-banner').hidden = navigator.onLine;
 }
 function enfileirarOffline(tipo,dados){
+  if(conectado)throw Error("Mensagens offline não estão habilitadas no ambiente conectado.");
   const id=crypto.randomUUID();
   filaOffline.push({id,tipo,dados,ts:Date.now()});
   try{localStorage.setItem(OFFLINE_QUEUE_KEY,JSON.stringify(filaOffline));}catch(e){}
   return id;
 }
 function processarFilaOffline(){
+  if(conectado)return;
   if(!filaOffline.length)return;
   filaOffline=filaOffline.filter(item=>{
     if(item.tipo!=='chat')return true;

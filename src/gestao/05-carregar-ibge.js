@@ -46,6 +46,7 @@ function toast(msg){
  toastTimer=setTimeout(()=>{el.hidden=true;},2800);
 }
 async function excluir(id){
+ if(db.tipo==='supabase'&&!db.pode(atual,'excluir')){toast('Você não tem permissão para excluir este cadastro.');return;}
  const item=db.registro(atual,id);if(!item)return;
  const label=item.nome||item.identificacao||"este registro";
  if(!confirm('Excluir "'+label+'"?'))return;

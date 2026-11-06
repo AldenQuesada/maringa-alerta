@@ -66,3 +66,6 @@ jobs:
           done
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/permissoes.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/seguranca-servidor.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/operacoes.sql
+          MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres PGDATABASE=postgres python3 tests/backend/concorrencia.py
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/painel.sql
