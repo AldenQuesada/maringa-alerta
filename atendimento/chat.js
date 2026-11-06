@@ -2,23 +2,13 @@
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
-const app=MaringaCrise.criar({municipioId:sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa",escopoMunicipal:true});
+const app=MaringaCrise.criar({municipioId:"maringa",escopoMunicipal:true}); // Esta rota é exclusiva da Prefeitura de Maringá.
 const dados=app.db, catalogos=AlertaGestaoDados.CATALOGOS;
 const municipio=app.prefeitura()?.nome||"Município";
 const history=$("history"),options=$("options"),form=$("reply-form"),input=$("reply");
 const uploadArea=$("upload-area"),photoInput=$("photo-input"),photoPreview=$("photo-preview");
 let identity=null,role=null,answers={},steps=[],index=0,current=null,arquivosFoto=null;
-const registroKey="maringa_simulador_registros_v2";
 const hora=()=>new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
-const rastreio=()=>{try{return JSON.parse(sessionStorage.getItem(registroKey)||"[]")}catch(_){return []}};
-const guardarRastreio=itens=>sessionStorage.setItem(registroKey,JSON.stringify(itens));
-function registrarMudanca(modulo,item,anterior=null){
- const itens=rastreio();
- if(!itens.some(x=>x.modulo===modulo&&x.id===item.id)){
-  itens.push({modulo,id:item.id,anterior:anterior?JSON.parse(JSON.stringify(anterior)):null});
-  guardarRastreio(itens);
- }
-}
 function msg(texto,person=false,notice=false,imagem=null){
  const el=document.createElement("div");el.className="message"+(person?" person":"")+(notice?" notice":"");
  if(imagem){
@@ -235,10 +225,8 @@ function concluir(){
  try{
   if(role==="colaborador"||role==="solicitacao")answers.zona=zonaPeloEndereco(answers.endereco);
   if(role==="colaborador"){
-   const anterior=app.encontrarPessoa(answers.telefone);
    const outros=String(answers.outros||"").trim();
    const resultado=app.registrarColaborador({...answers,outros,disponibilidade:"A combinar"});
-   registrarMudanca("voluntarios",resultado,anterior);
    identity={nome:resultado.nome,tipo_pessoa:resultado.tipo_pessoa,telefone:resultado.telefone,endereco:resultado.endereco,email:resultado.email,zona:resultado.zona};
    bot("Cadastro de colaborador concluído! ✅\n\nProtocolo de demonstração: "+protocolo("COL",resultado.id)+
     "\nOfertas cadastradas: "+new Set([resultado.ajudas,resultado.maquinas,resultado.empreendedores,resultado.materiais].flat().filter(Boolean)).size+
@@ -247,7 +235,6 @@ function concluir(){
   }else if(role==="solicitacao"){
    // "Outro" é somente a classificação interna; a necessidade fica no texto original do cidadão.
    const pedido=app.registrarPedido({...answers,necessidade:"Outro",descricao:String(answers.descricao||"").trim(),urgencia:"Não avaliada"}).pedido;
-   registrarMudanca("solicitacoes",pedido);
    identity={...identity,nome:pedido.nome,telefone:pedido.telefone,endereco:pedido.endereco,zona:pedido.zona};
    bot("Seu pedido de ajuda foi registrado. ✅\n\nAjuda solicitada: "+pedido.descricao+
     "\nSituação: "+pedido.status+
@@ -264,7 +251,6 @@ function concluir(){
     status:"Em triagem",origem:"Cidadão · simulador",
     criado_em:new Date().toISOString()
    });
-   registrarMudanca("relatos",registro);
    identity={...identity,nome:registro.nome,telefone:registro.telefone};
    bot("Relato recebido para triagem! ✅\n\nProtocolo de demonstração: "+protocolo("OCO",registro.id)+
     "\nEndereço: "+registro.endereco+
@@ -308,18 +294,12 @@ photoInput.addEventListener("change",async()=>{
  finally{$("upload-photo").disabled=false;photoInput.value="";}
 });
 function reiniciarDemonstracao(){
- if(!window.confirm("Reiniciar toda a demonstração? A conversa e os cadastros criados nesta sessão serão apagados deste navegador. Outros cadastros existentes serão preservados."))return;
- let problemas=0;
- for(const rec of rastreio().reverse()){
-  try{if(rec.anterior)dados.gravar(rec.modulo,rec.anterior,rec.id);else dados.excluir(rec.modulo,rec.id);}
-  catch(_){problemas++;}
- }
- guardarRastreio([]);
+ // Reiniciar a conversa NÃO apaga registros municipais, pedidos nem relatos.
+ if(!window.confirm("Reiniciar a conversa? Os cadastros, pedidos e relatos já registrados serão preservados."))return;
  identity=null;role=null;steps=[];answers={};current=null;index=0;arquivosFoto=null;photoInput.value="";
  history.replaceChildren();
  const divisor=document.createElement("div");divisor.className="day-divider";divisor.textContent="HOJE";history.appendChild(divisor);
  form.onsubmit=responderEtapa;
- if(problemas)msg("A conversa foi reiniciada, mas alguns registros locais não puderam ser restaurados.",false,true);
  startMenu();
 }
 $("go-home").onclick=()=>{form.onsubmit=responderEtapa;startMenu();};
