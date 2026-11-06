@@ -140,6 +140,7 @@ async function carregarZonasOficiais(){
   zoneSelect();render();if(TIPO==="ajuda")iniciarCozinhasDemo();
  }catch(error){zonasConsultadas=false;console.warn("Zonas numeradas indisponíveis",error);}
 }
+const fichaPonto=FichaPonto.criar({painel:$("painel-ajuda"),abrirPainel:()=>{if($("painel-ajuda").hidden)$("painel-ajuda-toggle").click();},obterRegistro:(modulo,id)=>app.db.registro(modulo,id),waLink:MaringaCrise.waLink});
 function renderUnidadesMunicipais(){
  unidadesMunicipais.clearLayers();
  const todos=INVENTARIO.registros(app.db).filter(x=>x.georreferenciado&&!x.privado);
@@ -152,7 +153,7 @@ function renderUnidadesMunicipais(){
   const detalhes=[x.moduloNome,x.categoria,x.situacao,x.precisao,x.horario,x.telefone,x.detalhes].filter(Boolean).map(esc).join(" · ");
   const local=x.endereco?"<p>"+esc(x.endereco)+"</p>":"";
   const fonte=x.fonteUrl?'<a href="'+esc(x.fonteUrl)+'" target="_blank" rel="noopener">Fonte</a>':"";
-  L.marker([x.lat,x.lng],{icon,title:x.nome}).bindPopup("<strong>"+esc(x.nome)+"</strong>"+local+"<small>"+detalhes+"</small>"+fonte).addTo(unidadesMunicipais);
+  L.marker([x.lat,x.lng],{icon,title:x.nome}).bindTooltip("<strong>"+esc(x.nome)+"</strong><br>"+esc(x.endereco||"Endereço não informado"),{direction:"top"}).on("click",()=>fichaPonto.abrir(x)).addTo(unidadesMunicipais);
  }
  return visiveis.length;
 }
@@ -228,7 +229,7 @@ function renderMarkers(xs){
   for(const x of xs.filter(x=>x.georreferenciado)){
    const icon=INVENTARIO.simbolo(x);
    const ic=L.divIcon({className:"pin canonical-map-pin",html:'<span class="canonical-pin">'+icon+'</span>',iconSize:[32,32],iconAnchor:[16,32]});
-   L.marker([x.lat,x.lng],{icon:ic,title:x.nome}).bindPopup('<strong>'+esc(x.nome)+'</strong><p>'+esc(x.moduloNome)+' · '+esc(x.classe)+'</p><small>'+esc(x.precisao||"Localização cadastrada")+'</small>').addTo(marcadores);
+   L.marker([x.lat,x.lng],{icon:ic,title:x.nome}).bindTooltip('<strong>'+esc(x.nome)+'</strong><br>'+esc(x.endereco||"Endereço não informado"),{direction:"top"}).on("click",()=>fichaPonto.abrir(x)).addTo(marcadores);
   }
   return;
  }

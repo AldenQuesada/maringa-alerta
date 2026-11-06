@@ -128,3 +128,10 @@ test("urgência crítica não é automaticamente encaminhada ao colaborador comu
  assert.equal(pedido.pedido.status,"Aguardando");assert.equal(pedido.indicados.length,0);
  assert.match(pedido.aviso,/190/);
 });
+test("ponto público só nasce com autorização e reutiliza a mesma base ao atualizar",()=>{
+ const {core}=novo();
+ const entrada=pessoa("Responsável Teste","44999990081",{ponto_publico:"Sim, cadastrar ponto público",ponto_nome:"Água comunitária",ponto_tipo:"Ponto de água potável",ponto_responsavel:"Responsável Teste",ponto_telefone:"44999990081",ponto_endereco:"Rua Exemplo, 10",ponto_funcao:"Distribuição de água",ponto_horario:"9h às 17h",ponto_capacidade:"50"});
+ core.registrarColaborador(entrada);core.registrarColaborador(entrada);
+ const bases=core.db.lista("bases");assert.equal(bases.length,1);assert.equal(bases[0].nome,"Água comunitária");assert.equal(bases[0].capacidade,"50");assert.equal(bases[0].responsavel,"Responsável Teste");assert.ok(!bases[0].lat);
+ core.registrarColaborador(pessoa("Outro","44999990082",{ponto_publico:"Não"}));assert.equal(core.db.lista("bases").length,1);
+});
