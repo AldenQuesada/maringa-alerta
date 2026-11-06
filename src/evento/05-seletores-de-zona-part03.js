@@ -10,7 +10,9 @@ function renderCollaborators(){
     : !selecao.size&&semTerritorio
       ? semTerritorio+' colaborador(es) aguardam identificação do bairro ou zona; continuam cadastrados e listados em "Bairro a confirmar".'
       : !selecao.size&&!todosCadastrados.length
-        ? 'Não há colaboradores cadastrados para Maringá neste navegador. Este protótipo utiliza armazenamento local e não sincroniza cadastros entre dispositivos.'
+        ? (globalThis.AlertaNuvem?.ativo
+          ? 'Este mapa consulta os territórios e as estruturas no Supabase. Gerencie os cadastros de colaboradores na Gestão.'
+          : 'Não há colaboradores cadastrados para Maringá neste navegador. Este protótipo utiliza armazenamento local e não sincroniza cadastros entre dispositivos.')
         : '';
   const antes=body.scrollTop;
   const comFiltro=filtroOcorrencias&&filtroOcorrencias.descricao()!=='Sem filtros de ocorrência';
