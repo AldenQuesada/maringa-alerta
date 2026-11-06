@@ -86,7 +86,7 @@
     }
 
     if(vistaSalva){aplicarVista(map,L,vistaSalva);zoomGeralAnterior=vistaSalva.zoom;}
-    else {enquadrar();vistaSalva=capturarVista(map,armazenamento,chaveVista);}
+    else {enquadrar();if(armazenamento&&chaveVista)vistaSalva=capturarVista(map,armazenamento,chaveVista);}
 
     function restaurar() {
       if (typeof aoRestaurar === "function") aoRestaurar();
