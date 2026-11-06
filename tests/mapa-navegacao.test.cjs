@@ -144,11 +144,13 @@ test("acionamento por espaço retorna para a vista completa",()=>{
  assert.equal(evt.stopped,true);
  visaoIncluiTodasAsZonas(map);
 });
-test("limites de deslocamento permanecem restritos à região de Maringá",()=>{
+test("sem arrastar o mapa além do enquadramento inicial, mesmo em modo legado",()=>{
  const {map,L}=simularMapa(1024,768);
  instalar({map,L,zonas:POLIGONOS});
- assert.ok(map.maxBounds.getSouth()<=AREA_MARINGA[0][0]);
- assert.ok(map.maxBounds.getNorth()>=AREA_MARINGA[1][0]);
+ const viewport=map.getBounds(),limite=map.maxBounds,epsilon=1e-7;
+ for(const lado of ["North","South","East","West"])
+  assert.ok(Math.abs(limite["get"+lado]()-viewport["get"+lado]())<epsilon,"limite "+lado+" não coincide com a vista original");
+ assert.equal(map.getMinZoom(),map.getZoom());
 });
 
 
@@ -176,54 +178,63 @@ test("o botão de centralizar retorna à mesma escala precisa em vez do zoom 13 
  visaoIncluiTodasAsZonas(map);
 });
 
-test("Evento salva a posição escolhida, trava zoom mínimo e o botão volta exatamente",()=>{
+test("Mapa de Evento fixa a posição na abertura, não cria botão extra e retorna à origem",()=>{
  const {map,L,container}=simularMapa();
  const memoria=new Map();
  const storage={getItem:k=>memoria.get(k)||null,setItem:(k,v)=>memoria.set(k,String(v))};
  const chave="maringa_mapa_evento_vista_original_v1";
  const nav=instalar({map,L,zonas:POLIGONOS,armazenamento:storage,chaveVista:chave});
- assert.equal(container.children.length,2,"Home e Fixar vista compartilham o controle de zoom");
- map.setView([-23.402,-51.938],15.5);
- const escolha={stopped:false};
- nav.botaoSalvar.events.click(escolha);
- assert.equal(escolha.stopped,true);
+ assert.equal(container.children.length,1,"Somente o botão original junto aos controles + e -");
+ assert.equal(nav.botaoSalvar,undefined,"Não pode existir a etapa extra Fixar");
  const salvo=JSON.parse(memoria.get(chave));
- assert.equal(salvo.zoom,15.5);
- assert.equal(salvo.lat,-23.402);
- assert.equal(salvo.lng,-51.938);
- assert.equal(map.getMinZoom(),15.5);
- map.setView([-23.398,-51.934],17);
+ assert.equal(salvo.zoom,map.getZoom());
+ assert.equal(salvo.lat,map.getCenter().lat);
+ assert.equal(salvo.lng,map.getCenter().lng);
+ assert.equal(map.getMinZoom(),salvo.zoom);
+ assert.ok(Math.abs(map.maxBounds.getNorth()-map.getBounds().getNorth())<1e-7);
+ map.setView([-23.398,-51.934],salvo.zoom+2);
  nav.botao.events.click({stopped:false});
- assert.equal(map.zoom,15.5);
- assert.deepEqual(map.center,{lat:-23.402,lng:-51.938});
+ assert.equal(map.zoom,salvo.zoom);
+ assert.deepEqual(map.center,{lat:salvo.lat,lng:salvo.lng});
  const novo=simularMapa();
  instalar({map:novo.map,L:novo.L,zonas:POLIGONOS,armazenamento:storage,chaveVista:chave});
- assert.equal(novo.map.zoom,15.5);
- assert.deepEqual(novo.map.center,{lat:-23.402,lng:-51.938});
- assert.equal(novo.map.getMinZoom(),15.5);
- assert.ok(novo.map.maxBounds);
+ assert.equal(novo.map.zoom,salvo.zoom);
+ assert.deepEqual(novo.map.center,{lat:salvo.lat,lng:salvo.lng});
+ assert.equal(novo.map.getMinZoom(),salvo.zoom);
 });
-test("Pra Somar conserva sua própria vista e não interfere na posição original do Evento",()=>{
+test("Pra Somar trava automaticamente na posição inicial e mantém câmera independente do Evento",()=>{
  const {instalarVistaSalva}=require("../mapa-navegacao.js");
  const m=new Map();
  const storage={getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,String(v))};
  const ev=simularMapa(),help=simularMapa();
- const a=instalar({map:ev.map,L:ev.L,zonas:POLIGONOS,armazenamento:storage,
-  chaveVista:"maringa_mapa_evento_vista_original_v1"});
- ev.map.setView([-23.405,-51.94],15);a.botaoSalvar.events.click({stopped:false});
- const b=instalarVistaSalva({map:help.map,L:help.L,armazenamento:storage,
-  chaveVista:"maringa_pra_somar_vista_original_v1"});
- help.map.setView([-23.415,-51.93],12.5);b.botaoSalvar.events.click({stopped:false});
+ const chaveEvento="maringa_mapa_evento_vista_original_v1";
+ const chaveAjuda="maringa_pra_somar_vista_original_v1";
+ // Posição anterior já salva em uma sessão anterior: deve ser preservada exatamente.
+ m.set(chaveEvento,JSON.stringify({version:1,lat:-23.405,lng:-51.94,zoom:15,
+  bounds:[[-23.414,-51.952],[-23.396,-51.928]]}));
+ instalar({map:ev.map,L:ev.L,zonas:POLIGONOS,armazenamento:storage,chaveVista:chaveEvento});
+ help.map.setView([-23.415,-51.93],12.5);
+ const b=instalarVistaSalva({map:help.map,L:help.L,armazenamento:storage,chaveVista:chaveAjuda});
+ assert.equal(help.container.children.length,1,"Somente botão voltar, sem Fixar");
+ assert.equal(b.botaoSalvar,undefined);
  assert.equal(help.map.getMinZoom(),12.5);
+ assert.equal(help.map.maxBounds.getNorth(),help.map.getBounds().getNorth());
  help.map.setView([-23.41,-51.928],16);b.restaurar();
  assert.equal(help.map.zoom,12.5);
  assert.deepEqual(help.map.center,{lat:-23.415,lng:-51.93});
- assert.equal(JSON.parse(m.get("maringa_mapa_evento_vista_original_v1")).zoom,15);
+ assert.equal(JSON.parse(m.get(chaveEvento)).zoom,15);
+ assert.equal(ev.map.zoom,15);
  const helpReload=simularMapa();
- instalarVistaSalva({map:helpReload.map,L:helpReload.L,armazenamento:storage,
-  chaveVista:"maringa_pra_somar_vista_original_v1"});
+ instalarVistaSalva({map:helpReload.map,L:helpReload.L,armazenamento:storage,chaveVista:chaveAjuda});
  assert.equal(helpReload.map.getMinZoom(),12.5);
  assert.deepEqual(helpReload.map.center,{lat:-23.415,lng:-51.93});
+});
+test("a interface tem só zoom positivo e botão de retorno, sem botão Fixar",()=>{
+ const css=require("node:fs").readFileSync("mapa-navegacao.css","utf8");
+ const nav=require("node:fs").readFileSync("mapa-navegacao.js","utf8");
+ assert.match(css,/\.leaflet-control-zoom\.camera-original-fixa \.leaflet-control-zoom-out/);
+ assert.doesNotMatch(nav,/botaoFixar|botaoSalvar|Fixar esta posição/);
+ assert.match(nav,/map\.setMaxBounds\(L\.latLngBounds\(v\.bounds\)\)/);
 });
 test("a vista original do usuário não altera os dados do mapa e rejeita coordenadas inválidas",()=>{
  const {instalarVistaSalva}=require("../mapa-navegacao.js");
