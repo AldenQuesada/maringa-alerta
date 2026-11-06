@@ -369,6 +369,12 @@ $("filtro").onchange=()=>{filtroClasse=$("filtro").value;render();};
 $("busca").oninput=()=>{texto=$("busca").value;render();};
 window.addEventListener("storage",event=>{if(event.key===AlertaGestaoDados.CHAVE)location.reload();});
 municipSelector();renderMunicipio();configurarCamadas();render();
+if(TIPO==="ajuda"){
+ // Cada mapa tem posição original independente. Não grava dados de pessoas.
+ window.AlertaMapaNavegacao.instalarVistaSalva({
+  map,L,armazenamento:localStorage,chaveVista:"maringa_pra_somar_vista_original_v1"
+ });
+}
 void carregarZonasOficiais();
 const fontesPublicas=["../dados-territoriais/maringa-bases-riscos-publicos.json","../dados-territoriais/maringa-abrigos-publicos.json"];
 void Promise.allSettled(fontesPublicas.map(url=>AlertaImportacaoPublica.carregar(app.db,{url}))).then(()=>{configurarCamadas();render();});
