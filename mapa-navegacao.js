@@ -1,166 +1,112 @@
-/* Navegação do mapa: restringe o afastamento à região de Maringá e restaura a vista inicial.
- * Enquadramento retangular aproximado do município (não substitui sua divisa legal).
- * Os limites abrangem os extremos municipais com pequena margem para telas diferentes.
+/* Navegação dos três mapas.
+ * Enquanto o enquadramento institucional não for confirmado em código, preservar
+ * controles do Leaflet e permitir a calibração manual sem alterar cadastros.
+ * Preferências antigas de câmera (localStorage) não são usadas como padrão.
  */
-(function (global) {
-  "use strict";
-
-  // Limites de deslocamento amplos para toda a região de Maringá.
-  // Retângulo de navegação aproximado: não é a fronteira municipal oficial.
-  const AREA_MARINGA = Object.freeze([
-    Object.freeze([-23.578, -52.123]),
-    Object.freeze([-23.235, -51.813])
-  ]);
-  // Para a vista inicial, a referência são as seis zonas efetivamente desenhadas.
-  const PADDING = 24;
-
-
-  // A posição original é apenas uma preferência de câmera local, sem dados de cadastros.
-  function lerVista(storage,key){
-    if(!storage||!key)return null;
+(function(global){
+ "use strict";
+ const AREA_MARINGA=Object.freeze([
+  Object.freeze([-23.578,-52.123]),
+  Object.freeze([-23.235,-51.813])
+ ]);
+ const PADDING=24;
+ function margem(map){
+  const size=map.getSize();
+  return Math.max(12,Math.min(PADDING,Math.floor(Math.min(size.x,size.y)*.035)));
+ }
+ function liberarNavegacao(map,L){
+  // A trava anterior usava o próprio viewport como maxBounds e inutilizava
+  // fitBounds / flyTo / busca / filtro territorial. Não repetir.
+  map.dragging?.enable?.();
+  map.setMaxBounds(L.latLngBounds(AREA_MARINGA).pad(.08));
+  map.options.maxBoundsViscosity=1;
+  map.zoomControl.getContainer().classList?.remove("camera-original-fixa");
+ }
+ function botaoInicio(map,L,restaurar){
+  const el=L.DomUtil.create("a","leaflet-control-zoom-home",map.zoomControl.getContainer());
+  el.href="#";el.setAttribute("role","button");
+  el.setAttribute("aria-label","Voltar à posição original");
+  el.title="Voltar à posição original";
+  el.innerHTML='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>';
+  L.DomEvent.disableClickPropagation(el);
+  L.DomEvent.on(el,"click",e=>{L.DomEvent.stop(e);restaurar();});
+  L.DomEvent.on(el,"keydown",e=>{
+   if(e.key===" "||e.key==="Spacebar"){L.DomEvent.stop(e);restaurar();}
+  });
+  return el;
+ }
+ function referenciaVisivel(map,identificador){
+  // O modo ?calibrar=1 deixa o enquadramento legível para posterior incorporação
+  // explícita ao código; nunca altera dados municipais nem salva câmera por engano.
+  if(typeof global.location?.search!=="string"||
+   new URLSearchParams(global.location.search).get("calibrar")!=="1")return;
+  const pai=map.getContainer()?.parentElement,doc=global.document;
+  if(!pai||!doc)return;
+  const output=doc.createElement("output");
+  output.className="mapa-camera-referencia";
+  output.setAttribute("aria-label","Coordenadas exatas do enquadramento atual");
+  output.dataset.mapa=identificador;
+  pai.appendChild(output);
+  const atualizar=()=>{
+   const centro=map.getCenter(),zoom=map.getZoom();
+   const lat=centro.lat.toFixed(7),lng=centro.lng.toFixed(7),z=zoom.toFixed(4);
+   output.textContent="Câmera "+identificador+": "+lat+", "+lng+" · zoom "+z;
+   // O hash torna os valores também consultáveis pela URL, sem alterar o caminho.
+   if(global.history?.replaceState&&global.location?.href){
     try {
-      const v=JSON.parse(storage.getItem(key)||"null");
-      if(!v||v.version!==1||![v.lat,v.lng,v.zoom].every(Number.isFinite)
-        ||v.lat < AREA_MARINGA[0][0]-.15||v.lat>AREA_MARINGA[1][0]+.15
-        ||v.lng<AREA_MARINGA[0][1]-.15||v.lng>AREA_MARINGA[1][1]+.15
-        ||v.zoom<2||v.zoom>19
-        ||!Array.isArray(v.bounds)||v.bounds.length!==2
-        ||v.bounds.some(p=>!Array.isArray(p)||p.length!==2||p.some(n=>!Number.isFinite(n))))
-         return null;
-      return v;
-    }catch(_){return null;}
+     const url=new URL(global.location.href);
+     url.hash="camera="+lat+","+lng+","+z;
+     global.history.replaceState(global.history.state,"",url.href);
+    }catch(_){}
+   }
+  };
+  map.on("moveend zoomend resize",atualizar);
+  atualizar();
+ }
+ function instalar({map,L,zonas,aoRestaurar,identificador="evento"}){
+  if(!map||!L||!map.zoomControl?.getContainer)
+   throw new TypeError("Mapa Leaflet com controle de zoom obrigatório.");
+  if(!Array.isArray(zonas)||!zonas.length||!zonas.every(z=>Array.isArray(z)&&z.length>=3))
+   throw new TypeError("É necessário informar os polígonos da vista geral.");
+  const bounds=L.latLngBounds(zonas.flat());
+  let home=null,ultimoZoom=null;
+  function enquadrar(){
+   const p=margem(map);
+   map.setMaxBounds(L.latLngBounds([]));
+   map.setMinZoom(0);
+   map.fitBounds(bounds,{padding:[p,p],animate:false});
+   home={lat:map.getCenter().lat,lng:map.getCenter().lng,zoom:map.getZoom()};
+   ultimoZoom=home.zoom;
+   map.setMinZoom(home.zoom);
+   liberarNavegacao(map,L);
   }
-  function capturarVista(map,storage,key){
-    if(!storage||!key)return null;
-    const c=map.getCenter(),b=map.getBounds();
-    const v={version:1,lat:c.lat,lng:c.lng,zoom:map.getZoom(),
-      bounds:[[b.getSouth(),b.getWest()],[b.getNorth(),b.getEast()]]};
-    if(storage&&key)try{storage.setItem(key,JSON.stringify(v));}catch(_){}
-    return v;
-  }
-  function aplicarVista(map,L,v){
-    map.setMaxBounds(L.latLngBounds([]));map.setMinZoom(0);
-    map.setView([v.lat,v.lng],v.zoom,{animate:false});
-    map.setMinZoom(v.zoom);
-    map.setMaxBounds(L.latLngBounds(v.bounds)); // Trava exata: não permite deslocamento além da vista original.
-    map.options.maxBoundsViscosity=1;
-  }
-
-  function instalar({ map, L, zonas, aoRestaurar, armazenamento=null, chaveVista=null }) {
-    if (!map || !L || !map.zoomControl || typeof map.zoomControl.getContainer !== "function") {
-      throw new TypeError("Mapa Leaflet com controle de zoom obrigatório.");
-    }
-    if (!Array.isArray(zonas) || !zonas.length || !zonas.every(z => Array.isArray(z) && z.length >= 3)) {
-      throw new TypeError("É necessário informar os polígonos de todas as zonas da vista geral.");
-    }
-
-    const limitesVisaoGeral = L.latLngBounds(zonas.flat());
-    let zoomGeralAnterior = null;
-    let vistaSalva=lerVista(armazenamento,chaveVista);
-    map.dragging?.disable?.(); // Câmara fixa: usuário não pode arrastar o mapa para cima/baixo/lados.
-
-    function margem() {
-      const tamanho = map.getSize();
-      return Math.max(12, Math.min(PADDING, Math.floor(Math.min(tamanho.x, tamanho.y) * 0.035)));
-    }
-
-    function zoomMinimo() {
-      const p = margem();
-      // false: exige que TODAS as zonas caibam dentro do mapa, com borda visível.
-      const requerido = map.getBoundsZoom(limitesVisaoGeral, false, L.point(p * 2, p * 2));
-      return Number.isFinite(requerido) ? Math.max(0, requerido) : 0;
-    }
-
-    function enquadrar({ animate = false } = {}) {
-      const p = margem();
-      // Sem maxBounds durante o fit para impedir que uma trava anterior
-      // mova o centro e corte Vila Esperança ao norte.
-      map.setMaxBounds(L.latLngBounds([]));
-      map.setMinZoom(0);
-      map.fitBounds(limitesVisaoGeral, { padding: [p, p], animate: false });
-      const atual = map.getZoom();
-      zoomGeralAnterior = atual;
-      map.setMinZoom(atual);
-      // O limite é exatamente o enquadramento inicial, nunca o município inteiro.
-      map.setMaxBounds(map.getBounds());
-      map.options.maxBoundsViscosity = 1;
-    }
-
-    if(vistaSalva){aplicarVista(map,L,vistaSalva);zoomGeralAnterior=vistaSalva.zoom;}
-    else {enquadrar();if(armazenamento&&chaveVista)vistaSalva=capturarVista(map,armazenamento,chaveVista);}
-
-    function restaurar() {
-      if (typeof aoRestaurar === "function") aoRestaurar();
-      if(vistaSalva){aplicarVista(map,L,vistaSalva);zoomGeralAnterior=vistaSalva.zoom;}
-      else enquadrar({ animate: true });
-    }
-
-    // O terceiro comando pertence ao mesmo bloco + / − do Leaflet.
-    const barra = map.zoomControl.getContainer();
-    barra.classList?.add("camera-original-fixa");
-    const botao = L.DomUtil.create("a", "leaflet-control-zoom-home", barra);
-    botao.href = "#";
-    botao.setAttribute("role", "button");
-    botao.setAttribute("aria-label", "Voltar à vista inicial de Maringá");
-    botao.title = "Voltar à vista inicial de Maringá";
-    botao.innerHTML = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>';
-
-    L.DomEvent.disableClickPropagation(botao);
-    L.DomEvent.on(botao, "click", function (evento) {
-      L.DomEvent.stop(evento);
-      restaurar();
-    });
-    // Links ativam Enter nativamente; Space completa a operação de botão.
-    L.DomEvent.on(botao, "keydown", function (evento) {
-      if (evento.key === " " || evento.key === "Spacebar") {
-        L.DomEvent.stop(evento);
-        restaurar();
-      }
-    });
-
-    map.on("resize", () => {
-      if(vistaSalva){
-        map.setMinZoom(vistaSalva.zoom);
-        map.setMaxBounds(L.latLngBounds(vistaSalva.bounds));
-        return;
-      }
-      if (zoomGeralAnterior !== null && Math.abs(map.getZoom() - zoomGeralAnterior) < 0.01) {
-        enquadrar();
-      } else {
-        map.setMaxBounds(map.getBounds());
-      }
-    });
-
-    return { restaurar, limites: limitesVisaoGeral, zoomMinimo, botao };
-  }
-
-  // No Pra Somar a vista é travada automaticamente, sem botão extra e sem exigir cliques.
-  function instalarVistaSalva({map,L,armazenamento,chaveVista}){
-    map.dragging?.disable?.(); // No Pra Somar também não é permitido arrastar o mapa.
-    let vista=lerVista(armazenamento,chaveVista);
-    if(!vista)vista=capturarVista(map,armazenamento,chaveVista);
-    aplicarVista(map,L,vista);
-    const barra=map.zoomControl.getContainer();
-    barra.classList?.add("camera-original-fixa");
-    function restaurar(){aplicarVista(map,L,vista);}
-    const home=L.DomUtil.create("a","leaflet-control-zoom-home",barra);
-    home.href="#";home.setAttribute("role","button");
-    home.setAttribute("aria-label","Voltar à posição original");
-    home.title="Voltar à posição original";
-    home.textContent="⌂";
-    L.DomEvent.disableClickPropagation(home);
-    L.DomEvent.on(home,"click",e=>{L.DomEvent.stop(e);restaurar();});
-    L.DomEvent.on(home,"keydown",e=>{
-      if(e.key===" "||e.key==="Spacebar"){L.DomEvent.stop(e);restaurar();}
-    });
-    map.on("resize",()=>{
-      map.setMinZoom(vista.zoom);
-      map.setMaxBounds(L.latLngBounds(vista.bounds));
-    });
-    return {restaurar,botao:home};
-  }
-
-  const api = { instalar, instalarVistaSalva, AREA_MARINGA };
-  global.AlertaMapaNavegacao = api;
-  if (typeof module === "object" && module.exports) module.exports = api;
-})(typeof globalThis !== "undefined" ? globalThis : window);
+  enquadrar();
+  const restaurar=()=>{
+   if(typeof aoRestaurar==="function")aoRestaurar();
+   map.setView([home.lat,home.lng],home.zoom,{animate:false});
+  };
+  const botao=botaoInicio(map,L,restaurar);
+  map.on("resize",()=>{
+   // A vista geral precisa considerar a largura após abrir/recolher painéis.
+   if(Math.abs(map.getZoom()-ultimoZoom)<.01)enquadrar();
+   else liberarNavegacao(map,L);
+  });
+  referenciaVisivel(map,identificador);
+  return {restaurar,limites:bounds,botao,zoomMinimo:()=>ultimoZoom};
+ }
+ function instalarVistaSalva({map,L,identificador="colaboradores"}){
+  if(!map||!L||!map.zoomControl?.getContainer)throw new TypeError("Mapa Leaflet inválido.");
+  const c=map.getCenter();
+  const home={lat:c.lat,lng:c.lng,zoom:map.getZoom()};
+  map.setMinZoom(home.zoom);
+  liberarNavegacao(map,L);
+  const restaurar=()=>map.setView([home.lat,home.lng],home.zoom,{animate:false});
+  const botao=botaoInicio(map,L,restaurar);
+  map.on("resize",()=>liberarNavegacao(map,L));
+  referenciaVisivel(map,identificador);
+  return {restaurar,botao,zoomMinimo:()=>home.zoom};
+ }
+ const api={instalar,instalarVistaSalva,AREA_MARINGA};
+ global.AlertaMapaNavegacao=api;
+ if(typeof module==="object"&&module.exports)module.exports=api;
+})(typeof globalThis!=="undefined"?globalThis:window);
