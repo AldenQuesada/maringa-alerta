@@ -9,10 +9,10 @@ let app=MaringaCrise.criar({municipioId:cidadeContexto(),escopoMunicipal:true}),
 const INVENTARIO=globalThis.AlertaInventarioMapas;
 let territorio=null;
 let toastTimer;
-const nomeTipo=TIPO==="ajuda"?"Mapa da Ajuda":"Mapa de Colaboradores";
+const nomeTipo=TIPO==="ajuda"?"Pra Somar Maringá":"Mapa de Colaboradores";
 document.title=nomeTipo+" | "+(app.prefeitura()?.nome||"Município")+" · Sistema Integrado de Crise";
 $("nav-"+TIPO).classList.add("active");
-$("title").textContent=TIPO==="ajuda"?"Ajuda pós-evento":"Colaboradores por zona";
+$("title").textContent=TIPO==="ajuda"?"Pra Somar Maringá":"Colaboradores por zona";
 $("eyebrow").textContent=TIPO==="ajuda"?"RECUPERAÇÃO PÓS-EVENTO":"REDE DE COLABORADORES";
 $("subtitle").textContent=TIPO==="ajuda"?"Pessoas e empresas que precisam de apoio após uma crise.":"Pessoas físicas, empresas e recursos disponíveis antes da emergência.";
 $("map-label").textContent=nomeTipo+" · "+(app.prefeitura()?.nome||"Município");
@@ -141,7 +141,9 @@ function renderUnidadesMunicipais(){
  return visiveis.length;
 }
 function renderEquipePorBairro(xs){
- const el=$("results");
+ return renderEquipeNoElemento(xs,$("results"));
+}
+function renderEquipeNoElemento(xs,el){
  const grupos=new Map();
  for(const pessoa of xs){const bairro=String(pessoa.bairro||pessoa.zona||"Bairro não informado").trim();if(!grupos.has(bairro))grupos.set(bairro,[]);grupos.get(bairro).push(pessoa);}
  if(!xs.length){el.innerHTML='<div class="empty">Não há colaboradores cadastrados neste filtro.</div>';return;}
@@ -294,9 +296,38 @@ function comandoPrefeituras(){
   }catch(err){alertar(err.message);}
  };
 }
+function colaboradoresAjudaFiltrados(){
+ const inventario=INVENTARIO.registros(app.db);
+ const permitidos=filtroZona?new Set(INVENTARIO.filtrar(inventario,{modulo:"voluntarios",zona:filtroZona}).map(x=>x.id)):null;
+ const busca=INVENTARIO.normal(texto);
+ return app.oferentes().filter(p=>{
+  if(permitidos&&!permitidos.has(String(p.id)))return false;
+  return !busca||INVENTARIO.normal([p.nome,p.zona,p.bairro,p.contribuicao,p.ajudas,p.maquinas,p.empreendedores,p.materiais,p.outros].flat().filter(Boolean).join(" ")).includes(busca);
+ });
+}
+function renderColaboradoresAjuda(){
+ if(TIPO!=="ajuda"||camadaAtual!=="principal")return;
+ const pessoas=colaboradoresAjudaFiltrados();
+ const secao=document.createElement("section");secao.className="ajuda-colaboradores";
+ const titulo=document.createElement("h2");titulo.textContent="Colaboradores ("+pessoas.length+")";
+ const nota=document.createElement("p");nota.className="presence-note";
+ nota.textContent="Mesmos cadastros do Mapa de Colaboradores. A situação selecionada acima filtra os pedidos.";
+ const lista=document.createElement("div");secao.append(titulo,nota,lista);$("results").append(secao);
+ renderEquipeNoElemento(pessoas,lista);
+ const registroPorId=new Map(INVENTARIO.registros(app.db).filter(x=>x.modulo==="voluntarios").map(x=>[x.id,x]));
+ const grupos=new Map();
+ for(const pessoa of pessoas){const zona=registroPorId.get(String(pessoa.id))?.zona||pessoa.zona;if(zona)grupos.set(zona,(grupos.get(zona)||0)+1);}
+ for(const [zona,total] of grupos){
+  const pt=pontoZona(zona);if(!pt)continue;
+  const icon=L.divIcon({html:'<div class="bubble">'+total+'</div>',className:"pin collab",iconSize:[44,44],iconAnchor:[54,22]});
+  L.marker([pt.lat,pt.lng],{icon,title:total+" colaboradores na zona "+zona})
+   .bindPopup('<strong>'+esc(zona)+'</strong><p>'+total+' colaboradores</p><small>Marcador por zona, não representa endereço residencial.</small>')
+   .addTo(marcadores).on("click",()=>{filtroZona=zona;$("zona").value=zona;render();});
+ }
+}
 function render(){
  const xs=dadosFiltrados();
- renderCards(xs);renderMarkers(xs);counters(xs);renderUnidadesMunicipais();
+ renderCards(xs);renderMarkers(xs);renderColaboradoresAjuda();counters(xs);renderUnidadesMunicipais();
  if(camadaAtual==="principal"){
   $("command").hidden=false;
   if(TIPO==="ajuda")comandoPrefeituras();else comandoBrigadas();

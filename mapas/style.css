@@ -38,3 +38,6 @@ select,input,textarea{background:#0d1724;border:1px solid #3c5065;color:var(--fg
 
 .filter-toggle{display:flex!important;align-items:center;gap:9px;color:var(--fg)!important;cursor:pointer;font-weight:650!important}
 .filter-toggle input{width:16px!important;min-height:16px!important;margin:0;accent-color:var(--accent)}
+
+.ajuda-colaboradores{margin:18px 0 8px;padding-top:14px;border-top:1px solid #37516a}
+.ajuda-colaboradores h2{font-size:13px;margin:0 5px;color:var(--fg)}

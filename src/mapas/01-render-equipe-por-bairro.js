@@ -1,5 +1,7 @@
 function renderEquipePorBairro(xs){
- const el=$("results");
+ return renderEquipeNoElemento(xs,$("results"));
+}
+function renderEquipeNoElemento(xs,el){
  const grupos=new Map();
  for(const pessoa of xs){const bairro=String(pessoa.bairro||pessoa.zona||"Bairro não informado").trim();if(!grupos.has(bairro))grupos.set(bairro,[]);grupos.get(bairro).push(pessoa);}
  if(!xs.length){el.innerHTML='<div class="empty">Não há colaboradores cadastrados neste filtro.</div>';return;}
