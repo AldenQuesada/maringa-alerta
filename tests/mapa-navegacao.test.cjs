@@ -145,14 +145,14 @@ test("acionamento por espaço retorna para a vista completa",()=>{
  assert.equal(evt.stopped,true);
  visaoIncluiTodasAsZonas(map);
 });
-test("limites permitem a movimentação dentro de Maringá para busca e filtros",()=>{
+test("limites permitem navegar por busca e filtros sem arraste manual",()=>{
  const {map,L}=simularMapa(1024,768);
  instalar({map,L,zonas:POLIGONOS});
  assert.ok(map.maxBounds.getSouth()<=AREA_MARINGA[0][0]);
  assert.ok(map.maxBounds.getNorth()>=AREA_MARINGA[1][0]);
  assert.ok(map.maxBounds.getWest()<=AREA_MARINGA[0][1]);
  assert.ok(map.maxBounds.getEast()>=AREA_MARINGA[1][1]);
- assert.equal(map.dragging.enabled,true);
+ assert.equal(map.dragging.enabled,false);
  assert.equal(map.getMinZoom(),map.getZoom());
 });
 
@@ -181,13 +181,13 @@ test("o botão de centralizar retorna à mesma escala precisa em vez do zoom 13 
 });
 
 
-test("Evento recupera zoom, arraste e retorno sem ler preferências antigas incorretas",()=>{
+test("Evento recupera zoom e retorno sem arraste ou preferências incorretas",()=>{
  const {map,L,container}=simularMapa();
  const storage={getItem:()=>{throw Error("Câmera não deve ler storage legado");},
   setItem:()=>{throw Error("Câmera não deve gravar storage automaticamente");}};
  const nav=instalar({map,L,zonas:POLIGONOS,armazenamento:storage,chaveVista:"maringa_mapa_evento_vista_original_v1"});
  assert.equal(container.children.length,1,"Apenas botão retornar: nenhuma etapa de fixar posição");
- assert.equal(map.dragging.enabled,true);
+ assert.equal(map.dragging.enabled,false);
  const home={...map.center,zoom:map.zoom};
  map.setView([-23.403,-51.937],home.zoom+2);
  nav.botao.events.click({stopped:false});
@@ -204,7 +204,7 @@ test("Pra Somar e Colaboradores recebem a mesma navegação sem reutilizar posi�
    setItem:()=>{throw Error("não gravar");}};
   map.setView([-23.415,-51.93],12.5);
   const nav=instalarVistaSalva({map,L,armazenamento:storage,chaveVista:"antiga",identificador});
-  assert.equal(map.dragging.enabled,true);
+  assert.equal(map.dragging.enabled,false);
   assert.equal(map.getMinZoom(),12.5);
   assert.equal(container.children.length,1);
   map.setView([-23.411,-51.932],16);
@@ -220,7 +220,26 @@ test("CSS mantém o botão menos; módulo não impõe maxBounds da própria câm
  const src=fs.readFileSync("mapa-navegacao.js","utf8");
  assert.doesNotMatch(css,/display:\s*none\s*!important/);
  assert.doesNotMatch(src,/map\.setMaxBounds\(map\.getBounds\(\)\)/);
- assert.doesNotMatch(src,/map\.dragging\?\.disable/);
+ assert.match(src,/map\.dragging\?\.disable/);
  assert.match(src,/map\.dragging\?\.enable/);
- assert.match(src,/new URLSearchParams\(global\.location\.search\)\.get\("calibrar"\)!=="1"/);
+ assert.match(src,/new URLSearchParams\(global\.location\.search\)\.get\("calibrar"\)==="1"/);
+});
+
+test("modo calibração permite arrastar para escolher a referência nos três mapas",()=>{
+ const {instalarVistaSalva}=require("../mapa-navegacao.js");
+ const anterior=globalThis.location;
+ globalThis.location={search:"?calibrar=1"};
+ try{
+  const evento=simularMapa();
+  instalar({map:evento.map,L:evento.L,zonas:POLIGONOS});
+  assert.equal(evento.map.dragging.enabled,true);
+  for(const identificador of ["colaboradores","pra-somar"]){
+   const {map,L}=simularMapa();
+   instalarVistaSalva({map,L,identificador});
+   assert.equal(map.dragging.enabled,true,identificador);
+  }
+ }finally{
+  if(anterior===undefined)delete globalThis.location;
+  else globalThis.location=anterior;
+ }
 });
