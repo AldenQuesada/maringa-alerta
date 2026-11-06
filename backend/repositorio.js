@@ -20,7 +20,8 @@ function changes(before,after,collections,versions){
 }
 async function criar({client,dados,onStatus=()=>{}}){
  const collections=[...new Set(Object.values(dados.ESQUEMAS).map(x=>x.collection))];
- let state={version:1,municipioAtivo:'maringa'},versions=new Map(),queue=Promise.resolve();
+ let state={version:1,municipioAtivo:'maringa'},versions=new Map(),queue=Promise.resolve(),needsReload=false;
+ const reloadMessage='Atualize a página para conferir os dados antes de tentar salvar novamente.';
  for(const c of collections)state[c]=[];
  const checked=r=>{if(r.error)throw Error(r.error.message);return r.data;};
  async function pages(table,order){
@@ -49,12 +50,16 @@ async function criar({client,dados,onStatus=()=>{}}){
   const leitura=name=>(...args)=>copy(local(state,options).db[name](...args));
   function transacao(fn){
    const run=queue.then(async()=>{
+    if(needsReload)throw Error(reloadMessage);
     const before=copy(state),draft=local(before,options);
     onStatus('salvando');
     try{
      const result=await fn(draft.db);
      const after=draft.read(),diff=changes(before,after,collections,versions);
-     if(diff.length)checked(await client.rpc('ma_aplicar_alteracoes',{alteracoes:diff}));
+     if(diff.length){
+      try{checked(await client.rpc('ma_aplicar_alteracoes',{alteracoes:diff}));}
+      catch(error){needsReload=true;throw Error(error.message+' '+reloadMessage);}
+     }
      for(const op of diff){const k=JSON.stringify([op.colecao,op.municipio_id||'',op.id]);if(op.operacao==='excluir')versions.delete(k);else versions.set(k,op.operacao==='inserir'?1:Number(op.versao)+1);}
      state=after;onStatus('salvo');return copy(result??null);
     }catch(error){onStatus('erro',error.message);throw error;}

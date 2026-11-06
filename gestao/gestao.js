@@ -368,9 +368,11 @@ async function excluir(id){
 }
 FORM.addEventListener("submit",async e=>{
  e.preventDefault();const modulo=drawerModulo||atual;
+ const submit=$("drawer-save");if(submit.disabled)return;
  const data={};
  for(const [k,v] of new FormData(FORM).entries()){if(Object.hasOwn(data,k))data[k]=[].concat(data[k],v);else data[k]=v;}
  for(const f of D.ESQUEMAS[modulo].fields)if(f.type==="multi")data[f.key]=Array.isArray(data[f.key])?data[f.key]:data[f.key]?[data[f.key]]:[];
+ submit.disabled=true;
  try{
   const item=await db.gravar(modulo,data,edicao);
   const novo=!edicao;
@@ -378,7 +380,7 @@ FORM.addEventListener("submit",async e=>{
   if(modulo==="prefeituras")renderMunicipios();
   render();if(modulo==="bairros")window.dispatchEvent(new Event("gestao:bairros-atualizados"));toast("Cadastro salvo.");
   if(novo&&modulo==="prefeituras")geocodificarPrefeitura(item);
- }catch(err){$("form-error").textContent=err.message;}
+ }catch(err){$("form-error").textContent=err.message;}finally{submit.disabled=false;}
 });
 PAGE.addEventListener("click",async e=>{
  if(e.target.closest('[data-importar-tornado]')){try{if(db.tipo==="supabase")throw Error("Eventos demonstrativos não são enviados ao Supabase.");EventoTornado2026.importar(db);render();toast('Evento histórico disponível no cadastro.');}catch(err){toast(err.message||'Não foi possível importar.');}return;}

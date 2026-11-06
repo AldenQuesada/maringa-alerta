@@ -6,7 +6,7 @@ Projeto: `yyoozisgoginwepzvnvu` (`maringa-prasomar`, São Paulo).
 
 O banco contém `ma_prefeituras`, `ma_vinculos` e `ma_cadastros`. Cada registro conserva a coleção canônica do protótipo e seu JSON, com prefeitura, versão e data controladas pelo servidor. Esse modelo de transição preserva os formulários existentes; não implementa ainda reservas de recursos ou despacho operacional transacional. RLS restringe os dados ao vínculo municipal do usuário. E-mails e nomes de administradores nos cadastros não concedem permissões.
 
-As gravações usam `ma_aplicar_alteracoes`: lote atômico, RLS e verificação da versão anterior. Falhas não alteram o estado em memória nem geram mensagem de sucesso. Use **Atualizar** para buscar alterações de outros dispositivos; não há atualização automática em tempo real nem fila de gravação offline. Os cadastros reais ficam em memória durante a sessão, sem cópia em localStorage; o SDK mantém apenas sua própria sessão autenticada.
+As gravações usam `ma_aplicar_alteracoes`: lote atômico, RLS e verificação da versão anterior. Falhas não alteram o estado em memória nem geram mensagem de sucesso. Após uma falha da requisição, novas gravações ficam bloqueadas até recarregar: a conexão pode ter caído depois de o servidor salvar. Use **Atualizar** para conferir o resultado e buscar alterações de outros dispositivos; não há atualização automática em tempo real nem fila de gravação offline. Os cadastros reais ficam em memória durante a sessão, sem cópia em localStorage; o SDK mantém apenas sua própria sessão autenticada.
 
 ## Carga inicial autorizada
 

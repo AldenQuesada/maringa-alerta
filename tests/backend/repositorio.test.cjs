@@ -19,6 +19,13 @@ test('falha de rede mantém o cadastro anterior e propaga erro',async()=>{
  const f=fixture({reject:true}),remote=await R.criar({client:f.client,dados:D}),db=remote.repositorio({municipioId:'maringa'});
  await assert.rejects(db.gravar('bases',{nome:'Somente no teste'}),/offline/);assert.deepEqual(db.lista('bases'),[]);
 });
+test('resposta perdida bloqueia novas gravações em todos os escopos até recarregar',async()=>{
+ const f=fixture({pause:true,reject:true}),remote=await R.criar({client:f.client,dados:D}),db=remote.repositorio({municipioId:'maringa'});
+ const first=assert.rejects(db.gravar('bases',{nome:'Somente no teste'}),/Atualize a página/);
+ const second=assert.rejects(remote.repositorio().gravar('bases',{nome:'Tentativa repetida'}),/Atualize a página/);
+ await new Promise(r=>setImmediate(r));f.release();await Promise.all([first,second]);
+ assert.equal(f.calls.length,1);assert.deepEqual(db.lista('bases'),[]);
+});
 test('duas gravações simultâneas são serializadas sem perda',async()=>{
  const f=fixture(),remote=await R.criar({client:f.client,dados:D}),db=remote.repositorio({municipioId:'maringa'});
  await Promise.all([db.gravar('bases',{nome:'Local A'}),db.gravar('bases',{nome:'Local B'})]);assert.equal(db.lista('bases').length,2);
@@ -29,6 +36,7 @@ test('transação conserva validações e envia um lote único',async()=>{
  const f=fixture(),remote=await R.criar({client:f.client,dados:D}),db=remote.repositorio({municipioId:'maringa'});
  await db.transacao(draft=>{draft.gravar('bases',{nome:'A'});draft.gravar('bases',{nome:'B'});});assert.equal(f.calls.length,1);assert.equal(f.calls[0].alteracoes.length,2);
  await assert.rejects(db.transacao(draft=>{draft.gravar('bases',{nome:'C'});draft.gravar('bases',{nome:''});}),/Preencha/);assert.equal(db.lista('bases').length,2);assert.equal(f.calls.length,1);
+ await db.gravar('bases',{nome:'D'});assert.equal(f.calls.length,2);
 });
 test('escopo autorizado não recria município demonstrativo',async()=>{
  const f=fixture();f.client.from=table=>({select(){return this},order(){return this},async range(){return {data:table==='ma_prefeituras'?[{dados:{id:'outro',nome:'Outro',codigo_ibge:'0000001',uf:'PR'},versao:1}]:[]}}});
