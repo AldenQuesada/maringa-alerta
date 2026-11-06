@@ -33,6 +33,8 @@ async function carregarZonasOficiais(){
 }
 const fichaPonto=FichaPonto.criar({painel:$("painel-ajuda"),abrirPainel:()=>{if($("painel-ajuda").hidden)$("painel-ajuda-toggle").click();},obterRegistro:(modulo,id)=>app.db.registro(modulo,id),waLink:MaringaCrise.waLink});
 const filtrosUnidades=FiltrosUnidades.criar({alvo:$("filtros-unidades"),ler:()=>INVENTARIO.registros(app.db),aoMudar:()=>render()});
+$("unidades-todos").onclick=()=>filtrosUnidades.selecionarTodos(true);
+$("unidades-nenhum").onclick=()=>filtrosUnidades.selecionarTodos(false);
 function renderUnidadesMunicipais(){
  unidadesMunicipais.clearLayers();
  const todos=INVENTARIO.registros(app.db).filter(x=>x.georreferenciado&&!x.privado);

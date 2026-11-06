@@ -1,7 +1,7 @@
 // cache minimo do shell do app para abrir mesmo sem internet depois do primeiro carregamento.
 // protocolo real de missao critica precisaria de fila de sincronizacao mais robusta (Background Sync API);
 // isto aqui cobre o caso mais comum: internet caiu, mas o navegador ja tinha a pagina aberta/carregada antes.
-const CACHE_NAME = "maringa-alerta-shell-v49";
+const CACHE_NAME = "maringa-alerta-shell-v50";
 const SHELL_FILES = ["./", "./index.html", "./evento/app.js?v=ficha-ponto-20261106", "./evento/style.css?v=ficha-ponto-20261106", "./gestao/dados.js?v=ficha-ponto-20261106", "./dados-territoriais/importacao-publica.js?v=apoios-1", "./dados-territoriais/maringa-bases-riscos-publicos.json", "./dados-territoriais/maringa-abrigos-publicos.json", "./mapas/inventario.js?v=ficha-ponto-20261106", "./cadastro-ocorrencia.js?v=4", "./cadastro-ocorrencia-mapa.js?v=3", "./cadastro-ocorrencia.css?v=3", "./filtros-ocorrencias.js?v=1", "./filtros-ocorrencias.css?v=1", "./eventos-mapa.js?v=1", "./evento-referencias.js?v=2", "./evento-tornado-2026.js?v=1", "./painel-eventos.js?v=2", "./painel-eventos.css?v=5", "./operacao-restauracao.js?v=1", "./operacao-restauracao.css?v=1", "./gestao/acoes-cabecalho.js?v=mapas-filtros-2", "./gestao/acoes-cabecalho.css?v=acoes-2", "./dados-territoriais/camadas-mapas.js?v=territorio-2", "./fluxo-ajuda.js?v=sessoes-1", "./prototipo.css?v=evento-10", "./sessao.js?v=sessoes-1", "./sessao-ui.js?v=sessoes-2", "./sessao.css?v=sessoes-2", "./mapa-navegacao.js?v=zoom-arraste-1", "./mapa-navegacao.css?v=recuperacao-mapas-1"];
 
 self.addEventListener("install", (event) => {

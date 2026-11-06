@@ -14,7 +14,12 @@
    const grupos=new Map();for(const item of [...tipos.values()].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'))){if(!grupos.has(item.grupo))grupos.set(item.grupo,[]);grupos.get(item.grupo).push(item)}
    for(const [grupo,itens] of grupos){const field=document.createElement('fieldset'),legend=document.createElement('legend');legend.textContent=grupo;field.append(legend);for(const item of itens){const label=document.createElement('label'),check=document.createElement('input'),texto=document.createElement('span');check.type='checkbox';check.checked=!ocultos.has(item.id);texto.textContent=item.nome+' · '+item.total+' ('+item.pontos+' no mapa)';label.append(check,texto);field.append(label);check.addEventListener('change',()=>{if(check.checked)ocultos.delete(item.id);else ocultos.add(item.id);aoMudar()})}alvo.append(field)}
   }
-  return {aceita,atualizar};
+  function selecionarTodos(mostrar){
+   ocultos.clear();
+   if(!mostrar)for(const x of ler())if(MODULOS.has(x.modulo)&&!x.privado)ocultos.add(chave(x));
+   atualizar();aoMudar();
+  }
+  return {aceita,atualizar,selecionarTodos};
  }
  root.FiltrosUnidades={criar};
 })(window);
