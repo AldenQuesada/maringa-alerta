@@ -8,6 +8,7 @@ function renderInicio(){
   ["Equipes","Organizar equipes e recursos municipais.","equipes"],
   ["Recursos e comunicação","Configurar equipamentos, abrigos e canais.","equipamentos"],
   ["Ajuda pós-evento","Gerenciar solicitações por zona.","solicitacoes"],
+   ["Central de Conversas","Ver todos os colaboradores, filtrar por zona e revisar o fluxo Pra Somar.","conversas"],
   ["Brigadas e prefeituras","Mobilizar zonas e solicitar apoio a outros municípios.","mobilizacoes"]
  ];
  PAGE.innerHTML=topo("Painel de gestão","Cadastros e recursos para organizar a atuação de cada prefeitura.")+

@@ -28,6 +28,7 @@ jobs:
           node --check fluxo-ajuda.js
           node --check gestao/dados.js
           node --check gestao/gestao.js
+          node --check gestao/central-conversas.js
           node --check crise/core.js
           node --check mapas/app.js
           node --check atendimento/chat.js

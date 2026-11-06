@@ -80,3 +80,14 @@ Consulte `/AUDITORIA_SISTEMA_INTEGRADO_CRISE.md` para o estado funcional e as in
 **Status técnico:** implementado como **protótipo em GitHub Pages com persistência local (localStorage)**. Nem importações nem alterações são compartilhadas entre dispositivos ou usuários; não há backend geoespacial, PostGIS, autenticação/RLS, sincronização de prefeituras ou WhatsApp oficial. Para implantação municipal real, requer backend, autorização institucional, curadoria das bases e validação territorial por órgãos responsáveis.
 
 **Teste de implementação:** `node --test gestao/tests/*.test.cjs crise/tests/*.test.cjs tests/*.test.cjs` e verificação sintática dos arquivos `gestao/implantacao-core.js`, `gestao/implantacao-ui.js`.
+
+## Central de Conversas · colaboradores (06/11/2026)
+
+- **Acesso:** Gestão municipal → Atendimento → **Central de Conversas**, rota \`/gestao/#conversas\`.
+- **Fonte única:** lista municipal \`db.lista("voluntarios")\`, da mesma coleção utilizada no Mapa de Colaboradores, sem criar pessoas, mensagens ou coleções paralelas.
+- **Três painéis:** conversas à esquerda; roteiro de cadastro Pra Somar ao centro; seleção múltipla das zonas e ficha completa do colaborador à direita.
+- **Filtro de zona:** usa a zona registrada; caso ausente, somente o vínculo exato do bairro cadastrado com uma zona; sem inferir geografia e sem incluir outra prefeitura.
+- **Reconstrução:** mensagens do roteiro são geradas para visualização com valores efetivamente disponíveis no cadastro. Ausência de dados é sinalizada; **não se trata de mensagens WhatsApp reais**.
+- **Ações:** busca por nome, contato, bairro e oferta, atualização dos registros, criação e edição diretamente no formulário canônico de Colaboradores.
+- **Limites atuais:** leitura local no navegador, sem sincronização, autenticação real ou histórico externo. Os voluntários gerados aleatoriamente pelo antigo mapa demonstrativo não são promovidos a cadastros verificados.
+- **Validação:** \`gestao/tests/central-conversas.test.cjs\`, checagem de sintaxe e build modular canônico.
