@@ -234,7 +234,10 @@ function render(){
  document.title=(atual==="inicio"?"Gestão":atual==="conversas"?"Central de Conversas":atual==="estruturas"?"Estruturas":atual==="geoterritorialidade"?"Geoterritorialidade":D.ESQUEMAS[atual].label)+" | Gestão Municipal";
  renderNav();
  if(atual==="inicio")renderInicio();
- else if(atual==="conversas")window.AlertaCentralConversas.montar({target:PAGE,db,onEdit:id=>abrirDrawer(id,"voluntarios"),onNew:()=>abrirDrawer(null,"voluntarios")});
+ else if(atual==="conversas"){
+  try{window.MaringaColaboradoresDemo?.garantir(db,window.localStorage)}catch(err){console.warn("Ajudantes demonstrativos não puderam ser importados",err);}
+  window.AlertaCentralConversas.montar({target:PAGE,db,onEdit:id=>abrirDrawer(id,"voluntarios"),onNew:()=>abrirDrawer(null,"voluntarios")});
+ }
  else if(atual==="territorio")renderTerritorioMunicipal();
  else if(atual==="estruturas")renderEstruturas();
  else if(atual==="geoterritorialidade")renderGeoterritorialidade();
