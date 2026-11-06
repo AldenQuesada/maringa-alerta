@@ -48,8 +48,9 @@ function rebuildHeat(){
   heatLayer.setLatLngs(pontos);
 }
 
-function volIcon(aoVivo=false,status='indefinido'){
-  return L.divIcon({className:'vol-marker',html:`<div class="vol-dot pessoa-${status}${aoVivo?' vol-live':''}"></div>`,iconSize:[24,24],iconAnchor:[12,12]});
+function volIcon(aoVivo=false,status='indefinido',deslocamento=0){
+  const anchor=deslocamento?[12-((deslocamento-1)%5-2)*16,12-Math.floor((deslocamento-1)/5)*16]:[12,12];
+  return L.divIcon({className:'vol-marker',html:`<div class="vol-dot ${status==='local'?'mapa-ativo':'mapa-inativo'}${aoVivo?' vol-live':''}"></div>`,iconSize:[24,24],iconAnchor:anchor});
 }
 function ocIcon(status){
   const color = STATUS_COLOR[status] || STATUS_COLOR.ativa;

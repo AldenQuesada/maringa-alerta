@@ -44,7 +44,7 @@ function municipSelector(){
  };
 }
 function zoneSelect(){
- opts($("zona"),[...new Set([...app.zonas(),...nomesZonasOficiais,...INVENTARIO.registros(app.db).map(x=>x.zona).filter(Boolean)])].sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true})),filtroZona,'<option value="">Todas as zonas</option>');
+ opts($("zona"),[...new Set([...app.zonas(),...nomesZonasOficiais,...colaboradoresDisponiveis().map(x=>x.zona).filter(Boolean),...INVENTARIO.registros(app.db).map(x=>x.zona).filter(Boolean)])].sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true})),filtroZona,'<option value="">Todas as zonas</option>');
  $("zona").value=filtroZona;
 }
 function configurarCamadas(){
@@ -82,13 +82,18 @@ function renderMunicipio(){
  }else if(p?.lat!==undefined&&p?.lng!==undefined&&Number.isFinite(lat)&&Number.isFinite(lng))map.setView([lat,lng],12);
  zoneSelect();setTimeout(()=>map.invalidateSize(),100);
 }
+function colaboradoresDisponiveis(){
+ const municipio=app.prefeitura()?.id;
+ const anterior=municipio?OperacaoRestauracao.ler(localStorage,`alerta_prototipo_v2_${municipio}_operacao`,municipio):null;
+ return ColaboradoresReferencia.listar(app.oferentes(),anterior);
+}
 function dadosFiltrados(){
  const inventario=INVENTARIO.registros(app.db);
  if(camadaAtual!=="principal")return INVENTARIO.filtrar(inventario,{modulo:camadaAtual,zona:filtroZona,classe:filtroClasse,busca:texto});
 
- const xs=TIPO==="ajuda"?app.pedidos():app.oferentes();
+ const xs=TIPO==="ajuda"?app.pedidos():colaboradoresDisponiveis();
  return xs.filter(x=>{
-  if(filtroZona&&!INVENTARIO.filtrar(inventario,{modulo:TIPO==="ajuda"?"solicitacoes":"voluntarios",zona:filtroZona}).some(item=>item.id===String(x.id)))return false;
+  if(filtroZona&&!(x.registroAnterior?INVENTARIO.normal(x.zona||x.bairro)===INVENTARIO.normal(filtroZona):INVENTARIO.filtrar(inventario,{modulo:TIPO==="ajuda"?"solicitacoes":"voluntarios",zona:filtroZona}).some(item=>item.id===String(x.id))))return false;
   if(filtroClasse&&(TIPO==="ajuda"?x.status:x.tipo_pessoa)!==filtroClasse)return false;
   if(texto){
    const campos=TIPO==="ajuda"?[x.necessidade,x.descricao,x.zona]:
@@ -156,7 +161,7 @@ function renderEquipeNoElemento(xs,el){
    pessoas.map(x=>'<div class="team-member"><div><b>'+esc(x.nome||"Colaborador")+'</b><small>'+esc(x.checkin_status==="presente"?"Presente · GPS autodeclarado":x.checkin_status==="finalizado"?"Saída registrada":"Aguardando chegada")+'</small>'+
     (caps(x).length?'<small>'+esc(caps(x).slice(0,3).join(" · ")+(caps(x).length>3?" +"+(caps(x).length-3)+" capacidades":""))+'</small>':'')+
     (x.forma_entrega_doacao?'<small>Doação: '+esc(x.forma_entrega_doacao)+'</small>':'')+'</div>'+
-    (x.checkin_status==="presente"?'<button type="button" data-saida="'+esc(x.id)+'">Registrar saída</button>':
+    (x.registroAnterior?'<small>Registro anterior</small>':x.checkin_status==="presente"?'<button type="button" data-saida="'+esc(x.id)+'">Registrar saída</button>':
     '<button type="button" data-checkin="'+esc(x.id)+'"'+(bairro==="Bairro não informado"?' disabled title="Cadastre o bairro antes"':'')+'>Check-in GPS</button>')+
     '</div>').join("")+'</section>';
  }).join("")+'<p class="presence-note">Check-in local experimental: exige permissão GPS, precisão de até 100 m e polígono de bairro compatível. Não comprova identidade nem sincroniza entre dispositivos.</p>';
@@ -238,7 +243,7 @@ function counters(xs){
   $("metric-three-label").textContent="No mapa";
   return;
  }
- const all=TIPO==="ajuda"?app.pedidos():app.oferentes();
+ const all=TIPO==="ajuda"?app.pedidos():colaboradoresDisponiveis();
  const zonas=new Set(all.map(x=>x.zona).filter(Boolean)).size;
  $("metric-one").textContent=all.length;
  $("metric-two").textContent=zonas;
@@ -301,8 +306,8 @@ function colaboradoresAjudaFiltrados(){
  const inventario=INVENTARIO.registros(app.db);
  const permitidos=filtroZona?new Set(INVENTARIO.filtrar(inventario,{modulo:"voluntarios",zona:filtroZona}).map(x=>x.id)):null;
  const busca=INVENTARIO.normal(texto);
- return app.oferentes().filter(p=>{
-  if(permitidos&&!permitidos.has(String(p.id)))return false;
+ return colaboradoresDisponiveis().filter(p=>{
+  if(permitidos&&!(p.registroAnterior?INVENTARIO.normal(p.zona||p.bairro)===INVENTARIO.normal(filtroZona):permitidos.has(String(p.id))))return false;
   return !busca||INVENTARIO.normal([p.nome,p.zona,p.bairro,p.contribuicao,p.ajudas,p.maquinas,p.empreendedores,p.materiais,p.outros].flat().filter(Boolean).join(" ")).includes(busca);
  });
 }
@@ -319,7 +324,14 @@ function renderColaboradoresAjuda(){
  renderEquipeNoElemento(pessoas,lista);
  const registroPorId=new Map(INVENTARIO.registros(app.db).filter(x=>x.modulo==="voluntarios").map(x=>[x.id,x]));
  const grupos=new Map();
- for(const pessoa of pessoas){const zona=registroPorId.get(String(pessoa.id))?.zona||pessoa.zona;if(zona)grupos.set(zona,(grupos.get(zona)||0)+1);}
+ for(const pessoa of pessoas){
+  if(pessoa.registroAnterior&&Array.isArray(pessoa.pos)&&pessoa.pos.length>=2&&pessoa.pos.every(Number.isFinite)){
+   const ic=L.divIcon({html:'<div class="bubble">1</div>',className:"pin collab",iconSize:[44,44],iconAnchor:[22,22]});
+   L.marker(pessoa.pos,{icon:ic,title:pessoa.nome}).bindPopup('<strong>'+esc(pessoa.nome)+'</strong><p>Posição registrada no estado anterior de demonstração.</p>').addTo(marcadores);
+   continue;
+  }
+  const zona=registroPorId.get(String(pessoa.id))?.zona||pessoa.zona;if(zona)grupos.set(zona,(grupos.get(zona)||0)+1);
+ }
  for(const [zona,total] of grupos){
   const pt=pontoZona(zona);if(!pt)continue;
   const icon=L.divIcon({html:'<div class="bubble">'+total+'</div>',className:"pin collab",iconSize:[44,44],iconAnchor:[54,22]});

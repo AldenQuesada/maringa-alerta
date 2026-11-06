@@ -29,7 +29,7 @@ function renderCollaborators(){
       </button>
       ${aberto?`<div class="person-details">
         <div>${escHtml([p.cargo,p.orgao,p.sub,p.bairroOrigem].filter(Boolean).join(' · '))}</div>
-        <div>${posicaoAtual(p.id)?'Localização ao vivo · '+new Date(posicaoAtual(p.id).ts).toLocaleTimeString('pt-BR'):p.pos?'Ponto de demonstração · posição fixa':'Localização indisponível'}</div>
+        <div>${posicaoAtual(p.id)?'Localização ao vivo · '+new Date(posicaoAtual(p.id).ts).toLocaleTimeString('pt-BR'):p.pos?'Ponto de demonstração · posição fixa':referenciaPessoa(p)?.aproximado?'Localização aproximada da área':'Localização indisponível'}</div>
         <div class="person-actions">
           <button type="button" class="admin-btn" data-chat="${escHtml(p.id)}"${isViewOnly()?' disabled':''} title="Abre uma conversa interna simulada">Chat interno</button>
           ${contato&&!isViewOnly()?`<a class="admin-btn" href="${escHtml(contato)}" title="Abre o telefone ou e-mail cadastrado">Contatar</a>`:'<button class="admin-btn" disabled>Contatar</button>'}

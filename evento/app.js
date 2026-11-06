@@ -296,8 +296,9 @@ function rebuildHeat(){
   heatLayer.setLatLngs(pontos);
 }
 
-function volIcon(aoVivo=false,status='indefinido'){
-  return L.divIcon({className:'vol-marker',html:`<div class="vol-dot pessoa-${status}${aoVivo?' vol-live':''}"></div>`,iconSize:[24,24],iconAnchor:[12,12]});
+function volIcon(aoVivo=false,status='indefinido',deslocamento=0){
+  const anchor=deslocamento?[12-((deslocamento-1)%5-2)*16,12-Math.floor((deslocamento-1)/5)*16]:[12,12];
+  return L.divIcon({className:'vol-marker',html:`<div class="vol-dot ${status==='local'?'mapa-ativo':'mapa-inativo'}${aoVivo?' vol-live':''}"></div>`,iconSize:[24,24],iconAnchor:anchor});
 }
 function ocIcon(status){
   const color = STATUS_COLOR[status] || STATUS_COLOR.ativa;
@@ -488,12 +489,20 @@ function pessoasMunicipio(){
     ...voluntarios.map(v=>({...v,zona:v.bairro,sub:(v.contribuicoes||[v.ajuda]).join(', '),demo:true,disponibilidade:estadoPessoa(v.id)}))
   ].map(p=>({...p,bairroOrigem:p.bairro||p.zona}));
 }
-function pontoPessoa(p){
-  if(p.pos) return p.pos;
+function referenciaPessoa(p){
+  if(p.pos) return {pos:p.pos,aproximado:false};
   const lat=Number(p.checkin_lat),lng=Number(p.checkin_lng);
-  if(p.checkin_status==='presente'&&p.checkin_lat!==''&&p.checkin_lng!==''&&Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180) return [lat,lng];
+  if(p.checkin_status==='presente'&&p.checkin_lat!==''&&p.checkin_lng!==''&&p.checkin_lat!=null&&p.checkin_lng!=null&&Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180) return {pos:[lat,lng],aproximado:false};
+  // Sem localização individual, usa apenas o centro da área já cadastrada.
+  for(const nome of [p.bairroOrigem,p.bairro,p.zona].filter(Boolean)){
+    const area=areas.find(a=>!a.demo&&a.layer&&[a.id,a.nome].some(x=>normalizarTerritorio(x)===normalizarTerritorio(nome)));
+    const bounds=area?.layer?.getBounds();
+    if(bounds?.isValid()){const centro=bounds.getCenter();return {pos:[centro.lat,centro.lng],aproximado:true,area:area.nome};}
+  }
   return null;
 }
+function pontoPessoa(p){return referenciaPessoa(p)?.pos||null;}
+
 function statusPessoaMapa(p){
   const participacoes=ocorrencias.flatMap(o=>o.participacoes||[]).filter(x=>x.voluntarioId===p.id);
   if(participacoes.some(x=>x.status==='no_local') || p.checkin_status==='presente') return ['local','No local · chegada registrada'];
@@ -514,10 +523,11 @@ function statusPessoaMapa(p){
 }
 function textoMarcadorPessoa(p){
   const [,status]=statusPessoaMapa(p);
-  return `<strong>${escHtml(p.nome)}</strong><br>${escHtml([p.sub||p.ajuda,p.bairroOrigem||p.bairro||p.zona,status,p.demo?'Demonstração':''].filter(Boolean).join(' · '))}`;
+  const local=referenciaPessoa(p);
+  return `<strong>${escHtml(p.nome)}</strong><br>${escHtml([p.sub||p.ajuda,p.bairroOrigem||p.bairro||p.zona,status,local?.aproximado?'Localização aproximada da área':'',p.demo?'Demonstração':''].filter(Boolean).join(' · '))}`;
 }
-function configurarMarcadorPessoa(marcador,p){
-  marcador.setIcon(volIcon(!!posicaoAtual(p.id),statusPessoaMapa(p)[0]));
+function configurarMarcadorPessoa(marcador,p,deslocamento=0){
+  marcador.setIcon(volIcon(!!posicaoAtual(p.id),statusPessoaMapa(p)[0],deslocamento));
   marcador.bindTooltip(textoMarcadorPessoa(p),{direction:'top',offset:[0,-8]});
   marcador.on('click',()=>mostrarFicha(p.id));
   return marcador;
@@ -540,8 +550,12 @@ function mostrarFicha(id){
 function renderOfficialMarkers(){
   officialLayer.clearLayers();
   marcadoresPessoas.clear();
+  const referenciasPorArea=new Map();
   pessoasPainel().filter(p=>(p.oficial||p.id.startsWith('cad:'))&&pontoPessoa(p)).forEach(p=>{
-    const marcador=configurarMarcadorPessoa(L.marker(pontoPessoa(p),{icon:volIcon(),title:p.nome}),p).addTo(officialLayer);
+    const referencia=referenciaPessoa(p);
+    let deslocamento=0;
+    if(referencia.aproximado){const chave=normalizarTerritorio(referencia.area);deslocamento=(referenciasPorArea.get(chave)||0)+1;referenciasPorArea.set(chave,deslocamento);}
+    const marcador=configurarMarcadorPessoa(L.marker(referencia.pos,{icon:volIcon(),title:p.nome}),p,deslocamento).addTo(officialLayer);
     marcadoresPessoas.set(p.id,marcador);
   });
 }
@@ -637,7 +651,7 @@ function renderCollaborators(){
       </button>
       ${aberto?`<div class="person-details">
         <div>${escHtml([p.cargo,p.orgao,p.sub,p.bairroOrigem].filter(Boolean).join(' · '))}</div>
-        <div>${posicaoAtual(p.id)?'Localização ao vivo · '+new Date(posicaoAtual(p.id).ts).toLocaleTimeString('pt-BR'):p.pos?'Ponto de demonstração · posição fixa':'Localização indisponível'}</div>
+        <div>${posicaoAtual(p.id)?'Localização ao vivo · '+new Date(posicaoAtual(p.id).ts).toLocaleTimeString('pt-BR'):p.pos?'Ponto de demonstração · posição fixa':referenciaPessoa(p)?.aproximado?'Localização aproximada da área':'Localização indisponível'}</div>
         <div class="person-actions">
           <button type="button" class="admin-btn" data-chat="${escHtml(p.id)}"${isViewOnly()?' disabled':''} title="Abre uma conversa interna simulada">Chat interno</button>
           ${contato&&!isViewOnly()?`<a class="admin-btn" href="${escHtml(contato)}" title="Abre o telefone ou e-mail cadastrado">Contatar</a>`:'<button class="admin-btn" disabled>Contatar</button>'}
