@@ -38,6 +38,9 @@
 .cv-list-empty strong{color:#eef2f6}
 .cv-list-empty p{margin:8px 0 0}
 .cv-chat-head{display:flex;align-items:center;gap:11px;border-bottom:1px solid #2b3b4b;min-height:66px;padding:12px 17px;background:#142130}
+.cv-back{flex:none;min-height:36px;padding:8px 12px;border:1px solid #547185;border-radius:8px;background:#243a4b;color:#f3f8fc;font-weight:750;font-size:11.5px;white-space:nowrap}
+.cv-back:hover{border-color:var(--accent);color:var(--accent);background:#304659}
+.cv-back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .cv-avatar-chat{width:36px;height:36px;flex-basis:36px;border-radius:50%;font-size:14px}
 .cv-chat-person{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 .cv-chat-person strong{font-size:13.5px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
@@ -98,12 +101,16 @@
   .content:has(.cv-root){overflow:auto}
   .page:has(.cv-root){height:auto;padding:16px 12px 35px}
   .cv-root{height:auto}
-  .cv-shell{display:grid;grid-template-columns:1fr;overflow:visible;min-height:0}
-  .cv-inbox{border-right:0;border-bottom:1px solid var(--line);height:290px}
-  .cv-chat{height:560px}
-  .cv-inspector{border-left:0;border-top:1px solid var(--line);overflow:visible}
+  /* Mobile: visão geral mostra regiões e conversas; o chat só ocupa a tela após seleção. */
+  .cv-shell{display:flex;flex-direction:column;overflow:visible;min-height:0}
+  .cv-inspector{order:0;border-left:0;border-top:0;border-bottom:1px solid var(--line);overflow:visible}
+  .cv-inbox{order:1;border-right:0;border-bottom:0;height:310px}
+  .cv-chat{order:2;display:none}
+  .cv-root.is-conversation-open .cv-inbox,.cv-root.is-conversation-open .cv-inspector{display:none}
+  .cv-root.is-conversation-open .cv-chat{display:flex;height:min(72dvh,740px);min-height:430px}
   .cv-zones{max-height:220px}
-  .cv-profile{padding:16px}
+  .cv-profile-empty,.cv-inspector-divider{display:none}
+  .cv-profile{padding:10px 16px}
   .cv-disclaimer{padding:4px 1px}
 }
 @media(max-width:520px){
@@ -112,6 +119,7 @@
   .cv-total{margin-right:auto}
   .cv-message{max-width:95%}
   .cv-transcript{padding:12px 10px}
-  .cv-chat-head{padding:10px}
+  .cv-chat-head{padding:10px;flex-wrap:wrap}
+  .cv-chat-head .cv-back{order:-1;width:100%;text-align:center}
   .cv-chat-person span{font-size:10px}
 }
