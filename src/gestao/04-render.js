@@ -7,12 +7,13 @@ function render(){
  if(hash==="bairros"||hash==="zonas")geoTipo=hash;
  if(["saude","emergencias","parceiros"].includes(hash))estruturaTipo=hash;
  const alias=hash==="prefeituras"||hash==="implantacao"||hash==="pessoas"?"territorio":hash==="bairros"||hash==="zonas"?"geoterritorialidade":["saude","emergencias","parceiros"].includes(hash)?"estruturas":hash;
- const proximo=alias==="inicio"||alias==="estruturas"||alias==="geoterritorialidade"||Object.hasOwn(D.ESQUEMAS,alias)?alias:"inicio";
+ const proximo=alias==="inicio"||alias==="conversas"||alias==="estruturas"||alias==="geoterritorialidade"||Object.hasOwn(D.ESQUEMAS,alias)?alias:"inicio";
  if(proximo!==atual)pesquisa="";
  atual=proximo;
- document.title=(atual==="inicio"?"Gestão":atual==="estruturas"?"Estruturas":atual==="geoterritorialidade"?"Geoterritorialidade":D.ESQUEMAS[atual].label)+" | Gestão Municipal";
+ document.title=(atual==="inicio"?"Gestão":atual==="conversas"?"Central de Conversas":atual==="estruturas"?"Estruturas":atual==="geoterritorialidade"?"Geoterritorialidade":D.ESQUEMAS[atual].label)+" | Gestão Municipal";
  renderNav();
  if(atual==="inicio")renderInicio();
+ else if(atual==="conversas")window.AlertaCentralConversas.montar({target:PAGE,db,onEdit:id=>abrirDrawer(id,"voluntarios"),onNew:()=>abrirDrawer(null,"voluntarios")});
  else if(atual==="territorio")renderTerritorioMunicipal();
  else if(atual==="estruturas")renderEstruturas();
  else if(atual==="geoterritorialidade")renderGeoterritorialidade();
