@@ -25,3 +25,10 @@ test('equipes anteriores são lidas sem duplicar telefones já cadastrados',()=>
  assert.equal(result.length,2);assert.equal(result[1].registroAnterior,true);assert.equal(result[1].zona,'Zona 2');assert.deepEqual(result[1].ajudas,['Limpeza']);
  assert.equal(ref.listar(existentes,{estado:'bloqueado'}).length,1);
 });
+test('cadastro importado preserva posição do registro anterior para exibição',()=>{
+ const ref=require('../mapas/colaboradores-referencia.js');
+ const atual=[{id:'cad-1',nome:'Ana',origem_id_legado:'v1',status_simulacao:'simulado'}];
+ const legado={estado:'restauravel',dados:{voluntarios:[{id:'v1',nome:'Ana',pos:[-23.42,-51.93]}]}};
+ const result=ref.listar(atual,legado);
+ assert.equal(result.length,1);assert.deepEqual(result[0].posicaoAnterior,[-23.42,-51.93]);assert.equal(atual[0].posicaoAnterior,undefined);
+});

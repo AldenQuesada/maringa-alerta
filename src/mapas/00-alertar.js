@@ -40,7 +40,7 @@ function municipSelector(){
   renderMunicipio();configurarCamadas();render();
   if(territorio){territorio.destroy();territorio=null;}
   if(app.prefeitura()?.id==="maringa"&&globalThis.MaringaBairros)
-    territorio=MaringaBairros.iniciar({map,L,simulatedLayers:poligonos.getLayers()});
+    territorio=MaringaBairros.iniciar({map,L,simulatedLayers:poligonos.getLayers(),recolherInicial:TIPO==="ajuda"});
  };
 }
 function zoneSelect(){
