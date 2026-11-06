@@ -68,7 +68,7 @@ function renderMarkers(xs){
  if(camadaAtual!=="principal"){
   if(!mostrarUnidades)return;
   for(const x of xs.filter(x=>x.georreferenciado)){
-   const icon=x.modulo==="bases"&&x.categoria==="Centro de coleta de donativos"?"📦":x.modulo==="riscos"?"⚠️":"📍";
+   const icon=INVENTARIO.simbolo(x);
    const ic=L.divIcon({className:"pin canonical-map-pin",html:'<span class="canonical-pin">'+icon+'</span>',iconSize:[32,32],iconAnchor:[16,32]});
    L.marker([x.lat,x.lng],{icon:ic,title:x.nome}).bindPopup('<strong>'+esc(x.nome)+'</strong><p>'+esc(x.moduloNome)+' · '+esc(x.classe)+'</p><small>'+esc(x.precisao||"Localização cadastrada")+'</small>').addTo(marcadores);
   }

@@ -90,8 +90,16 @@ function transformar(modulo,registro,relacao){
   orientacao:privado?"":String(registro.acesso||""),
   donativos:privado?"":String(registro.itens_aceitos||""),
   horario:privado?"":String(registro.horario||""),
+  telefone:privado?"":String(registro.telefone||""),
   privado,termo:normal(extras)
  };
+}
+function simbolo(item){
+ if(item.modulo==="bases"){
+  const tipos={"Centro de coleta de donativos":"📦","Ponto de água potável":"🚰","Ponto de banho":"🚿","Unidade de assistência social (CRAS)":"🏢"};
+  return tipos[item.categoria]||"🏠";
+ }
+ return item.modulo==="abrigos"?"🛏️":item.modulo==="riscos"?"⚠️":item.grupo==="Estruturas"?"🏥":"📍";
 }
 function registros(db){
  if(!escopo(db))throw Error("O inventário exige o cadastro municipal canônico.");
@@ -134,5 +142,5 @@ function filtrar(itens,{modulo="",zona="",classe="",busca=""}={}){
 }
 function classes(itens){return [...new Set(itens.flatMap(x=>[x.classe,x.categoria,x.situacao]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR"));}
 function resumo(db){const rows=registros(db);return CAMADAS.map(c=>({...c,total:rows.filter(x=>x.modulo===c.id).length,comPonto:rows.filter(x=>x.modulo===c.id&&x.georreferenciado).length}));}
-return {CAMADAS,normal,registros,filtrar,classes,resumo,transformar};
+return {CAMADAS,normal,registros,filtrar,classes,resumo,transformar,simbolo};
 });

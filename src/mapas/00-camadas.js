@@ -38,9 +38,9 @@ function renderUnidadesMunicipais(){
  const indicador=$("mostrar-unidades-texto");
  if(indicador)indicador.textContent="Mostrar unidades e recursos ("+todos.length+" georreferenciados)";
  for(const x of visiveis){
-  const simbolo=x.modulo==="abrigos"?"🛏️":x.modulo==="bases"&&x.categoria==="Centro de coleta de donativos"?"📦":x.modulo==="riscos"?"⚠️":x.grupo==="Estruturas"?"🏥":"📍";
+  const simbolo=INVENTARIO.simbolo(x);
   const icon=L.divIcon({className:"pin canonical-map-pin",html:'<span class="canonical-pin">'+simbolo+"</span>",iconSize:[32,32],iconAnchor:[16,32]});
-  const detalhes=[x.moduloNome,x.classe,x.precisao].filter(Boolean).map(esc).join(" · ");
+  const detalhes=[x.moduloNome,x.categoria,x.situacao,x.precisao,x.horario,x.telefone,x.detalhes].filter(Boolean).map(esc).join(" · ");
   const local=x.endereco?"<p>"+esc(x.endereco)+"</p>":"";
   const fonte=x.fonteUrl?'<a href="'+esc(x.fonteUrl)+'" target="_blank" rel="noopener">Fonte</a>':"";
   L.marker([x.lat,x.lng],{icon,title:x.nome}).bindPopup("<strong>"+esc(x.nome)+"</strong>"+local+"<small>"+detalhes+"</small>"+fonte).addTo(unidadesMunicipais);
