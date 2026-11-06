@@ -98,15 +98,31 @@
   referenciaVisivel(map,identificador);
   return {restaurar,limites:bounds,botao,zoomMinimo:()=>ultimoZoom};
  }
- function instalarVistaSalva({map,L,identificador="colaboradores"}){
+ function instalarVistaSalva({map,L,identificador="colaboradores",vistaInicial=null}){
   if(!map||!L||!map.zoomControl?.getContainer)throw new TypeError("Mapa Leaflet inválido.");
+  // Somente a câmera institucional expressamente aprovada pode definir o padrão.
+  // Na calibração, não aplicar essa câmera para permitir reposicionamento manual.
+  const fixar=(!emCalibracao()&&vistaInicial&&
+    [vistaInicial.lat,vistaInicial.lng,vistaInicial.zoom].every(Number.isFinite)&&
+    vistaInicial.lat>=AREA_MARINGA[0][0]&&vistaInicial.lat<=AREA_MARINGA[1][0]&&
+    vistaInicial.lng>=AREA_MARINGA[0][1]&&vistaInicial.lng<=AREA_MARINGA[1][1]&&
+    vistaInicial.zoom>=2&&vistaInicial.zoom<=18);
+  if(fixar){
+    map.setMinZoom(0);
+    map.setView([vistaInicial.lat,vistaInicial.lng],vistaInicial.zoom,{animate:false});
+  }
   const c=map.getCenter();
   const home={lat:c.lat,lng:c.lng,zoom:map.getZoom()};
   map.setMinZoom(home.zoom);
   liberarNavegacao(map,L);
   const restaurar=()=>map.setView([home.lat,home.lng],home.zoom,{animate:false});
   const botao=botaoInicio(map,L,restaurar);
-  map.on("resize",()=>liberarNavegacao(map,L));
+  map.on("resize",()=>{
+    liberarNavegacao(map,L);
+    // Mudança de tamanho do painel não pode deslocar a vista inicial aprovada.
+    if(fixar&&Math.abs(map.getZoom()-home.zoom)<.0001)
+      map.setView([home.lat,home.lng],home.zoom,{animate:false});
+  });
   referenciaVisivel(map,identificador);
   return {restaurar,botao,zoomMinimo:()=>home.zoom};
  }
