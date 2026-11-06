@@ -147,7 +147,7 @@ async function importarBasesERiscosPublicos(){
  const municipio=db.municipioAtivo();
  if(referenciasPublicasConsultadas||municipio?.codigo_ibge!=="4115200")return;
  referenciasPublicasConsultadas=true;
- const docs=["../dados-territoriais/maringa-bases-riscos-publicos.json","../dados-territoriais/maringa-abrigos-publicos.json"];
+ const docs=["../dados-territoriais/maringa-bases-riscos-publicos.json","../dados-territoriais/maringa-abrigos-publicos.json","../dados-territoriais/maringa-apoio-imagens-2026.json"];
  const results=await Promise.allSettled(docs.map(url=>globalThis.AlertaImportacaoPublica.carregar(db,{url})));
  const alterados=results.some(r=>r.status==="fulfilled"&&(r.value.novos||r.value.atualizados));
  if(results.some(r=>r.status==="rejected"))console.warn("Algumas referências públicas ainda não estão disponíveis.");

@@ -247,7 +247,7 @@ if(TIPO==="ajuda"){
  });
 }
 void carregarZonasOficiais();
-const fontesPublicas=["../dados-territoriais/maringa-bases-riscos-publicos.json","../dados-territoriais/maringa-abrigos-publicos.json"];
+const fontesPublicas=["../dados-territoriais/maringa-bases-riscos-publicos.json","../dados-territoriais/maringa-abrigos-publicos.json","../dados-territoriais/maringa-apoio-imagens-2026.json"];
 void Promise.allSettled(fontesPublicas.map(url=>AlertaImportacaoPublica.carregar(app.db,{url}))).then(()=>{configurarCamadas();render();if(TIPO==="ajuda")tentarIniciarCaminhao();});
 window.addEventListener("focus",()=>{configurarCamadas();render();});
 if(app.prefeitura()?.id==="maringa"&&globalThis.MaringaBairros)

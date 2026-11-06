@@ -43,7 +43,8 @@ test("Gestão e Mapa de Evento consultam a mesma coleção de abrigos",()=>{
  const gestao=read("gestao/gestao.js"),evento=read("evento/app.js");
  assert.match(gestao,/maringa-abrigos-publicos\.json/);
  assert.match(evento,/maringa-abrigos-publicos\.json/);
- assert.match(evento,/r\.modulo==='abrigos'\?'🛏️'/);
+ assert.match(evento,/INVENTARIO\.simbolo\(r\)/);
+ assert.equal(require('../mapas/inventario.js').simbolo({modulo:'abrigos'}),'🛏️');
  assert.match(evento,/Vagas livres/);
  assert.match(evento,/listarRecursosPublicos/);
  assert.match(read("gestao/index.html"),/importacao-publica\.js/);

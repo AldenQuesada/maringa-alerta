@@ -1,4 +1,4 @@
-void Promise.allSettled(["dados-territoriais/maringa-bases-riscos-publicos.json","dados-territoriais/maringa-abrigos-publicos.json"].map(url=>AlertaImportacaoPublica.carregar(gestao,{url}))).then(()=>{
+void Promise.allSettled(["dados-territoriais/maringa-bases-riscos-publicos.json","dados-territoriais/maringa-abrigos-publicos.json","dados-territoriais/maringa-apoio-imagens-2026.json"].map(url=>AlertaImportacaoPublica.carregar(gestao,{url}))).then(()=>{
  montarMarcadoresPublicos();
  if(buscaMapa.value.trim())buscarNoMapa();
  atualizarFiltroCadastros();
