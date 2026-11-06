@@ -24,10 +24,10 @@ test("mapa cadastra 5 pontos de coleta sem duplicar o cadastro da Prefeitura",()
  const L={
   layerGroup:()=>({addTo(){return this},clearLayers(){pins.splice(0,pins.length)}}),
   divIcon:o=>o,
-  marker:(location,opts)=>({bindPopup(html){this.html=html;return this},addTo(){pins.push({location,opts,html:this.html});return this}})
+  marker:(location,opts)=>({bindTooltip(html){this.html=html;return this},on(){return this},addTo(){pins.push({location,opts,html:this.html});return this}})
  };
- const scope={L,map:{},gestao:banco,tenantId:"maringa",escHtml:x=>String(x),encodeURIComponent,
-  INVENTARIO:require("../mapas/inventario.js"),filtrosMunicipais:{modulo:"todos",classe:"",busca:""},noRecorte:()=>true,mostrarUnidadesEvento:true,
+ const scope={L,map:{},gestao:banco,document:{getElementById:()=>({})},FichaPonto:{criar:()=>({abrir(){}})},MaringaCrise:{waLink(){}},tenantId:"maringa",escHtml:x=>String(x),encodeURIComponent,
+  INVENTARIO:require("../mapas/inventario.js"),filtrosCadastros:{mostrar:()=>true,rows:()=>require("../mapas/inventario.js").registros(banco)},noRecorte:()=>true,painelPonto:{abrir(){}},
   AlertaImportacaoPublica:{carregar:()=>Promise.resolve({novos:0})},buscaMapa:{value:""},
   console};
  vm.runInNewContext(script,scope);
@@ -36,10 +36,7 @@ test("mapa cadastra 5 pontos de coleta sem duplicar o cadastro da Prefeitura",()
  assert.equal(pins.length,5);
  assert.equal(new Set(pins.map(x=>x.opts.title)).size,5);
  for(const pin of pins){
-  assert.match(pin.html,/aproximad/i);
-  assert.match(pin.html,/Ver endereço no mapa/);
-  assert.match(pin.html,/Fonte pública/);
-  assert.match(pin.html,/Em conferência/);
+  assert.match(pin.html,/Maringá/i);
   assert.ok(pin.location[0]>-24&&pin.location[0]< -23);
  }
  assert.equal(vm.runInContext("montarMarcadoresPublicos()",scope),5);

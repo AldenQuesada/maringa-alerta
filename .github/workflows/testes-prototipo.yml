@@ -1,6 +1,7 @@
 name: Testes do protótipo
 
 on:
+  workflow_call:
   push:
     branches:
       - main

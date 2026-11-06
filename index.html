@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Maringá Alerta</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="evento/style.css?v=ficha-ponto-20261106">
+<link rel="stylesheet" href="evento/style.css?v=filtros-canonicos-1">
 <link rel="stylesheet" href="prototipo.css?v=evento-10">
 <link rel="stylesheet" href="sessao.css?v=sessoes-2">
 <link rel="stylesheet" href="mapa-navegacao.css?v=recuperacao-mapas-1">
@@ -13,6 +13,8 @@
 <link rel="stylesheet" href="cadastro-ocorrencia.css?v=3">
 <link rel="stylesheet" href="filtros-ocorrencias.css?v=1">
 <link rel="stylesheet" href="painel-eventos.css?v=5">
+<link rel="stylesheet" href="filtros-cadastros.css?v=1">
+<link rel="stylesheet" href="mapas/ficha-ponto.css?v=2">
 <link rel="stylesheet" href="operacao-restauracao.css?v=1">
 </head>
 <body>
@@ -80,17 +82,7 @@
           <header id="eventos-painel-head" class="eventos-painel-head"><strong>Eventos e filtros</strong><span class="eventos-painel-acoes"><button type="button" id="eventos-minimizar" aria-label="Minimizar filtros de eventos" title="Minimizar" aria-controls="eventos-painel-body" aria-expanded="true">−</button><button type="button" id="eventos-close" aria-label="Fechar filtros de eventos" title="Fechar">×</button></span></header>
           <div id="eventos-painel-body" class="eventos-painel-body"><label class="evento-filter">Evento <span class="evento-seletor"><span aria-hidden="true">Selecionar evento</span><select id="filtro-evento" aria-label="Selecionar evento"><option value="">Todos</option></select></span></label>
           <div id="evento-referencias" class="evento-referencias"></div><section class="oc-filters" id="filtros-ocorrencias" aria-label="Filtros de ocorrências"></section>
- <section class="municipal-filters" id="filtros-cadastros-municipais" aria-label="Camadas do cadastro municipal">
-  <button type="button" id="mun-toggle" aria-expanded="false">Cadastros da Prefeitura <span id="mun-count"></span></button>
-  <div id="mun-body" hidden>
-   <label class="mun-toggle-show"><input type="checkbox" id="mun-mostrar" checked> Mostrar unidades e recursos no mapa</label>
-   <label for="mun-camada">Cadastro<select id="mun-camada"></select></label>
-   <label for="mun-classe">Situação ou tipo<select id="mun-classe"><option value="">Todos</option></select></label>
-   <label for="mun-busca">Buscar<input id="mun-busca" type="search" placeholder="Unidades, abrigos, equipes, centros de doação..."></label>
-   <p id="mun-status" aria-live="polite"></p>
-   <div id="mun-rows" class="mun-rows"></div>
-  </div>
- </section></div>
+ <section id="filtros-cadastros-municipais" aria-label="Camadas do cadastro municipal"></section></div>
         </section>
         <div class="legend">
           <div><i style="background:var(--red)"></i> Ocorrência ativa</div>
@@ -239,12 +231,15 @@
   </section>
 </div>
 <script src="gestao/dados.js?v=ficha-ponto-20261106"></script>
+<script src="crise/core.js?v=1"></script>
+<script src="mapas/ficha-ponto.js?v=2"></script>
 <script src="dados-territoriais/importacao-publica.js?v=apoios-1"></script>
 <script src="gestao/acoes-cabecalho.js?v=mapas-filtros-2"></script>
 <script src="cadastro-ocorrencia.js?v=4"></script>
 <script src="cadastro-ocorrencia-mapa.js?v=3"></script>
 <script src="fluxo-ajuda.js?v=sessoes-1"></script>
 <script src="filtros-ocorrencias.js?v=1"></script>
+<script src="filtros-cadastros.js?v=1"></script>
 <script src="eventos-mapa.js?v=1"></script>
 <script src="evento-referencias.js?v=2"></script>
 <script src="operacao-restauracao.js?v=1"></script>
@@ -256,6 +251,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <script src="mapas/inventario.js?v=ficha-ponto-20261106"></script>
-<script src="evento/app.js?v=ficha-ponto-20261106"></script>
+<script src="evento/app.js?v=filtros-canonicos-1"></script>
 </body>
 </html>

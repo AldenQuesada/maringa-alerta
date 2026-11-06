@@ -53,8 +53,9 @@ test("dados privados não criam marcadores nem divulgam endereço no inventário
 });
 test("três mapas têm seleção canônica, visibilidade e cartografia não simulada por padrão",()=>{
  const mapaEvento=read("evento/app.js"),aux=read("mapas/app.js"),html=read("index.html"),maps=read("mapas/index.html");
- assert.match(html,/id="mun-camada"/);
- assert.match(html,/id="mun-mostrar"/);
+ assert.match(html,/filtros-cadastros\.js/);
+ assert.match(maps,/filtros-cadastros\.js/);
+ assert.match(read("filtros-cadastros.js"),/id="mun-mostrar"/);
  assert.match(html,/mapas\/inventario.js/);
  assert.match(maps,/id="camada"/);
  assert.match(maps,/id="mostrar-unidades"/);
@@ -65,5 +66,5 @@ test("três mapas têm seleção canônica, visibilidade e cartografia não simu
  assert.match(mapaEvento,/if\(recuperacao.estado==='vazio'&&demoMode\)/);
  assert.match(mapaEvento,/const listarRecursosPublicos=\(\)=>INVENTARIO.registros\(gestao\)/);
  assert.match(mapaEvento,/const linhasInventario/);
- assert.match(mapaEvento,/mostrarUnidadesEvento/);
+ assert.match(mapaEvento,/filtrosCadastros\?\.mostrar/);
 });

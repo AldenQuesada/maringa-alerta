@@ -32,13 +32,11 @@ async function carregarZonasOficiais(){
  }catch(error){zonasConsultadas=false;console.warn("Zonas numeradas indisponíveis",error);}
 }
 const fichaPonto=FichaPonto.criar({painel:$("painel-ajuda"),abrirPainel:()=>{if($("painel-ajuda").hidden)$("painel-ajuda-toggle").click();},obterRegistro:(modulo,id)=>app.db.registro(modulo,id),waLink:MaringaCrise.waLink});
-const filtrosUnidades=FiltrosUnidades.criar({alvo:$("filtros-unidades"),ler:()=>INVENTARIO.registros(app.db),aoMudar:()=>render()});
-$("unidades-todos").onclick=()=>filtrosUnidades.selecionarTodos(true);
-$("unidades-nenhum").onclick=()=>filtrosUnidades.selecionarTodos(false);
+const filtrosCadastros=FiltrosCadastros.montar({alvo:$("filtros-cadastros-municipais"),inventario:INVENTARIO,db:app.db,baseGestao:"../gestao/",recorte:x=>!filtroZona||INVENTARIO.filtrar([x],{zona:filtroZona}).length>0,aoMudar:()=>render(),localizar:x=>map.flyTo([x.lat,x.lng],Math.max(map.getZoom(),15))});
 function renderUnidadesMunicipais(){
  unidadesMunicipais.clearLayers();
  const todos=INVENTARIO.registros(app.db).filter(x=>x.georreferenciado&&!x.privado);
- const visiveis=camadaAtual==="principal"&&mostrarUnidades?INVENTARIO.filtrar(todos,{zona:filtroZona,busca:texto}).filter(filtrosUnidades.aceita):[];
+ const visiveis=camadaAtual==="principal"&&mostrarUnidades&&filtrosCadastros.mostrar()?filtrosCadastros.rows().filter(x=>x.georreferenciado&&!x.privado).filter(x=>INVENTARIO.filtrar([x],{zona:filtroZona,busca:texto}).length):[];
  const indicador=$("mostrar-unidades-texto");
  if(indicador)indicador.textContent="Mostrar unidades e recursos ("+todos.length+" georreferenciados)";
  for(const x of visiveis){
