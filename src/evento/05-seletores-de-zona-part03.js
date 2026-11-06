@@ -1,6 +1,17 @@
 function renderCollaborators(){
   const body=document.getElementById('floatwin-body');
   const pessoas=pessoasPainel();
+  const todosCadastrados=pessoasMunicipio().filter(p=>!p.oficial&&!p.demo);
+  const exibidos=pessoas.filter(p=>!p.oficial&&!p.demo).length;
+  const ocultos=Math.max(0,todosCadastrados.length-exibidos);
+  const semTerritorio=todosCadastrados.filter(p=>!String(p.bairroOrigem||'').trim()).length;
+  const avisoRecorte=selecao.size&&ocultos
+    ? ocultos+' colaborador(es) não aparecem no recorte selecionado'+(semTerritorio?' ('+semTerritorio+' sem bairro/zona confirmado).':'.')+' Selecione "Todo o município" para conferir a lista completa.'
+    : !selecao.size&&semTerritorio
+      ? semTerritorio+' colaborador(es) aguardam identificação do bairro ou zona; continuam cadastrados e listados em "Bairro a confirmar".'
+      : !selecao.size&&!todosCadastrados.length
+        ? 'Não há colaboradores cadastrados para Maringá neste navegador. Este protótipo utiliza armazenamento local e não sincroniza cadastros entre dispositivos.'
+        : '';
   const antes=body.scrollTop;
   const comFiltro=filtroOcorrencias&&filtroOcorrencias.descricao()!=='Sem filtros de ocorrência';
   const pessoasEmOcorrencias=new Set(comFiltro?ocorrencias.filter(ocorrenciaVisivel).flatMap(o=>(o.participacoes||[]).map(p=>p.voluntarioId)):[]);
@@ -63,7 +74,7 @@ function renderCollaborators(){
     return diferenca||ordem(a)-ordem(b)||a.nome.localeCompare(b.nome,'pt-BR');
   };
   document.getElementById('fw-count').textContent=pessoas.filter(p=>!p.oficial).length;
-  body.innerHTML=[...grupos.values()].map(grupo=>{
+  body.innerHTML=(avisoRecorte?'<p class="equipe-nota" role="status">'+escHtml(avisoRecorte)+'</p>':'')+[...grupos.values()].map(grupo=>{
     const oficiais=grupo.pessoas.filter(p=>p.oficial).sort(compararPessoas);
     const colaboradores=grupo.pessoas.filter(p=>!p.oficial).sort(compararPessoas);
     const ativos=colaboradores.filter(p=>colaboradorAtivo(p.id)).length;
