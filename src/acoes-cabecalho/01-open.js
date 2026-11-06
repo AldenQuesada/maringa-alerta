@@ -51,9 +51,9 @@ function renderAlerts(){
  '<div class="ma-alert-summary"><strong>'+data.filter(x=>!seen.has(x.id)).length+' não lidos</strong><button type="button" class="ma-light" id="ma-mark-all">Marcar todos como lidos</button></div>'+
  (data.length?data.map(x=>'<div class="ma-alert-row '+esc(x.kind)+'"><div><strong>'+esc(x.title)+'</strong><small>'+esc(x.sub)+'</small></div><div class="ma-row-actions">'+(seen.has(x.id)?'<span class="ma-read">Lido</span>':'<button type="button" data-alert-read="'+esc(x.id)+'">Lido</button>')+'<a href="'+esc(x.href)+'" target="_blank" rel="noopener noreferrer">Abrir</a></div></div>').join(""):'<p class="ma-empty">Nenhum alerta de gestão pendente neste navegador.</p>')+
  '<a class="ma-map-link" href="../index.html" target="_blank" rel="noopener noreferrer">Abrir alertas e prontidão no Mapa de Evento ↗</a><p id="ma-message" class="ma-notice" role="status" hidden></p>';
- $("ma-mark-all").onclick=()=>{put(LKEY+getId(),[...new Set([...readIds(),...data.map(x=>x.id)])]);renderAlerts();updateBadges();};
+ $("ma-mark-all").onclick=()=>{put(chaveAlertas(),[...new Set([...readIds(),...data.map(x=>x.id)])]);renderAlerts();updateBadges();};
  $("ma-dialog-body").querySelectorAll("[data-alert-read]").forEach(b=>b.onclick=()=>{
-  const seen=readIds();seen.add(b.dataset.alertRead);put(LKEY+getId(),[...seen]);renderAlerts();updateBadges();
+  const seen=readIds();seen.add(b.dataset.alertRead);put(chaveAlertas(),[...seen]);renderAlerts();updateBadges();
  });
 }
 function renderEmergency(id){

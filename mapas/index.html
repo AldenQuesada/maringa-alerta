@@ -18,6 +18,10 @@ html:not(.pagina-pra-somar) #pra-somar-brand-title{display:none!important}
 </style>
 <title>Mapas · Maringá Unida</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="../gestao/acoes-cabecalho.css?v=acoes-2">
+<link rel="stylesheet" href="../sessao.css?v=sessoes-2">
+<link rel="stylesheet" href="../painel-eventos.css?v=5">
+<link rel="stylesheet" href="./filtros-unidades.css?v=1">
 <link rel="stylesheet" href="./ficha-ponto.css?v=1">
 <link rel="stylesheet" href="./style.css?v=0b8ccd311a18">
 <link rel="stylesheet" href="../dados-territoriais/camadas-mapas.css?v=territorio-2">
@@ -32,11 +36,12 @@ html:not(.pagina-pra-somar) #pra-somar-brand-title{display:none!important}
    <a id="nav-colaboradores" href="?tipo=colaboradores">Colaboradores</a>
    <a id="nav-ajuda" href="?tipo=ajuda">Ajuda</a>
   </nav>
-  <div class="actions"><a href="../atendimento/" target="_blank" rel="noopener noreferrer">Simular WhatsApp</a><a class="manage-link" href="../gestao/">Gestão</a></div>
+  <div class="header-tools"><button type="button" id="eventos-open" class="filtros-open" aria-controls="eventos-painel" aria-expanded="false">Filtros</button><div class="actions"><a href="../atendimento/" target="_blank" rel="noopener noreferrer">Simular WhatsApp</a><a class="manage-link" href="../gestao/">Gestão</a></div><div id="header-actions" class="header-actions" data-mapas="./" data-escopo="pra-somar" role="group" aria-label="Ações rápidas"></div><div id="session-anchor" class="session-anchor"></div></div>
  </header>
  <main class="workspace">
   <div class="map-area">
    <div id="map" role="application" aria-label="Mapa por zonas"></div>
+   <section id="eventos-painel" class="eventos-painel mapa-unidades-painel" aria-label="Filtros de unidades" hidden><header id="eventos-painel-head" class="eventos-painel-head"><strong>Filtros de unidades</strong><span class="eventos-painel-acoes"><button type="button" id="eventos-minimizar" aria-label="Minimizar filtros" aria-expanded="true">−</button><button type="button" id="eventos-close" aria-label="Fechar filtros">×</button></span></header><div id="eventos-painel-body" class="eventos-painel-body"><p>Selecione os tipos para mostrar no mapa.</p><div id="filtros-unidades" class="filtros-unidades"></div></div></section>
    <button id="painel-ajuda-toggle" class="painel-ajuda-toggle" type="button" aria-controls="painel-ajuda" aria-expanded="true" aria-label="Abrir painel" title="Abrir painel" hidden>+</button>
    <div class="map-info"><span class="signal"></span><span id="map-label">Mapa</span><small>Dados locais de demonstração · sem envio real</small></div>
    <div id="notificacao-chegada" class="notificacao-chegada" role="status" hidden><strong>Chegada simulada</strong><button id="notificacao-fechar" type="button" aria-label="Fechar notificação">×</button><p id="notificacao-texto"></p></div>
@@ -84,6 +89,11 @@ html:not(.pagina-pra-somar) #pra-somar-brand-title{display:none!important}
 <script src="./colaboradores-referencia.js?v=2"></script>
 <script src="./logistica-demo.js?v=1"></script>
 <script src="./ficha-ponto.js?v=1"></script>
-<script src="./app.js?v=ficha-ponto-20261106"></script>
+<script src="../gestao/acoes-cabecalho.js?v=mapas-filtros-2"></script>
+<script src="../sessao.js?v=sessoes-1"></script>
+<script src="../sessao-ui.js?v=sessoes-2"></script>
+<script src="../painel-eventos.js?v=2"></script>
+<script src="./filtros-unidades.js?v=1"></script>
+<script src="./app.js?v=filtros-unidades-20261106"></script>
 </body>
 </html>

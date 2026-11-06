@@ -92,7 +92,7 @@ function colaboradoresDisponiveis(){
 }
 function dadosFiltrados(){
  const inventario=INVENTARIO.registros(app.db);
- if(camadaAtual!=="principal")return INVENTARIO.filtrar(inventario,{modulo:camadaAtual,zona:filtroZona,classe:filtroClasse,busca:texto});
+ if(camadaAtual!=="principal")return INVENTARIO.filtrar(inventario,{modulo:camadaAtual,zona:filtroZona,classe:filtroClasse,busca:texto}).filter(filtrosUnidades.aceita);
 
  const xs=TIPO==="ajuda"?app.pedidos():colaboradoresDisponiveis();
  return xs.filter(x=>{
@@ -141,10 +141,11 @@ async function carregarZonasOficiais(){
  }catch(error){zonasConsultadas=false;console.warn("Zonas numeradas indisponíveis",error);}
 }
 const fichaPonto=FichaPonto.criar({painel:$("painel-ajuda"),abrirPainel:()=>{if($("painel-ajuda").hidden)$("painel-ajuda-toggle").click();},obterRegistro:(modulo,id)=>app.db.registro(modulo,id),waLink:MaringaCrise.waLink});
+const filtrosUnidades=FiltrosUnidades.criar({alvo:$("filtros-unidades"),ler:()=>INVENTARIO.registros(app.db),aoMudar:()=>render()});
 function renderUnidadesMunicipais(){
  unidadesMunicipais.clearLayers();
  const todos=INVENTARIO.registros(app.db).filter(x=>x.georreferenciado&&!x.privado);
- const visiveis=camadaAtual==="principal"&&mostrarUnidades?INVENTARIO.filtrar(todos,{zona:filtroZona,busca:texto}):[];
+ const visiveis=camadaAtual==="principal"&&mostrarUnidades?INVENTARIO.filtrar(todos,{zona:filtroZona,busca:texto}).filter(filtrosUnidades.aceita):[];
  const indicador=$("mostrar-unidades-texto");
  if(indicador)indicador.textContent="Mostrar unidades e recursos ("+todos.length+" georreferenciados)";
  for(const x of visiveis){
@@ -485,6 +486,8 @@ $("zona").onchange=()=>{filtroZona=$("zona").value;render();};
 $("filtro").onchange=()=>{filtroClasse=$("filtro").value;render();};
 $("busca").oninput=()=>{texto=$("busca").value;render();};
 window.addEventListener("storage",event=>{if(event.key===AlertaGestaoDados.CHAVE)location.reload();});
+PainelEventos.iniciar({painel:$("eventos-painel"),barra:$("eventos-painel-head"),abrir:$("eventos-open"),fechar:$("eventos-close"),area:document.querySelector(".map-area"),aoAbrir:()=>filtrosUnidades.atualizar()});
+if(globalThis.AlertaSessao&&globalThis.AlertaSessaoUI&&app.prefeitura())AlertaSessaoUI.criar({target:$("session-anchor"),sessao:AlertaSessao.criar({municipioId:app.prefeitura().id}),municipio:app.prefeitura().nome,zonas:app.zonas(),aoMudar:()=>{}});
 municipSelector();renderMunicipio();configurarCamadas();render();
 // O mesmo controlador atende Pra Somar e Colaboradores, sem usar a posição
 // acidentalmente persistida pelas versões anteriores.
