@@ -1,5 +1,5 @@
 /* ---------- zonas de demonstração sobre o mapa de Maringá ---------- */
-const equipePool = demoMode ? [
+const equipePool = exibirEquipesLegadas ? [
   {nome:"Marcos Teixeira", cargo:"Vereador"},
   {nome:"Fernanda Lopes", cargo:"Secretária de Assistência Social"},
   {nome:"Ricardo Bittencourt", cargo:"Chefe de Defesa Civil"},
@@ -22,9 +22,9 @@ const equipePool = demoMode ? [
 let equipeCursor = 0;
 function nextEquipe(){ return equipePool[(equipeCursor++) % equipePool.length]; }
 
-const equipamentosPool = demoMode ? ["2 motosserras","1 caminhão basculante","1 retroescavadeira","Kit de resgate","Gerador móvel","1 caminhão-pipa","Equipe de eletricistas","Ambulância de apoio"]:[];
+const equipamentosPool = exibirEquipesLegadas ? ["2 motosserras","1 caminhão basculante","1 retroescavadeira","Kit de resgate","Gerador móvel","1 caminhão-pipa","Equipe de eletricistas","Ambulância de apoio"]:[];
 
-const bairros = demoMode ? [
+const bairros = exibirEquipesLegadas ? [
   { nome:"Zona 7", center:[-23.3995,-51.9395],
     poly:[[-23.392,-51.950],[-23.392,-51.930],[-23.408,-51.930],[-23.408,-51.950]] },
   { nome:"Jardim Alvorada", center:[-23.3870,-51.9120],
