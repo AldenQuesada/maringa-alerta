@@ -32,6 +32,13 @@ test('duas gravações simultâneas são serializadas sem perda',async()=>{
  const item=db.lista('bases')[0];await db.gravar('bases',{...item,nome:'Local C'},item.id);assert.equal(f.calls[2].alteracoes[0].versao,1);
  await db.excluir('bases',item.id);assert.equal(f.calls[3].alteracoes[0].versao,2);
 });
+test('cache das leituras preserva isolamento e invalida após gravação confirmada',async()=>{
+ const f=fixture(),remote=await R.criar({client:f.client,dados:D}),db=remote.repositorio({municipioId:'maringa'});
+ const other=remote.repositorio({municipioId:'maringa'});assert.equal(other.lista('bases').length,0);
+ const saved=await db.gravar('bases',{nome:'Local confirmado'});const rows=other.lista('bases');rows[0].nome='Alteração fora da transação';
+ assert.equal(db.registro('bases',saved.id).nome,'Local confirmado');assert.equal(other.lista('bases')[0].nome,'Local confirmado');
+ await db.excluir('bases',saved.id);assert.equal(other.lista('bases').length,0);
+});
 test('transação conserva validações e envia um lote único',async()=>{
  const f=fixture(),remote=await R.criar({client:f.client,dados:D}),db=remote.repositorio({municipioId:'maringa'});
  await db.transacao(draft=>{draft.gravar('bases',{nome:'A'});draft.gravar('bases',{nome:'B'});});assert.equal(f.calls.length,1);assert.equal(f.calls[0].alteracoes.length,2);

@@ -1,9 +1,11 @@
 /* ---------- persistencia local das edicoes da administracao ---------- */
 const ADMIN_KEY = storageKey("admin");
 function loadAdminState(){
+  if(conectado)return null;
   try{ return JSON.parse(localStorage.getItem(ADMIN_KEY) || (tenantId==='maringa'?localStorage.getItem("maringa_admin_v1"):null) || "null"); }catch(e){ return null; }
 }
 function saveAdminState(){
+  if(conectado)return;
   try{
     localStorage.setItem(ADMIN_KEY, JSON.stringify({
       funcionarios: todosFuncionarios().map(p=>({id:p.id, nome:p.nome, cargo:p.cargo, tel:p.tel})),

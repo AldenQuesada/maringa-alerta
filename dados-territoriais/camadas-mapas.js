@@ -54,7 +54,7 @@ async function carregar(force=false){
   }
   if(manifest?.camadas?.["zonas-cartograficas"]?.status==="sucesso"){
    try{zonas=infoFrom(await json(asset("maringa-zonas-cartograficas.geojson"),true),
-    "GeoMaringá / Prefeitura de Maringá","cartografica");}catch(_){}
+    "GeoMaringá / Prefeitura de Maringá","cartografica");zonasNumeradas=zonas;}catch(_){}
   }
   return {bairros,zonas,zonasNumeradas,manifest};
  })().catch(err=>{memory=null;throw err;});
@@ -62,6 +62,7 @@ async function carregar(force=false){
 }
 function iniciar({map,L,simulatedLayers=[],recolherInicial=false}){
  if(!map||!L)throw Error("Mapa Leaflet obrigatório");
+ if(root.AlertaNuvem?.ativo)simulatedLayers=[];
  const control=L.control({position:"topleft"});
  let layerB=null,layerZ=null,selected=null,visibleB=true,visibleZ=false,showDemo=true,isDestroyed=false,data=null;
  const cover=L.layerGroup().addTo(map);
@@ -126,7 +127,7 @@ function iniciar({map,L,simulatedLayers=[],recolherInicial=false}){
   '<datalist id="territory-list"></datalist>'+
   '<div class="territory-options"><label><input type="checkbox" name="bairros" checked> Bairros (polígonos)</label>'+
   '<label><input type="checkbox" name="zonas"> Zonas cartográficas</label>'+
-  '<label><input type="checkbox" name="demo" checked> 6 zonas operacionais demonstrativas</label></div>'+
+  (simulatedLayers.length?'<label><input type="checkbox" name="demo" checked> Zonas demonstrativas</label>':'')+'</div>'+
   '<small class="territory-count">Aguardando fonte territorial</small>';
   if(recolherInicial){
    const conteudo=document.createElement("div");conteudo.className="territory-content";
@@ -139,7 +140,8 @@ function iniciar({map,L,simulatedLayers=[],recolherInicial=false}){
   L.DomEvent.disableClickPropagation(box);L.DomEvent.disableScrollPropagation(box);
   box.querySelector('[name="bairros"]').onchange=e=>{visibleB=e.target.checked;update();};
   box.querySelector('[name="zonas"]').onchange=e=>{visibleZ=e.target.checked;update();};
-  box.querySelector('[name="demo"]').onchange=e=>{showDemo=e.target.checked;update();};
+  const demoToggle=box.querySelector('[name="demo"]');
+  if(demoToggle)demoToggle.onchange=e=>{showDemo=e.target.checked;update();};
   const search=box.querySelector('[name="busca-bairro"]');
   const select=box.querySelector('[name="selecionar-bairro"]');
   select.onchange=()=>{if(select.value)focus(select.value);};

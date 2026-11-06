@@ -2,7 +2,7 @@
 
 Projeto: `yyoozisgoginwepzvnvu` (`maringa-prasomar`, São Paulo).
 
-`/gestao/`, `/plataforma/` e `/mapas/` exigem Supabase Auth e carregam somente os cadastros permitidos pelo banco. `?modo=demo` abre o adaptador local antigo, sem iniciar o cliente Supabase. Não existe importação automática de localStorage. O Mapa de Evento e o atendimento WhatsApp continuam como demonstrações locais e são identificados como tal nos links da gestão conectada.
+`/gestao/`, `/plataforma/`, `/mapas/` e `/index.html` exigem Supabase Auth e carregam somente os cadastros permitidos pelo banco. `?modo=demo` abre o adaptador local antigo, sem iniciar o cliente Supabase. Não existe importação automática de localStorage. O Mapa de Evento conectado consulta as estruturas reais; suas operações simuladas permanecem desabilitadas. O atendimento WhatsApp continua como demonstração local, identificada nos links da gestão conectada.
 
 O banco contém `ma_prefeituras`, `ma_vinculos` e `ma_cadastros`. Cada registro conserva a coleção canônica do protótipo e seu JSON, com prefeitura, versão e data controladas pelo servidor. Esse modelo de transição preserva os formulários existentes; não implementa ainda reservas de recursos ou despacho operacional transacional. RLS restringe os dados ao vínculo municipal do usuário. E-mails e nomes de administradores nos cadastros não concedem permissões.
 
@@ -10,9 +10,13 @@ As gravações usam `ma_aplicar_alteracoes`: lote atômico, RLS e verificação 
 
 ## Carga inicial autorizada
 
-Somente 61 estruturas fixas da lista pública CNES já versionada, conferida novamente em 06/11/2026: 38 UBS/unidades de apoio, 4 postos de bombeiros, 2 UPAs, 1 hospital, 1 central SAMU e 15 outros equipamentos fixos de saúde. Excluídos 7 serviços móveis SAMU e 1 clínica odontológica móvel. Nome e código CNES estão confirmados; endereço, contato, geolocalização, capacidade e funcionamento não são inferidos.
+61 estruturas fixas da lista pública CNES, conferida novamente em 06/11/2026: 38 UBS/unidades de apoio, 4 postos de bombeiros, 2 UPAs, 1 hospital, 1 central SAMU e 15 outros equipamentos fixos de saúde. Excluídos 7 serviços móveis SAMU e 1 clínica odontológica móvel. A consulta individual à API oficial do Ministério da Saúde complementou endereço, contato e coordenadas. Capacidade e funcionamento atual não são inferidos.
 
-`node scripts/preparar-estruturas.mjs` gera `supabase/seeds/estruturas-confirmadas.sql` sem executar a carga. A SQL é idempotente e não substitui cadastros já editados. Os demais arquivos públicos, em conferência, não são importados no modo conectado. Pessoas fictícias, cozinha/caminhão de demonstração e ocorrências simuladas não entram no banco.
+`node scripts/preparar-estruturas.mjs` gera `supabase/seeds/estruturas-confirmadas.sql` sem executar a carga. A SQL é idempotente e não substitui cadastros já editados.
+
+Em 06/11/2026 foram adicionados 113 bairros IBGE 2022, 61 zonas cartográficas municipais e 17 pontos de apoio das imagens fornecidas. `node scripts/preparar-territorios-apoios.mjs` gera `supabase/seeds/territorios-e-apoios-reais.sql`, sem enviar dados. A carga preserva registros existentes e preenche apenas campos ausentes nas instituições CNES. São 252 cadastros: 174 territórios e 78 estruturas, das quais 71 têm coordenadas verificadas. Sete apoios permanecem na lista, sem marcador; a disponibilidade atual dos 17 apoios está a confirmar. Consulte [a conferência e suas fontes](../dados-territoriais/CONFERENCIA-2026-11-06.md).
+
+Pessoas fictícias, cozinha/caminhão de demonstração e ocorrências simuladas não entram no banco. Nenhuma carga é executada automaticamente pelo navegador.
 
 ## Autenticação e provisionamento
 
@@ -20,7 +24,7 @@ Configuração pública em `backend/config.js`: URL e chave **publishable**. Nun
 
 O login envia um link por e-mail e usa PKCE. O primeiro administrador é autorizado por um convite no schema privado, consumido somente após confirmação do e-mail pelo Auth. O endereço do proprietário foi configurado diretamente no banco, não no repositório público. Outros usuários autenticados não têm acesso até receberem vínculo de um administrador pelo backend. Não há autoatribuição de cargos pela interface.
 
-As URLs de retorno devem ser os caminhos exatos `/maringa-alerta/gestao/`, `/maringa-alerta/plataforma/` e `/maringa-alerta/mapas/` em `https://aldenquesada.github.io`. A sessão do painel Supabase não substitui a sessão da aplicação. O serviço padrão de e-mail Supabase tem restrições de destinatários e envio; configurar SMTP institucional antes de convidar usuários externos.
+As URLs de retorno devem incluir os caminhos exatos `/maringa-alerta/gestao/`, `/maringa-alerta/plataforma/`, `/maringa-alerta/mapas/`, `/maringa-alerta/index.html` e `/maringa-alerta/` em `https://aldenquesada.github.io`. A sessão do painel Supabase não substitui a sessão da aplicação. O serviço padrão de e-mail Supabase tem restrições de destinatários e envio; configurar SMTP institucional antes de convidar usuários externos.
 
 ## Validação
 

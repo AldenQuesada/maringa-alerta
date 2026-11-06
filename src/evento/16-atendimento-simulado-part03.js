@@ -19,6 +19,7 @@ function salvarAnexos(o){
 }
 
 function salvarPrototipo(){
+  if(conectado)return false;
   if(!estadoPronto)return;
   try{
     const dados={versao:1,tenantId,idCounter,eventStart,

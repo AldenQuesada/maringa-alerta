@@ -23,7 +23,10 @@ function selecionarPerfilDemo(perfil) {
   }
   if(!canAdmin())document.getElementById('audit-overlay').hidden=true;
 }
-if(window.AlertaSessao && window.AlertaSessaoUI){
+if(conectado){
+  selecionarPerfilDemo({tipo:'visualizacao'});
+  document.getElementById('session-anchor').textContent=window.AlertaNuvem.email;
+}else if(window.AlertaSessao && window.AlertaSessaoUI){
   const servicoSessao = AlertaSessao.criar({ municipioId:tenantId });
   const sessaoAtual = servicoSessao.obterSessao();
   selecionarPerfilDemo(sessaoAtual?.conta?.perfil || {tipo:'visualizacao'});

@@ -16,7 +16,7 @@ function randPointInBox(poly){
 }
 
 let ocorrencias = [], voluntarios = [], idCounter = 1;
-const gestao = AlertaGestaoDados.criar();
+const gestao = AlertaGestaoDados.criar(undefined,{municipioId:tenantId});
 const normalizarTerritorio = texto => String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
 const areasCadastradas = ['zonas','bairros'].flatMap(tipo =>
   gestao.lista(tipo,tenantId).filter(area=>area.verificacao!=='Rejeitado')
@@ -24,7 +24,7 @@ const areasCadastradas = ['zonas','bairros'].flatMap(tipo =>
 );
 const fontesPublicas=await MaringaBairros.carregar().catch(()=>null);
 const chaveZona = nome => {const match=normalizarTerritorio(nome).match(/^zona\s*0*(\d+)$/);return match ? String(Number(match[1])) : '';};
-for(const [grupo,tipoArea] of [[fontesPublicas?.zonasNumeradas,'Zona'],[fontesPublicas?.bairros,'Bairro'],[fontesPublicas?.zonas,'Zona cartográfica']]){
+for(const [grupo,tipoArea] of (conectado?[]:[[fontesPublicas?.zonasNumeradas,'Zona'],[fontesPublicas?.bairros,'Bairro'],[fontesPublicas?.zonas,'Zona cartográfica']])){
   grupo?.features.forEach(feature=>{
     const {id,nome}=feature.properties;
     const existente=areasCadastradas.find(area=>area.tipoArea===tipoArea && (normalizarTerritorio(area.nome)===normalizarTerritorio(nome) || (tipoArea==='Zona' && chaveZona(nome) && chaveZona(area.nome)===chaveZona(nome))));

@@ -62,7 +62,8 @@ test("três mapas têm seleção canônica, visibilidade e cartografia não simu
  assert.match(aux,/function renderUnidadesMunicipais\(/);
  assert.match(aux,/MaringaBairros.carregar\(/);
  assert.doesNotMatch(aux,/const shapes=\[/);
- assert.match(mapaEvento,/const demoMode=new URLSearchParams/);
+ assert.match(mapaEvento,/const demoMode=!conectado/);
+ assert.match(html,/data-area="evento"/);
  assert.match(mapaEvento,/if\(recuperacao.estado==='vazio'&&demoMode\)/);
  assert.match(mapaEvento,/const listarRecursosPublicos=\(\)=>INVENTARIO.registros\(gestao\)/);
  assert.match(mapaEvento,/const linhasInventario/);

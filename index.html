@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="backend-pendente">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -16,6 +16,7 @@
 <link rel="stylesheet" href="filtros-cadastros.css?v=1">
 <link rel="stylesheet" href="mapas/ficha-ponto.css?v=2">
 <link rel="stylesheet" href="operacao-restauracao.css?v=1">
+<link rel="stylesheet" href="backend/boot.css?v=2">
 </head>
 <body>
 <button id="menu-backdrop" class="menu-backdrop" aria-label="Fechar zonas e menus"></button>
@@ -231,26 +232,30 @@
   </section>
 </div>
 <script src="gestao/dados.js?v=ficha-ponto-20261106"></script>
-<script src="crise/core.js?v=1"></script>
-<script src="mapas/ficha-ponto.js?v=2"></script>
-<script src="dados-territoriais/importacao-publica.js?v=apoios-1"></script>
-<script src="gestao/acoes-cabecalho.js?v=mapas-filtros-2"></script>
-<script src="cadastro-ocorrencia.js?v=4"></script>
-<script src="cadastro-ocorrencia-mapa.js?v=3"></script>
-<script src="fluxo-ajuda.js?v=sessoes-1"></script>
-<script src="filtros-ocorrencias.js?v=1"></script>
-<script src="filtros-cadastros.js?v=1"></script>
-<script src="eventos-mapa.js?v=1"></script>
-<script src="evento-referencias.js?v=2"></script>
-<script src="operacao-restauracao.js?v=1"></script>
-<script src="painel-eventos.js?v=2"></script>
-<script src="sessao.js?v=sessoes-1"></script>
-<script src="sessao-ui.js?v=sessoes-2"></script>
-<script src="mapa-navegacao.js?v=zoom-arraste-1"></script>
-<script src="dados-territoriais/camadas-mapas.js?v=territorio-2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
-<script src="mapas/inventario.js?v=ficha-ponto-20261106"></script>
-<script src="evento/app.js?v=filtros-canonicos-1"></script>
+<script type="application/x-maringa-modulo" src="crise/core.js?v=1"></script>
+<script type="application/x-maringa-modulo" src="mapas/ficha-ponto.js?v=2"></script>
+<script type="application/x-maringa-modulo" src="dados-territoriais/importacao-publica.js?v=apoios-1"></script>
+<script type="application/x-maringa-modulo" src="gestao/acoes-cabecalho.js?v=mapas-filtros-2"></script>
+<script type="application/x-maringa-modulo" src="cadastro-ocorrencia.js?v=4"></script>
+<script type="application/x-maringa-modulo" src="cadastro-ocorrencia-mapa.js?v=3"></script>
+<script type="application/x-maringa-modulo" src="fluxo-ajuda.js?v=sessoes-1"></script>
+<script type="application/x-maringa-modulo" src="filtros-ocorrencias.js?v=1"></script>
+<script type="application/x-maringa-modulo" src="filtros-cadastros.js?v=1"></script>
+<script type="application/x-maringa-modulo" src="eventos-mapa.js?v=1"></script>
+<script type="application/x-maringa-modulo" src="evento-referencias.js?v=2"></script>
+<script type="application/x-maringa-modulo" src="operacao-restauracao.js?v=1"></script>
+<script type="application/x-maringa-modulo" src="painel-eventos.js?v=2"></script>
+<script type="application/x-maringa-modulo" src="sessao.js?v=sessoes-1"></script>
+<script type="application/x-maringa-modulo" src="sessao-ui.js?v=sessoes-2"></script>
+<script type="application/x-maringa-modulo" src="mapa-navegacao.js?v=zoom-arraste-1"></script>
+<script type="application/x-maringa-modulo" src="dados-territoriais/camadas-mapas.js?v=territorio-2"></script>
+<script type="application/x-maringa-modulo" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script type="application/x-maringa-modulo" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+<script type="application/x-maringa-modulo" src="mapas/inventario.js?v=ficha-ponto-20261106"></script>
+<script type="application/x-maringa-modulo" src="evento/app.js?v=filtros-canonicos-1"></script>
+<script src="backend/vendor/supabase-2.119.0.js"></script>
+<script src="backend/config.js?v=1"></script>
+<script src="backend/repositorio.js?v=1"></script>
+<script src="backend/boot.js?v=2" data-area="evento"></script>
 </body>
 </html>
