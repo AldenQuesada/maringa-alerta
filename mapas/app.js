@@ -11,12 +11,15 @@ const INVENTARIO=globalThis.AlertaInventarioMapas;
 let territorio=null;
 let toastTimer;
 const nomeTipo=TIPO==="ajuda"?"Pra Somar Maringá":"Mapa de Colaboradores";
+$("map-brand-title").textContent=TIPO==="ajuda"?"MARINGÁ Pra Somar":"MARINGÁ ALERTA";
+// Pra Somar já tem identificação no cabeçalho; retirar a caixa que encobre o mapa.
+if(TIPO==="ajuda")document.querySelector(".map-info")?.remove();
 document.title=nomeTipo+" | "+(app.prefeitura()?.nome||"Município")+" · Sistema Integrado de Crise";
 $("nav-"+TIPO).classList.add("active");
 $("title").textContent=TIPO==="ajuda"?"Pra Somar Maringá":"Colaboradores por zona";
 $("eyebrow").textContent=TIPO==="ajuda"?"RECUPERAÇÃO PÓS-EVENTO":"REDE DE COLABORADORES";
 $("subtitle").textContent=TIPO==="ajuda"?"Pessoas e empresas que precisam de apoio após uma crise.":"Pessoas físicas, empresas e recursos disponíveis antes da emergência.";
-$("map-label").textContent=nomeTipo+" · "+(app.prefeitura()?.nome||"Município");
+if($("map-label"))$("map-label").textContent=nomeTipo+" · "+(app.prefeitura()?.nome||"Município");
 $("list-title").textContent=TIPO==="ajuda"?"Pedidos registrados":"Ofertas de ajuda";
 $("filtro-label").textContent=TIPO==="ajuda"?"Situação":"Pessoa";
 $("filtro").innerHTML=TIPO==="ajuda"?
@@ -70,7 +73,7 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
 const poligonos=L.layerGroup().addTo(map);
 const marcadores=L.layerGroup().addTo(map);
 function renderMunicipio(){
- $("map-label").textContent=nomeTipo+" · "+(app.prefeitura()?.nome||"Município");
+ if($("map-label"))$("map-label").textContent=nomeTipo+" · "+(app.prefeitura()?.nome||"Município");
  poligonos.clearLayers();
  const p=app.prefeitura(),lat=Number(p?.lat),lng=Number(p?.lng);
  if(p?.limite_geojson){
