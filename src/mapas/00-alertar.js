@@ -44,7 +44,7 @@ function municipSelector(){
  };
 }
 function zoneSelect(){
- opts($("zona"),[...new Set([...app.zonas(),...nomesZonasOficiais,...INVENTARIO.registros(app.db).map(x=>x.zona).filter(Boolean)])].sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true})),filtroZona,'<option value="">Todas as zonas</option>');
+ opts($("zona"),[...new Set([...app.zonas(),...nomesZonasOficiais,...colaboradoresDisponiveis().map(x=>x.zona).filter(Boolean),...INVENTARIO.registros(app.db).map(x=>x.zona).filter(Boolean)])].sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true})),filtroZona,'<option value="">Todas as zonas</option>');
  $("zona").value=filtroZona;
 }
 function configurarCamadas(){
@@ -82,13 +82,18 @@ function renderMunicipio(){
  }else if(p?.lat!==undefined&&p?.lng!==undefined&&Number.isFinite(lat)&&Number.isFinite(lng))map.setView([lat,lng],12);
  zoneSelect();setTimeout(()=>map.invalidateSize(),100);
 }
+function colaboradoresDisponiveis(){
+ const municipio=app.prefeitura()?.id;
+ const anterior=municipio?OperacaoRestauracao.ler(localStorage,`alerta_prototipo_v2_${municipio}_operacao`,municipio):null;
+ return ColaboradoresReferencia.listar(app.oferentes(),anterior);
+}
 function dadosFiltrados(){
  const inventario=INVENTARIO.registros(app.db);
  if(camadaAtual!=="principal")return INVENTARIO.filtrar(inventario,{modulo:camadaAtual,zona:filtroZona,classe:filtroClasse,busca:texto});
 
- const xs=TIPO==="ajuda"?app.pedidos():app.oferentes();
+ const xs=TIPO==="ajuda"?app.pedidos():colaboradoresDisponiveis();
  return xs.filter(x=>{
-  if(filtroZona&&!INVENTARIO.filtrar(inventario,{modulo:TIPO==="ajuda"?"solicitacoes":"voluntarios",zona:filtroZona}).some(item=>item.id===String(x.id)))return false;
+  if(filtroZona&&!(x.registroAnterior?INVENTARIO.normal(x.zona||x.bairro)===INVENTARIO.normal(filtroZona):INVENTARIO.filtrar(inventario,{modulo:TIPO==="ajuda"?"solicitacoes":"voluntarios",zona:filtroZona}).some(item=>item.id===String(x.id))))return false;
   if(filtroClasse&&(TIPO==="ajuda"?x.status:x.tipo_pessoa)!==filtroClasse)return false;
   if(texto){
    const campos=TIPO==="ajuda"?[x.necessidade,x.descricao,x.zona]:
