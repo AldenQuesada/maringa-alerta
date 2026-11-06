@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b111b">
 <title>Mapas · Maringá Unida</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="./style.css?v=54cc734e2036">
+<link rel="stylesheet" href="./style.css?v=6eb1107a670e">
 <link rel="stylesheet" href="../dados-territoriais/camadas-mapas.css?v=territorio-1">
 <link rel="stylesheet" href="../mapa-navegacao.css?v=vista-fixa-1">
 </head>
@@ -24,13 +24,13 @@
  <main class="workspace">
   <div class="map-area">
    <div id="map" role="application" aria-label="Mapa por zonas"></div>
-   <button id="painel-ajuda-toggle" class="painel-ajuda-toggle" type="button" aria-controls="painel-ajuda" aria-expanded="true" aria-label="Recolher painel" title="Recolher painel" hidden>−</button>
+   <button id="painel-ajuda-toggle" class="painel-ajuda-toggle" type="button" aria-controls="painel-ajuda" aria-expanded="true" aria-label="Abrir painel" title="Abrir painel" hidden>+</button>
    <div class="map-info"><span class="signal"></span><span id="map-label">Mapa</span><small>Dados locais de demonstração · sem envio real</small></div>
    <div id="notificacao-chegada" class="notificacao-chegada" role="status" hidden><strong>Chegada simulada</strong><button id="notificacao-fechar" type="button" aria-label="Fechar notificação">×</button><p id="notificacao-texto"></p></div>
    <div class="map-legend"><span><i class="color-collab"></i>Colaboradores</span><span><i class="color-help"></i>Pedidos</span><span>Localização aproximada quando sem GPS</span><span id="legenda-cozinhas" hidden>🍲 Cozinhas simuladas</span></div>
   </div>
   <aside id="painel-ajuda" class="sidebar">
-   <header class="panel-heading"><p class="eyebrow" id="eyebrow">MAPA</p><h1 id="title">Colaboradores</h1><p id="subtitle">Capacidades disponíveis por zona.</p></header>
+   <header class="panel-heading"><button id="painel-ajuda-recolher" class="painel-ajuda-recolher" type="button" aria-controls="painel-ajuda" aria-label="Recolher painel" title="Recolher painel" hidden>−</button><p class="eyebrow" id="eyebrow">MAPA</p><h1 id="title">Colaboradores</h1><p id="subtitle">Capacidades disponíveis por zona.</p></header>
    <section id="ficha-cozinha" class="ficha-cozinha" aria-labelledby="ficha-cozinha-titulo" hidden>
     <div class="ficha-cozinha-head"><div><small>COZINHA · SIMULAÇÃO</small><h2 id="ficha-cozinha-titulo"></h2></div><button id="ficha-cozinha-fechar" type="button" aria-label="Fechar ficha da cozinha" title="Fechar">×</button></div>
     <p class="ficha-cozinha-aviso">Ponto ilustrativo. As informações ainda precisam ser cadastradas e confirmadas.</p>
@@ -70,6 +70,6 @@
 <script src="../mapa-navegacao.js?v=vista-fixa-1"></script>
 <script src="./colaboradores-referencia.js?v=1"></script>
 <script src="./logistica-demo.js?v=1"></script>
-<script src="./app.js?v=ede9b70a0a4c"></script>
+<script src="./app.js?v=bacb1f3e95d4"></script>
 </body>
 </html>

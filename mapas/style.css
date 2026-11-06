@@ -61,3 +61,8 @@ select,input,textarea{background:#0d1724;border:1px solid #3c5065;color:var(--fg
 .ficha-cozinha{padding:15px 20px;border-bottom:1px solid #37516a;background:#142436;overflow:auto;max-height:min(48vh,460px);scrollbar-color:#435367 #111820;scrollbar-width:thin}
 .ficha-cozinha::-webkit-scrollbar{width:8px}.ficha-cozinha::-webkit-scrollbar-track{background:#111820}.ficha-cozinha::-webkit-scrollbar-thumb{background:#435367;border-radius:8px}
 .ficha-cozinha-head{display:flex;justify-content:space-between;gap:8px}.ficha-cozinha-head small{font-size:10px;color:#ffcb69;letter-spacing:.06em}.ficha-cozinha-head h2{font-size:16px;margin:5px 0}.ficha-cozinha-head button{border:0;background:transparent;color:var(--fg);font-size:22px;align-self:flex-start}.ficha-cozinha-aviso{color:var(--muted);font-size:11px;line-height:1.5}.ficha-cozinha dl{margin:10px 0 0;display:grid;gap:8px}.ficha-cozinha dl div{display:grid;grid-template-columns:minmax(100px,40%) 1fr;gap:8px;padding:7px 0;border-bottom:1px solid #2d4055;font-size:11px}.ficha-cozinha dt{color:var(--muted)}.ficha-cozinha dd{margin:0;color:var(--fg);overflow-wrap:anywhere}
+
+/* Comandos do painel de ajuda: recolher no cabeçalho e reabrir no mapa. */
+.mapa-ajuda .panel-heading{position:relative;padding-right:55px}
+.painel-ajuda-recolher{position:absolute;top:12px;right:12px;width:36px;height:36px;border:1px solid #455870;border-radius:7px;background:#101a27;color:#eaf0f6;font-size:23px;line-height:1}
+.painel-ajuda-recolher:hover{border-color:var(--accent)}

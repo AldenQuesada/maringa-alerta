@@ -425,11 +425,13 @@ if(TIPO==="ajuda"){
  $("iniciar-caminhao").addEventListener("click",iniciarCaminhaoDemo);
  $("notificacao-fechar").addEventListener("click",()=>{$("notificacao-chegada").hidden=true;});
  $("ficha-cozinha-fechar").addEventListener("click",()=>{$("ficha-cozinha").hidden=true;});
- const toggle=$("painel-ajuda-toggle"),painel=$("painel-ajuda");
- toggle.hidden=false;
+ const toggle=$("painel-ajuda-toggle"),painel=$("painel-ajuda"),recolher=$("painel-ajuda-recolher");
+ recolher.hidden=false;
+ recolher.addEventListener("click",()=>toggle.click());
  toggle.addEventListener("click",()=>{
   const fechado=!painel.hidden;
   painel.hidden=fechado;
+  toggle.hidden=!fechado;
   document.querySelector(".workspace").classList.toggle("painel-recolhido",fechado);
   toggle.textContent=fechado?"+":"−";
   toggle.setAttribute("aria-expanded",String(!fechado));
