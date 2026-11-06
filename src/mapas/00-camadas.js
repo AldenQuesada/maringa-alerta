@@ -32,10 +32,11 @@ async function carregarZonasOficiais(){
  }catch(error){zonasConsultadas=false;console.warn("Zonas numeradas indisponíveis",error);}
 }
 const fichaPonto=FichaPonto.criar({painel:$("painel-ajuda"),abrirPainel:()=>{if($("painel-ajuda").hidden)$("painel-ajuda-toggle").click();},obterRegistro:(modulo,id)=>app.db.registro(modulo,id),waLink:MaringaCrise.waLink});
+const filtrosUnidades=FiltrosUnidades.criar({alvo:$("filtros-unidades"),ler:()=>INVENTARIO.registros(app.db),aoMudar:()=>render()});
 function renderUnidadesMunicipais(){
  unidadesMunicipais.clearLayers();
  const todos=INVENTARIO.registros(app.db).filter(x=>x.georreferenciado&&!x.privado);
- const visiveis=camadaAtual==="principal"&&mostrarUnidades?INVENTARIO.filtrar(todos,{zona:filtroZona,busca:texto}):[];
+ const visiveis=camadaAtual==="principal"&&mostrarUnidades?INVENTARIO.filtrar(todos,{zona:filtroZona,busca:texto}).filter(filtrosUnidades.aceita):[];
  const indicador=$("mostrar-unidades-texto");
  if(indicador)indicador.textContent="Mostrar unidades e recursos ("+todos.length+" georreferenciados)";
  for(const x of visiveis){

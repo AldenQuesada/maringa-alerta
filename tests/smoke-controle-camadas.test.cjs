@@ -15,7 +15,7 @@ test("dois mapas auxiliares mostram, ocultam e filtram georreferenciados usando 
   marker:(pos,opts)=>({bindTooltip(html){this.html=html;return this},on(){return this},addTo(){pins.push({pos,opts,html:this.html});return this}})
  };
  const elements={};
- const ctx=vm.createContext({L,map:{},INVENTARIO:M,FichaPonto:{criar:()=>({abrir(){}})},MaringaCrise:{waLink(){}},app:{db,prefeitura:()=>({id:"maringa"}),pontoDaZona:()=>null},
+ const ctx=vm.createContext({L,map:{},INVENTARIO:M,FichaPonto:{criar:()=>({abrir(){}})},FiltrosUnidades:{criar:()=>({aceita:()=>true})},MaringaCrise:{waLink(){}},app:{db,prefeitura:()=>({id:"maringa"}),pontoDaZona:()=>null},
   camadaAtual:"principal",filtroZona:"",texto:"",esc:String,$:id=>(elements[id]??={textContent:""}),console});
  vm.runInContext(code.slice(start,end),ctx);
  assert.equal(vm.runInContext("renderUnidadesMunicipais()",ctx),6);

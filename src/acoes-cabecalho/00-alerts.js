@@ -58,7 +58,8 @@ function alerts(){
  const rank={critical:0,high:1,normal:2};
  return list.sort((a,b)=>rank[a.kind]-rank[b.kind]||a.title.localeCompare(b.title,"pt-BR"));
 }
-const readIds=()=>{const x=read(LKEY+getId(),[]);return new Set(Array.isArray(x)?x:[])};
+const chaveAlertas=()=>LKEY+getId()+(wrap.dataset.escopo?":"+wrap.dataset.escopo:"");
+const readIds=()=>{const x=read(chaveAlertas(),[]);return new Set(Array.isArray(x)?x:[])};
 function updateBadges(){
  const n=tasks().filter(t=>t.status!=="done").length;
  const a=alerts();const seen=readIds(),unread=a.filter(x=>!seen.has(x.id)).length;
