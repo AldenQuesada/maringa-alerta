@@ -154,7 +154,7 @@
   function instalarVistaSalva({map,L,armazenamento,chaveVista}){
     let vista=lerVista(armazenamento,chaveVista);
     if(vista)aplicarVista(map,L,vista);
-    else{map.setMinZoom(map.getZoom());map.options.maxBoundsViscosity=1;}
+    else map.options.maxBoundsViscosity=1; // Antes de fixar, a pessoa pode ajustar livremente o enquadramento.
     const centro=map.getCenter(),inicio={lat:centro.lat,lng:centro.lng,zoom:map.getZoom()};
     function restaurar(){
       if(vista)aplicarVista(map,L,vista);
