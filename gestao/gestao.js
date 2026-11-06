@@ -32,7 +32,8 @@ const ICONS={
   search:'<circle cx="10" cy="10" r="7"/><path d="m15 15 6 6"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
   external:'<path d="M14 5h5v5M19 5l-9 9"/><path d="M19 13v6H5V5h6"/>',
-  chevron:'<path d="m9 18 6-6-6-6"/>'
+  chevron:'<path d="m9 18 6-6-6-6"/>',
+  chat:'<path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4-.9L3 21l1.9-5.5a9 9 0 0 1-.9-4A8.5 8.5 0 0 1 12.5 3 8.5 8.5 0 0 1 21 11.5z"/><path d="M8 11h9M8 14h6"/>'
 };
 const icon=(id,css="")=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="'+css+'" aria-hidden="true">'+(ICONS[id]||ICONS.list)+'</svg>';
 const icons={territorio:"layers",implantacao:"pin",bairros:"layers",pessoas:"users",solicitacoes:"list",mobilizacoes:"bell",apoios:"building",inicio:"dashboard",eventos:"pin",prefeituras:"building",zonas:"layers",bases:"pin",riscos:"shield",administradores:"shield",responsaveis:"user",substitutos:"user",coordenadores:"users",operadores:"user",equipes:"wrench",integrantes:"users",voluntarios:"users",saude:"hospital",emergencias:"siren",parceiros:"building",veiculos:"truck",equipamentos:"wrench",estoques:"box",abrigos:"hospital",pontos:"pin",ocorrencias:"list",canais:"bell",regras:"shield"};
@@ -46,7 +47,7 @@ function renderMunicipios(){
  select.disabled=true;select.title="O município é atribuído pelo Admin Geral da plataforma.";
 }
 function renderNav(){
- NAV.innerHTML=D.GROUPS.map(g=>'<div class="nav-group"><div class="nav-group-title">'+esc(g.label)+'</div>'+
+ NAV.innerHTML='<div class="nav-group"><div class="nav-group-title">Atendimento</div><a class="nav-item'+(atual==="conversas"?" active":"")+'" href="#conversas" data-nav="conversas" aria-current="'+(atual==="conversas"?"page":"false")+'" title="Central de Conversas">'+icon("chat")+'<span class="nav-label">Central de Conversas</span></a></div>'+D.GROUPS.map(g=>'<div class="nav-group"><div class="nav-group-title">'+esc(g.label)+'</div>'+
    g.items.map(id=>'<a class="nav-item'+((atual===id||(id==="territorio"&&PREF_SECTIONS.has(atual)))?" active":"")+'" href="#'+esc(id)+'" data-nav="'+esc(id)+'" aria-current="'+((atual===id||(id==="territorio"&&PREF_SECTIONS.has(atual)))?"page":"false")+'" title="'+esc(id==="inicio"?"Visão geral":D.ESQUEMAS[id].label)+'">'+icon(icons[id])+'<span class="nav-label">'+esc(id==="inicio"?"Visão geral":D.ESQUEMAS[id].label)+"</span></a>").join("")+"</div>").join("");
  NAV.querySelectorAll("[data-nav]").forEach(el=>el.onclick=()=>{
   FRAME.classList.remove("mobile-open");
@@ -70,6 +71,7 @@ function renderInicio(){
   ["Equipes","Organizar equipes e recursos municipais.","equipes"],
   ["Recursos e comunicação","Configurar equipamentos, abrigos e canais.","equipamentos"],
   ["Ajuda pós-evento","Gerenciar solicitações por zona.","solicitacoes"],
+   ["Central de Conversas","Ver todos os colaboradores, filtrar por zona e revisar o fluxo Pra Somar.","conversas"],
   ["Brigadas e prefeituras","Mobilizar zonas e solicitar apoio a outros municípios.","mobilizacoes"]
  ];
  PAGE.innerHTML=topo("Painel de gestão","Cadastros e recursos para organizar a atuação de cada prefeitura.")+
@@ -226,12 +228,13 @@ function render(){
  if(hash==="bairros"||hash==="zonas")geoTipo=hash;
  if(["saude","emergencias","parceiros"].includes(hash))estruturaTipo=hash;
  const alias=hash==="prefeituras"||hash==="implantacao"||hash==="pessoas"?"territorio":hash==="bairros"||hash==="zonas"?"geoterritorialidade":["saude","emergencias","parceiros"].includes(hash)?"estruturas":hash;
- const proximo=alias==="inicio"||alias==="estruturas"||alias==="geoterritorialidade"||Object.hasOwn(D.ESQUEMAS,alias)?alias:"inicio";
+ const proximo=alias==="inicio"||alias==="conversas"||alias==="estruturas"||alias==="geoterritorialidade"||Object.hasOwn(D.ESQUEMAS,alias)?alias:"inicio";
  if(proximo!==atual)pesquisa="";
  atual=proximo;
- document.title=(atual==="inicio"?"Gestão":atual==="estruturas"?"Estruturas":atual==="geoterritorialidade"?"Geoterritorialidade":D.ESQUEMAS[atual].label)+" | Gestão Municipal";
+ document.title=(atual==="inicio"?"Gestão":atual==="conversas"?"Central de Conversas":atual==="estruturas"?"Estruturas":atual==="geoterritorialidade"?"Geoterritorialidade":D.ESQUEMAS[atual].label)+" | Gestão Municipal";
  renderNav();
  if(atual==="inicio")renderInicio();
+ else if(atual==="conversas")window.AlertaCentralConversas.montar({target:PAGE,db,onEdit:id=>abrirDrawer(id,"voluntarios"),onNew:()=>abrirDrawer(null,"voluntarios")});
  else if(atual==="territorio")renderTerritorioMunicipal();
  else if(atual==="estruturas")renderEstruturas();
  else if(atual==="geoterritorialidade")renderGeoterritorialidade();
