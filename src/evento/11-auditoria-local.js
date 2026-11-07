@@ -1,39 +1,6 @@
-/* ---------- log de auditoria imutavel (cadeia de hash) ---------- */
-const AUDIT_KEY = storageKey('audit');
-let auditLog = [];
-try{ auditLog = JSON.parse(localStorage.getItem(AUDIT_KEY) || "[]"); }catch(e){ auditLog = []; }
-
-async function sha256(str){
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-let auditSequencia=Promise.resolve();
-function auditPayload({ts,ator,acao,detalhe,prev,territorios}){
-  return JSON.stringify({ts,ator,acao,detalhe,prev,territorios});
-}
-function auditPush(ator, acao, detalhe, territorios){
-  const ts=Date.now();
-  auditSequencia=auditSequencia.then(async()=>{
-    const prev=auditLog.length?auditLog[auditLog.length-1].hash:'0';
-    const entrada={ts,ator,acao,detalhe,prev,territorios};
-    const hash=await sha256(auditPayload(entrada));
-    auditLog.push({...entrada,hash});
-    try{localStorage.setItem(AUDIT_KEY,JSON.stringify(auditLog));}catch(e){}
-    renderAuditIfOpen();
-  }).catch(()=>{});
-  return auditSequencia;
-}
-async function verificarIntegridadeAudit(){
-  await auditSequencia;
-  for(let i=0;i<auditLog.length;i++){
-    const e = auditLog[i];
-    const prevEsperado = i===0 ? '0' : auditLog[i-1].hash;
-    const payload = auditPayload({...e,prev:prevEsperado});
-    const recalculado = await sha256(payload);
-    if(recalculado !== e.hash || e.prev !== prevEsperado) return {ok:false, indice:i};
-  }
-  return {ok:true};
-}
+/* Apresentação da trilha de demonstração; dados reais são auditados no servidor. */
+const auditoriaLocal=AlertaEventoAuditoriaLocal.criar({armazenamento:localStorage,chave:storageKey('audit'),habilitado:!conectado,onChange:()=>renderAuditIfOpen()});
+const auditPush=auditoriaLocal.adicionar,verificarIntegridadeAudit=auditoriaLocal.verificar;
 
 const auditOverlay = document.getElementById('audit-overlay');
 document.getElementById('open-audit').onclick = ()=>{ auditOverlay.hidden=false; renderAudit(); };
@@ -42,6 +9,7 @@ auditOverlay.addEventListener('click', e=>{ if(e.target===auditOverlay) auditOve
 function renderAuditIfOpen(){ if(!auditOverlay.hidden) renderAudit(); }
 
 function renderAudit(){
+  const auditLog=auditoriaLocal.listar();
   const body = document.getElementById('audit-body');
   body.innerHTML = `
     <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Cada ação fica registrada com o hash da entrada anterior, formando uma cadeia. Editar ou apagar uma entrada no meio quebra a cadeia a partir dali. A verificação percorre toda a cadeia municipal. Registros gerais e antigos sem território aparecem em todos os recortes.</div>
@@ -64,8 +32,7 @@ function renderAudit(){
   };
   document.getElementById('audit-tamper').onclick = ()=>{
     if(!auditLog.length){ document.getElementById('audit-result').textContent = 'Não há entradas para adulterar ainda.'; return; }
-    auditLog[0].detalhe = auditLog[0].detalhe + ' (editado depois, sem recalcular o hash)';
-    try{ localStorage.setItem(AUDIT_KEY, JSON.stringify(auditLog)); }catch(e){}
+    auditoriaLocal.simularAdulteracao();
     renderAudit();
   };
 }

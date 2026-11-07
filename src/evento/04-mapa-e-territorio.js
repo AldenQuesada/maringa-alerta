@@ -1,5 +1,5 @@
 /* ---------- mapa ---------- */
-const map = L.map('map', { zoomControl:true, attributionControl:true, zoomSnap:0, zoomDelta:0.5 }).setView(MARINGA_CENTER, 13);
+const map = L.map('map', { zoomControl:true, attributionControl:true, zoomSnap:0, zoomDelta:0.5 }).setView(MUNICIPIO_CENTER||[0,0], MUNICIPIO_CENTER?13:2);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution:'&copy; OpenStreetMap contributors',
   subdomains:'abc', maxZoom:19
@@ -21,9 +21,9 @@ areas.forEach(area=>{
   }catch(_){ area.layer=null; }
 });
 
-// Mantém navegação dentro da área de Maringá sem interferir na seleção de ocorrências.
+// Usa os limites cadastrados do município sem interferir na seleção de ocorrências.
 const navegacaoMapa = window.AlertaMapaNavegacao.instalar({
-  map, L, armazenamento:localStorage, chaveVista:'maringa_mapa_evento_vista_original_v1', zonas:[
+  map, L, armazenamento:localStorage, limites:AlertaGestaoDados.config.limites(prefeituraContexto), chaveVista:storageKey('mapa_vista'), zonas:[
     ...bairros.map(b=>b.poly),
     ...areasCadastradas.filter(a=>a.layer).map(a=>{
       const limites=a.layer.getBounds();

@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Instalar dependências de teste
+        run: npm ci
       - name: Verificar montagem canônica dos módulos
         run: node scripts/build-modulos.mjs --check
       - name: Verificar sintaxe dos módulos

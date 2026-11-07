@@ -29,7 +29,7 @@ async function iniciarCheckin(id,button){
  if(!navigator.geolocation){alertar("Geolocalização indisponível neste dispositivo.");return;}
  button.disabled=true;button.textContent="Validando GPS...";
  try{
-  const dados=await globalThis.MaringaBairros?.carregar();
+  const dados=await globalThis[AlertaGestaoDados.config.referencias(app.prefeitura()).catalogoBairros]?.carregar();
   const f=dados?.bairros?.features?.find(x=>String(x.properties?.nome||"").localeCompare(bairro,"pt-BR",{sensitivity:"base"})===0);
   if(!f)throw Error("Bairro não encontrado na malha territorial. Confira o cadastro; não foi registrado check-in.");
   const coords=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(p=>resolve(p.coords),reject,{enableHighAccuracy:true,maximumAge:0,timeout:20000}));

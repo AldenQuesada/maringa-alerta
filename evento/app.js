@@ -1,97 +1,451 @@
+/* Cadastro territorial, referências e recorte com contexto municipal explícito. */
+(function(root){
+'use strict';
+async function criar({db,municipio,config,bairros=[],conectado=false,adaptadores=root}){
+const normalizarTerritorio = texto => String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
+const areasCadastradas = ['zonas','bairros'].flatMap(tipo =>
+  db.lista(tipo,municipio.id).filter(area=>area.verificacao!=='Rejeitado')
+    .map(area=>({...area,chave:tipo+':'+area.id,tipoArea:tipo==='zonas'?'Zona':'Bairro'}))
+);
+const adaptador=adaptadores[config.referencias(municipio).catalogoBairros];
+const fontesPublicas=!conectado&&adaptador?await adaptador.carregar().catch(()=>null):null;
+const chaveZona = nome => {const match=normalizarTerritorio(nome).match(/^zona\s*0*(\d+)$/);return match ? String(Number(match[1])) : '';};
+for(const [grupo,tipoArea] of (conectado?[]:[[fontesPublicas?.zonasNumeradas,'Zona'],[fontesPublicas?.bairros,'Bairro'],[fontesPublicas?.zonas,'Zona cartográfica']])){
+  grupo?.features.forEach(feature=>{
+    const {id,nome}=feature.properties;
+    const existente=areasCadastradas.find(area=>area.tipoArea===tipoArea && (normalizarTerritorio(area.nome)===normalizarTerritorio(nome) || (tipoArea==='Zona' && chaveZona(nome) && chaveZona(area.nome)===chaveZona(nome))));
+    if(existente){if(!existente.geojson){existente.geojson=feature.geometry;existente.fonte=grupo.source;}return;}
+    areasCadastradas.push({id,nome,tipoArea,chave:'publico:'+tipoArea+':'+(id||nome),geojson:feature.geometry,fonte:grupo.source});
+  });
+}
+const areas = [...areasCadastradas,...(bairros.length?bairros.map(b=>({
+  nome:b.nome,chave:'demo:'+b.nome,tipoArea:'Zona demonstrativa',demo:b
+})):[])];
+const selecao = new Set();
+const areasPorChave=new Map(areas.map(area=>[area.chave,area]));
+const areasSelecionadas=()=>[...selecao].map(chave=>areasPorChave.get(chave)).filter(Boolean);
+function pertence(area, territorio){
+  const nome = normalizarTerritorio(territorio);
+  if(nome && [area.id,area.nome].some(valor=>normalizarTerritorio(valor)===nome)) return true;
+  if(area.tipoArea!=='Zona') return false;
+  return areasCadastradas.some(bairro=>bairro.tipoArea==='Bairro'
+    && bairro.zona && [area.id,area.nome].some(valor=>normalizarTerritorio(valor)===normalizarTerritorio(bairro.zona))
+    && nome && [bairro.id,bairro.nome].some(valor=>normalizarTerritorio(valor)===nome));
+}
+const noRecorte = territorio => !selecao.size || areasSelecionadas().some(area=>pertence(area,territorio));
+const recorteLabel = () => areasSelecionadas().map(area=>area.nome).join(', ') || 'Todo o município';
+
+return {normalizarTerritorio,areasCadastradas,areas,selecao,areasSelecionadas,pertence,noRecorte,recorteLabel};
+}
+root.AlertaEventoTerritorio={criar};
+})(globalThis);
+/* Fixtures territoriais exclusivas da demonstração explícita; nunca são dados operacionais. */
+(function(root){'use strict';
+root.AlertaEventoDemonstracaoConfiguracao={
+  "4115200": {
+    "ddd": "44",
+    "equipe": [
+      {
+        "nome": "Marcos Teixeira",
+        "cargo": "Vereador"
+      },
+      {
+        "nome": "Fernanda Lopes",
+        "cargo": "Secretária de Assistência Social"
+      },
+      {
+        "nome": "Ricardo Bittencourt",
+        "cargo": "Chefe de Defesa Civil"
+      },
+      {
+        "nome": "Juliana Prado",
+        "cargo": "Subsecretária de Obras"
+      },
+      {
+        "nome": "Eduardo Namiki",
+        "cargo": "Vereador"
+      },
+      {
+        "nome": "Carla Mendonça",
+        "cargo": "Coordenadora Regional"
+      },
+      {
+        "nome": "Paulo Henrique Camargo",
+        "cargo": "Chefe de Departamento"
+      },
+      {
+        "nome": "Renata Sakamoto",
+        "cargo": "Subsecretária de Assistência Social"
+      },
+      {
+        "nome": "Vitor Almeida Rocha",
+        "cargo": "Coordenador de Campo"
+      },
+      {
+        "nome": "Simone Aparecida Dias",
+        "cargo": "Vereadora"
+      },
+      {
+        "nome": "André Luiz Ferraz",
+        "cargo": "Chefe de Defesa Civil"
+      },
+      {
+        "nome": "Patrícia Gonçalves",
+        "cargo": "Subsecretária de Obras"
+      },
+      {
+        "nome": "Thiago Moraes Vilela",
+        "cargo": "Coordenador Regional"
+      },
+      {
+        "nome": "Luciana Barreto",
+        "cargo": "Secretária de Infraestrutura"
+      },
+      {
+        "nome": "Fábio Cardoso Neto",
+        "cargo": "Chefe de Departamento"
+      },
+      {
+        "nome": "Mariana Esteves",
+        "cargo": "Subsecretária de Saúde"
+      },
+      {
+        "nome": "Rogério Villela",
+        "cargo": "Coordenador de Campo"
+      },
+      {
+        "nome": "Daniela Freitas",
+        "cargo": "Vereadora"
+      }
+    ],
+    "equipamentos": [
+      "2 motosserras",
+      "1 caminhão basculante",
+      "1 retroescavadeira",
+      "Kit de resgate",
+      "Gerador móvel",
+      "1 caminhão-pipa",
+      "Equipe de eletricistas",
+      "Ambulância de apoio"
+    ],
+    "bairros": [
+      {
+        "nome": "Zona 7",
+        "center": [
+          -23.3995,
+          -51.9395
+        ],
+        "poly": [
+          [
+            -23.392,
+            -51.95
+          ],
+          [
+            -23.392,
+            -51.93
+          ],
+          [
+            -23.408,
+            -51.93
+          ],
+          [
+            -23.408,
+            -51.95
+          ]
+        ]
+      },
+      {
+        "nome": "Jardim Alvorada",
+        "center": [
+          -23.387,
+          -51.912
+        ],
+        "poly": [
+          [
+            -23.38,
+            -51.922
+          ],
+          [
+            -23.38,
+            -51.902
+          ],
+          [
+            -23.396,
+            -51.902
+          ],
+          [
+            -23.396,
+            -51.922
+          ]
+        ]
+      },
+      {
+        "nome": "Conjunto Requião",
+        "center": [
+          -23.436,
+          -51.956
+        ],
+        "poly": [
+          [
+            -23.428,
+            -51.966
+          ],
+          [
+            -23.428,
+            -51.946
+          ],
+          [
+            -23.446,
+            -51.946
+          ],
+          [
+            -23.446,
+            -51.966
+          ]
+        ]
+      },
+      {
+        "nome": "Jardim Universo",
+        "center": [
+          -23.443,
+          -51.923
+        ],
+        "poly": [
+          [
+            -23.435,
+            -51.933
+          ],
+          [
+            -23.435,
+            -51.913
+          ],
+          [
+            -23.452,
+            -51.913
+          ],
+          [
+            -23.452,
+            -51.933
+          ]
+        ]
+      },
+      {
+        "nome": "Vila Esperança",
+        "center": [
+          -23.382,
+          -51.951
+        ],
+        "poly": [
+          [
+            -23.374,
+            -51.962
+          ],
+          [
+            -23.374,
+            -51.941
+          ],
+          [
+            -23.392,
+            -51.941
+          ],
+          [
+            -23.392,
+            -51.962
+          ]
+        ]
+      },
+      {
+        "nome": "Centro Cívico",
+        "center": [
+          -23.4225,
+          -51.9365
+        ],
+        "poly": [
+          [
+            -23.415,
+            -51.946
+          ],
+          [
+            -23.415,
+            -51.927
+          ],
+          [
+            -23.43,
+            -51.927
+          ],
+          [
+            -23.43,
+            -51.946
+          ]
+        ]
+      }
+    ]
+  }
+};
+})(globalThis);
+/* Gera as equipes locais apenas a partir de uma referência municipal explícita. */
+(function(root){
+'use strict';
+function criar({referencia,habilitado,sortear=Math.random,ponto}){
+ if(!habilitado||!referencia)return [];
+ const dados=JSON.parse(JSON.stringify(referencia));
+ const {equipe,equipamentos,bairros}=dados;
+ let cursor=0,id=1;
+ const escolher=lista=>lista[Math.floor(sortear()*lista.length)];
+ for(const b of bairros){
+  b.equipamentos=[escolher(equipamentos),escolher(equipamentos)];
+  b.equipe={};
+  for(const papel of ['responsavel','substituto','coordenador']){
+   const p={...equipe[cursor++%equipe.length]};
+   Object.assign(p,{id:'f'+id++,papel,zona:b.nome,pos:ponto(b.poly),tel:'('+dados.ddd+') 9'+Math.floor(1000+sortear()*8999)+'-'+Math.floor(1000+sortear()*8999)});
+   b.equipe[papel]=p;
+  }
+ }
+ return bairros;
+}
+root.AlertaEventoRegioesDemonstrativas={criar};
+})(globalThis);
+/* Compatibilidade de cadastros locais; no modo conectado não acessa o armazenamento. */
+(function(root){
+'use strict';
+function criar({armazenamento,chave,chaveLegada,habilitado}){
+ function carregar(){
+  if(!habilitado)return null;
+  try{
+   const raw=armazenamento.getItem(chave)||(chaveLegada?armazenamento.getItem(chaveLegada):null);
+   const data=JSON.parse(raw||'null');
+   if(!data||typeof data!=='object'||Array.isArray(data))return null;
+   return {funcionarios:Array.isArray(data.funcionarios)?data.funcionarios.filter(x=>x&&typeof x==='object'):[],equipes:Array.isArray(data.equipes)?data.equipes.filter(x=>x&&typeof x==='object'):[]};
+  }catch(_){return null;}
+ }
+ function salvar({funcionarios,equipes}){
+  if(!habilitado)return false;
+  try{armazenamento.setItem(chave,JSON.stringify({
+   funcionarios:funcionarios.map(({id,nome,cargo,tel})=>({id,nome,cargo,tel})),
+   equipes:equipes.map(({id,nome,zona,recursos,membros,status})=>({id,nome,zona,recursos,membros,status}))
+  }));return true;}catch(_){return false;}
+ }
+ return {carregar,salvar};
+}
+root.AlertaEventoAdministracaoLocal={criar};
+})(globalThis);
+/* Cadeia de integridade demonstrativa. A auditoria real pertence ao banco. */
+(function(root){
+'use strict';
+function criar({armazenamento,chave,habilitado,crypto=root.crypto,agora=()=>Date.now(),onChange=()=>{}}){
+ let entries=[],sequence=Promise.resolve();
+ if(habilitado)try{const saved=JSON.parse(armazenamento.getItem(chave)||'[]');if(Array.isArray(saved))entries=saved;}catch{}
+ const payload=({ts,ator,acao,detalhe,prev,territorios})=>JSON.stringify({ts,ator,acao,detalhe,prev,territorios});
+ async function hash(value){const buffer=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value));return [...new Uint8Array(buffer)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+ function salvar(){try{armazenamento.setItem(chave,JSON.stringify(entries));}catch{}}
+ function adicionar(ator,acao,detalhe,territorios){
+  if(!habilitado)return Promise.resolve();
+  const ts=agora();
+  const next=sequence.then(async()=>{
+   const entry={ts,ator,acao,detalhe,prev:entries.at(-1)?.hash||'0',territorios};
+   entries.push({...entry,hash:await hash(payload(entry))});salvar();onChange();
+  });
+  sequence=next.catch(()=>{});return next;
+ }
+ async function verificar(){
+  await sequence;
+  for(let index=0;index<entries.length;index++){
+   const entry=entries[index],prev=index?entries[index-1].hash:'0';
+   if(!entry||entry.prev!==prev||await hash(payload({...entry,prev}))!==entry.hash)return {ok:false,indice:index};
+  }
+  return {ok:true};
+ }
+ function simularAdulteracao(){
+  if(!habilitado||!entries.length)return false;
+  entries[0].detalhe+=' (editado depois, sem recalcular o hash)';salvar();return true;
+ }
+ return {adicionar,verificar,simularAdulteracao,listar:()=>JSON.parse(JSON.stringify(entries))};
+}
+root.AlertaEventoAuditoriaLocal={criar};
+})(globalThis);
+/* Fila exclusiva de demonstração. Nenhum envio de rede ou escrita em dados reais. */
+(function(root){
+'use strict';
+function criar({armazenamento,chave,habilitado,uuid=()=>crypto.randomUUID(),agora=()=>Date.now()}){
+ let items=[];
+ if(habilitado)try{const saved=JSON.parse(armazenamento.getItem(chave)||'[]');if(Array.isArray(saved))items=saved.filter(x=>x&&typeof x.id==='string'&&x.tipo&&x.dados);}catch{}
+ function salvar(){if(habilitado)try{armazenamento.setItem(chave,JSON.stringify(items));}catch{}}
+ function enfileirar(tipo,dados){
+  if(!habilitado)throw Error('Fila demonstrativa indisponível no modo conectado.');
+  const id=uuid();items.push({id,tipo,dados:JSON.parse(JSON.stringify(dados)),ts:agora()});salvar();return id;
+ }
+ function processar(consume){
+  if(!habilitado)return 0;let total=0;
+  for(const item of [...items])if(consume(JSON.parse(JSON.stringify(item)))===true){items=items.filter(x=>x.id!==item.id);salvar();total++;}
+  return total;
+ }
+ return {enfileirar,processar};
+}
+root.AlertaEventoFilaLocal={criar};
+})(globalThis);
+/* Funções sem estado operacional: apresentação, identificação e sorteio demonstrativo. */
+(function(root){
+'use strict';
+function validaCPF(cpf){
+  cpf = (cpf||'').replace(/\D/g,'');
+  if(cpf.length!==11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  let soma=0; for(let i=0;i<9;i++) soma += parseInt(cpf[i])*(10-i);
+  let resto = (soma*10)%11; if(resto===10) resto=0;
+  if(resto!==parseInt(cpf[9])) return false;
+  soma=0; for(let i=0;i<10;i++) soma += parseInt(cpf[i])*(11-i);
+  resto = (soma*10)%11; if(resto===10) resto=0;
+  return resto===parseInt(cpf[10]);
+}
+function fmtCPF(cpf){ cpf=(cpf||'').replace(/\D/g,''); return cpf.length===11 ? cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4') : cpf; }
+function maskCPF(cpf){ if(!cpf) return '—'; const d=cpf.replace(/\D/g,''); return d.length===11 ? `***.***.${d.slice(6,9)}-${d.slice(9)}` : '—'; }
+function sortGravidade(base){
+  const r = Math.random();
+  const g = base + (r<0.15?-1:r>0.85?1:0);
+  return Math.max(1, Math.min(3, g));
+}
+function rnd(a,b){return a+Math.random()*(b-a)}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function initials(nome){ return nome.split(' ').map(p=>p[0]).slice(0,2).join(''); }
+function escHtml(s){ return String(s).replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+function minutosDesde(ts){ return Math.max(0, Math.round((Date.now()-ts)/60000)); }
+function fmtDist(m){ return m<1000 ? Math.round(m)+"m" : (m/1000).toFixed(1)+"km"; }
+function randPointInBox(poly){
+  const lats = poly.map(p=>p[0]), lngs = poly.map(p=>p[1]);
+  return [ rnd(Math.min(...lats),Math.max(...lats)), rnd(Math.min(...lngs),Math.max(...lngs)) ];
+}
+root.AlertaEventoFormatacao={validaCPF,fmtCPF,maskCPF,sortGravidade,rnd,pick,initials,escHtml,minutosDesde,fmtDist,randPointInBox};
+})(globalThis);
 
 (async function(){
 "use strict";
+const {validaCPF,fmtCPF,maskCPF,sortGravidade,rnd,pick,initials,escHtml,minutosDesde,fmtDist,randPointInBox}=globalThis.AlertaEventoFormatacao;
 const conectado=!!globalThis.AlertaNuvem?.ativo;
-const demoMode=!conectado&&(new URLSearchParams(location.search).get('demo')==='1'||new URLSearchParams(location.search).get('modo')==='demo');
-const tenantId=conectado?(sessionStorage.getItem('alerta_contexto_municipal_demo_v1')||'maringa'):'maringa';
-const tenantConfig={nome:conectado?AlertaGestaoDados.criar(undefined,{municipioId:tenantId}).municipioAtivo().nome:'Maringá',marca:'MARINGÁ ALERTA',prefixo:'MA'};
+const tenantId=AlertaGestaoDados.config.selecionar(AlertaGestaoDados,sessionStorage);
+const prefeituraContexto=AlertaGestaoDados.criar(undefined,{municipioId:tenantId}).municipioAtivo();
+const referenciaDemonstracao=globalThis.AlertaEventoDemonstracaoConfiguracao[prefeituraContexto.codigo_ibge];
+const demoMode=!conectado&&!!referenciaDemonstracao&&(new URLSearchParams(location.search).get('demo')==='1'||new URLSearchParams(location.search).get('modo')==='demo');
+const tenantConfig={nome:prefeituraContexto.nome,marca:AlertaGestaoDados.config.marca(prefeituraContexto),prefixo:prefeituraContexto.sigla||'AL'};
+document.title=tenantConfig.marca;
+for(const node of document.querySelectorAll('#municipal-brand,.status-brand'))node.textContent=tenantConfig.marca;
 const storageKey=nome=>`alerta_prototipo_v2_${tenantId}_${nome}`;
  // O cadastro operacional salvo antes da migração continua visível no modo normal.
  // A ausência de ?demo=1 não apaga nem oculta equipes que já estavam salvas.
  const estadoAnterior=conectado?{estado:'vazio'}:OperacaoRestauracao.ler(localStorage,storageKey('operacao'),tenantId);
- const exibirEquipesLegadas=demoMode||
-   (estadoAnterior.estado==='restauravel'&&estadoAnterior.dados.voluntarios.length>0);
+ const exibirEquipesLegadas=!!referenciaDemonstracao&&(demoMode||
+   (estadoAnterior.estado==='restauravel'&&estadoAnterior.dados.voluntarios.length>0));
 
-// O Mapa de Evento usa somente o contexto local de Maringá.
+// Fim da resolução de contexto municipal.
 
 
-/* ---------- zonas de demonstração sobre o mapa de Maringá ---------- */
-const equipePool = exibirEquipesLegadas ? [
-  {nome:"Marcos Teixeira", cargo:"Vereador"},
-  {nome:"Fernanda Lopes", cargo:"Secretária de Assistência Social"},
-  {nome:"Ricardo Bittencourt", cargo:"Chefe de Defesa Civil"},
-  {nome:"Juliana Prado", cargo:"Subsecretária de Obras"},
-  {nome:"Eduardo Namiki", cargo:"Vereador"},
-  {nome:"Carla Mendonça", cargo:"Coordenadora Regional"},
-  {nome:"Paulo Henrique Camargo", cargo:"Chefe de Departamento"},
-  {nome:"Renata Sakamoto", cargo:"Subsecretária de Assistência Social"},
-  {nome:"Vitor Almeida Rocha", cargo:"Coordenador de Campo"},
-  {nome:"Simone Aparecida Dias", cargo:"Vereadora"},
-  {nome:"André Luiz Ferraz", cargo:"Chefe de Defesa Civil"},
-  {nome:"Patrícia Gonçalves", cargo:"Subsecretária de Obras"},
-  {nome:"Thiago Moraes Vilela", cargo:"Coordenador Regional"},
-  {nome:"Luciana Barreto", cargo:"Secretária de Infraestrutura"},
-  {nome:"Fábio Cardoso Neto", cargo:"Chefe de Departamento"},
-  {nome:"Mariana Esteves", cargo:"Subsecretária de Saúde"},
-  {nome:"Rogério Villela", cargo:"Coordenador de Campo"},
-  {nome:"Daniela Freitas", cargo:"Vereadora"},
-]:[];
-let equipeCursor = 0;
-function nextEquipe(){ return equipePool[(equipeCursor++) % equipePool.length]; }
-
-const equipamentosPool = exibirEquipesLegadas ? ["2 motosserras","1 caminhão basculante","1 retroescavadeira","Kit de resgate","Gerador móvel","1 caminhão-pipa","Equipe de eletricistas","Ambulância de apoio"]:[];
-
-const bairros = exibirEquipesLegadas ? [
-  { nome:"Zona 7", center:[-23.3995,-51.9395],
-    poly:[[-23.392,-51.950],[-23.392,-51.930],[-23.408,-51.930],[-23.408,-51.950]] },
-  { nome:"Jardim Alvorada", center:[-23.3870,-51.9120],
-    poly:[[-23.380,-51.922],[-23.380,-51.902],[-23.396,-51.902],[-23.396,-51.922]] },
-  { nome:"Conjunto Requião", center:[-23.4360,-51.9560],
-    poly:[[-23.428,-51.966],[-23.428,-51.946],[-23.446,-51.946],[-23.446,-51.966]] },
-  { nome:"Jardim Universo", center:[-23.4430,-51.9230],
-    poly:[[-23.435,-51.933],[-23.435,-51.913],[-23.452,-51.913],[-23.452,-51.933]] },
-  { nome:"Vila Esperança", center:[-23.3820,-51.9510],
-    poly:[[-23.374,-51.962],[-23.374,-51.941],[-23.392,-51.941],[-23.392,-51.962]] },
-  { nome:"Centro Cívico", center:[-23.4225,-51.9365],
-    poly:[[-23.415,-51.946],[-23.415,-51.927],[-23.430,-51.927],[-23.430,-51.946]] },
-]:[];
-let funcIdCursor = 1;
-const PAPEL_LABEL = { responsavel:"Responsável", substituto:"Substituto", coordenador:"Coordenador" };
-bairros.forEach(b=>{
-  b.equipamentos = [equipamentosPool[Math.floor(Math.random()*equipamentosPool.length)], equipamentosPool[Math.floor(Math.random()*equipamentosPool.length)]];
-  b.equipe = { responsavel: nextEquipe(), substituto: nextEquipe(), coordenador: nextEquipe() };
-  // Pontos fixos de demonstração, sem compartilhamento ao vivo.
-  Object.entries(b.equipe).forEach(([papel,p])=>{
-    p.id = "f"+(funcIdCursor++);
-    p.papel = papel;
-    p.zona = b.nome;
-    p.pos = randPointInBox(b.poly);
-    p.tel = "(44) 9" + Math.floor(1000+Math.random()*8999) + "-" + Math.floor(1000+Math.random()*8999);
-  });
-});
-const MARINGA_CENTER = [-23.4205, -51.9333];
-
-// roster plano de todos os funcionarios internos (mesmos objetos referenciados em bairros[].equipe)
-function todosFuncionarios(){
-  return bairros.flatMap(b=> Object.values(b.equipe));
-}
-
-/* ---------- persistencia local das edicoes da administracao ---------- */
-const ADMIN_KEY = storageKey("admin");
-function loadAdminState(){
-  if(conectado)return null;
-  try{ return JSON.parse(localStorage.getItem(ADMIN_KEY) || (tenantId==='maringa'?localStorage.getItem("maringa_admin_v1"):null) || "null"); }catch(e){ return null; }
-}
-function saveAdminState(){
-  if(conectado)return;
-  try{
-    localStorage.setItem(ADMIN_KEY, JSON.stringify({
-      funcionarios: todosFuncionarios().map(p=>({id:p.id, nome:p.nome, cargo:p.cargo, tel:p.tel})),
-      equipes: equipesPrefeitura.map(e=>({id:e.id, nome:e.nome, zona:e.zona, recursos:e.recursos, membros:e.membros, status:e.status})),
-    }));
-  }catch(e){ /* storage pode estar bloqueado; prototipo continua funcionando sem persistir */ }
-}
-const adminSaved = loadAdminState();
+/* Composição das regiões demonstrativas do município selecionado. */
+const bairros = AlertaEventoRegioesDemonstrativas.criar({referencia:referenciaDemonstracao,habilitado:exibirEquipesLegadas,ponto:randPointInBox});
+const PAPEL_LABEL = {responsavel:'Responsável',substituto:'Substituto',coordenador:'Coordenador'};
+const MUNICIPIO_CENTER = AlertaGestaoDados.config.centro(prefeituraContexto);
+function todosFuncionarios(){return bairros.flatMap(b=>Object.values(b.equipe));}
+/* Adaptador de persistência dos cadastros demonstrativos existentes. */
+const administracaoLocal=AlertaEventoAdministracaoLocal.criar({armazenamento:localStorage,chave:storageKey('admin'),chaveLegada:AlertaGestaoDados.config.referencias(prefeituraContexto).legadoAdmin,habilitado:!conectado});
+function saveAdminState(){return administracaoLocal.salvar({funcionarios:todosFuncionarios(),equipes:equipesPrefeitura});}
+const adminSaved = administracaoLocal.carregar();
 if(adminSaved && adminSaved.funcionarios){
   adminSaved.funcionarios.forEach(saved=>{
     const p = todosFuncionarios().find(x=>x.id===saved.id);
@@ -161,18 +515,9 @@ function itensQueFaltamNaZona(zona){
   }).filter(r=>r.falta>0);
 }
 const PREF_ALERTA = { antes:"Antes do evento (alertas preventivos)", durante:"Durante o evento (convocação ativa)", depois:"Só depois (para ajudar na reconstrução)", todos:"Em todas as fases" };
-function validaCPF(cpf){
-  cpf = (cpf||'').replace(/\D/g,'');
-  if(cpf.length!==11 || /^(\d)\1{10}$/.test(cpf)) return false;
-  let soma=0; for(let i=0;i<9;i++) soma += parseInt(cpf[i])*(10-i);
-  let resto = (soma*10)%11; if(resto===10) resto=0;
-  if(resto!==parseInt(cpf[9])) return false;
-  soma=0; for(let i=0;i<10;i++) soma += parseInt(cpf[i])*(11-i);
-  resto = (soma*10)%11; if(resto===10) resto=0;
-  return resto===parseInt(cpf[10]);
-}
-function fmtCPF(cpf){ cpf=(cpf||'').replace(/\D/g,''); return cpf.length===11 ? cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4') : cpf; }
-function maskCPF(cpf){ if(!cpf) return '—'; const d=cpf.replace(/\D/g,''); return d.length===11 ? `***.***.${d.slice(6,9)}-${d.slice(9)}` : '—'; }
+
+
+
 const nomesVol = ["Antônio Silva","Beatriz Nunes","Carlos Eduardo","Débora Franco","Elias Martins","Fabiana Rocha","Gustavo Peres","Helena Duarte","Igor Salles","Joana Ribas","Kleber Souza","Larissa Toledo","Maurício Teles","Natália Viegas","Otávio Brandão","Priscila Farias"];
 const tiposOcorrencia = [
   {tipo:"Distribuição de água e alimentos", icone:"🤝", gravBase:1, resp:["publica"]},
@@ -189,43 +534,19 @@ const GRAV_COLOR = {1:"#8b9aad", 2:"#f2c230", 3:"#ff3b3b"};
 const RESP_LABEL = {publica:"Pública", privada:"Privada", mista:"Mista"};
 const RESP_COLOR = {publica:"#3ba7ff", privada:"#b06bff", mista:"#2ecf78"};
 const STATUS_COLOR = {ativa:"#ff3b3b", em_atendimento:"#ffb020", resolvida:"#2ecf78"};
-function sortGravidade(base){
-  const r = Math.random();
-  const g = base + (r<0.15?-1:r>0.85?1:0);
-  return Math.max(1, Math.min(3, g));
-}
 
-function rnd(a,b){return a+Math.random()*(b-a)}
-function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
-function initials(nome){ return nome.split(' ').map(p=>p[0]).slice(0,2).join(''); }
-function escHtml(s){ return String(s).replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
-function minutosDesde(ts){ return Math.max(0, Math.round((Date.now()-ts)/60000)); }
-function fmtDist(m){ return m<1000 ? Math.round(m)+"m" : (m/1000).toFixed(1)+"km"; }
-function randPointInBox(poly){
-  const lats = poly.map(p=>p[0]), lngs = poly.map(p=>p[1]);
-  return [ rnd(Math.min(...lats),Math.max(...lats)), rnd(Math.min(...lngs),Math.max(...lngs)) ];
-}
+
+
+
+
+
+
+
+
 
 let ocorrencias = [], voluntarios = [], idCounter = 1;
 const gestao = AlertaGestaoDados.criar(undefined,{municipioId:tenantId});
-const normalizarTerritorio = texto => String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
-const areasCadastradas = ['zonas','bairros'].flatMap(tipo =>
-  gestao.lista(tipo,tenantId).filter(area=>area.verificacao!=='Rejeitado')
-    .map(area=>({...area,chave:tipo+':'+area.id,tipoArea:tipo==='zonas'?'Zona':'Bairro'}))
-);
-const fontesPublicas=await MaringaBairros.carregar().catch(()=>null);
-const chaveZona = nome => {const match=normalizarTerritorio(nome).match(/^zona\s*0*(\d+)$/);return match ? String(Number(match[1])) : '';};
-for(const [grupo,tipoArea] of (conectado?[]:[[fontesPublicas?.zonasNumeradas,'Zona'],[fontesPublicas?.bairros,'Bairro'],[fontesPublicas?.zonas,'Zona cartográfica']])){
-  grupo?.features.forEach(feature=>{
-    const {id,nome}=feature.properties;
-    const existente=areasCadastradas.find(area=>area.tipoArea===tipoArea && (normalizarTerritorio(area.nome)===normalizarTerritorio(nome) || (tipoArea==='Zona' && chaveZona(nome) && chaveZona(area.nome)===chaveZona(nome))));
-    if(existente){if(!existente.geojson){existente.geojson=feature.geometry;existente.fonte=grupo.source;}return;}
-    areasCadastradas.push({id,nome,tipoArea,chave:'publico:'+tipoArea+':'+(id||nome),geojson:feature.geometry,fonte:grupo.source});
-  });
-}
-const areas = [...areasCadastradas,...(exibirEquipesLegadas?bairros.map(b=>({
-  nome:b.nome,chave:'demo:'+b.nome,tipoArea:'Zona demonstrativa',demo:b
-})):[])];
+const {normalizarTerritorio,areasCadastradas,areas,selecao,areasSelecionadas,pertence,noRecorte,recorteLabel}=await AlertaEventoTerritorio.criar({db:gestao,municipio:prefeituraContexto,config:AlertaGestaoDados.config,bairros,conectado});
 const camadasVisiveis={Zona:true,Bairro:true,'Zona cartográfica':false,'Zona demonstrativa':exibirEquipesLegadas};
 let eventoAtivo=new URLSearchParams(location.search).get('evento')||'';
 let eventosCache=[];const eventosMunicipio=()=>eventosCache;
@@ -234,23 +555,10 @@ const noEvento=o=>EventosMapa.corresponde(o,eventoAtivo,eventosMunicipio());
 let filtroOcorrencias=null;
 const noFiltro=o=>!filtroOcorrencias||filtroOcorrencias.corresponde(o);
 const ocorrenciaVisivel=o=>noRecorte(o.bairro)&&noEvento(o)&&noFiltro(o);
-const selecao = new Set();
-const areasPorChave=new Map(areas.map(area=>[area.chave,area]));
-const areasSelecionadas=()=>[...selecao].map(chave=>areasPorChave.get(chave));
-function pertence(area, territorio){
-  const nome = normalizarTerritorio(territorio);
-  if(nome && [area.id,area.nome].some(valor=>normalizarTerritorio(valor)===nome)) return true;
-  if(area.tipoArea!=='Zona') return false;
-  return areasCadastradas.some(bairro=>bairro.tipoArea==='Bairro'
-    && bairro.zona && [area.id,area.nome].some(valor=>normalizarTerritorio(valor)===normalizarTerritorio(bairro.zona))
-    && nome && [bairro.id,bairro.nome].some(valor=>normalizarTerritorio(valor)===nome));
-}
-const noRecorte = territorio => !selecao.size || areasSelecionadas().some(area=>pertence(area,territorio));
-const recorteLabel = () => areasSelecionadas().map(area=>area.nome).join(', ') || 'Todo o município';
 let currentRole = {tipo:"visualizacao"}; // sem sessão ativa, apenas leitura
 
 /* ---------- mapa ---------- */
-const map = L.map('map', { zoomControl:true, attributionControl:true, zoomSnap:0, zoomDelta:0.5 }).setView(MARINGA_CENTER, 13);
+const map = L.map('map', { zoomControl:true, attributionControl:true, zoomSnap:0, zoomDelta:0.5 }).setView(MUNICIPIO_CENTER||[0,0], MUNICIPIO_CENTER?13:2);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution:'&copy; OpenStreetMap contributors',
   subdomains:'abc', maxZoom:19
@@ -272,9 +580,9 @@ areas.forEach(area=>{
   }catch(_){ area.layer=null; }
 });
 
-// Mantém navegação dentro da área de Maringá sem interferir na seleção de ocorrências.
+// Usa os limites cadastrados do município sem interferir na seleção de ocorrências.
 const navegacaoMapa = window.AlertaMapaNavegacao.instalar({
-  map, L, armazenamento:localStorage, chaveVista:'maringa_mapa_evento_vista_original_v1', zonas:[
+  map, L, armazenamento:localStorage, limites:AlertaGestaoDados.config.limites(prefeituraContexto), chaveVista:storageKey('mapa_vista'), zonas:[
     ...bairros.map(b=>b.poly),
     ...areasCadastradas.filter(a=>a.layer).map(a=>{
       const limites=a.layer.getBounds();
@@ -637,7 +945,7 @@ function renderCollaborators(){
       : !selecao.size&&!todosCadastrados.length
         ? (globalThis.AlertaNuvem?.ativo
           ? 'Este mapa consulta os territórios e as estruturas no Supabase. Gerencie os cadastros de colaboradores na Gestão.'
-          : 'Não há colaboradores cadastrados para Maringá neste navegador. Este protótipo utiliza armazenamento local e não sincroniza cadastros entre dispositivos.')
+          : 'Não há colaboradores cadastrados para esta prefeitura neste navegador. Este protótipo utiliza armazenamento local e não sincroniza cadastros entre dispositivos.')
         : '';
   const antes=body.scrollTop;
   const comFiltro=filtroOcorrencias&&filtroOcorrencias.descricao()!=='Sem filtros de ocorrência';
@@ -1427,42 +1735,9 @@ function sendChatMsg(id){
   }, 1400 + Math.random()*1600);
 }
 
-/* ---------- log de auditoria imutavel (cadeia de hash) ---------- */
-const AUDIT_KEY = storageKey('audit');
-let auditLog = [];
-try{ auditLog = JSON.parse(localStorage.getItem(AUDIT_KEY) || "[]"); }catch(e){ auditLog = []; }
-
-async function sha256(str){
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-let auditSequencia=Promise.resolve();
-function auditPayload({ts,ator,acao,detalhe,prev,territorios}){
-  return JSON.stringify({ts,ator,acao,detalhe,prev,territorios});
-}
-function auditPush(ator, acao, detalhe, territorios){
-  const ts=Date.now();
-  auditSequencia=auditSequencia.then(async()=>{
-    const prev=auditLog.length?auditLog[auditLog.length-1].hash:'0';
-    const entrada={ts,ator,acao,detalhe,prev,territorios};
-    const hash=await sha256(auditPayload(entrada));
-    auditLog.push({...entrada,hash});
-    try{localStorage.setItem(AUDIT_KEY,JSON.stringify(auditLog));}catch(e){}
-    renderAuditIfOpen();
-  }).catch(()=>{});
-  return auditSequencia;
-}
-async function verificarIntegridadeAudit(){
-  await auditSequencia;
-  for(let i=0;i<auditLog.length;i++){
-    const e = auditLog[i];
-    const prevEsperado = i===0 ? '0' : auditLog[i-1].hash;
-    const payload = auditPayload({...e,prev:prevEsperado});
-    const recalculado = await sha256(payload);
-    if(recalculado !== e.hash || e.prev !== prevEsperado) return {ok:false, indice:i};
-  }
-  return {ok:true};
-}
+/* Apresentação da trilha de demonstração; dados reais são auditados no servidor. */
+const auditoriaLocal=AlertaEventoAuditoriaLocal.criar({armazenamento:localStorage,chave:storageKey('audit'),habilitado:!conectado,onChange:()=>renderAuditIfOpen()});
+const auditPush=auditoriaLocal.adicionar,verificarIntegridadeAudit=auditoriaLocal.verificar;
 
 const auditOverlay = document.getElementById('audit-overlay');
 document.getElementById('open-audit').onclick = ()=>{ auditOverlay.hidden=false; renderAudit(); };
@@ -1471,6 +1746,7 @@ auditOverlay.addEventListener('click', e=>{ if(e.target===auditOverlay) auditOve
 function renderAuditIfOpen(){ if(!auditOverlay.hidden) renderAudit(); }
 
 function renderAudit(){
+  const auditLog=auditoriaLocal.listar();
   const body = document.getElementById('audit-body');
   body.innerHTML = `
     <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Cada ação fica registrada com o hash da entrada anterior, formando uma cadeia. Editar ou apagar uma entrada no meio quebra a cadeia a partir dali. A verificação percorre toda a cadeia municipal. Registros gerais e antigos sem território aparecem em todos os recortes.</div>
@@ -1493,8 +1769,7 @@ function renderAudit(){
   };
   document.getElementById('audit-tamper').onclick = ()=>{
     if(!auditLog.length){ document.getElementById('audit-result').textContent = 'Não há entradas para adulterar ainda.'; return; }
-    auditLog[0].detalhe = auditLog[0].detalhe + ' (editado depois, sem recalcular o hash)';
-    try{ localStorage.setItem(AUDIT_KEY, JSON.stringify(auditLog)); }catch(e){}
+    auditoriaLocal.simularAdulteracao();
     renderAudit();
   };
 }
@@ -1613,32 +1888,23 @@ function renderRelatorioEvento(){
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(()=>{ /* alguns navegadores/visualizacoes bloqueiam; segue sem offline */ });
 }
-const OFFLINE_QUEUE_KEY = storageKey('offline');
-let filaOffline = [];
-try{ if(!conectado)filaOffline = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]'); }catch(e){ filaOffline = []; }
+const filaLocal=AlertaEventoFilaLocal.criar({armazenamento:localStorage,chave:storageKey('offline'),habilitado:!conectado});
+const enfileirarOffline=filaLocal.enfileirar;
 
 function atualizarBannerOffline(){
   document.getElementById('offline-banner').hidden = navigator.onLine;
 }
-function enfileirarOffline(tipo,dados){
-  const id=crypto.randomUUID();
-  filaOffline.push({id,tipo,dados,ts:Date.now()});
-  try{localStorage.setItem(OFFLINE_QUEUE_KEY,JSON.stringify(filaOffline));}catch(e){}
-  return id;
-}
 function processarFilaOffline(){
-  if(!filaOffline.length)return;
-  filaOffline=filaOffline.filter(item=>{
-    if(item.tipo!=='chat')return true;
+  const processados=filaLocal.processar(item=>{
+    if(item.tipo!=='chat')return false;
     const id=item.dados.contatoId;
     chatHistorico[id]=chatHistorico[id]||[];
     const pendente=chatHistorico[id].find(m=>m.filaId===item.id);
     if(pendente){pendente.texto=item.dados.texto+' (reconexão simulada)';delete pendente.filaId;}
     else chatHistorico[id].push({de:'eu',texto:item.dados.texto+' (reconexão simulada)',ts:item.ts});
-    return false;
+    return true;
   });
-  try{localStorage.setItem(OFFLINE_QUEUE_KEY,JSON.stringify(filaOffline));}catch(e){}
-  renderChatContacts();salvarPrototipo();
+  if(processados){renderChatContacts();salvarPrototipo();}
 }
 window.addEventListener('offline', atualizarBannerOffline);
 window.addEventListener('online', ()=>{ atualizarBannerOffline(); processarFilaOffline(); });
@@ -2024,7 +2290,7 @@ document.getElementById('filtro-evento').addEventListener('change',e=>{
 });
 function instalarCadastroOcorrencia(){
   CadastroOcorrenciaMapa.instalar({
-    tenantId,tenantConfig,areas,tiposOcorrencia,map,ocLayer,MARINGA_CENTER,
+    tenantId,tenantConfig,areas,tiposOcorrencia,map,ocLayer,MUNICIPIO_CENTER,
     normalizarTerritorio,pertence,canActZone,responsavelDaOcorrencia,ocIcon,
     refreshOcTooltip,salvarPrototipo,acionarAjuda,atualizarFluxo,atualizarFiltroEventos,
     openOcorrencia,fecharMenuMobile,obterOcorrencias:()=>ocorrencias,
@@ -2149,7 +2415,7 @@ function montarMarcadoresPublicos(){
  }
  return registros.length;
 }
-void Promise.allSettled(["dados-territoriais/maringa-bases-riscos-publicos.json","dados-territoriais/maringa-abrigos-publicos.json","dados-territoriais/maringa-apoio-imagens-2026.json"].map(url=>AlertaImportacaoPublica.carregar(gestao,{url}))).then(()=>{
+void Promise.allSettled((AlertaGestaoDados.config.referencias(prefeituraContexto).publicas||[]).map(url=>AlertaImportacaoPublica.carregar(gestao,{url}))).then(()=>{
  montarMarcadoresPublicos();
  if(buscaMapa.value.trim())buscarNoMapa();
  atualizarFiltroCadastros();
@@ -2208,7 +2474,7 @@ function buscarNoMapa(){
     });
     resultadosMapa.append(secao);
   }
-  if(!resultadosMapa.childElementCount) resultadosMapa.textContent='Nenhum resultado em Maringá.';
+  if(!resultadosMapa.childElementCount) resultadosMapa.textContent='Nenhum resultado em '+tenantConfig.nome+'.';
 }
 buscaMapa.addEventListener('input',buscarNoMapa);
 buscaMapa.addEventListener('keydown',e=>{

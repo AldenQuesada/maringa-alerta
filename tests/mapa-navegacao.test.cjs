@@ -279,7 +279,10 @@ test("Pra Somar abre na câmera exata aprovada, sem afetar Colaboradores",()=>{
 test("câmera institucional do Pra Somar vem da fonte, não do navegador ou de outra prefeitura",()=>{
  const fs=require("node:fs");
  const source=fs.readFileSync("src/mapas/02-counters.js","utf8");
- assert.match(source,/vistaInicial:TIPO==="ajuda"\?\{lat:-23\.4398505,lng:-51\.9680312,zoom:12\.7027\}:null/);
+ assert.match(source,/vistaInicial:TIPO==="ajuda"\?AlertaGestaoDados.config.referencias\(app.prefeitura\(\)\).vistaAjuda\|\|null:null/);
+ const config=require('../gestao/dados.js').config;
+ assert.deepEqual(config.referencias(config.demonstracao()).vistaAjuda,{lat:-23.4398505,lng:-51.9680312,zoom:12.7027});
+ assert.equal(config.referencias({codigo_ibge:'1302603'}).vistaAjuda,undefined);
  assert.doesNotMatch(source,/maringa_pra_somar_vista_original_v1/);
 });
 test("modo calibração do Pra Somar não é substituído pelo preset",()=>{
@@ -337,22 +340,33 @@ test("Pra Somar usa MARINGÁ Pra Somar no cabeçalho e remove o card flutuante, 
  const html=fs.readFileSync("mapas/index.html","utf8");
  const source=fs.readFileSync("src/mapas/00-alertar.js","utf8");
  assert.match(html,/id="map-brand-title"/);
- assert.match(source,/TIPO==="ajuda"\?"MARINGÁ Pra Somar":"MARINGÁ ALERTA"/);
+ assert.match(source,/config.marca\(app.prefeitura\(\)\)/);
+ assert.match(source,/pra-somar-brand-title/);
  assert.match(source,/if\(TIPO==="ajuda"\)document\.querySelector\("\.map-info"\)\?\.remove\(\)/);
  assert.match(source,/if\(\$\("map-label"\)\)\$\("map-label"\)\.textContent=/);
  assert.match(html,/class="map-info"/,"card da tela Colaboradores permanece funcional");
 });
 
-test("Pra Somar oculta card e mostra MARINGÁ Pra Somar antes do app.js, inclusive com JS antigo no cache",()=>{
+test("Pra Somar oculta card e usa título neutro antes de carregar a prefeitura",()=>{
  const html=require("node:fs").readFileSync("mapas/index.html","utf8");
  const prefix=html.slice(0,html.indexOf("</head>"));
  assert.match(prefix,/document\.documentElement\.classList\.add\("pagina-pra-somar"\)/);
  assert.match(prefix,/html\.pagina-pra-somar \.map-info\{display:none!important\}/);
  assert.match(prefix,/html\.pagina-pra-somar #map-brand-title\{display:none!important\}/);
  assert.match(prefix,/html:not\(\.pagina-pra-somar\) #pra-somar-brand-title\{display:none!important\}/);
- assert.match(html,/<strong id="pra-somar-brand-title">MARINGÁ Pra Somar<\/strong>/);
- assert.match(html,/<strong id="map-brand-title">MARINGÁ ALERTA<\/strong>/);
+ assert.match(html,/<strong id="pra-somar-brand-title">Pra Somar<\/strong>/);
+ assert.match(html,/<strong id="map-brand-title">Gestão municipal<\/strong>/);
  assert.match(html,/class="map-info"/,"o card de Colaboradores continua disponível");
  assert.ok(html.indexOf('classList.add("pagina-pra-somar")')<html.indexOf('class="map-info"'),
    "a rota precisa ser detectada antes de renderizar o card");
+});
+
+test('prefeitura sem polígonos conserva sua vista e não herda limites da demonstração',()=>{
+ const {map,L}=simularMapa();map.setView([-3.1,-60],12);let restored=0;
+ const original=L.latLngBounds;
+ L.latLngBounds=points=>{const b=original(points),pad=b.pad;b.pad=ratio=>{assert.ok(b.isValid(),'não aplicar margem a limites vazios');return pad(ratio);};return b;};
+ const nav=instalar({map,L,zonas:[],limites:null,aoRestaurar:()=>restored++});
+ assert.deepEqual(map.center,{lat:-3.1,lng:-60});assert.equal(map.maxBounds,null);
+ map.setView([-3.2,-60.1],13);nav.restaurar();
+ assert.deepEqual(map.center,{lat:-3.1,lng:-60});assert.equal(restored,1);
 });

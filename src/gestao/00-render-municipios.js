@@ -6,7 +6,7 @@ const D=window.AlertaGestaoDados;
 if(!D){document.getElementById("page").textContent="Não foi possível carregar os cadastros.";return;}
 // Município recebido do Admin Geral fica fixo nesta aba (sessionStorage).
 // Apenas isolamento de demonstração; autorizações reais exigem backend e RLS.
-const CIDADE_DEMO=sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa";
+const CIDADE_DEMO=D.config.selecionar(D,sessionStorage);
 const db=D.criar(undefined,{municipioId:CIDADE_DEMO});
 const PAGE=document.getElementById("page");
 const NAV=document.getElementById("sidebar-nav");
@@ -37,9 +37,9 @@ const ICONS={
 };
 const icon=(id,css="")=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="'+css+'" aria-hidden="true">'+(ICONS[id]||ICONS.list)+'</svg>';
 const icons={territorio:"layers",implantacao:"pin",bairros:"layers",pessoas:"users",solicitacoes:"list",mobilizacoes:"bell",apoios:"building",inicio:"dashboard",eventos:"pin",prefeituras:"building",zonas:"layers",bases:"pin",riscos:"shield",administradores:"shield",responsaveis:"user",substitutos:"user",coordenadores:"users",operadores:"user",equipes:"wrench",integrantes:"users",voluntarios:"users",saude:"hospital",emergencias:"siren",parceiros:"building",veiculos:"truck",equipamentos:"wrench",estoques:"box",abrigos:"hospital",pontos:"pin",ocorrencias:"list",canais:"bell",regras:"shield"};
-let atual="inicio",pesquisa="",edicao=null,ultimoFoco=null,toastTimer=null,geoTipo="zonas",drawerModulo=null;
-const cidadesPorUf=new Map();
+let atual="inicio",pesquisa="",toastTimer=null,geoTipo="zonas";
 const municipio=db.municipioAtivo();
+const {importarBasesERiscosPublicos,importarUnidadesCNES}=AlertaGestaoReferencias.criar({db,config:D.config,carregarPublica:(...args)=>globalThis.AlertaImportacaoPublica.carregar(...args),fetch:(...args)=>fetch(...args),onChange:()=>render(),onError:message=>toast(message)});
 function renderMunicipios(){
  const select=$("municipio-switch"),lista=db.municipios();
  select.innerHTML=lista.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.nome)+" · "+esc(x.uf)+"</option>").join("");

@@ -2,7 +2,7 @@
 (function(global){
 "use strict";
 function instalar(ctx){
-  const {tenantId,tenantConfig,areas,tiposOcorrencia,map,ocLayer,MARINGA_CENTER,
+  const {tenantId,tenantConfig,areas,tiposOcorrencia,map,ocLayer,MUNICIPIO_CENTER,
     normalizarTerritorio,pertence,canActZone,responsavelDaOcorrencia,ocIcon,
     refreshOcTooltip,salvarPrototipo,acionarAjuda,atualizarFluxo,atualizarFiltroEventos,
     openOcorrencia,fecharMenuMobile,obterOcorrencias,proximoId,reverterId,setEventoFiltro,obterEventoSelecionado}=ctx;
@@ -34,7 +34,7 @@ function instalar(ctx){
     return [...ocorrenciasParecidas,...relatos];
   }
   CadastroOcorrencia.iniciar({
-    trigger:document.getElementById('demo-new'),center:MARINGA_CENTER,onClose:()=>fecharMenuMobile(),
+    trigger:document.getElementById('demo-new'),center:MUNICIPIO_CENTER||[map.getCenter().lat,map.getCenter().lng],municipio:db().municipioAtivo(),onClose:()=>fecharMenuMobile(),
     feedback:mensagem=>{
       const aviso=document.getElementById('cadastro-ocorrencia-aviso');
       aviso.textContent=mensagem;aviso.hidden=false;
@@ -57,7 +57,7 @@ function instalar(ctx){
       const item=db().gravar(categoria,dados);return categoria+':'+item.id;
     },
     selectedEvent:()=>obterEventoSelecionado(),
-    isWithinMunicipality:pos=>L.latLngBounds(window.AlertaMapaNavegacao.AREA_MARINGA).contains(pos),
+    isWithinMunicipality:pos=>!!AlertaGestaoDados.config.limites(db().municipioAtivo())&&L.latLngBounds(AlertaGestaoDados.config.limites(db().municipioAtivo())).contains(pos),
     neighborhoods:()=>areas.filter(a=>a.tipoArea==='Bairro'||a.tipoArea==='Zona'||a.demo).filter((a,i,all)=>all.findIndex(x=>normalizarTerritorio(x.nome)===normalizarTerritorio(a.nome))===i).map(a=>({value:a.nome,label:a.nome})),
     neighborhood:pos=>CadastroOcorrencia.encontrarBairro(areas,pos),
     organizations:bairro=>organizacoes().sort((a,b)=>{

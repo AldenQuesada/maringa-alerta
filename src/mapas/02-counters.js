@@ -112,7 +112,7 @@ let cozinhasPontos=[],caminhaoDemo=null,simulacaoRodando=false,simulacaoIniciada
 const novosColaboradoresDemo=L.layerGroup().addTo(map);
 function iniciarCozinhasDemo(){
  if(app.db.tipo==="supabase")return;
- if(TIPO!=="ajuda"||app.prefeitura()?.id!=="maringa")return;
+ if(TIPO!=="ajuda"||!AlertaGestaoDados.config.referencias(app.prefeitura()).mapaDemonstrativo)return;
  const candidatos=[...pontosBairrosOficiais.values()];
  cozinhasPontos=LogisticaDemo.selecionar(candidatos,20);
  cozinhasDemo.clearLayers();
@@ -247,15 +247,15 @@ if(!globalThis.AlertaNuvem?.ativo&&globalThis.AlertaSessao&&globalThis.AlertaSes
 municipSelector();renderMunicipio();configurarCamadas();render();
 // O mesmo controlador atende Pra Somar e Colaboradores, sem usar a posição
 // acidentalmente persistida pelas versões anteriores.
-window.AlertaMapaNavegacao.instalarVistaSalva({
+window.AlertaMapaNavegacao.instalarVistaSalva({limites:AlertaGestaoDados.config.limites(app.prefeitura()),
  map,L,identificador:TIPO==="ajuda"?"pra-somar":"colaboradores",
  // Referência exata escolhida pelo usuário: Pra Somar, não Colaboradores.
- vistaInicial:TIPO==="ajuda"?{lat:-23.4398505,lng:-51.9680312,zoom:12.7027}:null
+ vistaInicial:TIPO==="ajuda"?AlertaGestaoDados.config.referencias(app.prefeitura()).vistaAjuda||null:null
 });
 void carregarZonasOficiais();
-const fontesPublicas=["../dados-territoriais/maringa-bases-riscos-publicos.json","../dados-territoriais/maringa-abrigos-publicos.json","../dados-territoriais/maringa-apoio-imagens-2026.json"];
+const fontesPublicas=(AlertaGestaoDados.config.referencias(app.prefeitura()).publicas||[]).map(path=>"../"+path);
 void Promise.allSettled(fontesPublicas.map(url=>AlertaImportacaoPublica.carregar(app.db,{url}))).then(()=>{configurarCamadas();render();if(TIPO==="ajuda")tentarIniciarCaminhao();});
 window.addEventListener("focus",()=>{configurarCamadas();render();});
-if(app.prefeitura()?.id==="maringa"&&globalThis.MaringaBairros)
- territorio=MaringaBairros.iniciar({map,L,recolherInicial:TIPO==="ajuda"});
+if(AlertaGestaoDados.config.referencias(app.prefeitura()).catalogoBairros&&globalThis[AlertaGestaoDados.config.referencias(app.prefeitura()).catalogoBairros])
+ territorio=globalThis[AlertaGestaoDados.config.referencias(app.prefeitura()).catalogoBairros].iniciar({map,L,recolherInicial:TIPO==="ajuda"});
 })();

@@ -1,4 +1,8 @@
- function acionarBrigada(zona,descricao=""){
+/* Domínio de mobilizacao: dependências explícitas, sem estado compartilhado entre arquivos. */
+(function(root){
+'use strict';
+function criar({db,prefeitura,zonas,oferentes,norm,telefone,waLink}){
+function acionarBrigada(zona,descricao=""){
   if(!zona||!zonas().includes(zona))throw Error("Selecione uma zona cadastrada.");
   const voluntarios=oferentes().filter(x=>norm(x.zona)===norm(zona)&&x.disponibilidade!=="Indisponível"&&x.status_simulacao!=="simulado");
   const equipes=db.lista("equipes").filter(x=>norm(x.zona)===norm(zona)&&x.status!=="Indisponível");
@@ -12,7 +16,7 @@
     destinatarios:JSON.stringify(unicos),criado_em:new Date().toISOString()});
   return {mobilizacao:item,destinatarios:unicos,mensagem:msg,envios:unicos.map(x=>({nome:x.nome,tipo:x.tipo,link:waLink(x.telefone,msg)}))};
  }
- function solicitarOutraPrefeitura(destinoId,recurso){
+function solicitarOutraPrefeitura(destinoId,recurso){
   const origem=prefeitura(),destino=db.municipios().find(x=>x.id===destinoId);
   if(!destino||destino.id===origem?.id)throw Error("Selecione outra prefeitura cadastrada.");
   if(!String(recurso||"").trim())throw Error("Especifique o recurso ou apoio solicitado.");
@@ -23,13 +27,7 @@
     destino_id:destino.id,recurso:String(recurso).trim(),mensagem:msg,status:"Preparada",criado_em:new Date().toISOString()});
   return {pedido:item,mensagem:msg,link:waLink(destino.telefone,msg),destino};
  }
- const api={db,prefeitura,zonas,pontoDaZona,oferentes,pedidos,mobilizacoes,apoios,
-  encontrarPessoa,encontrarIdentidade,registrarColaborador,registrarPedido,compatíveis,registrarFase,acionarBrigada, situacaoBairro,registrarCheckin,registrarSaida,
-  solicitarOutraPrefeitura,mensagemParaColaborador};
- if(db.tipo==='supabase')for(const name of ['registrarColaborador','registrarPedido','registrarFase','acionarBrigada','registrarCheckin','registrarSaida','solicitarOutraPrefeitura']){
-  api[name]=(...args)=>db.transacao(draft=>criar({repositorio:draft,municipioId,escopoMunicipal})[name](...args));
- }
- return api;
+return {acionarBrigada,solicitarOutraPrefeitura};
 }
-return {criar,COMPATIBILIDADE,norm,telefone,mesmoTelefone,waLink};
-});
+root.AlertaCriseMobilizacao={criar};
+})(globalThis);

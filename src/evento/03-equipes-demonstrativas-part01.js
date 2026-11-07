@@ -60,18 +60,9 @@ function itensQueFaltamNaZona(zona){
   }).filter(r=>r.falta>0);
 }
 const PREF_ALERTA = { antes:"Antes do evento (alertas preventivos)", durante:"Durante o evento (convocação ativa)", depois:"Só depois (para ajudar na reconstrução)", todos:"Em todas as fases" };
-function validaCPF(cpf){
-  cpf = (cpf||'').replace(/\D/g,'');
-  if(cpf.length!==11 || /^(\d)\1{10}$/.test(cpf)) return false;
-  let soma=0; for(let i=0;i<9;i++) soma += parseInt(cpf[i])*(10-i);
-  let resto = (soma*10)%11; if(resto===10) resto=0;
-  if(resto!==parseInt(cpf[9])) return false;
-  soma=0; for(let i=0;i<10;i++) soma += parseInt(cpf[i])*(11-i);
-  resto = (soma*10)%11; if(resto===10) resto=0;
-  return resto===parseInt(cpf[10]);
-}
-function fmtCPF(cpf){ cpf=(cpf||'').replace(/\D/g,''); return cpf.length===11 ? cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4') : cpf; }
-function maskCPF(cpf){ if(!cpf) return '—'; const d=cpf.replace(/\D/g,''); return d.length===11 ? `***.***.${d.slice(6,9)}-${d.slice(9)}` : '—'; }
+
+
+
 const nomesVol = ["Antônio Silva","Beatriz Nunes","Carlos Eduardo","Débora Franco","Elias Martins","Fabiana Rocha","Gustavo Peres","Helena Duarte","Igor Salles","Joana Ribas","Kleber Souza","Larissa Toledo","Maurício Teles","Natália Viegas","Otávio Brandão","Priscila Farias"];
 const tiposOcorrencia = [
   {tipo:"Distribuição de água e alimentos", icone:"🤝", gravBase:1, resp:["publica"]},

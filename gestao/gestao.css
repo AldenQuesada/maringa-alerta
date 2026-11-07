@@ -127,3 +127,4 @@
  .pref-canonical-table .search-field{flex:1;min-width:180px}
  .pref-cabinet .table-scroll{max-height:calc(100dvh - 470px)}
 }
+.row-action .add-symbol{color:var(--accent);font-size:18px;font-weight:800;vertical-align:middle}

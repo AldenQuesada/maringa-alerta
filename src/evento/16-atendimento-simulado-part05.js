@@ -1,4 +1,4 @@
-void Promise.allSettled(["dados-territoriais/maringa-bases-riscos-publicos.json","dados-territoriais/maringa-abrigos-publicos.json","dados-territoriais/maringa-apoio-imagens-2026.json"].map(url=>AlertaImportacaoPublica.carregar(gestao,{url}))).then(()=>{
+void Promise.allSettled((AlertaGestaoDados.config.referencias(prefeituraContexto).publicas||[]).map(url=>AlertaImportacaoPublica.carregar(gestao,{url}))).then(()=>{
  montarMarcadoresPublicos();
  if(buscaMapa.value.trim())buscarNoMapa();
  atualizarFiltroCadastros();
@@ -57,7 +57,7 @@ function buscarNoMapa(){
     });
     resultadosMapa.append(secao);
   }
-  if(!resultadosMapa.childElementCount) resultadosMapa.textContent='Nenhum resultado em Maringá.';
+  if(!resultadosMapa.childElementCount) resultadosMapa.textContent='Nenhum resultado em '+tenantConfig.nome+'.';
 }
 buscaMapa.addEventListener('input',buscarNoMapa);
 buscaMapa.addEventListener('keydown',e=>{

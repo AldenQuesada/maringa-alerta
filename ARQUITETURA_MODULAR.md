@@ -1,56 +1,53 @@
-# Arquitetura modular canônica — Sistema Integrado de Gestão de Crise
+# Arquitetura modular — Sistema Integrado de Gestão de Crise
 
-> As seções da intervenção original abaixo documentam a reorganização do protótipo. A integração Supabase posterior está descrita em `backend/README.md`; o estado atual do Admin Geral e os limites ainda existentes estão em `AUDITORIA_ADMIN_GERAL_2026-11-06.md` e na seção final deste documento.
+Estado local em 06/11/2026. O diagnóstico inicial está em `AUDITORIA_ADMIN_GERAL_2026-11-06.md`; o acompanhamento atual está em `CORRECOES_AUDITORIA_EM_ANDAMENTO.md`.
 
-## Escopo desta intervenção
+## Domínios com dependências explícitas
 
-A modularização reorganiza os **arquivos-fonte** sem criar interfaces, bancos, contas ou caminhos alternativos. Mantém as rotas já existentes: `/index.html` (Mapa de Evento), `/gestao/`, `/plataforma/`, `/mapas/` e `/atendimento/`.
+| Área | Fontes editáveis | Responsabilidades |
+|---|---|---|
+| Admin Geral | `src/plataforma/`, `backend/admin.js` | Prefeituras, acessos, auditoria, território, editor, serviço demo e composição; guard de admin antes das consultas remotas |
+| Repositório remoto | `src/backend/` | Consultas paginadas, diferenças e composição transacional; carga dos cadastros limitada ao município solicitado |
+| Repositório local | `src/cadastros/` | Contexto municipal, esquemas, estado, consultas, escrita, importação, implantação e composição |
+| Implantação territorial | `src/implantacao-core/` | Texto, CNES, arquivos, conciliação e contexto IBGE/UF por município |
+| Assistência | `src/crise/` | Consultas, presença, colaboradores, compatibilidade, pedidos, mobilização, utilidades e composição |
+| Atendimento | `src/atendimento/` | Contrato das perguntas, anexos, gravação assíncrona e controlador da conversa |
+| Formulário da Gestão | `src/gestao/formulario.js` | Campos, abertura/edição, consultas IBGE e restauração de foco |
+| Referências municipais | `src/gestao/referencias.js`, `src/gestao/catalogo-territorial.js`, `src/gestao/catalogo-bairros-ui.js` | Importação configurada, consulta/cache por cidade e apresentação do catálogo no cadastro existente |
+| Serviços do Evento | `src/evento/{administracao-local,auditoria-local,fila-local,formatacao,regioes-demonstrativas,territorio}.js` | Persistência de demonstração, trilha local, fila, funções puras, geração opt-in e recorte territorial |
+| Configuração e fixtures | `config/` | Município de bootstrap, referências por IBGE, identidade visual, fixtures e correspondência de recursos |
 
-### Componentes e contratos
+Cada módulo listado possui escopo próprio. As fábricas recebem seus serviços e contexto explicitamente. Os nomes públicos legados, como `MaringaCrise`, permanecem como contratos de compatibilidade; não selecionam uma prefeitura.
 
-| Área | Código entregue ao navegador | Fonte editável | Persistência canônica |
-|---|---|---|---|
-| Evento | `evento/app.js` | `src/evento/*` | Estado demonstrativo existente e leitor da Gestão |
-| Administração Municipal | `gestao/gestao.js` | `src/gestao/*` | `gestao/dados.js` |
-| Repositório municipal | `gestao/dados.js` | `src/cadastros/*` | Chave única `alerta_painel_gestao_v1` no navegador |
-| Implantação territorial | `gestao/implantacao-ui.js` | `src/implantacao/*` | Mesmo repositório municipal |
-| Admin Geral | `plataforma/app.js` | `src/plataforma/*` | Mesmo repositório municipal |
-| Colaboradores e Ajuda | `mapas/app.js` | `src/mapas/*` | Mesmo repositório municipal |
-| Atendimento | `atendimento/chat.js` | `src/atendimento/*` | `crise/core.js` → `gestao/dados.js` |
-| Ocorrências | `cadastro-ocorrencia.js` | `src/ocorrencias/*` | Estado operacional existente |
-| Regras de crise | `crise/core.js` | `src/crise/*` | Mesmo repositório municipal |
-| Cabeçalho | `gestao/acoes-cabecalho.js` | `src/acoes-cabecalho/*` | Fontes já existentes |
+O modo conectado usa Supabase como fonte canônica. Armazenamento local e fixtures não substituem o banco remoto. A trilha de hashes da demonstração não é uma auditoria imutável de servidor. As chaves antigas de armazenamento foram preservadas para não abandonar registros existentes.
 
-## Regras imutáveis do fluxo
+## Contratos preservados
 
-1. **Uma entrada:** o cadastro de colaboradores parte do Atendimento e grava em `voluntarios`. O Mapa de Evento é consumidor, não outro formulário de cadastro.
-2. **Uma origem:** todos os cadastros municipais usam o adaptador de `gestao/dados.js`.
-3. **Prefeituras:** o Admin Geral é dono do provisionamento; não criar prefecturas dentro de tabs municipais.
-4. **Geoterritorialidade:** zonas numeradas e bairros em uma aba, com referência real, sem geometria fictícia.
-5. **Uma única navegação:** as abas Gerais, Geoterritorialidade, Estruturas, Bases e Riscos reutilizam seus cadastros.
-6. **Permissões:** não foram alteradas nesta intervenção, conforme escopo autorizado.
+- As rotas existentes são `/index.html`, `/gestao/`, `/plataforma/`, `/mapas/` e `/atendimento/`.
+- O Admin Geral provisiona as prefeituras. O contexto municipal é validado contra as prefeituras disponíveis.
+- Cadastro de colaboradores, pedidos e relatos reutiliza as coleções existentes. Um relato permanece em triagem; não vira ocorrência confirmada automaticamente.
+- Pacotes de implantação precisam identificar o código IBGE da prefeitura de destino. Um pacote de outra cidade é recusado antes da gravação.
+- Referências cartográficas, CNES e identidade visual são vinculadas por IBGE. Ausência de referência não autoriza usar a de outra cidade.
+- O Atendimento aguarda a persistência antes de confirmar; impede confirmação repetida durante a gravação e preserva respostas quando ela falha.
+- O catálogo territorial consulta a rota municipal documentada pela [API de localidades do IBGE](https://servicodados.ibge.gov.br/api/docs/localidades). Não há fallback para distrito de outra prefeitura.
 
-## Montagem determinística
+## Montagem e validação
 
-`src/modulos.json` é o catálogo dos pacotes. Os arquivos de `src/` são as únicas fontes editáveis de cada controlador. O comando `node scripts/build-modulos.mjs` recompõe os arquivos de execução existentes por concatenação preservando rigorosamente a ordem e o escopo lexical originais. **Não usa eval no navegador, nem bibliotecas de terceiros.**
+`src/modulos.json` identifica fontes e destinos. Editar as fontes; gerar os bundles com `npm run build`. Os bundles podem conter diversos módulos completos no mesmo arquivo entregue ao navegador: tamanho do bundle não equivale a acoplamento de responsabilidades.
 
-O comando `node scripts/build-modulos.mjs --check` compara cada destino **byte a byte** com o conteúdo reconstruído e reprova a publicação se houver divergência. `node --test tests/*.test.cjs gestao/tests/*.test.cjs crise/tests/*.test.cjs plataforma/tests/*.test.cjs` verifica regras funcionais.
+Com Node.js 22 ou posterior:
 
-O `index.html` não contém mais CSS e JavaScript operacionais gigantes embutidos; carrega `evento/style.css` e `evento/app.js`. O Service Worker armazena esses dois arquivos para evitar quebra na versão offline já existente.
+```sh
+npm ci
+npm run build
+npm run check
+npm test
+```
 
-## Estado de maturidade e limites
+`check` compara os bundles byte a byte e verifica a versão dos recursos do Atendimento. LinkeDOM é uma dependência de desenvolvimento usada nos testes de DOM, sem inclusão no navegador. A CI instala dependências e também executa verificações SQL em PostgreSQL descartável.
 
-Esta entrega é uma **modularização física verificável de fontes**, com bundles compatíveis com o protótipo. Os trechos-fonte ainda compartilham o mesmo escopo lexical em cada bundle: isto preserva o comportamento e facilita a próxima extração de dependências explícitas, mas **não equivale a isolamento independente em runtime nem torna o software enterprise de produção**.
+## Extrações ainda pendentes
 
-Continuam pendentes, fora do escopo desta rodada: API persistente central, autenticação/autorizações reais, sincronização entre dispositivos, entrega real por WhatsApp, observabilidade e implantação cartográfica homologada. Não declarar homologação institucional até concluir essas capacidades.
+O controlador principal do Mapa de Evento ainda compartilha variáveis entre trechos de renderização, ocorrências, administração, escalonamento e atendimento simulado. Também permanecem trechos lexicais nos controladores da Gestão, implantação visual, mapas auxiliares, cadastro de ocorrências e ações do cabeçalho. Os serviços extraídos acima não eliminam esses acoplamentos restantes.
 
-## Regras para futuras alterações
-
-- **Não editar diretamente** bundles gerados: alterar apenas o `src/` correspondente, reconstruir e verificar.
-- Não criar cópia de coleções, nem múltiplas telas para o mesmo cadastro.
-- Não introduzir navegação profunda para modularizar código.
-- Exigir teste de regressão e validação da versão publicada antes de afirmar funcionamento completo.
-
-## Evolução do Admin Geral — 06/11/2026
-
-A Administração Geral agora possui oito módulos completos e isolados em `src/plataforma/`, com dependências explícitas via `AlertaPlataformaUI` e um serviço de banco próprio em `backend/admin.js`. A concatenação gera o bundle, mas cada fonte tem seu próprio escopo; não compartilham variáveis lexicais entre arquivos. O modo conectado usa somente Supabase, com listagem paginada e guard de admin anterior às consultas. A arquitetura legada dos demais bundles descrita acima ainda permanece; esta revisão não declara o sistema inteiro livre de monólitos. Consulte `AUDITORIA_ADMIN_GERAL_2026-11-06.md`.
+Não declarar “zero monólitos” para todo o sistema. A publicação depende da revisão final, validação visual e homologação autenticada; os testes locais não comprovam esses itens. A liberação do Mapa de Evento para novas prefeituras continua explícita até sua homologação operacional.

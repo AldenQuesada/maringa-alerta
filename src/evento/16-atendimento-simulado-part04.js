@@ -1,6 +1,6 @@
 function instalarCadastroOcorrencia(){
   CadastroOcorrenciaMapa.instalar({
-    tenantId,tenantConfig,areas,tiposOcorrencia,map,ocLayer,MARINGA_CENTER,
+    tenantId,tenantConfig,areas,tiposOcorrencia,map,ocLayer,MUNICIPIO_CENTER,
     normalizarTerritorio,pertence,canActZone,responsavelDaOcorrencia,ocIcon,
     refreshOcTooltip,salvarPrototipo,acionarAjuda,atualizarFluxo,atualizarFiltroEventos,
     openOcorrencia,fecharMenuMobile,obterOcorrencias:()=>ocorrencias,

@@ -40,9 +40,9 @@ test("os três mapas carregam a mesma camada de bairros",()=>{
  const mapaEvento=read("index.html")+"\n"+read("evento/app.js");
  const mapas=read("mapas/index.html"),app=read("mapas/app.js");
  assert.match(mapaEvento,/dados-territoriais\/camadas-mapas.js/);
- assert.match(mapaEvento,/MaringaBairros.carregar/);
+ assert.match(mapaEvento,/catalogoBairros/);
  assert.match(mapas,/\.\.\/dados-territoriais\/camadas-mapas.js/);
- assert.match(app,/MaringaBairros.iniciar/);
+ assert.match(app,/catalogoBairros\]\.iniciar/);
  assert.match(mapaEvento,/Zona demonstrativa/);
  assert.match(mapaEvento,/new URLSearchParams\(location.search\).get\('bairro'\)/);
 });

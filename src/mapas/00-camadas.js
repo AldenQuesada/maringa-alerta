@@ -6,10 +6,10 @@ const pontosBairrosOficiais=new Map();
 let mostrarUnidades=true,zonasConsultadas=false;
 function pontoZona(nome){return app.pontoDaZona(nome)||pontosZonasOficiais.get(INVENTARIO.normal(nome))||null;}
 async function carregarZonasOficiais(){
- if(zonasConsultadas||app.prefeitura()?.id!=="maringa"||!globalThis.MaringaBairros)return;
+ if(zonasConsultadas||!AlertaGestaoDados.config.referencias(app.prefeitura()).catalogoBairros||!globalThis[AlertaGestaoDados.config.referencias(app.prefeitura()).catalogoBairros])return;
  zonasConsultadas=true;
  try{
-  const dados=await MaringaBairros.carregar();
+  const dados=await globalThis[AlertaGestaoDados.config.referencias(app.prefeitura()).catalogoBairros].carregar();
   for(const feature of dados.bairros?.features||[]){
    const nome=String(feature.properties?.nome||"").trim();
    if(!nome)continue;

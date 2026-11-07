@@ -5,6 +5,13 @@
     {
       "target": "evento/app.js",
       "sources": [
+        "src/evento/territorio.js",
+        "config/evento-demonstracao.js",
+        "src/evento/regioes-demonstrativas.js",
+        "src/evento/administracao-local.js",
+        "src/evento/auditoria-local.js",
+        "src/evento/fila-local.js",
+        "src/evento/formatacao.js",
         "src/evento/00-contexto.js",
         "src/evento/01-regioes-demonstrativas.js",
         "src/evento/02-cadastros-administrativos.js",
@@ -38,6 +45,8 @@
     {
       "target": "gestao/gestao.js",
       "sources": [
+        "src/gestao/formulario.js",
+        "src/gestao/referencias.js",
         "src/gestao/00-render-municipios.js",
         "src/gestao/01-render-inicio.js",
         "src/gestao/02-render-pref-tabs.js",
@@ -49,12 +58,15 @@
     {
       "target": "gestao/dados.js",
       "sources": [
-        "src/cadastros/00-contexto-part01.js",
-        "src/cadastros/00-contexto-part02.js",
-        "src/cadastros/00-contexto-part03.js",
-        "src/cadastros/00-contexto-part04.js",
-        "src/cadastros/01-novo-estado.js",
-        "src/cadastros/02-implantar-pacote.js"
+        "config/municipios.js",
+        "src/cadastros/municipios.js",
+        "src/cadastros/esquemas.js",
+        "src/cadastros/estado.js",
+        "src/cadastros/consultas.js",
+        "src/cadastros/escrita.js",
+        "src/cadastros/importacao.js",
+        "src/cadastros/implantacao.js",
+        "src/cadastros/repositorio.js"
       ]
     },
     {
@@ -92,8 +104,10 @@
     {
       "target": "atendimento/chat.js",
       "sources": [
-        "src/atendimento/00-mensagem.js",
-        "src/atendimento/01-responder-etapa.js"
+        "src/atendimento/passos.js",
+        "src/atendimento/foto.js",
+        "src/atendimento/registro.js",
+        "src/atendimento/app.js"
       ]
     },
     {
@@ -108,9 +122,15 @@
     {
       "target": "crise/core.js",
       "sources": [
-        "src/crise/00-wa-link.js",
-        "src/crise/01-registrar-saida.js",
-        "src/crise/02-acionar-brigada.js"
+        "config/compatibilidade-ajuda.js",
+        "src/crise/utilidades.js",
+        "src/crise/consultas.js",
+        "src/crise/presenca.js",
+        "src/crise/colaboradores.js",
+        "src/crise/compatibilidade.js",
+        "src/crise/pedidos.js",
+        "src/crise/mobilizacao.js",
+        "src/crise/core.js"
       ]
     },
     {
@@ -126,6 +146,23 @@
         "src/backend/diferencas.js",
         "src/backend/consultas.js",
         "src/backend/repositorio.js"
+      ]
+    },
+    {
+      "target": "gestao/implantacao-core.js",
+      "sources": [
+        "src/implantacao-core/texto.js",
+        "src/implantacao-core/cnes.js",
+        "src/implantacao-core/arquivos.js",
+        "src/implantacao-core/conciliacao.js",
+        "src/implantacao-core/municipio.js"
+      ]
+    },
+    {
+      "target": "gestao/catalogo-bairros.js",
+      "sources": [
+        "src/gestao/catalogo-territorial.js",
+        "src/gestao/catalogo-bairros-ui.js"
       ]
     }
   ]
