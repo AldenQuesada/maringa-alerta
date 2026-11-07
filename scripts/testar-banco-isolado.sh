@@ -19,6 +19,9 @@ run_sql(){
 }
 run_sql tests/backend/bootstrap-local.sql
 for migration in supabase/migrations/*.sql;do run_sql "$migration";done
+# Reproduz a restrição do Supabase hospedado: o executor não acessa auth diretamente.
+printf 'revoke usage on schema auth from ma_escritor;' > "$TEST_ROOT/sem-auth.sql"
+run_sql "$TEST_ROOT/sem-auth.sql"
 for suite in permissoes seguranca-servidor operacoes painel admin-geral integracao incidentes;do
  run_sql "tests/backend/$suite.sql"
  printf 'SQL aprovado: %s\n' "$suite"

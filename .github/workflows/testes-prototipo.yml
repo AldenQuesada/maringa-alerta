@@ -66,6 +66,7 @@ jobs:
           for migration in supabase/migrations/*.sql; do
             psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f "$migration"
           done
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -c "revoke usage on schema auth from ma_escritor;"
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/permissoes.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/seguranca-servidor.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/operacoes.sql

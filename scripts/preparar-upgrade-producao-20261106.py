@@ -1,7 +1,7 @@
 import pathlib,json,re
 # Gera somente SQL: não conecta nem aplica alterações. Pré-condição: esquema de 06/11/2026.
 root=pathlib.Path(__file__).resolve().parents[1]
-files=sorted((root/'supabase/migrations').glob('*.sql'))[6:]
+files=[f for f in sorted((root/'supabase/migrations').glob('*.sql')) if '20261106232331' <= f.name[:14] <= '20261107013933']
 parts=[]
 for f in files:
  s=f.read_text()
