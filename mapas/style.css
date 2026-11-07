@@ -69,3 +69,6 @@ select,input,textarea{background:#0d1724;border:1px solid #3c5065;color:var(--fg
 
 .novo-colaborador-demo span{display:grid;place-items:center;width:30px;height:30px;border:2px solid #d4f2ff;border-radius:50%;background:#218be0;color:#fff;font-weight:800;font-size:23px;box-shadow:0 0 0 7px #218be055;animation:novo-colab-pulso 1.3s ease-in-out infinite}
 @keyframes novo-colab-pulso{50%{box-shadow:0 0 0 13px #218be011}}
+
+/* Mantém a identificação fora dos controles de zoom em desktop e celular. */
+.map-area .map-info{left:58px;max-width:calc(100% - 70px)}

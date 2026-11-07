@@ -1,8 +1,86 @@
+/* etapas: dependências recebidas pela composição. */
+(function(root){'use strict';
+function criar({api,error,overlay,state,verificar}){
+function mostrarEtapa(indice){
+  state.etapa=indice;
+  overlay.querySelectorAll('.cad-step').forEach(sec=>{sec.hidden=Number(sec.dataset.step)!==indice;});
+  overlay.querySelectorAll('[data-step-label]').forEach(el=>{el.classList.toggle('active',Number(el.dataset.stepLabel)===indice);});
+  overlay.querySelector('#cad-oc-back').hidden=indice===0;
+  overlay.querySelector('#cad-oc-next').hidden=indice===3;
+  overlay.querySelectorAll('button[type="submit"]').forEach(el=>{el.hidden=indice!==3;});
+  overlay.querySelector('.cad-step-content').scrollTop=0;
+  error.textContent='';
+  if(indice===1 && state.map)setTimeout(()=>state.map.invalidateSize(),50);
+  if(indice===3)verificar();
+ }
+function validarEtapa(indice){
+  const sec=overlay.querySelector('[data-step="'+indice+'"]');
+  const campo=[...sec.querySelectorAll('input,select,textarea')].find(el=>!el.disabled&&!el.closest('.cad-add-panel[hidden], #cad-criterios[hidden]')&&!el.checkValidity());
+  if(campo){mostrarEtapa(indice);campo.reportValidity();return false;}
+  if(indice===1&&!state.pos){mostrarEtapa(1);error.textContent='Selecione o ponto da ocorrência no mapa.';return false;}
+  return true;
+ }
+function validarFormulario(){
+  const anterior=state.etapa;
+  for(let indice=0;indice<4;indice++)if(!validarEtapa(indice))return false;
+  if(state.etapa!==anterior)mostrarEtapa(anterior);
+  return true;
+ }
+function fechar(){overlay.hidden=true;api.onClose?.();api.trigger.focus();}
+return {mostrarEtapa,validarEtapa,validarFormulario,fechar};
+}
+root.AlertaOcorrenciasEtapas={criar};
+})(globalThis);
+/* revisao: dependências recebidas pela composição. */
+(function(root){'use strict';
+function criar({api,bairro,esc,form,overlay,state,tipo}){
+function preencherOrganizacoes(){
+  const root=overlay.querySelector('#cad-oc-orgs');
+  const escolhidos=new Set([...root.querySelectorAll('input:checked')].map(x=>x.value));
+  const recomendados=new Set(api.suggest(tipo.value,bairro.value));
+  root.innerHTML=api.organizations(bairro.value).map(x=>`<label class="cad-choice"><input type="checkbox" value="${esc(x.id)}" ${escolhidos.has(x.id)||recomendados.has(x.id)?'checked':''}> ${esc(x.nome)}${recomendados.has(x.id)?' · sugerida pela regra':''}${x.zona?' · '+esc(x.zona):''}</label>`).join('')||'<p>Nenhuma organização ou equipe cadastrada.</p>';
+ }
+function dados(){
+  return {tipo:tipo.value,gravidade:Number(form.elements.gravidade.value),responsabilidade:form.elements.responsabilidade.value,
+   evento:form.elements.evento.value,descricao:form.elements.descricao.value.trim(),afetados:form.elements.afetados.value,
+   riscos:form.elements.riscos.value.trim(),endereco:form.elements.endereco.value.trim(),pos:state.pos,bairro:bairro.value,
+   acesso:form.elements.acesso.value.trim(),origem:form.elements.origem.value,quando:form.elements.quando.value,
+   comunicante:form.elements.comunicante.value.trim(),contato:form.elements.contato.value.trim(),
+   raio:Number(form.elements.raio.value)||AlertaGestaoDados.parametros.ocorrencias.raioDuplicidadeMetros,janela:Number(form.elements.janela.value)||AlertaGestaoDados.parametros.ocorrencias.janelaDuplicidadeHoras,fotosPublicas:form.elements.fotosPublicas.checked,organizacoes:[...overlay.querySelectorAll('#cad-oc-orgs input:checked')].map(x=>x.value),fotos:state.files};
+ }
+function verificar(){
+  state.duplicateAcknowledged=false;
+  state.matches=api.findDuplicates(dados());
+  overlay.querySelector('#cad-oc-duplicates').innerHTML=state.matches.length?`<h3>Possíveis registros relacionados</h3><p>Compare antes de confirmar. Relatos do WhatsApp aparecem quando estão no cadastro deste navegador.</p>
+   ${state.matches.map(m=>`<div class="cad-duplicate"><strong>${esc(m.tipo)}</strong> · ${esc(m.local)} · ${esc(m.origem)} <details><summary>Comparar detalhes</summary><p>Situação: ${esc(m.situacao||'Não informada')}</p><p>${esc(m.descricao||'Sem descrição adicional')}</p></details> ${m.vinculavel?`<button type="button" class="admin-btn" data-link="${esc(m.id)}">Vincular relato</button>`:''}</div>`).join('')}
+   <label class="cad-choice"><input type="checkbox" id="cad-oc-separate"> Revisei e se trata de uma ocorrência separada.</label>`:'';
+ }
+return {preencherOrganizacoes,dados,verificar};
+}
+root.AlertaOcorrenciasRevisao={criar};
+})(globalThis);
+/* mapa: dependências recebidas pela composição. */
+(function(root){'use strict';
+function criar({api,bairro,error,overlay,preencherOrganizacoes,state,verificar}){
+function marcar(latlng){
+  if(!api.isWithinMunicipality([latlng.lat,latlng.lng])){if(state.marker&&state.pos)state.marker.setLatLng(state.pos);error.textContent='Selecione um ponto dentro da área de navegação do município.';return;}
+  error.textContent='';state.pos=[latlng.lat,latlng.lng];
+  if(state.marker) state.marker.setLatLng(latlng);else state.marker=L.marker(latlng,{draggable:true}).addTo(state.map).on('dragend',()=>marcar(state.marker.getLatLng()));
+  overlay.querySelector('#cad-oc-pos').textContent=`Local selecionado: ${state.pos[0].toFixed(5)}, ${state.pos[1].toFixed(5)}`;
+  const sugestao=api.neighborhood(state.pos);
+  if(sugestao && [...bairro.options].some(o=>o.value===sugestao))bairro.value=sugestao;
+  preencherOrganizacoes();verificar();
+ }
+return {marcar};
+}
+root.AlertaOcorrenciasMapa={criar};
+})(globalThis);
 /* Formulário de registro de ocorrência. As operações e o armazenamento vêm do mapa. */
 (function(global){
 "use strict";
 const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function iniciar(api){
+ const limites=global.AlertaGestaoDados.parametros.ocorrencias;
  const overlay=document.createElement('div');
  overlay.className='modal-overlay cadastro-ocorrencia';
  overlay.hidden=true;
@@ -42,7 +120,7 @@ function iniciar(api){
  <label>Fotos <input name="fotos" type="file" accept="image/*" multiple></label><div id="cad-oc-previews" class="attachment-previews"></div>
  <label class="cad-choice"><input type="checkbox" name="fotosPublicas"> Autorizar exibição das fotos no status público</label>
  <button type="button" id="cad-criterios-toggle" class="cad-text-toggle" aria-expanded="false">Critérios para localizar relatos semelhantes</button><div id="cad-criterios" hidden>
- <div class="cad-grid"><label>Distância em metros <input name="raio" type="number" min="1" max="5000" value="150"></label><label>Intervalo em horas <input name="janela" type="number" min="1" max="720" value="24"></label></div>
+ <div class="cad-grid"><label>Distância em metros <input name="raio" type="number" min="1" max="5000" value="${limites.raioDuplicidadeMetros}"></label><label>Intervalo em horas <input name="janela" type="number" min="1" max="720" value="${limites.janelaDuplicidadeHoras}"></label></div>
  </div>
  <div id="cad-oc-duplicates" role="status"></div>
  </section></div><p id="cad-oc-error" role="alert"></p>
@@ -50,34 +128,17 @@ function iniciar(api){
  </form></section>`;
  document.body.appendChild(overlay);
  const form=overlay.querySelector('form'), error=overlay.querySelector('#cad-oc-error'), tipo=form.elements.tipo, bairro=form.elements.bairro;
- let map,marker,pos=null,files=[],matches=[],busy=false,duplicateAcknowledged=false,duplicateSignature="",etapa=0;
- function mostrarEtapa(indice){
-  etapa=indice;
-  overlay.querySelectorAll('.cad-step').forEach(sec=>{sec.hidden=Number(sec.dataset.step)!==indice;});
-  overlay.querySelectorAll('[data-step-label]').forEach(el=>{el.classList.toggle('active',Number(el.dataset.stepLabel)===indice);});
-  overlay.querySelector('#cad-oc-back').hidden=indice===0;
-  overlay.querySelector('#cad-oc-next').hidden=indice===3;
-  overlay.querySelectorAll('button[type="submit"]').forEach(el=>{el.hidden=indice!==3;});
-  overlay.querySelector('.cad-step-content').scrollTop=0;
-  error.textContent='';
-  if(indice===1 && map)setTimeout(()=>map.invalidateSize(),50);
-  if(indice===3)verificar();
- }
- function validarEtapa(indice){
-  const sec=overlay.querySelector('[data-step="'+indice+'"]');
-  const campo=[...sec.querySelectorAll('input,select,textarea')].find(el=>!el.disabled&&!el.closest('.cad-add-panel[hidden], #cad-criterios[hidden]')&&!el.checkValidity());
-  if(campo){mostrarEtapa(indice);campo.reportValidity();return false;}
-  if(indice===1&&!pos){mostrarEtapa(1);error.textContent='Selecione o ponto da ocorrência no mapa.';return false;}
-  return true;
- }
- function validarFormulario(){
-  const anterior=etapa;
-  for(let indice=0;indice<4;indice++)if(!validarEtapa(indice))return false;
-  if(etapa!==anterior)mostrarEtapa(anterior);
-  return true;
- }
- overlay.querySelector('#cad-oc-next').onclick=()=>{if(validarEtapa(etapa))mostrarEtapa(etapa+1);};
- overlay.querySelector('#cad-oc-back').onclick=()=>mostrarEtapa(etapa-1);
+ const state={map:undefined,marker:undefined,pos:null,files:[],matches:[],busy:false,duplicateAcknowledged:false,duplicateSignature:"",etapa:0};
+
+
+
+
+ const escOptions=values=>values.map(x=>`<option value="${esc(x.value)}">${esc(x.label)}</option>`).join('');
+const {mostrarEtapa,validarEtapa,validarFormulario,fechar}=AlertaOcorrenciasEtapas.criar({api,error,overlay,state,verificar:(...args)=>verificar(...args)});
+const {preencherOrganizacoes,dados,verificar}=AlertaOcorrenciasRevisao.criar({api,bairro,esc,form,overlay,state,tipo});
+const {marcar}=AlertaOcorrenciasMapa.criar({api,bairro,error,overlay,preencherOrganizacoes:(...args)=>preencherOrganizacoes(...args),state,verificar:(...args)=>verificar(...args)});
+ overlay.querySelector('#cad-oc-next').onclick=()=>{if(validarEtapa(state.etapa))mostrarEtapa(state.etapa+1);};
+ overlay.querySelector('#cad-oc-back').onclick=()=>mostrarEtapa(state.etapa-1);
  overlay.querySelectorAll('[data-add]').forEach(button=>button.onclick=()=>{
   const painel=overlay.querySelector('#cad-add-'+button.dataset.add);
   painel.hidden=!painel.hidden;button.setAttribute('aria-expanded',String(!painel.hidden));
@@ -87,70 +148,43 @@ function iniciar(api){
   const painel=overlay.querySelector('#cad-criterios');painel.hidden=!painel.hidden;
   e.currentTarget.setAttribute('aria-expanded',String(!painel.hidden));
  };
- overlay.querySelector('#cad-tipo-criar').onclick=()=>{
+ overlay.querySelector('#cad-tipo-criar').onclick=async()=>{
   const nome=overlay.querySelector('#cad-tipo-nome').value.trim();
   const prioridade=overlay.querySelector('#cad-tipo-prioridade').value;
   const aviso=overlay.querySelector('#cad-tipo-status');
   if(!nome){aviso.textContent='Informe o nome do tipo.';return;}
   try{
-   api.createType(nome,prioridade);tipo.innerHTML=escOptions(api.types());tipo.value=nome;
+   await api.createType(nome,prioridade);tipo.innerHTML=escOptions(api.types());tipo.value=nome;
    tipo.dispatchEvent(new Event('change'));aviso.textContent='Tipo salvo e selecionado.';
   }catch(e){aviso.textContent=e.message;}
  };
- overlay.querySelector('#cad-org-criar').onclick=()=>{
+ overlay.querySelector('#cad-org-criar').onclick=async()=>{
   const nome=overlay.querySelector('#cad-org-nome').value.trim();
   const categoria=overlay.querySelector('#cad-org-categoria').value;
   const aviso=overlay.querySelector('#cad-org-status');
   if(!nome){aviso.textContent='Informe o nome.';return;}
   try{
-   const id=api.createOrganization(nome,categoria,bairro.value);
+   const id=await api.createOrganization(nome,categoria,bairro.value);
    preencherOrganizacoes();
    const novo=[...overlay.querySelectorAll('#cad-oc-orgs input')].find(el=>el.value===id);
    if(novo)novo.checked=true;
    aviso.textContent='Cadastro salvo e selecionado.';
   }catch(e){aviso.textContent=e.message;}
  };
- const escOptions=values=>values.map(x=>`<option value="${esc(x.value)}">${esc(x.label)}</option>`).join('');
- function fechar(){overlay.hidden=true;api.onClose?.();api.trigger.focus();}
- function preencherOrganizacoes(){
-  const root=overlay.querySelector('#cad-oc-orgs');
-  const escolhidos=new Set([...root.querySelectorAll('input:checked')].map(x=>x.value));
-  const recomendados=new Set(api.suggest(tipo.value,bairro.value));
-  root.innerHTML=api.organizations(bairro.value).map(x=>`<label class="cad-choice"><input type="checkbox" value="${esc(x.id)}" ${escolhidos.has(x.id)||recomendados.has(x.id)?'checked':''}> ${esc(x.nome)}${recomendados.has(x.id)?' · sugerida pela regra':''}${x.zona?' · '+esc(x.zona):''}</label>`).join('')||'<p>Nenhuma organização ou equipe cadastrada.</p>';
- }
- function dados(){
-  return {tipo:tipo.value,gravidade:Number(form.elements.gravidade.value),responsabilidade:form.elements.responsabilidade.value,
-   evento:form.elements.evento.value,descricao:form.elements.descricao.value.trim(),afetados:form.elements.afetados.value,
-   riscos:form.elements.riscos.value.trim(),endereco:form.elements.endereco.value.trim(),pos,bairro:bairro.value,
-   acesso:form.elements.acesso.value.trim(),origem:form.elements.origem.value,quando:form.elements.quando.value,
-   comunicante:form.elements.comunicante.value.trim(),contato:form.elements.contato.value.trim(),
-   raio:Number(form.elements.raio.value)||150,janela:Number(form.elements.janela.value)||24,fotosPublicas:form.elements.fotosPublicas.checked,organizacoes:[...overlay.querySelectorAll('#cad-oc-orgs input:checked')].map(x=>x.value),fotos:files};
- }
- function verificar(){
-  duplicateAcknowledged=false;
-  matches=api.findDuplicates(dados());
-  overlay.querySelector('#cad-oc-duplicates').innerHTML=matches.length?`<h3>Possíveis registros relacionados</h3><p>Compare antes de confirmar. Relatos do WhatsApp aparecem quando estão no cadastro deste navegador.</p>
-   ${matches.map(m=>`<div class="cad-duplicate"><strong>${esc(m.tipo)}</strong> · ${esc(m.local)} · ${esc(m.origem)} <details><summary>Comparar detalhes</summary><p>Situação: ${esc(m.situacao||'Não informada')}</p><p>${esc(m.descricao||'Sem descrição adicional')}</p></details> ${m.vinculavel?`<button type="button" class="admin-btn" data-link="${esc(m.id)}">Vincular relato</button>`:''}</div>`).join('')}
-   <label class="cad-choice"><input type="checkbox" id="cad-oc-separate"> Revisei e se trata de uma ocorrência separada.</label>`:'';
- }
- function marcar(latlng){
-  if(!api.isWithinMunicipality([latlng.lat,latlng.lng])){if(marker&&pos)marker.setLatLng(pos);error.textContent='Selecione um ponto dentro da área de navegação do município.';return;}
-  error.textContent='';pos=[latlng.lat,latlng.lng];
-  if(marker) marker.setLatLng(latlng);else marker=L.marker(latlng,{draggable:true}).addTo(map).on('dragend',()=>marcar(marker.getLatLng()));
-  overlay.querySelector('#cad-oc-pos').textContent=`Local selecionado: ${pos[0].toFixed(5)}, ${pos[1].toFixed(5)}`;
-  const sugestao=api.neighborhood(pos);
-  if(sugestao && [...bairro.options].some(o=>o.value===sugestao))bairro.value=sugestao;
-  preencherOrganizacoes();verificar();
- }
+
+
+
+
+
  api.trigger.addEventListener('click',()=>{
-  overlay.hidden=false;form.reset();files=[];pos=null;matches=[];busy=false;
-  overlay.querySelectorAll('.cad-add-panel').forEach(p=>p.hidden=true);overlay.querySelectorAll('[data-add],#cad-criterios-toggle').forEach(b=>b.setAttribute('aria-expanded','false'));overlay.querySelectorAll('.cad-add-panel [role=status]').forEach(p=>p.textContent='');duplicateAcknowledged=false;duplicateSignature='';overlay.querySelector('#cad-criterios').hidden=true;mostrarEtapa(0);
+  overlay.hidden=false;form.reset();state.files=[];state.pos=null;state.matches=[];state.busy=false;
+  overlay.querySelectorAll('.cad-add-panel').forEach(p=>p.hidden=true);overlay.querySelectorAll('[data-add],#cad-criterios-toggle').forEach(b=>b.setAttribute('aria-expanded','false'));overlay.querySelectorAll('.cad-add-panel [role=status]').forEach(p=>p.textContent='');state.duplicateAcknowledged=false;state.duplicateSignature='';overlay.querySelector('#cad-criterios').hidden=true;mostrarEtapa(0);
   error.textContent='';overlay.querySelector('#cad-oc-previews').replaceChildren();overlay.querySelector('#cad-oc-duplicates').replaceChildren();
   overlay.querySelector('#cad-oc-pos').textContent='Nenhum ponto selecionado.';
   tipo.innerHTML=escOptions(api.types());form.elements.evento.innerHTML='<option value="">Selecione o evento cadastrado no Dashboard</option>'+escOptions(api.events());form.elements.evento.value=api.selectedEvent?.()||'';bairro.innerHTML='<option value="">Selecione o bairro ou zona</option>'+escOptions(api.neighborhoods());
   const now=new Date();const offset=now.getTimezoneOffset()*60000;form.elements.quando.value=new Date(now-offset).toISOString().slice(0,16);
-  if(!map){map=L.map('cad-oc-map').setView(api.center,13);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);map.on('click',e=>marcar(e.latlng));}
-  if(marker){map.removeLayer(marker);marker=null;} map.setView(api.center,13);setTimeout(()=>map.invalidateSize(),50);
+  if(!state.map){state.map=L.map('cad-oc-map').setView(api.center,13);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(state.map);state.map.on('click',e=>marcar(e.latlng));}
+  if(state.marker){state.map.removeLayer(state.marker);state.marker=null;} state.map.setView(api.center,13);setTimeout(()=>state.map.invalidateSize(),50);
   tipo.dispatchEvent(new Event('change'));tipo.focus();
  });
  overlay.querySelector('#cad-oc-search').onclick=async ()=>{
@@ -167,7 +201,7 @@ function iniciar(api){
    if(!response.ok)throw Error();
    const lista=await response.json();const item=lista.find(x=>Number.isFinite(Number(x.lat))&&Number.isFinite(Number(x.lon)));
    if(!item){error.textContent='Endereço não encontrado. Marque o ponto no mapa.';return;}
-   map.setView([Number(item.lat),Number(item.lon)],17);
+   state.map.setView([Number(item.lat),Number(item.lon)],17);
    error.textContent='Confira o resultado e clique no mapa para confirmar o ponto.';
   }catch(_){error.textContent='Busca indisponível. Marque o ponto no mapa.';}
  };
@@ -181,31 +215,31 @@ function iniciar(api){
  });
  bairro.addEventListener('change',()=>{preencherOrganizacoes();verificar();});
  for(const key of ['endereco','quando','raio','janela'])form.elements[key].addEventListener('change',verificar);
- overlay.querySelector('#cad-oc-duplicates').addEventListener('change',e=>{if(e.target.id==='cad-oc-separate'){duplicateAcknowledged=e.target.checked;duplicateSignature=matches.map(x=>x.id).sort().join('|');}});
+ overlay.querySelector('#cad-oc-duplicates').addEventListener('change',e=>{if(e.target.id==='cad-oc-separate'){state.duplicateAcknowledged=e.target.checked;state.duplicateSignature=state.matches.map(x=>x.id).sort().join('|');}});
  overlay.querySelector('#cad-oc-duplicates').addEventListener('click',async e=>{
-  const id=e.target.dataset.link;if(!id||busy)return;
+  const id=e.target.dataset.link;if(!id||state.busy)return;
   if(!validarFormulario())return;
-  busy=true;try{await api.link(id,dados());fechar();api.feedback('Relato vinculado ao registro existente.');}catch(err){error.textContent=err.message;}finally{busy=false;}
+  state.busy=true;try{await api.link(id,dados());fechar();api.feedback('Relato vinculado ao registro existente.');}catch(err){error.textContent=err.message;}finally{state.busy=false;}
  });
  form.elements.fotos.addEventListener('change',async e=>{
-  error.textContent='';files=[];
+  error.textContent='';state.files=[];
   const imagens=[...e.target.files];
-  if(imagens.length>4||imagens.some(f=>!f.type.startsWith('image/')||f.size>750000)){error.textContent='Use até 4 imagens de até 750 KB cada.';e.target.value='';return;}
+  if(imagens.length>limites.fotosMaximas||imagens.some(f=>!f.type.startsWith('image/')||f.size>limites.fotoBytesMaximos)){error.textContent='Use até '+limites.fotosMaximas+' imagens de até '+(limites.fotoBytesMaximos/1000)+' KB cada.';e.target.value='';return;}
   try{
-   files=await Promise.all(imagens.map(f=>new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve({nome:f.name,dados:r.result});r.onerror=reject;r.readAsDataURL(f);})));
+   state.files=await Promise.all(imagens.map(f=>new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve({nome:f.name,dados:r.result});r.onerror=reject;r.readAsDataURL(f);})));
    const preview=overlay.querySelector('#cad-oc-previews');preview.replaceChildren();
-   files.forEach(f=>{const img=document.createElement('img');img.src=f.dados;img.alt=f.nome;preview.append(img);});
+   state.files.forEach(f=>{const img=document.createElement('img');img.src=f.dados;img.alt=f.nome;preview.append(img);});
   }catch(_){error.textContent='Não foi possível ler as imagens.';}
  });
  form.addEventListener('submit',async e=>{
-  e.preventDefault();if(busy)return;error.textContent='';
+  e.preventDefault();if(state.busy)return;error.textContent='';
   if(!validarFormulario())return;
   const atuais=api.findDuplicates(dados());
-  if(atuais.length&&(!duplicateAcknowledged||atuais.map(x=>x.id).sort().join('|')!==duplicateSignature)){verificar();error.textContent='Revise os registros semelhantes e confirme se é uma ocorrência separada.';return;}
-  busy=true;
+  if(atuais.length&&(!state.duplicateAcknowledged||atuais.map(x=>x.id).sort().join('|')!==state.duplicateSignature)){verificar();error.textContent='Revise os registros semelhantes e confirme se é uma ocorrência separada.';return;}
+  state.busy=true;
   try{await api.save(dados(),e.submitter?.value||'triagem');fechar();}
   catch(err){error.textContent=err.message||'Não foi possível salvar.';}
-  finally{busy=false;}
+  finally{state.busy=false;}
  });
 }
 function encontrarBairro(areas,pos){

@@ -8,7 +8,7 @@
     const iniciais=nome=>String(nome||"").trim().split(/\s+/).slice(0,2).map(p=>p[0]||"").join("").toUpperCase();
     const $=id=>doc.getElementById(id);
     let lastFocus=null;
-    target.innerHTML=`<button type="button" class="session-trigger" id="session-trigger" aria-expanded="false" aria-haspopup="menu" aria-controls="session-menu"><span id="session-avatar" class="session-avatar" hidden></span><span class="session-trigger-copy"><span class="session-trigger-label" id="session-trigger-label">Entrar</span><span class="session-trigger-role" id="session-trigger-role" hidden></span></span><span aria-hidden="true">⌄</span></button>
+    target.innerHTML=`<button type="button" class="session-trigger" id="session-trigger" aria-expanded="false" aria-haspopup="menu" aria-controls="session-menu"><span id="session-avatar" class="session-avatar" hidden></span><span class="session-trigger-copy"><span class="session-trigger-label" id="session-trigger-label">Entrar</span><span class="session-trigger-role" id="session-trigger-role" hidden></span></span></button>
       <div class="session-menu" id="session-menu" role="menu" hidden><div class="session-identity"><strong id="session-identity-name"></strong><small id="session-identity-email"></small><small id="session-identity-role"></small></div><button type="button" role="menuitem" data-session-action="details">Minha sessão</button><button type="button" role="menuitem" data-session-action="switch">Mudar de conta</button><button type="button" role="menuitem" class="session-exit" data-session-action="exit">Sair</button></div>`;
     const overlay=doc.createElement("div");
     overlay.className="session-overlay";

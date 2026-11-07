@@ -9,6 +9,8 @@ function status(kind,message){const bar=document.getElementById('backend-bar');i
 async function start(){
  for(const item of scripts)await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=item.src;s.onload=resolve;s.onerror=()=>reject(Error('Não foi possível carregar '+new URL(item.src).pathname));document.body.appendChild(s);});
  document.documentElement.classList.remove('backend-pendente');gate.remove();
+ // Os mapas iniciam ocultos pelo bloqueio de acesso; recalcular ao torná-los visíveis.
+ window.dispatchEvent(new Event('resize'));
  if(window.AlertaNuvem?.ativo){
   const anchor=document.getElementById('session-anchor');if(anchor)anchor.textContent=window.AlertaNuvem.email;
   for(const a of document.querySelectorAll('a[href]')){const u=new URL(a.href,location.href);if(u.origin===location.origin&&/\/atendimento\//.test(u.pathname)){a.hidden=true;a.removeAttribute('href');}}
@@ -57,7 +59,7 @@ try{
 }catch(error){showLogin(error.message||'Falha ao conectar ao Supabase.');}
 function showLogin(error=''){
  document.documentElement.classList.add('backend-pendente');
- gate.innerHTML='<section><small>MARINGÁ ALERTA</small><h1>Acesso à gestão municipal</h1><p>Entre com seu e-mail autorizado. Você receberá um link de acesso, sem precisar criar uma senha.</p><form><label for="backend-email">E-mail</label><input id="backend-email" type="email" autocomplete="email" required><button type="submit">Receber link de acesso</button></form><p role="alert"></p><button type="button" id="backend-reset" hidden>Sair da sessão atual</button></section>';
+ gate.innerHTML='<section><small>GESTÃO MUNICIPAL</small><h1>Acesso à gestão municipal</h1><p>Entre com seu e-mail autorizado. Você receberá um link de acesso, sem precisar criar uma senha.</p><form><label for="backend-email">E-mail</label><input id="backend-email" type="email" autocomplete="email" required><button type="submit">Receber link de acesso</button></form><p role="alert"></p><button type="button" id="backend-reset" hidden>Sair da sessão atual</button></section>';
  gate.querySelector('[role=alert]').textContent=error;
  if(entry==='plataforma'){gate.querySelector('small').textContent='ADMINISTRAÇÃO GERAL';gate.querySelector('h1').textContent='Acesso à administração do sistema';}
 

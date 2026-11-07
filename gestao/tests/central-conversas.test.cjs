@@ -43,8 +43,8 @@ test('filtro multizona, combinação com busca e ausência de categoria fictíci
 });
 
 test('reconstitui o roteiro oficial sem inventar resposta para campo ausente', () => {
-  const fluxo = central.fluxoCadastro(pessoas[0]);
-  assert.match(fluxo[0].texto, /Bem-vindo ao Maringá Alerta/);
+  const fluxo = central.fluxoCadastro(pessoas[0],{nome:'Manaus',uf:'AM'});
+  assert.match(fluxo[0].texto, /Bem-vindo ao Manaus Alerta/);
   assert.equal(fluxo[1].texto, 'Ser colaborador');
   assert.match(fluxo[2].texto, /Para começar, digite seu nome e sobrenome/);
   assert.equal(fluxo[3].texto, 'Ana Silva');

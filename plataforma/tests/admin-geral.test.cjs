@@ -92,7 +92,8 @@ test("Admin Geral é dono das prefeituras e Gestão mantém abas e fluxos canôn
  assert.deepEqual(groups[5].items,["ocorrencias","canais","regras"]);
  const municipal=fs.readFileSync(path.join(__dirname,"../../gestao/gestao.js"),"utf8");
  assert.match(municipal,/renderTerritorioMunicipal/);
- assert.match(municipal,/municipioId:CIDADE_DEMO/);
+ assert.match(municipal,/const municipioId=D\.config\.selecionar\(D,sessionStorage\)/);
+ assert.match(municipal,/D\.criar\(undefined,\{municipioId\}\)/);
  assert.match(municipal,/\["geoterritorialidade","Geoterritorialidade"\]/);
  assert.doesNotMatch(municipal,/\["Implantar Maringá"/);
  const platform=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");

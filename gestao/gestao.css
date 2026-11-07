@@ -128,3 +128,7 @@
  .pref-cabinet .table-scroll{max-height:calc(100dvh - 470px)}
 }
 .row-action .add-symbol{color:var(--accent);font-size:18px;font-weight:800;vertical-align:middle}
+
+/* Criação no cadastro existente: sinal + amarelo e rótulo textual. */
+.btn-primary[data-new]{background:var(--panel-2);color:var(--fg);border-color:#866832}
+.btn-primary[data-new] svg{color:var(--accent)}

@@ -12,8 +12,7 @@ function criar({armazenamento,options,CHAVE,COLLECTIONS}){
    for(const collection of COLLECTIONS)if(Array.isArray(bruto[collection]))base[collection]=bruto[collection];
    base.municipioAtivo=bruto.municipioAtivo||base.municipioAtivo;
   }
-  // Compatibilidade dos dados demonstrativos antigos; nunca executada no modo remoto.
-  if(!options.semBootstrap&&!base.prefeituras.some(p=>p.id===seed.id||p.codigo_ibge===seed.codigo_ibge))base.prefeituras.unshift({...seed});
+  // Um cadastro existente é preservado, mesmo sem a prefeitura de demonstração.
   if(!base.prefeituras.some(p=>p.id===base.municipioAtivo))base.municipioAtivo=base.prefeituras[0]?.id||'';
   if(!options.semBootstrap)for(const city of base.prefeituras){
    if(!city.status)city.status=city.id===seed.id?seed.status:'implantacao';

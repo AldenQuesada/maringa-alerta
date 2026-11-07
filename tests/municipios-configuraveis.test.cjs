@@ -5,6 +5,13 @@ const D=require('../gestao/dados.js'),Core=require('../gestao/implantacao-core.j
 const mana={id:'manaus',nome:'Manaus',uf:'AM',codigo_ibge:'1302603',estado:'Amazonas',paisId:'BR',pais:'Brasil',lat:-3.1,lng:-60,bbox:[-3.5,-2.5,-60.5,-59.5],status:'implantacao'};
 function storage(initial){let value=initial?JSON.stringify(initial):null;return {getItem:()=>value,setItem:(_,v)=>value=v};}
 function banco(){const initial={version:1,municipioAtivo:mana.id,prefeituras:[{...mana}]};return D.criarLocal(storage(initial),{semBootstrap:true});}
+test('abrir cadastro local existente não recria uma prefeitura de demonstração',()=>{
+ const persistencia=storage({version:1,municipioAtivo:mana.id,prefeituras:[{...mana}]});
+ const db=D.criarLocal(persistencia);
+ assert.deepEqual(db.municipios().map(x=>x.id),[mana.id]);
+ db.gravar('bases',{nome:'Base teste',tipo:'Base logística'});
+ assert.deepEqual(D.criarLocal(persistencia).municipios().map(x=>x.id),[mana.id]);
+});
 test('importação nacional valida IBGE, UF e coordenadas do município recebido',()=>{
  const C=Core.criar(mana);
  assert.match(C.FONTES.ibge,/1302603$/);assert.match(C.FONTES.malha,/1302603\?/);

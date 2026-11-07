@@ -30,6 +30,7 @@ function cenario(quantidade) {
     enviarMensagemDemo: (...args) => mensagens.push(args),
     refreshVolMarker: () => {}
   });
+  contexto.dependencias=contexto;
   vm.runInContext(adaptador, contexto);
   return { o, voluntarios, mensagens, etapas, acionar: () => contexto.acionarAjuda(o) };
 }
@@ -66,7 +67,7 @@ test('cadastro de colaboradores segue um único fluxo canônico nos três mapas'
   assert.match(chat, /app\.registrarColaborador\(/);
   assert.match(core, /db\.gravar\("voluntarios"/);
   assert.match(mapa, /app\.oferentes\(\)/);
-  assert.match(evento, /cadastro\.lista\('voluntarios',tenantId\)/);
+  assert.match(evento, /cadastro\.lista\('voluntarios',dependencias.tenantId\)/);
   assert.match(evento, /Gerenciar colaboradores na Gestão/);
   assert.doesNotMatch(evento, /data-action="rm-vol"/);
 });

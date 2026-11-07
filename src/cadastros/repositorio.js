@@ -26,6 +26,6 @@ function aplicarConfiguracao(config){
  GROUPS.splice(0,GROUPS.length,...config.grupos);
  COLLECTIONS.splice(0,COLLECTIONS.length,...new Set(Object.values(ESQUEMAS).map(x=>x.collection)));
 }
-const api={aplicarConfiguracao,CHAVE,UFS,CATALOGOS,ESQUEMAS,GROUPS,config:global.AlertaMunicipios,criar:criarAdaptador,criarLocal:criar};
+const api={aplicarConfiguracao,CHAVE,UFS,CATALOGOS,ESQUEMAS,GROUPS,config:global.AlertaMunicipios,parametros:global.AlertaParametros,criar:criarAdaptador,criarLocal:criar};
 global.AlertaGestaoDados=api;if(typeof module==='object'&&module.exports)module.exports=api;
 })(globalThis);

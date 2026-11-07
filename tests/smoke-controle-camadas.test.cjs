@@ -7,8 +7,7 @@ test("dois mapas auxiliares mostram, ocultam e filtram georreferenciados usando 
  const db=D.criar(storage(),{municipioId:"maringa"});
  for(const file of ["dados-territoriais/maringa-bases-riscos-publicos.json","dados-territoriais/maringa-abrigos-publicos.json"])
   I.importar(db,JSON.parse(read(file)));
- const code=read("mapas/app.js"),start=code.indexOf("const unidadesMunicipais=L.layerGroup().addTo(map);"),end=code.indexOf("function renderEquipePorBairro(xs){",start);
- assert.ok(start>0&&end>start,"Adaptador de camadas separado");
+ const code=read("src/mapas/territorio.js");
  const pins=[],L={
   layerGroup:()=>({addTo(){return this},clearLayers(){pins.length=0}}),
   divIcon:o=>o,
@@ -17,17 +16,19 @@ test("dois mapas auxiliares mostram, ocultam e filtram georreferenciados usando 
  const elements={};
  const ctx=vm.createContext({L,map:{},INVENTARIO:M,FichaPonto:{criar:()=>({abrir(){}})},FiltrosCadastros:{montar:()=>({aceita:()=>true,mostrar:()=>true,rows:()=>M.registros(db)})},MaringaCrise:{waLink(){}},app:{db,prefeitura:()=>({id:"maringa"}),pontoDaZona:()=>null},
   camadaAtual:"principal",filtroZona:"",texto:"",esc:String,$:id=>(elements[id]??={textContent:""}),console});
- vm.runInContext(code.slice(start,end),ctx);
+ vm.runInContext(code,ctx);
+ vm.runInContext(`const state={app,camadaAtual,filtroZona,texto,mostrarUnidades:true};
+ const {renderUnidadesMunicipais}=AlertaMapasTerritorio.criar({state,L,map,INVENTARIO,esc,$,unidadesMunicipais:L.layerGroup().addTo(map),filtrosCadastros:FiltrosCadastros.montar(),fichaPonto:FichaPonto.criar(),nomesZonasOficiais:[],pontosZonasOficiais:new Map(),pontosBairrosOficiais:new Map()});`,ctx);
  assert.equal(vm.runInContext("renderUnidadesMunicipais()",ctx),6);
  assert.equal(pins.length,6,"5 centros de doação mais um abrigo emergencial");
  assert.ok(pins.some(p=>p.opts.title.includes("Vila Olímpica")));
  assert.ok(pins.some(p=>p.html.includes("Maringá")));
- assert.equal(vm.runInContext("mostrarUnidades=false;renderUnidadesMunicipais()",ctx),0);
+ assert.equal(vm.runInContext("state.mostrarUnidades=false;renderUnidadesMunicipais()",ctx),0);
  assert.equal(pins.length,0,"Ocultar remove marcadores; não exclui registros");
  assert.equal(M.registros(db).filter(x=>x.georreferenciado).length,6,"Registros seguem intactos");
- assert.equal(vm.runInContext('mostrarUnidades=true;filtroZona="Zona 7";renderUnidadesMunicipais()',ctx),1);
+ assert.equal(vm.runInContext('state.mostrarUnidades=true;state.filtroZona="Zona 7";renderUnidadesMunicipais()',ctx),1);
  assert.equal(pins.length,1);
  assert.match(pins[0].opts.title,/Vila Olímpica/);
- assert.equal(vm.runInContext('filtroZona="";texto="Templo";renderUnidadesMunicipais()',ctx),1);
+ assert.equal(vm.runInContext('state.filtroZona="";state.texto="Templo";renderUnidadesMunicipais()',ctx),1);
  assert.match(pins[0].opts.title,/Templo/);
 });

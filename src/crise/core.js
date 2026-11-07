@@ -8,7 +8,7 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
  if(!D)throw Error('Carregue gestao/dados.js primeiro.');
  const db=repositorio||D.criar(armazenamento,escopoMunicipal&&municipioId?{municipioId}:{});
  if(municipioId&&db.municipioAtivo()?.id!==municipioId&&!escopoMunicipal)db.selecionarMunicipio(municipioId);
- const deps={db,D,...root.AlertaCriseUtilidades,COMPATIBILIDADE};
+ const deps={db,D,limitesGPS:D.parametros.gps,...root.AlertaCriseUtilidades,COMPATIBILIDADE};
  const consultas=root.AlertaCriseConsultas.criar(deps);Object.assign(deps,consultas);
  const presenca=root.AlertaCrisePresenca.criar(deps);
  const colaboradores=root.AlertaCriseColaboradores.criar(deps);

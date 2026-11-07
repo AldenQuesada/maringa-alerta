@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0d12">
-<title>Maringá Alerta | Gestão</title>
-<link rel="stylesheet" href="../sessao.css?v=sessoes-2">
-<link rel="stylesheet" href="./gestao.css?v=tabelas-canonicas-2">
-<link rel="stylesheet" href="./central-conversas.css?v=todas-home-20261106-1">
-<link rel="stylesheet" href="./implantacao.css?v=bairros-altura-1">
+<title>Gestão Municipal</title>
+<link rel="stylesheet" href="../sessao.css?v=5ac3ef7bf8ac">
+<link rel="stylesheet" href="./gestao.css?v=8d0a35a0f5f3">
+<link rel="stylesheet" href="./central-conversas.css?v=77dbf8019257">
+<link rel="stylesheet" href="./implantacao.css?v=aef3784ebc0b">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="./acoes-cabecalho.css?v=acoes-2">
-<link rel="stylesheet" href="../backend/boot.css?v=1">
+<link rel="stylesheet" href="./acoes-cabecalho.css?v=c73e577473ca">
+<link rel="stylesheet" href="../backend/boot.css?v=6715b7121dab">
 </head>
 <body>
 <header class="topbar" id="topbar">
@@ -19,7 +19,7 @@
     <button type="button" id="toggle-sidebar" class="icon-btn toggle-sidebar" title="Recolher ou expandir o menu" aria-label="Recolher ou expandir menu" aria-controls="sidebar" aria-expanded="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
     </button>
-    <a class="brand" href="./" aria-label="Maringá Alerta · Início"><span class="brand-mark">M<span class="brand-dot">•</span></span><span class="brand-text"><strong>MARINGÁ ALERTA</strong><small>Gestão municipal</small></span></a>
+    <a class="brand" href="./" aria-label="Gestão Municipal · Início"><span class="brand-mark">M<span class="brand-dot">•</span></span><span class="brand-text"><strong>GESTÃO MUNICIPAL</strong><small>Gestão municipal</small></span></a>
   </div>
   <div class="map-hub" aria-label="Mapas do sistema">
   <a id="abrir-mapa" class="map-launch" href="../index.html" target="_blank" rel="noopener noreferrer" title="Abrir Mapa de Evento em janela independente" aria-label="Abrir Mapa de Evento em nova janela"><svg class="map-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/></svg><span class="map-name">Mapa de Evento</span></a>
@@ -32,10 +32,10 @@
   <aside class="sidebar" id="sidebar" aria-label="Cadastros do sistema">
     <div class="municipio-box">
       <label for="municipio-switch">PREFEITURA ATIVA</label>
-      <div class="select-wrap"><select id="municipio-switch" aria-label="Selecionar prefeitura"></select><span class="select-caret" aria-hidden="true">⌄</span></div>
+      <div class="select-wrap"><select id="municipio-switch" aria-label="Selecionar prefeitura"></select></div>
     </div>
     <nav id="sidebar-nav" class="sidebar-nav" aria-label="Navegação de cadastros"></nav>
-    <div class="sidebar-foot"><span class="foot-mark">M</span><span class="foot-copy">Maringá Alerta</span></div>
+    <div class="sidebar-foot"><span class="foot-mark">M</span><span class="foot-copy">Gestão Municipal</span></div>
   </aside>
   <div class="sidebar-scrim" id="sidebar-scrim"></div>
   <main id="main" class="content" tabindex="-1"><div class="page" id="page"></div></main>
@@ -53,23 +53,23 @@
   </section>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-<script type="application/x-maringa-modulo" src="../sessao.js?v=sessoes-1"></script>
-<script type="application/x-maringa-modulo" src="../sessao-ui.js?v=sessoes-2"></script>
-<script src="./dados.js?v=ficha-ponto-20261106"></script>
-<script type="application/x-maringa-modulo" src="../dados-territoriais/importacao-publica.js?v=apoios-1"></script>
-<script type="application/x-maringa-modulo" src="../evento-tornado-2026.js?v=1"></script>
+<script type="application/x-maringa-modulo" src="../sessao.js?v=7c5335721d36"></script>
+<script type="application/x-maringa-modulo" src="../sessao-ui.js?v=9a6003d065ad"></script>
+<script src="./dados.js?v=77e766acf7f2"></script>
+<script type="application/x-maringa-modulo" src="../dados-territoriais/importacao-publica.js?v=eb216b997605"></script>
+<script type="application/x-maringa-modulo" src="../evento-tornado-2026.js?v=350315016c29"></script>
 <script type="application/x-maringa-modulo" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script type="application/x-maringa-modulo" src="./implantacao-core.js?v=implantacao-1"></script>
-<script type="application/x-maringa-modulo" src="./implantacao-ui.js?v=prefeitura-tabs-2"></script>
-<script type="application/x-maringa-modulo" src="./demo-colaboradores.js?v=demo-ajudantes-1"></script>
-<script type="application/x-maringa-modulo" src="./central-conversas.js?v=todas-home-20261106-1"></script>
-<script type="application/x-maringa-modulo" src="./gestao.js?v=ficha-ponto-20261106"></script>
-<script type="application/x-maringa-modulo" src="../dados-territoriais/camadas-mapas.js?v=territorio-2"></script>
-<script type="application/x-maringa-modulo" src="./catalogo-bairros.js?v=tabelas-canonicas-4"></script>
-<script type="application/x-maringa-modulo" src="./acoes-cabecalho.js?v=admin-geral-2"></script>
-<script src="../backend/vendor/supabase-2.119.0.js"></script>
-<script src="../backend/config.js?v=1"></script>
-<script src="../backend/repositorio.js?v=1"></script>
-<script src="../backend/boot.js?v=1" data-area="gestao"></script>
+<script type="application/x-maringa-modulo" src="./implantacao-core.js?v=e2c186139dd8"></script>
+<script type="application/x-maringa-modulo" src="./implantacao-ui.js?v=438d70172743"></script>
+<script type="application/x-maringa-modulo" src="./demo-colaboradores.js?v=717ec862b6ea"></script>
+<script type="application/x-maringa-modulo" src="./central-conversas.js?v=d3d71099767a"></script>
+<script type="application/x-maringa-modulo" src="./gestao.js?v=76bb6ec8ca63"></script>
+<script type="application/x-maringa-modulo" src="../dados-territoriais/camadas-mapas.js?v=4b75efea99fb"></script>
+<script type="application/x-maringa-modulo" src="./catalogo-bairros.js?v=728efecafa70"></script>
+<script type="application/x-maringa-modulo" src="./acoes-cabecalho.js?v=786c2da159f9"></script>
+<script src="../backend/vendor/supabase-2.119.0.js?v=f7b5aa661799"></script>
+<script src="../backend/config.js?v=96a06e7e3cd1"></script>
+<script src="../backend/repositorio.js?v=bb6c4a9868c3"></script>
+<script src="../backend/boot.js?v=a69849cddb3a" data-area="gestao"></script>
 </body>
 </html>

@@ -1,3 +1,12 @@
+/* Limites operacionais padrão. Unidade e finalidade explícitas; sem credenciais. */
+(function(root){'use strict';
+root.AlertaParametros=Object.freeze({
+ gps:Object.freeze({validadeMs:90000,raioCheckinMetros:150,precisaoMaximaMetros:100,timeoutMs:20000}),
+ implantacao:Object.freeze({timeoutMs:20000,timeoutCadastroMs:18000,timeoutMalhaMs:22000,paginasCnesMaximas:150,tamanhoPaginaCnes:20,arquivoBytesMaximos:14000000,linhasVisiveis:650,marcadoresVisiveis:600}),
+ ocorrencias:Object.freeze({raioDuplicidadeMetros:150,janelaDuplicidadeHoras:24,fotosMaximas:4,fotoBytesMaximos:750000}),
+ atendimento:Object.freeze({fotoBytesMaximos:8*1024*1024,fotoDimensaoMaxima:920,fotoQualidade:0.67,fotoTextoMaximo:900000})
+});
+})(globalThis);
 /* Dados de referência e bootstrap exclusivo da demonstração local.
  * Novos municípios são cadastrados no Admin Geral; não exigem alterar regras. */
 (function(root){
@@ -161,8 +170,7 @@ function criar({armazenamento,options,CHAVE,COLLECTIONS}){
    for(const collection of COLLECTIONS)if(Array.isArray(bruto[collection]))base[collection]=bruto[collection];
    base.municipioAtivo=bruto.municipioAtivo||base.municipioAtivo;
   }
-  // Compatibilidade dos dados demonstrativos antigos; nunca executada no modo remoto.
-  if(!options.semBootstrap&&!base.prefeituras.some(p=>p.id===seed.id||p.codigo_ibge===seed.codigo_ibge))base.prefeituras.unshift({...seed});
+  // Um cadastro existente é preservado, mesmo sem a prefeitura de demonstração.
   if(!base.prefeituras.some(p=>p.id===base.municipioAtivo))base.municipioAtivo=base.prefeituras[0]?.id||'';
   if(!options.semBootstrap)for(const city of base.prefeituras){
    if(!city.status)city.status=city.id===seed.id?seed.status:'implantacao';
@@ -370,6 +378,6 @@ function aplicarConfiguracao(config){
  GROUPS.splice(0,GROUPS.length,...config.grupos);
  COLLECTIONS.splice(0,COLLECTIONS.length,...new Set(Object.values(ESQUEMAS).map(x=>x.collection)));
 }
-const api={aplicarConfiguracao,CHAVE,UFS,CATALOGOS,ESQUEMAS,GROUPS,config:global.AlertaMunicipios,criar:criarAdaptador,criarLocal:criar};
+const api={aplicarConfiguracao,CHAVE,UFS,CATALOGOS,ESQUEMAS,GROUPS,config:global.AlertaMunicipios,parametros:global.AlertaParametros,criar:criarAdaptador,criarLocal:criar};
 global.AlertaGestaoDados=api;if(typeof module==='object'&&module.exports)module.exports=api;
 })(globalThis);

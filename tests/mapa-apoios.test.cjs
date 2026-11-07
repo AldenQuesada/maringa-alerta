@@ -16,8 +16,8 @@ test("mapa cadastra 5 pontos de coleta sem duplicar o cadastro da Prefeitura",()
  assert.equal(stats.novos,9);
  assert.equal(banco.lista("bases").filter(x=>x.tipo==="Centro de coleta de donativos").length,5);
  const app=read("evento/app.js");
- const begin=app.indexOf("const listarRecursosPublicos=()");
- const end=app.indexOf("void Promise.allSettled(",begin);
+ const begin=app.indexOf('function montarMarcadoresPublicos(){');
+ const end=app.indexOf(' async function iniciar(){',begin);
  assert.ok(begin>=0&&end>begin);
  const script=app.slice(begin,end);
  const pins=[];
@@ -30,6 +30,9 @@ test("mapa cadastra 5 pontos de coleta sem duplicar o cadastro da Prefeitura",()
   INVENTARIO:require("../mapas/inventario.js"),filtrosCadastros:{mostrar:()=>true,rows:()=>require("../mapas/inventario.js").registros(banco)},noRecorte:()=>true,painelPonto:{abrir(){}},
   AlertaImportacaoPublica:{carregar:()=>Promise.resolve({novos:0})},buscaMapa:{value:""},
   console};
+ scope.dependencias=scope;
+ scope.layerRecursosPublicos=L.layerGroup().addTo(scope.map);
+ scope.linhasInventario=()=>scope.filtrosCadastros.rows();
  vm.runInNewContext(script,scope);
  const count=vm.runInContext("montarMarcadoresPublicos()",scope);
  assert.equal(count,5);

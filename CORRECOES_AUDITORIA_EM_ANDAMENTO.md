@@ -1,6 +1,6 @@
 # Correções da auditoria — estado de execução
 
-A refatoração local avançou independentemente do acesso ao Supabase. O pedido completo de eliminar os acoplamentos restantes e publicar depois da validação continua em andamento. Este documento acompanha o diagnóstico inicial; não certifica conclusão do sistema.
+A separação dos controladores legados identificados e a revisão dos hardcodes municipais e operacionais desta rodada foram concluídas no código local, independentemente do acesso ao Supabase. A publicação continua pendente da homologação autenticada. Este documento acompanha o diagnóstico inicial; não certifica conclusão operacional do sistema.
 
 ## Entregue no código local
 
@@ -15,13 +15,21 @@ A refatoração local avançou independentemente do acesso ao Supabase. O pedido
 - Mapas e implantação usam centro/limites cadastrados; prefeitura sem polígonos não herda limites demonstrativos. O recorte territorial mantém as ligações entre zona e bairro.
 - Removidas as setas decorativas dos botões de mapas. A ação de cadastrar uma referência territorial usa sinal + amarelo e rótulo acessível, no formulário existente.
 
+- Concluída a separação dos controladores da Gestão, implantação visual, mapas auxiliares, ocorrências e cabeçalho. No Evento, 28 controladores têm estado privado, contratos explícitos e inicialização idempotente. Nenhuma fonte do manifesto depende de abertura/fechamento de função em outro arquivo.
+- Central de Conversas dividida em nove módulos. Roteiro e identificação acompanham a prefeitura ativa. Fixtures e importador histórico separados das regras, restritos por IBGE; abertura normal não gera novos colaboradores fictícios.
+- Limites de GPS, anexos, importação e duplicidade centralizados em `config/parametros.js`. Corrigidos bloqueio de gravação simultânea e limpeza da prévia ao trocar de prefeitura.
+- Versões de JavaScript/CSS calculadas pelo conteúdo nas cinco páginas e no Service Worker. O build impede fontes incompletas e recursos publicados divergentes.
+- A inspeção real corrigiu cabeçalho municipal fixo, sobreposição dos comandos móveis e cálculo de tamanho dos mapas enquanto a página estava oculta pelo acesso. Removidas setas decorativas restantes; preservados cadastro existente, sinal + amarelo e rolagem escura.
+
 ## Validação desta rodada
 
-225 testes aprovados com Node.js 22.23.2, montagem canônica conferida, sintaxe válida em 66 arquivos completos e `git diff --check` sem erros. O gerador SQL conferiu os 5.571 municípios do catálogo local; isso não é uma nova verificação do banco remoto.
+235 testes aprovados com Node.js 22.23.2. Os 16 bundles e suas 125 fontes independentes passaram pela montagem canônica e verificação de versões. A verificação de sintaxe cobriu 216 arquivos JS/CJS/MJS, sem erros. `git diff --check` sem erros. O gerador SQL conferiu os 5.571 municípios do catálogo local; isso não é uma nova verificação do banco remoto.
 
-A suíte inclui casos de implantação e CNES em Manaus, bloqueio de pacotes de outra cidade, isolamento de cache, preservação de referências existentes, filas e auditoria locais, gravação assíncrona, falha de persistência e prevenção de confirmação repetida. Testes de DOM executam o formulário da Gestão e o fluxo de solicitação do Atendimento com o HTML real.
+A suíte inclui isolamento por IBGE, implantação/CNES em Manaus, bloqueio de pacotes de outra cidade, cache por município, gravação assíncrona, preservação após falha, prevenção de gravação repetida, troca de prefeitura e inicialização idempotente dos controladores. Testes de DOM usam o HTML real; neles, Leaflet é um objeto de teste, sem validar a renderização cartográfica.
 
-A validação visual em navegador continua pendente: o controlador de navegador não respondeu. Os testes de DOM verificam comportamento, mas não substituem inspeção visual de desktop e celular. Nenhuma publicação foi feita nesta rodada.
+A inspeção visual foi realizada em Chrome headless com perfil descartável, servidor localhost e Leaflet real, depois da indisponibilidade do controlador de navegador. Foram verificadas seis telas em 1440 × 960 e 390 × 844: painel do Admin Geral, cadastro de prefeitura, Gestão, Evento, Colaboradores e Pra Somar. Não ocorreram exceções JavaScript nas telas percorridas; o transbordamento móvel dos mapas foi corrigido. O cadastro local de Recife pelo catálogo IBGE foi concluído nas duas etapas, mantendo Manaus e sem inserir prefeitura demonstrativa extra. O cabeçalho do Evento foi revalidado depois do ajuste final.
+
+Evidências e resultado estruturado: `evidencias-refatoracao/`. Os ensaios de navegador usaram somente dados fictícios em modo local; não autenticaram nem gravaram no Supabase. Nenhuma publicação foi feita nesta rodada.
 
 ## E-mail e acesso
 
@@ -31,8 +39,7 @@ O remetente solicitado é `contato@aldenquesada.org`. Nenhuma senha foi escrita 
 
 ## Pendências identificadas
 
-- Extrair os controladores ainda compartilhados listados em `ARQUITETURA_MODULAR.md`, especialmente Evento, mapas e renderização da Gestão. A ausência de nomes de cidade nesses controladores não comprova ausência de todos os hardcodes; regras e configurações restantes precisam de revisão por domínio.
 - Concluir a matriz operacional de permissões e integridade de referências no servidor, reconciliar o histórico de migrations e repetir a homologação autenticada no projeto correto.
-- Validar visualmente desktop/celular, operação de novas prefeituras, carga, recuperação, observabilidade e retenção.
+- Homologar no ambiente conectado a operação de novas prefeituras, incluindo permissões, carga, recuperação, observabilidade e retenção. A inspeção desktop/celular local está registrada acima.
 - Identificar o provedor de envio usado pela aplicação Lifesinal ou o provedor institucional; configurar e testar SMTP.
 - Publicar somente depois das validações correspondentes. Os testes locais não comprovam funcionamento do banco e do envio de e-mail em produção.

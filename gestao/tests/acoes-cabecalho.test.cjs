@@ -113,3 +113,15 @@ test("cabeçalho conectado salva tarefas e leituras no servidor sem modificar da
  h.buttons[1].onclick();await h.node('ma-mark-all').onclick();
  assert.deepEqual(writes,[['maringa','tasks'],['maringa','alerts']]);assert.equal(JSON.stringify([...h.store]),before);
 });
+
+test('tarefas e alertas aguardam confirmação antes de atualizar o painel conectado',async()=>{
+ const rows={tasks:[],alerts:[]};let confirm;
+ const h=harness({ativo:true,painel:{ler:(_,key)=>rows[key],salvar:(_,key,value)=>new Promise(resolve=>{confirm=()=>{rows[key]=value;resolve(true);};})}});
+ h.buttons[0].onclick();const form=h.node('ma-task-form');form.title='Conferir estrutura';
+ const save=form.onsubmit({preventDefault(){},currentTarget:form});
+ assert.equal(rows.tasks.length,0);assert.equal(h.node('ma-count-tasks').textContent,'0');
+ confirm();await save;assert.equal(h.node('ma-count-tasks').textContent,'1');
+ h.buttons[1].onclick();const read=h.node('ma-mark-all').onclick();
+ assert.equal(rows.alerts.length,0);assert.equal(h.node('ma-count-alerts').textContent,'1');
+ confirm();await read;assert.equal(h.node('ma-count-alerts').textContent,'0');
+});
