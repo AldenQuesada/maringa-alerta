@@ -1,6 +1,5 @@
-/* Navegação dos três mapas.
- * Enquanto o enquadramento institucional não for confirmado em código, preservar
- * controles do Leaflet e permitir a calibração manual sem alterar cadastros.
+/* Navegação dos três mapas, com câmera institucional e limite mínimo de zoom.
+ * O Pra Somar permite arraste desde a origem; demais mapas preservam sua regra.
  * Preferências antigas de câmera (localStorage) não são usadas como padrão.
  */
 (function(global){
@@ -19,16 +18,17 @@
   return typeof global.location?.search==="string"&&
     new URLSearchParams(global.location.search).get("calibrar")==="1";
  }
- function atualizarArraste(map){
-  // Na posição inicial o mapa não se arrasta; depois de aproximar pode explorar.
-  // Ao voltar ao zoom mínimo, o arraste é bloqueado novamente.
-  if(emCalibracao()||map.getZoom()>map.getMinZoom()+0.001)map.dragging?.enable?.();
+ function atualizarArraste(map,arrasteNoMinimo=false){
+  // Pra Somar permite arraste desde a origem; os demais mapas mantêm sua regra.
+  if(arrasteNoMinimo||emCalibracao()||map.getZoom()>map.getMinZoom()+0.001)map.dragging?.enable?.();
   else map.dragging?.disable?.();
  }
- function liberarNavegacao(map,L,limites){
+ function liberarNavegacao(map,L,limites,arrasteNoMinimo=false){
   // Filtros e buscas continuam podendo centralizar pelo Leaflet.
-  atualizarArraste(map);
-  map.setMaxBounds(limites?L.latLngBounds(limites).pad(.08):L.latLngBounds([]));
+  atualizarArraste(map,arrasteNoMinimo);
+  // No Pra Somar o limite pedido é de escala, não de deslocamento. maxBounds
+  // empurrava a câmera aprovada para outro centro em monitores largos.
+  map.setMaxBounds(limites&&!arrasteNoMinimo?L.latLngBounds(limites).pad(.08):L.latLngBounds([]));
   map.options.maxBoundsViscosity=1;
   map.zoomControl.getContainer().classList?.remove("camera-original-fixa");
  }
@@ -105,7 +105,7 @@
   referenciaVisivel(map,identificador);
   return {restaurar,limites:bounds,botao,zoomMinimo:()=>ultimoZoom};
  }
- function instalarVistaSalva({limites=areaPadrao(),map,L,identificador="colaboradores",vistaInicial=null,aoRestaurar}){
+ function instalarVistaSalva({limites=areaPadrao(),map,L,identificador="colaboradores",vistaInicial=null,arrasteNoMinimo=false,aoRestaurar}){
   if(!map||!L||!map.zoomControl?.getContainer)throw new TypeError("Mapa Leaflet inválido.");
   // Somente a câmera institucional expressamente aprovada pode definir o padrão.
   // Na calibração, não aplicar essa câmera para permitir reposicionamento manual.
@@ -115,21 +115,38 @@
     (!limites||(vistaInicial.lng>=limites[0][1]&&vistaInicial.lng<=limites[1][1]))&&
     vistaInicial.zoom>=2&&vistaInicial.zoom<=18);
   if(fixar){
+    if(arrasteNoMinimo)map.setMaxBounds(L.latLngBounds([]));
     map.setMinZoom(0);
-    map.setView([vistaInicial.lat,vistaInicial.lng],vistaInicial.zoom,{animate:false});
+    map.setView([vistaInicial.lat,vistaInicial.lng],vistaInicial.zoom,{animate:false,reset:arrasteNoMinimo});
   }
   const c=map.getCenter();
   const home={lat:c.lat,lng:c.lng,zoom:map.getZoom()};
   map.setMinZoom(home.zoom);
-  liberarNavegacao(map,L,limites);
-  const restaurar=()=>{if(aoRestaurar)aoRestaurar();map.setView([home.lat,home.lng],home.zoom,{animate:false});};
+  // O limite vale também para pinça no celular, sem afastamento elástico.
+  if(arrasteNoMinimo)map.options.bounceAtZoomLimits=false;
+  liberarNavegacao(map,L,limites,arrasteNoMinimo);
+  let tamanho=map.getSize(),centroAtual={lat:home.lat,lng:home.lng};
+  map.on("moveend",()=>{
+   const atual=map.getSize();
+   // Leaflet emite moveend antes de resize. Não salvar esse deslocamento de layout.
+   if(atual.x===tamanho.x&&atual.y===tamanho.y){
+    const centro=map.getCenter();centroAtual={lat:centro.lat,lng:centro.lng};
+   }
+  });
+  const restaurar=()=>{if(aoRestaurar)aoRestaurar();centroAtual={lat:home.lat,lng:home.lng};map.setView([home.lat,home.lng],home.zoom,{animate:false,reset:arrasteNoMinimo});};
   const botao=botaoInicio(map,L,restaurar);
-  map.on("zoomend",()=>atualizarArraste(map));
+  map.on("zoomend",()=>atualizarArraste(map,arrasteNoMinimo));
   map.on("resize",()=>{
-    liberarNavegacao(map,L,limites);
+    liberarNavegacao(map,L,limites,arrasteNoMinimo);
+    if(arrasteNoMinimo){
+      map.setView([centroAtual.lat,centroAtual.lng],map.getZoom(),{animate:false,reset:true});
+      tamanho=map.getSize();
+      return;
+    }
     // Mudança de tamanho do painel não pode deslocar a vista inicial aprovada.
     if(fixar&&Math.abs(map.getZoom()-home.zoom)<.0001)
       map.setView([home.lat,home.lng],home.zoom,{animate:false});
+    tamanho=map.getSize();
   });
   referenciaVisivel(map,identificador);
   return {restaurar,botao,zoomMinimo:()=>home.zoom};

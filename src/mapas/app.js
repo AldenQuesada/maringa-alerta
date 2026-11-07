@@ -104,7 +104,8 @@ municipSelector();renderMunicipio();configurarCamadas();render();
 window.AlertaMapaNavegacao.instalarVistaSalva({limites:AlertaGestaoDados.config.limites(state.app.prefeitura()),
  map,L,identificador:TIPO==="ajuda"?"pra-somar":"colaboradores",
  // Referência exata escolhida pelo usuário: Pra Somar, não Colaboradores.
- vistaInicial:TIPO==="ajuda"?AlertaGestaoDados.config.referencias(state.app.prefeitura()).vistaAjuda||null:null
+ vistaInicial:AlertaGestaoDados.config.vistaMapa(state.app.prefeitura(),TIPO),
+ arrasteNoMinimo:TIPO==="ajuda"
 });
 void carregarZonasOficiais();
 const fontesPublicas=(AlertaGestaoDados.config.referencias(state.app.prefeitura()).publicas||[]).map(path=>"../"+path);

@@ -1,4 +1,5 @@
-/* Dados de referência e bootstrap exclusivo da demonstração local.
+/* Configuração municipal; apenas o bootstrap é exclusivo da demonstração local.
+ * A câmera institucional também é usada na operação conectada.
  * Novos municípios são cadastrados no Admin Geral; não exigem alterar regras. */
 (function(root){
 'use strict';
@@ -13,7 +14,8 @@ const referencias={
   mapaDemonstrativo:true,
   importarZonasReferencia:true,
   legadoAdmin:"maringa_admin_v1",
-  vistaAjuda:{lat:-23.4398505,lng:-51.9680312,zoom:12.7027}
+  // Vista indicada na tela em 07/11/2026; zoom mínimo do Pra Somar.
+  vistaAjuda:{lat:-23.4211409,lng:-51.9242705,zoom:13.2441}
  }
 };
 root.AlertaMunicipiosConfiguracao={demonstracao,referencias};

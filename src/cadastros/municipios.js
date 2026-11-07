@@ -7,6 +7,12 @@ function referencias(municipio){
  if(root.AlertaNuvem?.ativo)return {catalogoBairros:'MaringaBairros',identidade:clone(municipio?.identidade||{}),mapaDemonstrativo:false,importarZonasReferencia:false};
  return clone(root.AlertaMunicipiosConfiguracao.referencias[municipio?.codigo_ibge]||{});
 }
+// A câmera é uma preferência de navegação, independente das fontes de demonstração.
+// Não passar por referencias(): o modo conectado filtra essas fontes.
+function vistaMapa(municipio,tipo){
+ const vista=tipo==='ajuda'?root.AlertaMunicipiosConfiguracao.referencias[municipio?.codigo_ibge]?.vistaAjuda:null;
+ return vista?clone(vista):null;
+}
 function selecionar(dados,sessoes=root.sessionStorage){
  const db=dados.criar(),requested=sessoes?.getItem('alerta_contexto_municipal_demo_v1');
  const cities=db.municipios();
@@ -25,5 +31,5 @@ function limites(municipio){
  const box=municipio?.bbox_navegacao||municipio?.bbox;
  return Array.isArray(box)&&box.length===4&&box.every(x=>Number.isFinite(Number(x)))?[[Number(box[0]),Number(box[2])],[Number(box[1]),Number(box[3])]]:null;
 }
-root.AlertaMunicipios={demonstracao,referencias,selecionar,marca,centro,limites};
+root.AlertaMunicipios={demonstracao,referencias,vistaMapa,selecionar,marca,centro,limites};
 })(globalThis);
