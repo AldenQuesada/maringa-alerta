@@ -1,62 +1,10 @@
-/* Simulador demonstrativo de conversas WhatsApp. Nunca envia mensagens reais. */
-(function(){
-"use strict";
-const $=id=>document.getElementById(id);
-const app=MaringaCrise.criar({municipioId:"maringa",escopoMunicipal:true}); // Esta rota é exclusiva da Prefeitura de Maringá.
-const dados=app.db, catalogos=AlertaGestaoDados.CATALOGOS;
-const municipio=app.prefeitura()?.nome||"Município";
-const history=$("history"),options=$("options"),form=$("reply-form"),input=$("reply");
-const uploadArea=$("upload-area"),photoInput=$("photo-input"),photoPreview=$("photo-preview");
-let identity=null,role=null,answers={},steps=[],index=0,current=null,arquivosFoto=null;
-const hora=()=>new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
-function msg(texto,person=false,notice=false,imagem=null){
- const el=document.createElement("div");el.className="message"+(person?" person":"")+(notice?" notice":"");
- if(imagem){
-  const img=document.createElement("img");img.className="message-media";img.alt=imagem.alt||"Imagem";img.src=imagem.src;el.appendChild(img);
- }
- if(texto){
-  const s=document.createElement("span");
-  if(imagem){s.className="media-copy";const h=document.createElement("div");h.className="media-caption";h.textContent=imagem.titulo||"Pra Somar";el.appendChild(h);}
-  s.textContent=texto;el.appendChild(s);
- }
- const small=document.createElement("small");small.textContent=hora();el.appendChild(small);
- history.appendChild(el);history.scrollTop=history.scrollHeight;return el;
-}
-function clear(){
- options.replaceChildren();form.hidden=true;input.value="";input.required=false;
- uploadArea.hidden=true;photoPreview.hidden=true;
- $("compose-placeholder").hidden=false;
-}
-function bot(texto,notice=false,imagem=null){clear();return msg(texto,false,notice,imagem);}
-function button(label,fn,classe=""){
- const b=document.createElement("button");b.type="button";b.className="choice "+classe;b.textContent=label;
- b.onclick=fn;options.appendChild(b);return b;
-}
-function optionsSimple(itens){
- clear();for(const [label,fn,classe] of itens){
-  button(label,()=>{msg(label,true);clear();fn();},classe||"");
- }
-}
-function startMenu(){
- // O cidadão entra exclusivamente pelos três fluxos canônicos.
- identity=null;role=null;answers={};steps=[];index=0;current=null;arquivosFoto=null;
- form.onsubmit=responderEtapa;
- bot("Olá! Bem-vindo ao Maringá Alerta.\n\nUm sistema desenvolvido pela Prefeitura de Maringá para que todos possam somar esforços na recuperação da nossa cidade em caso de eventos climáticos e desastres naturais.\n\nEscolha uma opção para continuar:");
- optionsSimple([
-  ["Ser colaborador",()=>abrirPraSomar(),"submit"],
-  ["Relatar ocorrência",()=>start("relato")],
-  ["Preciso de ajuda",()=>start("solicitacao")]
- ]);
-}
-function abrirPraSomar(){
- bot("Programa de Apoio Social e Mobilização Voluntária de Maringá\n\n“Onde a boa vontade se transforma em ação”\n\nUnindo:\nEmpresas 🤝 Voluntários 🤝 Entidades\n\nPara começar, digite seu nome e sobrenome 👇",false,{
-  src:"../assets/pra-somar-original.webp",alt:"Identidade visual do Pra Somar enviada para a demonstração",titulo:"Pra Somar · Mobilização voluntária"
- });
- start("colaborador",true); // O nome já foi perguntado na mensagem com a imagem; sem etapa intermediária.
-}
+/* Contrato das perguntas, escolhas e vínculos territoriais; independente da interface. */
+(function(root){'use strict';
+function criar({catalogos,dados,municipio,uf,obterIdentidade=()=>null}){
 const BENS=new Set(["FORNECER ALIMENTAÇÃO","MATERIAL DE CONSTRUÇÃO","COMBUSTÍVEL"]);
 const ofereceBens=a=>["ajudas","maquinas","materiais"].some(k=>(a[k]||[]).some(x=>BENS.has(x)));
 function identificarCampos(papel){
+ const identity=obterIdentidade();
  if(papel==="solicitacao")return [
   {key:"nome",q:"Qual é seu nome?",kind:"text",required:true},
   {key:"endereco",q:"Qual é o endereço onde você precisa de ajuda?",kind:"text",required:true},
@@ -65,11 +13,10 @@ function identificarCampos(papel){
  const b=[];
  if(!identity?.nome)b.push({key:"nome",q:"Qual é seu nome?",kind:"text",required:true});
  if(papel!=="relato"&&!identity?.tipo_pessoa)b.push({key:"tipo_pessoa",q:"Como você gostaria de se cadastrar?",kind:"single",opts:["FÍSICA","JURÍDICA"],required:true});
- if(papel!=="relato"&&!identity?.endereco)b.push({key:"endereco",q:papel==="colaborador"?"Informe seu endereço seguindo este formato:\nRua ou avenida, número, complemento (se houver), bairro, cidade/UF e CEP (se souber).\n\nExemplo: Av. XV de Novembro, 701, Centro, Maringá/PR, 87013-230.\n\nSe não houver número, escreva s/n. 👇":"Informe seu endereço. Ele ficará reservado à equipe de atendimento.",kind:"text",required:true});
+ if(papel!=="relato"&&!identity?.endereco)b.push({key:"endereco",q:papel==="colaborador"?"Informe seu endereço seguindo este formato:\nRua ou avenida, número, complemento (se houver), bairro, cidade/UF e CEP (se souber).\n\nExemplo: Rua das Flores, 100, Centro, "+municipio+"/"+(uf||"UF")+", CEP.\n\nSe não houver número, escreva s/n. 👇":"Informe seu endereço. Ele ficará reservado à equipe de atendimento.",kind:"text",required:true});
  if(!identity?.telefone)b.push({key:"telefone",q:"Qual é seu telefone com DDD?",kind:"tel",required:true});
  return b;
 }
-// Não exigir que o cidadão saiba a zona: usa somente vínculos territoriais já cadastrados.
 function zonaPeloEndereco(endereco){
  const norm=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
  const texto=" "+norm(endereco)+" ";
@@ -111,23 +58,6 @@ function definirSteps(papel){
   {key:"foto",q:"Envie uma foto da ocorrência, se for seguro fotografar. Você também pode concluir sem foto.",kind:"photo"}
  ];
 }
-function start(papel,nomeJaPerguntado=false){
- form.onsubmit=responderEtapa;role=papel;answers=identity?{...identity}:{};steps=definirSteps(papel);index=0;current=null;arquivosFoto=null;
- if(papel==="colaborador" && nomeJaPerguntado){proxima(true);return;}
- if(papel==="solicitacao"){proxima();return;}
- bot("Vamos registrar a ocorrência em poucos passos. Em risco imediato, ligue 190, 192 ou 193. Não se aproxime de fios, árvores instáveis ou estruturas danificadas.");proxima();
-}
-function gravarResposta(valor,exibicao=null){
- if(!current)return;
- answers[current.key]=valor;
- if(role==="colaborador" && ["ajudas","maquinas","empreendedores"].includes(current.key) &&
-   !["ajudas","maquinas","empreendedores"].some(grupo=>(answers[grupo]||[]).includes("OUTRO")))delete answers.outros;
- if(role==="colaborador" && ["ajudas","maquinas","materiais"].includes(current.key) && !ofereceBens(answers))
-  delete answers.forma_entrega_doacao;
- const exib=exibicao??(Array.isArray(valor)?(valor.join(" · ")||"Nenhuma opção selecionada"):String(valor||"Prefiro não informar"));
- msg(exib,true);index++;proxima();
-}
-// Uma única escolha usa botões; múltiplas usam números digitados no chat.
 function interpretarEscolhaMultipla(texto,pergunta){
  const entrada=String(texto||"").trim().replace(/\s+e\s+/gi,",");
  const partes=entrada.split(/[,;\s]+/).filter(Boolean);
@@ -146,6 +76,184 @@ function interpretarEscolhaMultipla(texto,pergunta){
   return {erro:'"'+pergunta.exclusive+'" não pode ser combinada com outras respostas. Informe apenas o seu número.'};
  return {opcoes};
 }
+return {ofereceBens,identificarCampos,zonaPeloEndereco,definirSteps,interpretarEscolhaMultipla};
+}
+root.AlertaAtendimentoPassos={criar};
+})(globalThis);
+/* Tratamento de anexos com liberação da URL temporária. */
+(function(root){'use strict';
+function criar({document,URL,Image,limites}){
+async function prepararFoto(arquivo){
+ if(!arquivo||!arquivo.type.startsWith("image/"))throw Error("Selecione uma imagem.");
+ if(arquivo.size>limites.fotoBytesMaximos)throw Error("A imagem deve ter no máximo "+(limites.fotoBytesMaximos/1024/1024)+" MB.");
+ const url=URL.createObjectURL(arquivo);
+ try{
+  const imagem=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(Error("Não foi possível abrir a foto."));i.src=url;});
+  const escala=Math.min(1,limites.fotoDimensaoMaxima/Math.max(imagem.naturalWidth,imagem.naturalHeight));
+  const canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(imagem.naturalWidth*escala));canvas.height=Math.max(1,Math.round(imagem.naturalHeight*escala));
+  canvas.getContext("2d").drawImage(imagem,0,0,canvas.width,canvas.height);
+  const dados=canvas.toDataURL("image/jpeg",limites.fotoQualidade);
+  if(dados.length>limites.fotoTextoMaximo)throw Error("A foto é grande demais para este simulador local.");
+  return {nome:arquivo.name,dados};
+ }finally{URL.revokeObjectURL(url);}
+}
+return {prepararFoto};
+}
+root.AlertaAtendimentoFoto={criar};
+})(globalThis);
+/* Um registro por conclusão; aguarda a persistência local ou remota antes de confirmar. */
+(function(root){'use strict';
+function protocolo(prefixo,id){return prefixo+"-SIM-"+String(id).replace(/[^a-z0-9]/gi,"").slice(-7).toUpperCase();}
+function criar({app,dados,zonaPeloEndereco}){
+ async function concluir({papel:role,respostas,foto:arquivosFoto,identidade}){
+  if(!['colaborador','solicitacao','relato'].includes(role))throw Error('Fluxo de atendimento inválido.');
+  const answers=JSON.parse(JSON.stringify(respostas));
+  let identity=identidade?{...identidade}:null,mensagem='';
+  const destino=dados.tipo==='supabase'?'no sistema municipal':'neste navegador';
+  if(role==="colaborador"||role==="solicitacao")answers.zona=zonaPeloEndereco(answers.endereco);
+  if(role==="colaborador"){
+   const outros=String(answers.outros||"").trim();
+   const resultado=await app.registrarColaborador({...answers,outros,disponibilidade:"A combinar"});
+   identity={nome:resultado.nome,tipo_pessoa:resultado.tipo_pessoa,telefone:resultado.telefone,endereco:resultado.endereco,email:resultado.email,zona:resultado.zona};
+   mensagem="Cadastro de colaborador concluído! ✅\n\nProtocolo: "+protocolo("COL",resultado.id)+
+    "\nOfertas cadastradas: "+new Set([resultado.ajudas,resultado.maquinas,resultado.empreendedores,resultado.materiais].flat().filter(Boolean)).size+
+    (resultado.forma_entrega_doacao?"\nDoação: "+resultado.forma_entrega_doacao:"")+
+    "\n\nOs dados aparecem na Gestão e no Mapa de Colaboradores "+destino+". Nenhuma mensagem foi enviada a órgãos ou voluntários.";
+  }else if(role==="solicitacao"){
+   // "Outro" é somente a classificação interna; a necessidade fica no texto original do cidadão.
+   const pedido=(await app.registrarPedido({...answers,necessidade:"Outro",descricao:String(answers.descricao||"").trim(),urgencia:"Não avaliada"})).pedido;
+   identity={...identity,nome:pedido.nome,telefone:pedido.telefone,endereco:pedido.endereco,zona:pedido.zona};
+   mensagem="Seu pedido de ajuda foi registrado. ✅\n\nAjuda solicitada: "+pedido.descricao+
+    "\nSituação: "+pedido.status+
+    "\n\nO pedido aparece no Mapa da Ajuda "+destino+", sem divulgar seu endereço. Nenhuma mensagem real foi enviada.";
+  }else if(role==="relato"){
+   const registro=await dados.gravar("relatos",{
+    nome:String(answers.nome||"").trim(),
+    telefone:String(answers.telefone||"").trim(),
+    endereco:String(answers.endereco_ocorrencia||"").trim(),
+    pessoas_no_local:Array.isArray(answers.pessoas_no_local)?answers.pessoas_no_local:[],
+    descricao:String(answers.necessidade_relato||"").trim(),
+    foto:arquivosFoto?.dados||"",
+    foto_nome:arquivosFoto?.nome||"",
+    status:"Em triagem",origem:"Cidadão · simulador",
+    criado_em:new Date().toISOString()
+   });
+   identity={...identity,nome:registro.nome,telefone:registro.telefone};
+   mensagem="Relato recebido para triagem! ✅\n\nProtocolo de demonstração: "+protocolo("OCO",registro.id)+
+    "\nEndereço: "+registro.endereco+
+    "\nSituação: "+registro.status+
+    (registro.foto?"\nFoto anexada com sucesso.":"\nSem foto anexada.")+
+    "\n\nA equipe deverá verificar antes de confirmar uma ocorrência no Mapa de Evento. Nenhum acionamento real foi realizado.";
+  }
+  return {identidade:identity,mensagem};
+ }
+ return {concluir};
+}
+root.AlertaAtendimentoRegistro={criar};
+})(globalThis);
+/* Simulador demonstrativo de conversas WhatsApp. Nunca envia mensagens reais. */
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const app=MaringaCrise.criar({municipioId:AlertaGestaoDados.config.selecionar(AlertaGestaoDados,sessionStorage),escopoMunicipal:true}); // O contexto acompanha a prefeitura selecionada.
+const dados=app.db, catalogos=AlertaGestaoDados.CATALOGOS;
+const municipio=app.prefeitura()?.nome||"Município";
+const identidade=AlertaGestaoDados.config.referencias(app.prefeitura()).identidade||{};
+const cabecalho=document.querySelector('.header-title');
+if(cabecalho){cabecalho.querySelector('strong').textContent='Prefeitura '+municipio;cabecalho.querySelector('small').textContent=identidade.perfil||'Atendimento municipal';}
+document.title='Prefeitura '+municipio+' · Pra Somar';
+const toolbar=document.querySelector('.demo-brand');
+if(toolbar){toolbar.querySelector('strong').textContent='Prefeitura '+municipio;toolbar.querySelector('small').textContent=identidade.perfil||'Atendimento municipal';}
+const logo=document.querySelector('#municipal-logo');if(logo&&identidade.logo){logo.src=identidade.logo;logo.alt='Brasão da Prefeitura de '+municipio;logo.hidden=false;}
+const avatar=document.querySelector('.avatar');
+if(avatar&&identidade.logo){const img=document.createElement('img');img.src=identidade.logo;img.alt='Logo da Prefeitura de '+municipio;avatar.replaceChildren(img);}
+const history=$("history"),options=$("options"),form=$("reply-form"),input=$("reply");
+const uploadArea=$("upload-area"),photoInput=$("photo-input"),photoPreview=$("photo-preview");
+let identity=null,role=null,answers={},steps=[],index=0,current=null,arquivosFoto=null;
+
+const {ofereceBens,identificarCampos,zonaPeloEndereco,definirSteps,interpretarEscolhaMultipla}=AlertaAtendimentoPassos.criar({catalogos,dados,municipio,uf:app.prefeitura()?.uf,obterIdentidade:()=>identity});
+const {prepararFoto}=AlertaAtendimentoFoto.criar({document,URL,Image,limites:AlertaGestaoDados.parametros.atendimento});
+const registroAtendimento=AlertaAtendimentoRegistro.criar({app,dados,zonaPeloEndereco});
+let salvando=false;
+async function concluir(){
+ if(salvando)return;
+ salvando=true;clear();
+ try{
+  const result=await registroAtendimento.concluir({papel:role,respostas:answers,foto:arquivosFoto,identidade:identity});
+  identity=result.identidade;bot(result.mensagem);finalizarOpcoes();
+ }catch(err){
+  bot('Não foi possível salvar: '+(err?.message||'erro desconhecido')+'. Confira seus dados ou reduza a foto.',true);
+  optionsSimple([['Revisar respostas',()=>mostrarRevisao(),'submit'],['Voltar ao início',()=>startMenu()]]);
+ }finally{salvando=false;}
+}
+const hora=()=>new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+function msg(texto,person=false,notice=false,imagem=null){
+ const el=document.createElement("div");el.className="message"+(person?" person":"")+(notice?" notice":"");
+ if(imagem){
+  const img=document.createElement("img");img.className="message-media";img.alt=imagem.alt||"Imagem";img.src=imagem.src;el.appendChild(img);
+ }
+ if(texto){
+  const s=document.createElement("span");
+  if(imagem){s.className="media-copy";const h=document.createElement("div");h.className="media-caption";h.textContent=imagem.titulo||"Pra Somar";el.appendChild(h);}
+  s.textContent=texto;el.appendChild(s);
+ }
+ const small=document.createElement("small");small.textContent=hora();el.appendChild(small);
+ history.appendChild(el);history.scrollTop=history.scrollHeight;return el;
+}
+function clear(){
+ options.replaceChildren();form.hidden=true;input.value="";input.required=false;
+ uploadArea.hidden=true;photoPreview.hidden=true;
+ $("compose-placeholder").hidden=false;
+}
+function bot(texto,notice=false,imagem=null){clear();return msg(texto,false,notice,imagem);}
+function button(label,fn,classe=""){
+ const b=document.createElement("button");b.type="button";b.className="choice "+classe;b.textContent=label;
+ b.onclick=fn;options.appendChild(b);return b;
+}
+function optionsSimple(itens){
+ clear();for(const [label,fn,classe] of itens){
+  button(label,()=>{msg(label,true);clear();fn();},classe||"");
+ }
+}
+function startMenu(){
+ if(salvando)return;
+ // O cidadão entra exclusivamente pelos três fluxos canônicos.
+ identity=null;role=null;answers={};steps=[];index=0;current=null;arquivosFoto=null;
+ form.onsubmit=responderEtapa;
+ bot("Olá! Bem-vindo ao "+AlertaGestaoDados.config.marca(app.prefeitura())+".\n\nUm sistema desenvolvido pela Prefeitura de "+municipio+" para que todos possam somar esforços na recuperação da nossa cidade em caso de eventos climáticos e desastres naturais.\n\nEscolha uma opção para continuar:");
+ optionsSimple([
+  ["Ser colaborador",()=>abrirPraSomar(),"submit"],
+  ["Relatar ocorrência",()=>start("relato")],
+  ["Preciso de ajuda",()=>start("solicitacao")]
+ ]);
+}
+function abrirPraSomar(){
+ bot("Programa de Apoio Social e Mobilização Voluntária de "+municipio+"\n\n“Onde a boa vontade se transforma em ação”\n\nUnindo:\nEmpresas 🤝 Voluntários 🤝 Entidades\n\nPara começar, digite seu nome e sobrenome 👇",false,identidade.apresentacao?{
+  src:"../"+identidade.apresentacao,alt:"Identidade visual do Pra Somar enviada para a demonstração",titulo:"Pra Somar · Mobilização voluntária"
+ }:null);
+ start("colaborador",true); // O nome já foi perguntado na mensagem com a imagem; sem etapa intermediária.
+}
+
+// Não exigir que o cidadão saiba a zona: usa somente vínculos territoriais já cadastrados.
+
+function start(papel,nomeJaPerguntado=false){
+ form.onsubmit=responderEtapa;role=papel;answers=identity?{...identity}:{};steps=definirSteps(papel);index=0;current=null;arquivosFoto=null;
+ if(papel==="colaborador" && nomeJaPerguntado){proxima(true);return;}
+ if(papel==="solicitacao"){proxima();return;}
+ bot("Vamos registrar a ocorrência em poucos passos. Em risco imediato, ligue 190, 192 ou 193. Não se aproxime de fios, árvores instáveis ou estruturas danificadas.");proxima();
+}
+function gravarResposta(valor,exibicao=null){
+ if(!current)return;
+ answers[current.key]=valor;
+ if(role==="colaborador" && ["ajudas","maquinas","empreendedores"].includes(current.key) &&
+   !["ajudas","maquinas","empreendedores"].some(grupo=>(answers[grupo]||[]).includes("OUTRO")))delete answers.outros;
+ if(role==="colaborador" && ["ajudas","maquinas","materiais"].includes(current.key) && !ofereceBens(answers))
+  delete answers.forma_entrega_doacao;
+ const exib=exibicao??(Array.isArray(valor)?(valor.join(" · ")||"Nenhuma opção selecionada"):String(valor||"Prefiro não informar"));
+ msg(exib,true);index++;proxima();
+}
+// Uma única escolha usa botões; múltiplas usam números digitados no chat.
+
 function proxima(perguntaJaExibida=false){
  clear();
  while(index<steps.length&&steps[index].quando&&!steps[index].quando(answers))index++;
@@ -189,7 +297,7 @@ function proxima(perguntaJaExibida=false){
   input.type=current.kind==="tel"?"tel":"text";
   input.inputMode=current.kind==="tel"?"tel":"text";
   input.value=answers[current.key]||"";input.required=!!current.required;
-  input.placeholder=current.kind==="tel"?"(44) 99999-9999":"Digite sua resposta";
+  input.placeholder=current.kind==="tel"?"DDD + número do celular":"Digite sua resposta";
   if(current.optional)button("Pular esta pergunta",()=>gravarResposta("","Prefiro não informar"),"secondary");
   input.focus();
  }
@@ -227,68 +335,11 @@ function responderEtapa(e){
  gravarResposta(valor);
 }
 form.onsubmit=responderEtapa;
-function protocolo(prefixo,id){return prefixo+"-SIM-"+String(id).replace(/[^a-z0-9]/gi,"").slice(-7).toUpperCase();}
+
 function finalizarOpcoes(){
  optionsSimple([["Voltar ao início",()=>startMenu(),"submit"]]);
 }
-function concluir(){
- try{
-  if(role==="colaborador"||role==="solicitacao")answers.zona=zonaPeloEndereco(answers.endereco);
-  if(role==="colaborador"){
-   const outros=String(answers.outros||"").trim();
-   const resultado=app.registrarColaborador({...answers,outros,disponibilidade:"A combinar"});
-   identity={nome:resultado.nome,tipo_pessoa:resultado.tipo_pessoa,telefone:resultado.telefone,endereco:resultado.endereco,email:resultado.email,zona:resultado.zona};
-   bot("Cadastro de colaborador concluído! ✅\n\nProtocolo de demonstração: "+protocolo("COL",resultado.id)+
-    "\nOfertas cadastradas: "+new Set([resultado.ajudas,resultado.maquinas,resultado.empreendedores,resultado.materiais].flat().filter(Boolean)).size+
-    (resultado.forma_entrega_doacao?"\nDoação: "+resultado.forma_entrega_doacao:"")+
-    "\n\nOs dados aparecem na Gestão e no Mapa de Colaboradores deste navegador. Nenhuma mensagem foi enviada a órgãos ou voluntários.");
-  }else if(role==="solicitacao"){
-   // "Outro" é somente a classificação interna; a necessidade fica no texto original do cidadão.
-   const pedido=app.registrarPedido({...answers,necessidade:"Outro",descricao:String(answers.descricao||"").trim(),urgencia:"Não avaliada"}).pedido;
-   identity={...identity,nome:pedido.nome,telefone:pedido.telefone,endereco:pedido.endereco,zona:pedido.zona};
-   bot("Seu pedido de ajuda foi registrado. ✅\n\nAjuda solicitada: "+pedido.descricao+
-    "\nSituação: "+pedido.status+
-    "\n\nO pedido aparece no Mapa da Ajuda deste navegador, sem divulgar seu endereço. Nenhuma mensagem real foi enviada.");
-  }else if(role==="relato"){
-   const registro=dados.gravar("relatos",{
-    nome:String(answers.nome||"").trim(),
-    telefone:String(answers.telefone||"").trim(),
-    endereco:String(answers.endereco_ocorrencia||"").trim(),
-    pessoas_no_local:Array.isArray(answers.pessoas_no_local)?answers.pessoas_no_local:[],
-    descricao:String(answers.necessidade_relato||"").trim(),
-    foto:arquivosFoto?.dados||"",
-    foto_nome:arquivosFoto?.nome||"",
-    status:"Em triagem",origem:"Cidadão · simulador",
-    criado_em:new Date().toISOString()
-   });
-   identity={...identity,nome:registro.nome,telefone:registro.telefone};
-   bot("Relato recebido para triagem! ✅\n\nProtocolo de demonstração: "+protocolo("OCO",registro.id)+
-    "\nEndereço: "+registro.endereco+
-    "\nSituação: "+registro.status+
-    (registro.foto?"\nFoto anexada com sucesso.":"\nSem foto anexada.")+
-    "\n\nA equipe deverá verificar antes de confirmar uma ocorrência no Mapa de Evento. Nenhum acionamento real foi realizado.");
-  }
- }catch(err){
-  bot("Não foi possível salvar neste navegador: "+(err?.message||"erro desconhecido")+". Confira seus dados ou reduza a foto.",true);
-  optionsSimple([["Revisar respostas",()=>mostrarRevisao(),"submit"],["Voltar ao início",()=>startMenu()]]);
-  return;
- }
- finalizarOpcoes();
-}
-async function prepararFoto(arquivo){
- if(!arquivo||!arquivo.type.startsWith("image/"))throw Error("Selecione uma imagem.");
- if(arquivo.size>8*1024*1024)throw Error("A imagem deve ter no máximo 8 MB.");
- const url=URL.createObjectURL(arquivo);
- try{
-  const imagem=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(Error("Não foi possível abrir a foto."));i.src=url;});
-  const escala=Math.min(1,920/Math.max(imagem.naturalWidth,imagem.naturalHeight));
-  const canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(imagem.naturalWidth*escala));canvas.height=Math.max(1,Math.round(imagem.naturalHeight*escala));
-  canvas.getContext("2d").drawImage(imagem,0,0,canvas.width,canvas.height);
-  const dados=canvas.toDataURL("image/jpeg",.67);
-  if(dados.length>900000)throw Error("A foto é grande demais para este simulador local.");
-  return {nome:arquivo.name,dados};
- }finally{URL.revokeObjectURL(url);}
-}
+
 $("upload-photo").onclick=()=>photoInput.click();
 photoInput.addEventListener("change",async()=>{
  const f=photoInput.files?.[0];if(!f||current?.kind!=="photo")return;
@@ -304,6 +355,7 @@ photoInput.addEventListener("change",async()=>{
  finally{$("upload-photo").disabled=false;photoInput.value="";}
 });
 function reiniciarDemonstracao(){
+ if(salvando)return;
  // Reiniciar a conversa NÃO apaga registros municipais, pedidos nem relatos.
  if(!window.confirm("Reiniciar a conversa? Os cadastros, pedidos e relatos já registrados serão preservados."))return;
  identity=null;role=null;steps=[];answers={};current=null;index=0;arquivosFoto=null;photoInput.value="";

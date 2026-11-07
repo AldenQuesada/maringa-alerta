@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Maringá Alerta</title>
+<title>Gestão municipal de crise</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="evento/style.css?v=territorios-reais-2">
-<link rel="stylesheet" href="prototipo.css?v=evento-10">
-<link rel="stylesheet" href="sessao.css?v=sessoes-2">
-<link rel="stylesheet" href="mapa-navegacao.css?v=recuperacao-mapas-1">
-<link rel="stylesheet" href="gestao/acoes-cabecalho.css?v=acoes-2">
-<link rel="stylesheet" href="cadastro-ocorrencia.css?v=3">
-<link rel="stylesheet" href="filtros-ocorrencias.css?v=1">
-<link rel="stylesheet" href="painel-eventos.css?v=5">
-<link rel="stylesheet" href="filtros-cadastros.css?v=1">
-<link rel="stylesheet" href="mapas/ficha-ponto.css?v=2">
-<link rel="stylesheet" href="operacao-restauracao.css?v=1">
-<link rel="stylesheet" href="backend/boot.css?v=2">
+<link rel="stylesheet" href="evento/style.css?v=c0147b707426">
+<link rel="stylesheet" href="prototipo.css?v=59c27048a493">
+<link rel="stylesheet" href="sessao.css?v=5ac3ef7bf8ac">
+<link rel="stylesheet" href="mapa-navegacao.css?v=dcb1e617dbd1">
+<link rel="stylesheet" href="gestao/acoes-cabecalho.css?v=c73e577473ca">
+<link rel="stylesheet" href="cadastro-ocorrencia.css?v=58a73fe1f9cf">
+<link rel="stylesheet" href="filtros-ocorrencias.css?v=5e8fec626cb9">
+<link rel="stylesheet" href="painel-eventos.css?v=11af9417db04">
+<link rel="stylesheet" href="filtros-cadastros.css?v=21520c023736">
+<link rel="stylesheet" href="mapas/ficha-ponto.css?v=e9bca272093f">
+<link rel="stylesheet" href="operacao-restauracao.css?v=fcfc52569448">
+<link rel="stylesheet" href="backend/boot.css?v=5a7137088c83">
 </head>
 <body>
 <button id="menu-backdrop" class="menu-backdrop" aria-label="Fechar zonas e menus"></button>
@@ -24,7 +24,7 @@
 
   <div class="sidebar" id="sidebar">
     <div class="sidebar-head">
-      <div class="brand"><span class="dot"></span>MARINGÁ ALERTA</div>
+      <div class="brand"><span class="dot"></span><span id="municipal-brand">Gestão municipal</span></div>
     </div>
     <section class="territory-tools" aria-label="Filtro territorial">
       <label for="territory-search">Bairros e zonas</label>
@@ -70,7 +70,7 @@
       </div>
       <div class="topbar-right">
       <button type="button" id="open-chat" aria-label="Abrir chat interno" title="Chat interno">💬</button>
-      <div id="header-actions" class="header-actions" data-municipio="maringa" data-mapas="./mapas/" role="group" aria-label="Ações rápidas"></div>
+      <div id="header-actions" class="header-actions" data-mapas="./mapas/" role="group" aria-label="Ações rápidas"></div>
       <div class="session-anchor" id="session-anchor"></div>
       </div>
     </div>
@@ -126,7 +126,7 @@
 <div id="status-view" hidden>
   <div class="status-wrap">
     <div class="status-card">
-      <div class="status-brand">MARINGÁ ALERTA</div>
+      <div class="status-brand">Gestão municipal</div>
       <h1>Acompanhar minha ocorrência</h1>
       <p class="status-sub">Esta página é o que o morador vê: só o status, sem dados internos da equipe. Digite o número de protocolo que você recebeu por WhatsApp.</p>
       <div class="status-search">
@@ -231,31 +231,32 @@
     </div>
   </section>
 </div>
-<script src="gestao/dados.js?v=ficha-ponto-20261106"></script>
-<script type="application/x-maringa-modulo" src="crise/core.js?v=1"></script>
-<script type="application/x-maringa-modulo" src="mapas/ficha-ponto.js?v=2"></script>
-<script type="application/x-maringa-modulo" src="dados-territoriais/importacao-publica.js?v=apoios-1"></script>
-<script type="application/x-maringa-modulo" src="gestao/acoes-cabecalho.js?v=mapas-filtros-2"></script>
-<script type="application/x-maringa-modulo" src="cadastro-ocorrencia.js?v=4"></script>
-<script type="application/x-maringa-modulo" src="cadastro-ocorrencia-mapa.js?v=3"></script>
-<script type="application/x-maringa-modulo" src="fluxo-ajuda.js?v=sessoes-1"></script>
-<script type="application/x-maringa-modulo" src="filtros-ocorrencias.js?v=1"></script>
-<script type="application/x-maringa-modulo" src="filtros-cadastros.js?v=territorios-reais-2"></script>
-<script type="application/x-maringa-modulo" src="eventos-mapa.js?v=1"></script>
-<script type="application/x-maringa-modulo" src="evento-referencias.js?v=2"></script>
-<script type="application/x-maringa-modulo" src="operacao-restauracao.js?v=1"></script>
-<script type="application/x-maringa-modulo" src="painel-eventos.js?v=2"></script>
-<script type="application/x-maringa-modulo" src="sessao.js?v=sessoes-1"></script>
-<script type="application/x-maringa-modulo" src="sessao-ui.js?v=sessoes-2"></script>
-<script type="application/x-maringa-modulo" src="mapa-navegacao.js?v=zoom-arraste-1"></script>
-<script type="application/x-maringa-modulo" src="dados-territoriais/camadas-mapas.js?v=territorio-2"></script>
+<script src="gestao/dados.js?v=77e766acf7f2"></script>
+<script type="application/x-maringa-modulo" src="crise/core.js?v=f5d751602d04"></script>
+<script type="application/x-maringa-modulo" src="mapas/ficha-ponto.js?v=638de561535c"></script>
+<script type="application/x-maringa-modulo" src="dados-territoriais/importacao-publica.js?v=eb216b997605"></script>
+<script type="application/x-maringa-modulo" src="gestao/acoes-cabecalho.js?v=786c2da159f9"></script>
+<script type="application/x-maringa-modulo" src="cadastro-ocorrencia.js?v=0958b181df69"></script>
+<script type="application/x-maringa-modulo" src="ocorrencias-servidor.js?v=60db17e09c8f"></script>
+<script type="application/x-maringa-modulo" src="cadastro-ocorrencia-mapa.js?v=e721a2b459f8"></script>
+<script type="application/x-maringa-modulo" src="fluxo-ajuda.js?v=85cf7b23197a"></script>
+<script type="application/x-maringa-modulo" src="filtros-ocorrencias.js?v=ba9bbce023f3"></script>
+<script type="application/x-maringa-modulo" src="filtros-cadastros.js?v=6169b44fc16b"></script>
+<script type="application/x-maringa-modulo" src="eventos-mapa.js?v=2f7186b52d64"></script>
+<script type="application/x-maringa-modulo" src="evento-referencias.js?v=afd79dd0624b"></script>
+<script type="application/x-maringa-modulo" src="operacao-restauracao.js?v=ed97ad817d70"></script>
+<script type="application/x-maringa-modulo" src="painel-eventos.js?v=8cf0d1639b15"></script>
+<script type="application/x-maringa-modulo" src="sessao.js?v=7c5335721d36"></script>
+<script type="application/x-maringa-modulo" src="sessao-ui.js?v=9a6003d065ad"></script>
+<script type="application/x-maringa-modulo" src="mapa-navegacao.js?v=880ee415f575"></script>
+<script type="application/x-maringa-modulo" src="dados-territoriais/camadas-mapas.js?v=4b75efea99fb"></script>
 <script type="application/x-maringa-modulo" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="application/x-maringa-modulo" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
-<script type="application/x-maringa-modulo" src="mapas/inventario.js?v=ficha-ponto-20261106"></script>
-<script type="application/x-maringa-modulo" src="evento/app.js?v=territorios-reais-2"></script>
-<script src="backend/vendor/supabase-2.119.0.js"></script>
-<script src="backend/config.js?v=1"></script>
-<script src="backend/repositorio.js?v=1"></script>
-<script src="backend/boot.js?v=2" data-area="evento"></script>
+<script type="application/x-maringa-modulo" src="mapas/inventario.js?v=158a4fb5207b"></script>
+<script type="application/x-maringa-modulo" src="evento/app.js?v=97fd36326a04"></script>
+<script src="backend/vendor/supabase-2.119.0.js?v=f7b5aa661799"></script>
+<script src="backend/config.js?v=96a06e7e3cd1"></script>
+<script src="backend/repositorio.js?v=bb6c4a9868c3"></script>
+<script src="backend/boot.js?v=c93209d738bd" data-area="evento"></script>
 </body>
 </html>

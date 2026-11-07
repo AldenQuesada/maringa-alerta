@@ -23,7 +23,7 @@ test("prefeitura usa abas diretas com tabelas e botão no topo",()=>{
  assert.doesNotMatch(app,/pref-member-grid|renderRH\(\)/);
 });
 test("a geoterritorialidade prioriza zonas numeradas oficiais, sem criar outro cadastro",()=>{
- assert.match(app,/geoTipo="zonas"/);
+ assert.match(app,/geoTipo:"zonas"/);
  assert.match(catalogo,/localidades\/municipios\/.*subdistritos/);
  assert.match(catalogo,/db\(\)\.lista\(type\)/);
  assert.match(catalogo,/gestao:referencia-territorial/);

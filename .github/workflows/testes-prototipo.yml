@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Instalar dependências de teste
+        run: npm ci
       - name: Verificar montagem canônica dos módulos
         run: node scripts/build-modulos.mjs --check
       - name: Verificar sintaxe dos módulos
@@ -64,4 +66,12 @@ jobs:
           for migration in supabase/migrations/*.sql; do
             psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f "$migration"
           done
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -c "revoke usage on schema auth from ma_escritor;"
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/permissoes.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/seguranca-servidor.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/operacoes.sql
+          MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres PGDATABASE=postgres python3 tests/backend/concorrencia.py
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/painel.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/admin-geral.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/integracao.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/incidentes.sql

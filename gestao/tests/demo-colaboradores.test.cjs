@@ -16,10 +16,10 @@ function preparar(){
  const db=D.criar(storage,{municipioId:'maringa'});
  return {storage,db};
 }
-test('a Central importa imediatamente os ajudantes-modelo do mapa e cria seus cadastros no mesmo armazenamento municipal',()=>{
+test('o modo de demonstração importa explicitamente os ajudantes-modelo do mapa e cria seus cadastros no mesmo armazenamento municipal',()=>{
  const {db,storage}=preparar();
  assert.equal(db.lista('voluntarios').length,0);
- const r=demo.garantir(db,storage);
+ const r=demo.garantir(db,storage,{gerarExemplo:true});
  assert.equal(r.adicionados,42);
  assert.equal(r.origem,'modelo_legado');
  const pessoas=db.lista('voluntarios');
@@ -33,7 +33,7 @@ test('a Central importa imediatamente os ajudantes-modelo do mapa e cria seus ca
  assert.ok(pessoas.every(p=>p.origem_cadastro==='mapa_evento_demo'));
  assert.equal(central.fluxoCadastro(pessoas[0]).find(x=>x.texto.includes('Muito obrigado')).tipo,'bot');
  assert.ok(central.fluxoCadastro(pessoas[0]).some(x=>x.texto.includes('Cadastro demonstrativo')));
- assert.equal(demo.garantir(db,storage).adicionados,0);
+ assert.equal(demo.garantir(db,storage,{gerarExemplo:true}).adicionados,0);
  assert.equal(db.lista('voluntarios').length,42);
 });
 
@@ -45,7 +45,7 @@ test('se a operação antiga tiver ajudantes salvos, usa os mesmos identificador
   {id:'v43',nome:'Larissa Toledo',bairro:'Centro Cívico',ajuda:'Mão de obra',tenantId:'maringa'}
  ];
  storage.setItem(demo.CHAVE_OPERACAO,JSON.stringify({versao:1,tenantId:'maringa',voluntarios:legados}));
- const r=demo.garantir(db,storage);
+ const r=demo.garantir(db,storage,{gerarExemplo:true});
  assert.equal(r.adicionados,3);
  assert.equal(r.origem,'mapa_local');
  const pessoas=db.lista('voluntarios');
@@ -54,20 +54,20 @@ test('se a operação antiga tiver ajudantes salvos, usa os mesmos identificador
  assert.deepEqual(pessoas.find(p=>p.origem_id_legado==='v41').ajudas,['FORNECER ALIMENTAÇÃO']);
  assert.deepEqual(pessoas.find(p=>p.origem_id_legado==='v42').maquinas,['GERADOR']);
  assert.equal(pessoas.find(p=>p.origem_id_legado==='v43').outros,'Mão de obra');
- assert.equal(demo.garantir(db,storage).adicionados,0);
+ assert.equal(demo.garantir(db,storage,{gerarExemplo:true}).adicionados,0);
 });
 
 test('não altera cadastros existentes e respeita exclusões posteriores de demonstrações',()=>{
  const {db,storage}=preparar();
  db.gravar('voluntarios',{nome:'Colaborador já existente',tipo_pessoa:'FÍSICA',
   endereco:'Rua documentada',telefone:'44999990000'});
- assert.equal(demo.garantir(db,storage).adicionados,42);
+ assert.equal(demo.garantir(db,storage,{gerarExemplo:true}).adicionados,42);
  const todos=db.lista('voluntarios');
  assert.equal(todos.length,43);
  assert.ok(todos.some(p=>p.nome==='Colaborador já existente'&&!p.status_simulacao));
  const exemplo=todos.find(p=>p.status_simulacao==='simulado');
  db.excluir('voluntarios',exemplo.id);
- assert.equal(demo.garantir(db,storage).adicionados,0);
+ assert.equal(demo.garantir(db,storage,{gerarExemplo:true}).adicionados,0);
  assert.equal(db.lista('voluntarios').length,42);
 });
 
@@ -81,7 +81,7 @@ test('não importa ajudantes para outra prefeitura e não mistura municípios',(
 test('cadastros simulados nunca podem virar destinos de brigada nem de pedidos reais, mesmo com disponibilidade alterada',()=>{
  const {db,storage}=preparar();
  db.gravar('zonas',{nome:'Zona 7'});
- demo.garantir(db,storage);
+ demo.garantir(db,storage,{gerarExemplo:true});
  let p=db.lista('voluntarios').find(x=>x.zona==='Zona 7');
  assert.ok(p);
  db.gravar('voluntarios',{...p,disponibilidade:'Disponível'},p.id);
@@ -105,4 +105,11 @@ test('Dashboard carrega o importador antes da Central e mantém a UI de três co
  assert.match(centralJs,/cv-chat/);
  assert.match(centralJs,/cv-inspector/);
  assert.match(centralJs,/DEMONSTRAÇÃO/);
+});
+
+test('abrir a Central sem legado não inventa colaboradores fora do modo de demonstração',()=>{
+ const {db,storage}=preparar();
+ const result=demo.garantir(db,storage);
+ assert.equal(result.adicionados,0);assert.equal(db.lista('voluntarios').length,0);
+ assert.equal(storage.getItem(demo.CHAVE_MIGRACAO),null,'não marcar migração sem importar');
 });

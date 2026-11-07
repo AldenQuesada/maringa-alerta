@@ -15,9 +15,9 @@ test("três mapas têm nomes completos e abrem telas independentes",()=>{
  assert.match(html,/href="\.\.\/index\.html"/);
  assert.match(html,/href="\.\.\/mapas\/\?tipo=colaboradores"/);
  assert.match(html,/href="\.\.\/mapas\/\?tipo=ajuda"/);
- assert.equal((html.match(/class="map-arrow"/g)||[]).length,3,"cada mapa deve mostrar seta de abrir");
+ assert.doesNotMatch(html,/class="map-arrow"|↗/,"sem setas decorativas");
  assert.equal((html.match(/class="map-symbol"/g)||[]).length,3,"os três botões devem ter o mesmo ícone");
- assert.match(css,/\.map-hub \.map-arrow\{display:inline-flex/, "setas visíveis também no layout responsivo");
+
 });
 test("o cabeçalho preserva sessão, três mapas e acesso canônico sem menus redundantes",()=>{
  assert.match(html,/id="sidebar-nav"/);
@@ -49,7 +49,7 @@ test("no mobile ficam visíveis os três mapas e todos os quatro ícones",()=>{
  assert.match(css,/\.ma-action\{width:31px/);
  assert.doesNotMatch(css,/\.header-actions\s*\{[^}]*display:none/);
 });
-function harness(){
+function harness(nuvem=null){
  const store=new Map();
  const memory={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,String(v))};
  store.set("maringa_alerta_tarefas_gestao_v1_maringa",JSON.stringify([{id:"t1",title:"Verificar veículos",priority:"Alta",status:"open"}]));
@@ -60,9 +60,10 @@ function harness(){
  const overlay={hidden:true,innerHTML:"",addEventListener(){},querySelectorAll(){return []}};
  const fakeDoc={getElementById:id=>node(id),createElement:()=>overlay,body:{appendChild(){}},addEventListener(){}};
  const state={solicitacoes:[{id:"p1",municipioId:"maringa",status:"Aguardando",necessidade:"Alimentação",urgencia:"Alta",zona:"Zona 7"}],mobilizacoes:[],apoios:[]};
- const db={municipioAtivo:()=>({id:"maringa",nome:"Maringá",uf:"PR"}),estado:()=>state};
- const ctx={document:fakeDoc,AlertaGestaoDados:{CHAVE:"local_data",criar:()=>db},localStorage:memory,crypto:{randomUUID:()=>"newtask"},navigator:{clipboard:{writeText:async()=>{}}},addEventListener(){},confirm:()=>true,
+ const db={municipios:()=>[{id:"maringa"}],municipioAtivo:()=>({id:"maringa",nome:"Maringá",uf:"PR"}),estado:()=>state};
+ const ctx={document:fakeDoc,AlertaGestaoDados:{CHAVE:"local_data",config:require("../dados.js").config,criar:()=>db},localStorage:memory,crypto:{randomUUID:()=>"newtask"},navigator:{clipboard:{writeText:async()=>{}}},addEventListener(){},confirm:()=>true,
   FormData:class{constructor(form){this.form=form;}get(k){return this.form[k]}},setTimeout,clearTimeout};
+ ctx.AlertaNuvem=nuvem;
  vm.runInNewContext(js,ctx,{filename:"acoes-cabecalho.js"});
  return {buttons,node,overlay,store,ctx};
 }
@@ -73,23 +74,23 @@ test("ícones iniciais mostram tarefa pendente e alerta de ajuda",()=>{
  assert.equal(h.node("ma-count-tasks").textContent,"1");
  assert.equal(h.node("ma-count-alerts").textContent,"1");
 });
-test("Tarefas abre painel e permite criar atividade local",()=>{
+test("Tarefas abre painel e permite criar atividade local",async()=>{
  const h=harness();
  h.buttons[0].onclick();
  assert.match(h.node("ma-dialog-body").innerHTML,/Verificar veículos/);
  const form=h.node("ma-task-form");form.title="Separar mantimentos";form.date="";form.priority="Normal";
- form.onsubmit({preventDefault(){},currentTarget:form});
+ await form.onsubmit({preventDefault(){},currentTarget:form});
  const stored=JSON.parse(h.store.get("maringa_alerta_tarefas_gestao_v1_maringa"));
  assert.equal(stored.length,2);
  assert.equal(stored[1].title,"Separar mantimentos");
  assert.equal(h.node("ma-count-tasks").textContent,"2");
 });
-test("Alertas abre painel de avisos locais, sem confundir com meteorologia oficial",()=>{
+test("Alertas abre painel de avisos locais, sem confundir com meteorologia oficial",async()=>{
  const h=harness();h.buttons[1].onclick();
  const body=h.node("ma-dialog-body").innerHTML;
  assert.match(body,/Pedido aguardando/);
  assert.match(body,/Não substituem alertas oficiais/);
- h.node("ma-mark-all").onclick();
+ await h.node("ma-mark-all").onclick();
  assert.equal(h.node("ma-count-alerts").hidden,true);
 });
 test("SAMU e Bombeiros exibem números corretos sem disparo automático",()=>{
@@ -100,4 +101,27 @@ test("SAMU e Bombeiros exibem números corretos sem disparo automático",()=>{
  h.buttons[3].onclick();
  assert.match(h.node("ma-dialog-body").innerHTML,/href="tel:193"/);
  assert.equal(h.overlay.hidden,false);
+});
+
+test("cabeçalho conectado salva tarefas e leituras no servidor sem modificar dados locais",async()=>{
+ const rows={tasks:[],alerts:[]},writes=[];
+ const h=harness({ativo:true,painel:{ler:(city,key)=>rows[key],salvar:async(city,key,value)=>{writes.push([city,key]);rows[key]=value;return true;}}});
+ const before=JSON.stringify([...h.store]);
+ h.buttons[0].onclick();const form=h.node('ma-task-form');form.title='Conferir cadastro';form.date='';form.priority='Normal';
+ await form.onsubmit({preventDefault(){},currentTarget:form});
+ assert.equal(rows.tasks.length,1);assert.equal(h.node('ma-count-tasks').textContent,'1');
+ h.buttons[1].onclick();await h.node('ma-mark-all').onclick();
+ assert.deepEqual(writes,[['maringa','tasks'],['maringa','alerts']]);assert.equal(JSON.stringify([...h.store]),before);
+});
+
+test('tarefas e alertas aguardam confirmação antes de atualizar o painel conectado',async()=>{
+ const rows={tasks:[],alerts:[]};let confirm;
+ const h=harness({ativo:true,painel:{ler:(_,key)=>rows[key],salvar:(_,key,value)=>new Promise(resolve=>{confirm=()=>{rows[key]=value;resolve(true);};})}});
+ h.buttons[0].onclick();const form=h.node('ma-task-form');form.title='Conferir estrutura';
+ const save=form.onsubmit({preventDefault(){},currentTarget:form});
+ assert.equal(rows.tasks.length,0);assert.equal(h.node('ma-count-tasks').textContent,'0');
+ confirm();await save;assert.equal(h.node('ma-count-tasks').textContent,'1');
+ h.buttons[1].onclick();const read=h.node('ma-mark-all').onclick();
+ assert.equal(rows.alerts.length,0);assert.equal(h.node('ma-count-alerts').textContent,'1');
+ confirm();await read;assert.equal(h.node('ma-count-alerts').textContent,'0');
 });

@@ -23,7 +23,9 @@ test("Mapa de Evento carrega CSS e JS externos versionados e com cache correspon
  const script=html.match(/<script type="application\/x-maringa-modulo" src="evento\/app\.js\?v=([^"]+)"><\/script>/);
  const stylesheet=html.match(/<link rel="stylesheet" href="evento\/style\.css\?v=([^"]+)">/);
  assert.ok(script&&stylesheet,"Bundle e estilos externos");
- assert.equal(script[1],stylesheet[1],"Mesmo release para os recursos do mapa");
+ const hash=p=>{const data=fs.readFileSync(path.join(root,p));return require('node:crypto').createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex').slice(0,12);};
+ assert.equal(script[1],hash('evento/app.js'),"Versão corresponde ao conteúdo do runtime");
+ assert.equal(stylesheet[1],hash('evento/style.css'),"Versão corresponde ao conteúdo do CSS");
  assert.ok(sw.includes("evento/app.js?v="+script[1]),"Service Worker contém runtime atual");
  assert.ok(sw.includes("evento/style.css?v="+stylesheet[1]),"Service Worker contém CSS atual");
  assert.doesNotMatch(html,/<style\b|<script>\s*\(async function/);

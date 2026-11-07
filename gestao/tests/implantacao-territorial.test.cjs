@@ -51,7 +51,7 @@ test("importação unificada salva bairros, CNES e limite sem mexer em doações
  const equipe=db.gravar("equipes",{nome:"Brigada Municipal",tipo:"Logística",zona:"Zona 7"});
  const col=db.gravar("voluntarios",{nome:"Voluntário",tipo_pessoa:"FÍSICA",endereco:"Rua Teste",telefone:"44999990000"});
  const poly={type:"Polygon",coordinates:[[[-51.9,-23.4],[-51.8,-23.4],[-51.9,-23.5],[-51.9,-23.4]]]};
- const p=db.implantarPacote({grupos:{
+ const p=db.implantarPacote({codigo_ibge:db.municipioAtivo().codigo_ibge,grupos:{
   bairros:[{nome:"Centro",id:"bairro-centro",geojson:JSON.stringify(poly),externalId:"bairro:centro",verificacao:"Pendente"}],
   saude:[{nome:"UPA Nova",tipo:"UPA",categoria:"Saúde",codigo_cnes:"100",externalId:"cnes:100",lat:-23.4,lng:-51.93,verificacao:"Pendente"}],
   emergencias:[{nome:"Corpo de Bombeiros",tipo:"Bombeiros",categoria:"Emergência",verificacao:"Pendente"}]
@@ -67,18 +67,18 @@ test("importação unificada salva bairros, CNES e limite sem mexer em doações
 });
 test("reimportação é idempotente e preserva cadastro validado",()=>{
  const {db}=novo();const item={nome:"Hospital Exemplo",tipo:"Hospital",codigo_cnes:"101",externalId:"cnes:101",verificacao:"Pendente"};
- db.implantarPacote({grupos:{saude:[item]}});
+ db.implantarPacote({codigo_ibge:db.municipioAtivo().codigo_ibge,grupos:{saude:[item]}});
  const old=db.lista("saude")[0];
- db.implantarPacote({grupos:{saude:[{...item,endereco:"Rua Nova"}]}});
+ db.implantarPacote({codigo_ibge:db.municipioAtivo().codigo_ibge,grupos:{saude:[{...item,endereco:"Rua Nova"}]}});
  assert.equal(db.lista("saude").length,1);assert.equal(db.lista("saude")[0].id,old.id);
  const atual=db.lista("saude")[0];
  db.gravar("saude",{...atual,verificacao:"Validado",endereco:"Rua Confirmada"},atual.id);
- db.implantarPacote({grupos:{saude:[{...item,endereco:"Endereço indevido"}]}});
+ db.implantarPacote({codigo_ibge:db.municipioAtivo().codigo_ibge,grupos:{saude:[{...item,endereco:"Endereço indevido"}]}});
  assert.equal(db.lista("saude")[0].endereco,"Rua Confirmada");
 });
 test("erro de lote impede gravação parcial em múltiplas coleções",()=>{
  const {db,store}=novo(),before=store.getItem(D.CHAVE);
- assert.throws(()=>db.implantarPacote({grupos:{saude:[{nome:"UBS",codigo_cnes:"100"}],bairros:[{nome:""}]}}),/nome/);
+ assert.throws(()=>db.implantarPacote({codigo_ibge:db.municipioAtivo().codigo_ibge,grupos:{saude:[{nome:"UBS",codigo_cnes:"100"}],bairros:[{nome:""}]}}),/nome/);
  assert.equal(store.getItem(D.CHAVE),before);
 });
 test("fontes de outras cidades não entram e ponto distante é recusado",()=>{
@@ -105,7 +105,7 @@ test("Prefeitura usa abas canônicas sem duplicar cadastros no sidebar",()=>{
  "Regras e comunicação":["ocorrencias","canais","regras"]};
  for(const g of groups.slice(2))assert.deepEqual(g.items,legacy[g.label],"Grupo alterado: "+g.label);
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert.equal((html.match(/class="map-arrow"/g)||[]).length,3);
+ assert.doesNotMatch(html,/class="map-arrow"|↗/);
  assert.match(html,/implantacao-ui.js/);
  assert.match(html,/acoes-cabecalho.js/);
 });

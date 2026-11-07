@@ -103,7 +103,7 @@ button:disabled{opacity:.45;cursor:not-allowed!important}
 #territory-layers label{display:block;font-weight:400;padding:4px 0}
 
 /* Refinamento do Mapa de Evento */
-#topbar{gap:8px 12px;padding:8px 12px}
+#topbar{height:auto;flex:none;gap:8px 12px;padding:8px 12px}
 #topbar .topbar-right{margin-left:auto;flex:none;gap:8px}
 #topbar #session-anchor{margin:0}
 #topbar #zone-strip{order:5;flex-basis:100%;max-width:100%;font-size:11px}

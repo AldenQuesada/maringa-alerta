@@ -41,8 +41,9 @@ test("abrigos são importados no cadastro municipal único sem cópias ou sobres
 });
 test("Gestão e Mapa de Evento consultam a mesma coleção de abrigos",()=>{
  const gestao=read("gestao/gestao.js"),evento=read("evento/app.js");
- assert.match(gestao,/maringa-abrigos-publicos\.json/);
- assert.match(evento,/maringa-abrigos-publicos\.json/);
+ assert.match(gestao,/config.referencias/);
+ assert.match(evento,/config.referencias/);
+ assert.ok(require('../gestao/dados.js').config.referencias({codigo_ibge:'4115200'}).publicas.includes('dados-territoriais/maringa-abrigos-publicos.json'));
  assert.match(evento,/INVENTARIO\.simbolo\(r\)/);
  assert.equal(require('../mapas/inventario.js').simbolo({modulo:'abrigos'}),'🛏️');
  assert.match(read("mapas/ficha-ponto.js"),/Vagas livres/);

@@ -60,12 +60,12 @@ test("três mapas têm seleção canônica, visibilidade e cartografia não simu
  assert.match(maps,/id="camada"/);
  assert.match(maps,/id="mostrar-unidades"/);
  assert.match(aux,/function renderUnidadesMunicipais\(/);
- assert.match(aux,/MaringaBairros.carregar\(/);
+ assert.match(aux,/config.referencias\(state.app.prefeitura\(\)\).catalogoBairros/);
  assert.doesNotMatch(aux,/const shapes=\[/);
- assert.match(mapaEvento,/const demoMode=!conectado/);
+ assert.match(mapaEvento,/demoMode=!conectado/);
  assert.match(html,/data-area="evento"/);
- assert.match(mapaEvento,/if\(recuperacao.estado==='vazio'&&demoMode\)/);
- assert.match(mapaEvento,/const listarRecursosPublicos=\(\)=>INVENTARIO.registros\(gestao\)/);
- assert.match(mapaEvento,/const linhasInventario/);
+ assert.match(mapaEvento,/if\(recuperacao.estado==='vazio'&&dependencias.demoMode\)/);
+ assert.match(mapaEvento,/listarRecursosPublicos=\(\)=>INVENTARIO.registros\(dependencias.gestao\)/);
+ assert.match(mapaEvento,/linhasInventario=/);
  assert.match(mapaEvento,/filtrosCadastros\?\.mostrar/);
 });

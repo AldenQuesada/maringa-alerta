@@ -5,7 +5,7 @@ const R=require('../../backend/repositorio.js');
 function fixture({reject=false,pause=false}={}){
  const city={id:'maringa',nome:'Maringá',codigo_ibge:'4115200',uf:'PR',status:'ativa'};
  const calls=[];let release;
- const client={from(table){return {select(){return this},order(){return this},async range(){return {data:table==='ma_prefeituras'?[{dados:city,versao:1}]:[],error:null}}}},async rpc(name,args){if(name==='ma_meu_perfil')return {data:{admin_plataforma:true}};calls.push(args);if(pause)await new Promise(r=>release=r);return reject?{error:{message:'offline'}}:{data:null};}};
+ const client={from(table){return {select(){return this},eq(){return this},order(){return this},async range(){return {data:table==='ma_prefeituras'?[{dados:city,versao:1}]:[],error:null}}}},async rpc(name,args){if(name==='ma_meu_perfil')return {data:{admin_plataforma:true}};if(name==='ma_minhas_capacidades')return {data:{maringa:Object.fromEntries(Object.values(D.ESQUEMAS).map(x=>[x.collection,{ler:true,gravar:true,excluir:true}]))}};calls.push(args);if(pause)await new Promise(r=>release=r);return reject?{error:{message:'offline'}}:{data:args.alteracoes.map(op=>({...op,versao:op.operacao==='inserir'?1:Number(op.versao)+1}))};}};
  return {client,calls,release:()=>release()};
 }
 test('escrita só aparece na memória depois de confirmada pelo servidor',async()=>{
@@ -46,10 +46,48 @@ test('transação conserva validações e envia um lote único',async()=>{
  await db.gravar('bases',{nome:'D'});assert.equal(f.calls.length,2);
 });
 test('escopo autorizado não recria município demonstrativo',async()=>{
- const f=fixture();f.client.from=table=>({select(){return this},order(){return this},async range(){return {data:table==='ma_prefeituras'?[{dados:{id:'outro',nome:'Outro',codigo_ibge:'0000001',uf:'PR'},versao:1}]:[]}}});
+ const f=fixture();f.client.from=table=>({select(){return this},eq(){return this},order(){return this},async range(){return {data:table==='ma_prefeituras'?[{dados:{id:'outro',nome:'Outro',codigo_ibge:'0000001',uf:'PR'},versao:1}]:[]}}});
  const remote=await R.criar({client:f.client,dados:D});assert.deepEqual(remote.repositorio().municipios().map(x=>x.id),['outro']);assert.throws(()=>remote.repositorio({municipioId:'maringa'}),/Sem acesso/);
 });
 test('fontes públicas e colaboradores demonstrativos não são importados no modo conectado',async()=>{
  const importer=require('../../dados-territoriais/importacao-publica.js');let called=false;
  const result=await importer.importar({tipo:'supabase',gravar(){called=true}},{});assert.equal(called,false);assert.equal(result.novos,0);
+});
+test('permissões ausentes falham fechadas e não enviam mutação',async()=>{
+ const f=fixture(),rpc=f.client.rpc.bind(f.client);
+ f.client.rpc=async(name,args)=>name==='ma_minhas_capacidades'?{data:{}}:rpc(name,args);
+ const remote=await R.criar({client:f.client,dados:D}),db=remote.repositorio({municipioId:'maringa'});
+ assert.equal(db.pode('bases','gravar'),false);
+ await assert.rejects(db.gravar('bases',{nome:'Local'}),/permissão/);assert.equal(f.calls.length,0);
+});
+test('valores confirmados pelo servidor prevalecem sobre o rascunho',async()=>{
+ const f=fixture(),rpc=f.client.rpc.bind(f.client);
+ f.client.rpc=async(name,args)=>{const result=await rpc(name,args);if(name==='ma_aplicar_alteracoes')for(const row of result.data)row.dados={...row.dados,nome:'Valor canônico do servidor'};return result;};
+ const remote=await R.criar({client:f.client,dados:D}),db=remote.repositorio({municipioId:'maringa'});
+ const saved=await db.gravar('bases',{nome:'Rascunho'});assert.equal(saved.nome,'Valor canônico do servidor');assert.equal(db.lista('bases')[0].nome,saved.nome);
+});
+test('revogação atualiza capacidades e bloqueia novos controles e gravações',async()=>{
+ const f=fixture(),remote=await R.criar({client:f.client,dados:D}),db=remote.repositorio({municipioId:'maringa'});
+ assert.equal(db.pode('bases','gravar'),true);const rpc=f.client.rpc.bind(f.client);
+ f.client.rpc=async(name,args)=>name==='ma_minhas_capacidades'?{data:{}}:rpc(name,args);
+ await remote.atualizarPermissoes();assert.equal(db.pode('bases','gravar'),false);
+ await assert.rejects(db.gravar('bases',{nome:'Local'}),/permissão/);
+});
+test('confirmação incompleta bloqueia novas gravações até recarregar',async()=>{
+ const f=fixture(),rpc=f.client.rpc.bind(f.client);
+ f.client.rpc=async(name,args)=>name==='ma_aplicar_alteracoes'?{data:null}:rpc(name,args);
+ const remote=await R.criar({client:f.client,dados:D}),db=remote.repositorio({municipioId:'maringa'});
+ await assert.rejects(db.gravar('bases',{nome:'Local'}),/incompleta/);
+ await assert.rejects(db.gravar('bases',{nome:'Outra'}),/Atualize/);assert.equal(db.lista('bases').length,0);
+});
+
+test('carrega registros apenas da prefeitura selecionada e recusa mudança sem recarga',async()=>{
+ const queries=[];
+ const cities=['a','b'].map(id=>({dados:{id,nome:id,codigo_ibge:id==='a'?'3500105':'3550308',uf:'SP'},versao:1}));
+ const client={from(table){let filter;return {select(){return this},order(){return this},eq(field,value){filter={field,value};return this},async range(){queries.push({table,filter});return {data:table==='ma_prefeituras'?cities.filter(c=>!filter||c.dados.id===filter.value):[]}}}},rpc:async()=>({data:{admin_plataforma:true}})};
+ const remote=await R.criar({client,dados:D,municipioId:'b'});
+ assert.deepEqual(queries.find(q=>q.table==='ma_cadastros').filter,{field:'municipio_id',value:'b'});
+ assert.equal(remote.repositorio().municipioAtivo().id,'b');
+ assert.throws(()=>remote.repositorio({municipioId:'a'}),/Sem acesso/);
+ assert.throws(()=>remote.repositorio().selecionarMunicipio('a'),/nova sessão/);
 });

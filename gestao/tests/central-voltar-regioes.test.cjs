@@ -39,7 +39,7 @@ test('Todas desmarca a conversa e restaura a visão geral sem filtros',()=>{
  const js=fs.readFileSync(path.join(__dirname,'../central-conversas.js'),'utf8');
  const trecho=js.split('} else if (botao.hasAttribute("data-cv-all")) {')[1]
    .split('} else if (botao.hasAttribute("data-cv-clear")) {')[0];
- assert.match(trecho,/ativa = null;\s*selecionadas\.clear\(\);\s*busca = "";\s*buscarEl\.value = "";\s*renderDados\(\)/);
+ assert.match(trecho,/view.ativa = null;\s*selecionadas\.clear\(\);\s*view.busca = "";\s*buscarEl\.value = "";\s*renderDados\(\)/);
  assert.match(trecho,/painelRegioes\.focus\(/);
  assert.match(trecho,/painelRegioes\.scrollIntoView/);
  assert.match(js,/if \(botao\.hasAttribute\("data-cv-open"\)\)/);

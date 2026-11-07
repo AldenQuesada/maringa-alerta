@@ -5,114 +5,206 @@
     {
       "target": "evento/app.js",
       "sources": [
-        "src/evento/00-contexto.js",
-        "src/evento/01-regioes-demonstrativas.js",
-        "src/evento/02-cadastros-administrativos.js",
-        "src/evento/03-equipes-demonstrativas-part01.js",
-        "src/evento/03-equipes-demonstrativas-part02.js",
-        "src/evento/04-mapa-e-territorio.js",
-        "src/evento/05-seletores-de-zona-part01.js",
-        "src/evento/05-seletores-de-zona-part02.js",
-        "src/evento/05-seletores-de-zona-part03.js",
-        "src/evento/05-seletores-de-zona-part04.js",
-        "src/evento/06-ocorrencias-part01.js",
-        "src/evento/06-ocorrencias-part02.js",
-        "src/evento/07-administracao-interna-part01.js",
-        "src/evento/07-administracao-interna-part02.js",
-        "src/evento/08-triagem.js",
-        "src/evento/09-escalonamento-part01.js",
-        "src/evento/09-escalonamento-part02.js",
-        "src/evento/10-mensagens-simuladas.js",
-        "src/evento/11-auditoria-local.js",
-        "src/evento/12-status-publico.js",
-        "src/evento/13-relatorio-pos-evento.js",
-        "src/evento/14-offline.js",
-        "src/evento/15-perfil-local.js",
-        "src/evento/16-atendimento-simulado-part01.js",
-        "src/evento/16-atendimento-simulado-part02.js",
-        "src/evento/16-atendimento-simulado-part03.js",
-        "src/evento/16-atendimento-simulado-part04.js",
-        "src/evento/16-atendimento-simulado-part05.js"
+        "src/evento/territorio.js",
+        "config/evento-demonstracao.js",
+        "src/evento/regioes-demonstrativas.js",
+        "src/evento/administracao-local.js",
+        "src/evento/auditoria-local.js",
+        "src/evento/fila-local.js",
+        "src/evento/formatacao.js",
+        "src/evento/controladores.js",
+        "src/evento/controladores/contexto.js",
+        "src/evento/controladores/regioes.js",
+        "src/evento/controladores/cadastros.js",
+        "src/evento/controladores/equipes.js",
+        "src/evento/controladores/cadastro-territorial.js",
+        "src/evento/controladores/mapa.js",
+        "src/evento/controladores/recorte.js",
+        "src/evento/controladores/pessoas.js",
+        "src/evento/controladores/painel-colaboradores.js",
+        "src/evento/controladores/janela-colaboradores.js",
+        "src/evento/controladores/ocorrencias.js",
+        "src/evento/controladores/resumo.js",
+        "src/evento/controladores/administracao.js",
+        "src/evento/controladores/administracao-colaboradores.js",
+        "src/evento/controladores/triagem.js",
+        "src/evento/controladores/escalonamento.js",
+        "src/evento/controladores/prontidao.js",
+        "src/evento/controladores/mensagens.js",
+        "src/evento/controladores/trilha.js",
+        "src/evento/controladores/status-publico.js",
+        "src/evento/controladores/relatorio.js",
+        "src/evento/controladores/offline.js",
+        "src/evento/controladores/permissoes.js",
+        "src/evento/controladores/conversas.js",
+        "src/evento/controladores/localizacao.js",
+        "src/evento/controladores/persistencia.js",
+        "src/evento/controladores/inicializacao.js",
+        "src/evento/controladores/busca.js",
+        "src/evento/app.js"
       ]
     },
     {
       "target": "gestao/gestao.js",
       "sources": [
-        "src/gestao/00-render-municipios.js",
-        "src/gestao/01-render-inicio.js",
-        "src/gestao/02-render-pref-tabs.js",
-        "src/gestao/03-render-estruturas.js",
-        "src/gestao/04-render.js",
-        "src/gestao/05-carregar-ibge.js"
+        "src/gestao/formulario.js",
+        "src/gestao/referencias.js",
+        "src/gestao/navegacao.js",
+        "src/gestao/painel.js",
+        "src/gestao/tabelas.js",
+        "src/gestao/prefeitura.js",
+        "src/gestao/roteador.js",
+        "src/gestao/operacoes.js",
+        "src/gestao/app.js"
       ]
     },
     {
       "target": "gestao/dados.js",
       "sources": [
-        "src/cadastros/00-contexto-part01.js",
-        "src/cadastros/00-contexto-part02.js",
-        "src/cadastros/00-contexto-part03.js",
-        "src/cadastros/00-contexto-part04.js",
-        "src/cadastros/01-novo-estado.js",
-        "src/cadastros/02-implantar-pacote.js"
+        "config/parametros.js",
+        "config/municipios.js",
+        "src/cadastros/municipios.js",
+        "src/cadastros/esquemas.js",
+        "src/cadastros/estado.js",
+        "src/cadastros/consultas.js",
+        "src/cadastros/escrita.js",
+        "src/cadastros/importacao.js",
+        "src/cadastros/implantacao.js",
+        "src/cadastros/repositorio.js"
       ]
     },
     {
       "target": "gestao/implantacao-ui.js",
       "sources": [
-        "src/implantacao/00-notify.js",
-        "src/implantacao/01-refresh-table.js",
-        "src/implantacao/02-import-official.js",
-        "src/implantacao/03-render-rh.js",
-        "src/implantacao/04-montar.js"
+        "src/implantacao/previa.js",
+        "src/implantacao/territorio.js",
+        "src/implantacao/mapa.js",
+        "src/implantacao/editor.js",
+        "src/implantacao/importacao.js",
+        "src/implantacao/pessoas.js",
+        "src/implantacao/app.js"
       ]
     },
     {
       "target": "plataforma/app.js",
       "sources": [
-        "src/plataforma/00-notice.js",
-        "src/plataforma/01-wire-list.js",
-        "src/plataforma/02-polygon.js"
+        "src/plataforma/ui.js",
+        "src/plataforma/servico-demo.js",
+        "src/plataforma/prefeituras.js",
+        "src/plataforma/editor.js",
+        "src/plataforma/acessos.js",
+        "src/plataforma/auditoria.js",
+        "src/plataforma/territorio.js",
+        "src/plataforma/app.js"
       ]
     },
     {
       "target": "mapas/app.js",
       "sources": [
-        "src/mapas/00-alertar.js",
-        "src/mapas/00-camadas.js",
-        "src/mapas/01-render-equipe-por-bairro.js",
-        "src/mapas/02-counters.js"
+        "src/mapas/navegacao.js",
+        "src/mapas/consultas.js",
+        "src/mapas/territorio.js",
+        "src/mapas/colaboradores.js",
+        "src/mapas/resultados.js",
+        "src/mapas/comandos.js",
+        "src/mapas/demonstracao.js",
+        "src/mapas/app.js"
       ]
     },
     {
       "target": "atendimento/chat.js",
       "sources": [
-        "src/atendimento/00-mensagem.js",
-        "src/atendimento/01-responder-etapa.js"
+        "src/atendimento/passos.js",
+        "src/atendimento/foto.js",
+        "src/atendimento/registro.js",
+        "src/atendimento/app.js"
       ]
     },
     {
       "target": "cadastro-ocorrencia.js",
       "sources": [
-        "src/ocorrencias/00-iniciar.js",
-        "src/ocorrencias/01-mostrar-etapa.js",
-        "src/ocorrencias/02-marcar.js",
-        "src/ocorrencias/03-encontrar-bairro.js"
+        "src/ocorrencias/etapas.js",
+        "src/ocorrencias/revisao.js",
+        "src/ocorrencias/mapa.js",
+        "src/ocorrencias/app.js"
       ]
     },
     {
       "target": "crise/core.js",
       "sources": [
-        "src/crise/00-wa-link.js",
-        "src/crise/01-registrar-saida.js",
-        "src/crise/02-acionar-brigada.js"
+        "config/compatibilidade-ajuda.js",
+        "src/crise/utilidades.js",
+        "src/crise/consultas.js",
+        "src/crise/presenca.js",
+        "src/crise/colaboradores.js",
+        "src/crise/compatibilidade.js",
+        "src/crise/pedidos.js",
+        "src/crise/mobilizacao.js",
+        "src/crise/core.js"
       ]
     },
     {
       "target": "gestao/acoes-cabecalho.js",
       "sources": [
-        "src/acoes-cabecalho/00-alerts.js",
-        "src/acoes-cabecalho/01-open.js"
+        "src/acoes-cabecalho/alertas.js",
+        "src/acoes-cabecalho/tarefas.js",
+        "src/acoes-cabecalho/emergencia.js",
+        "src/acoes-cabecalho/dialogo.js",
+        "src/acoes-cabecalho/app.js"
+      ]
+    },
+    {
+      "target": "backend/repositorio.js",
+      "sources": [
+        "src/backend/diferencas.js",
+        "src/backend/consultas.js",
+        "src/backend/repositorio.js"
+      ]
+    },
+    {
+      "target": "gestao/implantacao-core.js",
+      "sources": [
+        "src/implantacao-core/texto.js",
+        "src/implantacao-core/cnes.js",
+        "src/implantacao-core/arquivos.js",
+        "src/implantacao-core/conciliacao.js",
+        "src/implantacao-core/municipio.js"
+      ]
+    },
+    {
+      "target": "gestao/catalogo-bairros.js",
+      "sources": [
+        "src/gestao/catalogo-territorial.js",
+        "src/gestao/catalogo-bairros-ui.js"
+      ]
+    },
+    {
+      "target": "gestao/central-conversas.js",
+      "sources": [
+        "src/conversas/consultas.js",
+        "src/conversas/roteiro.js",
+        "src/conversas/apresentacao.js",
+        "src/conversas/filtros.js",
+        "src/conversas/lista.js",
+        "src/conversas/conversa.js",
+        "src/conversas/perfil.js",
+        "src/conversas/painel.js",
+        "src/conversas/app.js"
+      ]
+    },
+    {
+      "target": "gestao/demo-colaboradores.js",
+      "sources": [
+        "config/colaboradores-demonstracao.js",
+        "src/conversas/migracao-demo.js"
+      ]
+    },
+    {
+      "target": "evento-tornado-2026.js",
+      "sources": [
+        "config/evento-historico.js",
+        "src/evento/referencia-historica.js",
+        "src/evento/referencia-historica-adaptador.js"
       ]
     }
   ]
