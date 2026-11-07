@@ -2,6 +2,7 @@
 (function(global){
 "use strict";
 function instalar(ctx){
+  if(global.AlertaNuvem?.ativo){global.AlertaOcorrenciasServidor.instalar(ctx);return;}
   const {tenantId,tenantConfig,areas,tiposOcorrencia,map,ocLayer,MUNICIPIO_CENTER,
     normalizarTerritorio,pertence,canActZone,responsavelDaOcorrencia,ocIcon,
     refreshOcTooltip,salvarPrototipo,acionarAjuda,atualizarFluxo,atualizarFiltroEventos,

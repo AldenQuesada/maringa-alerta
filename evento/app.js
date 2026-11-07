@@ -745,7 +745,7 @@ function gerarOcorrencia(config={}){
 }
 function refreshOcTooltip(o){
   if(!o.marker)return;
-  const statusLabel = o.confirmado===false ? 'EM TRIAGEM' : o.status==='ativa' ? 'AGUARDANDO EQUIPE' : o.status==='em_atendimento' ? 'EM ATENDIMENTO' : 'RESOLVIDA';
+  const statusLabel = o.remota ? o.registro.status.toLocaleUpperCase('pt-BR') : o.confirmado===false ? 'EM TRIAGEM' : o.status==='ativa' ? 'AGUARDANDO EQUIPE' : o.status==='em_atendimento' ? 'EM ATENDIMENTO' : 'RESOLVIDA';
   o.marker.unbindTooltip();
   o.marker.bindTooltip(
     `<div class="tt-title">${o.icone} ${dependencias.escHtml(o.tipo)}</div>
@@ -1382,6 +1382,7 @@ root.AlertaEventoControladores.definir('ocorrencias',{
   return `<span class="badge" style="background:${color}22;color:${color};border:1px solid ${color}66">${label}</span>`;
 }
 function openOcorrencia(o){
+  if(root.AlertaOcorrenciasServidor?.abrir(o))return;
   if(document.getElementById('panel').classList.contains('com-ficha-ponto')) dependencias.painelPonto.fechar();
   currentPanelOcId=o.id;
   const panel=document.getElementById('panel'), body=document.getElementById('panel-body');
@@ -1909,7 +1910,7 @@ function zonasComAlertaAtivo(){
  (SLA_LIMITE_MIN=2);
 setInterval(()=>{
   dependencias.ocorrencias.forEach(o=>{
-    if(o.confirmado!==false && o.status==='ativa' && o.gravidade===3 && !o._escalado && dependencias.minutosDesde(o.reportadoEm) >= SLA_LIMITE_MIN){
+    if(!o.remota && o.confirmado!==false && o.status==='ativa' && o.gravidade===3 && !o._escalado && dependencias.minutosDesde(o.reportadoEm) >= SLA_LIMITE_MIN){
       o._escalado = true;
       const zona = dependencias.bairros.find(b=>b.nome===o.bairro);
       const coord = zona?.equipe?.coordenador;
@@ -2426,7 +2427,7 @@ function isViewOnly(){ return !dependencias.currentRole || dependencias.currentR
 function applyRolePermissions(){
   document.getElementById('open-audit').style.display = canAdmin() ? '' : 'none';
   document.getElementById('open-admin').style.display = isViewOnly() ? 'none' : '';
-  document.getElementById('demo-new').disabled = isViewOnly();
+  document.getElementById('demo-new').disabled = dependencias.conectado?!root.AlertaNuvem.repositorio().pode('incidentes','gravar'):isViewOnly();
 }
 function selecionarPerfilDemo(perfil) {
   dependencias.currentRole = perfil && ['admin','responsavel','visualizacao'].includes(perfil.tipo)
@@ -2447,7 +2448,7 @@ function selecionarPerfilDemo(perfil) {
  if(dependencias.conectado){
   selecionarPerfilDemo({tipo:'visualizacao'});
   const cadastro=document.getElementById('demo-new');
-  cadastro.title='O registro de ocorrências neste mapa ainda não está integrado ao banco.';
+  cadastro.title=root.AlertaGestaoDados.ESQUEMAS.incidentes?'Registrar ocorrência conforme permissão do banco':'O banco ainda não possui o contrato de ocorrências do mapa.';
   cadastro.setAttribute('aria-label',cadastro.title);
   document.getElementById('session-anchor').textContent=window.AlertaNuvem.email;
 }else if(window.AlertaSessao && window.AlertaSessaoUI){

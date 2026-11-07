@@ -15,8 +15,31 @@ await run('cadastros-editor',{},async a=>{const p=a.page;await open(a,'gestao/#b
  a.reject();await p.locator('[data-new="bases"]').click();await p.locator('#field-nome').fill('Não pode salvar');await p.locator('#drawer-save').click();await p.getByText(/Falha de gravação do teste isolado/).first().waitFor();assert.ok(!a.rows.some(x=>x.dados.nome==='Não pode salvar'));
 });
 await run('cadastro-mobile',{width:390},async a=>{const p=a.page;await open(a,'gestao/#bases');await p.locator('[data-new="bases"]').click();await p.locator('#field-nome').fill('Cadastro móvel isolado');await p.locator('#drawer-save').click();await p.locator('#drawer-overlay').waitFor({state:'hidden'});assert.ok(a.rows.some(x=>x.dados.nome==='Cadastro móvel isolado'));assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await p.screenshot({path:out+'/cadastro-mobile.png',fullPage:true});});
+
+for(const width of [1440,390])await run('ocorrencia-banco-'+width,{width},async a=>{
+ const p=a.page;const finalStatus=width===390?'Arquivada':'Resolvida';await open(a,'index.html');
+ const start=async()=>{
+  await p.locator('#demo-new').click();await p.locator('[name=tipo]').selectOption('tipo-teste');
+  await p.locator('[name=gravidade]').selectOption('3');await p.locator('[name=responsabilidade]').selectOption('publica');await p.locator('[name=evento]').selectOption('evento-teste');
+  await p.locator('#cad-oc-next').click();await p.locator('[name=endereco]').fill('Endereço do teste isolado');await p.locator('#cad-oc-map').click();await p.locator('#cad-oc-pos').getByText(/Local selecionado/).waitFor();await p.locator('[name=bairro]').selectOption('Bairro Teste');
+  await p.locator('#cad-oc-next').click();await p.locator('#cad-oc-next').click();
+ };
+ await start();await p.locator('button[value=triagem]').click();await p.locator('.cadastro-ocorrencia').waitFor({state:'hidden'});
+ assert.equal(a.rows.filter(x=>x.colecao==='incidentes').length,1);
+ assert.match(await p.locator('#panel-body').innerText(),/OC-/);
+ await p.locator('#incidente-acoes').getByRole('button',{name:'Confirmada',exact:true}).click();await p.getByText('Queda de árvore · Confirmada',{exact:true}).waitFor();
+ await p.reload();await p.locator('#backend-bar').waitFor();
+ const records=await p.evaluate(()=>AlertaNuvem.repositorio().lista('incidentes'));assert.equal(records[0].status,'Confirmada');
+ assert.equal(await p.evaluate(()=>Object.keys(localStorage).some(k=>k.includes('operacao'))),false);
+ await p.locator('#demo-new').waitFor();await start();await p.locator('[data-link]').click();await p.locator('.cadastro-ocorrencia').waitFor({state:'hidden'});
+ assert.equal(a.rows.filter(x=>x.colecao==='incidentes').length,1);assert.equal(a.rows.find(x=>x.colecao==='incidentes').dados.relatos.length,1);
+ await p.locator('#incidente-acoes').getByRole('button',{name:finalStatus,exact:true}).click();await p.getByText('Queda de árvore · '+finalStatus,{exact:true}).waitFor();
+ await p.locator('#panel-close').click();await open(a,'gestao/#incidentes');assert.ok(await p.getByText('Abrir no mapa',{exact:true}).isVisible());assert.equal(await p.locator('[data-edit]').count(),0);await p.getByText('Abrir no mapa',{exact:true}).click();await p.locator('#backend-bar').waitFor();await p.getByText('Queda de árvore · '+finalStatus,{exact:true}).waitFor();await p.locator('#panel-close').click();a.reject();await start();await p.locator('button[value=triagem]').click();await p.locator('#cad-oc-error').getByText(/Falha de gravação/).waitFor();
+ assert.equal(a.rows.filter(x=>x.colecao==='incidentes').length,1);
+ await p.screenshot({path:out+'/ocorrencia-'+width+'.png',fullPage:true});
+});
 await run('permissoes-leitor' ,{role:'leitor'},async a=>{const p=a.page;await open(a,'gestao/#bases');assert.equal(await p.locator('[data-new="bases"]').isVisible(),false);assert.equal(await p.locator('[data-edit]').first().isVisible(),false);assert.equal(await p.locator('[data-delete]').first().isVisible(),false);
- const denied=await p.evaluate(async()=>{try{await AlertaNuvem.repositorio().gravar('bases',{nome:'Proibido'});return false}catch{return true}});assert.equal(denied,true);assert.equal(a.calls.length,0);
+ const denied=await p.evaluate(async()=>{try{await AlertaNuvem.repositorio().gravar('bases',{nome:'Proibido'});return false}catch{return true}});assert.equal(denied,true);assert.equal(a.calls.length,0);await open(a,'index.html');assert.equal(await p.locator('#demo-new').isEnabled(),false);
  await open(a,'mapas/?tipo=colaboradores');assert.equal(await p.locator('[data-checkin]').first().isVisible(),false);assert.equal(await p.locator('[data-permission-collection="mobilizacoes"]').isVisible(),false);
 });
 await run('permissoes-rota',{role:'restrito'},async a=>{await open(a,'gestao/#bases');assert.match(await a.page.locator('#page').innerText(),/Acesso restrito/);});
@@ -25,7 +48,7 @@ for(const width of [1440,390])for(const tipo of ['evento','colaboradores','ajuda
  const p=a.page;await open(a,tipo==='evento'?'index.html':'mapas/?tipo='+tipo);await p.locator('.leaflet-marker-icon').first().waitFor();
  assert.ok(await p.locator('.leaflet-marker-icon').count()>=2);
  assert.doesNotMatch(await p.locator('body').innerText(),/Dados locais de demonstração|Act: presença registrada e situações simuladas/);
- if(tipo==='evento'){assert.equal(await p.locator('#demo-new').isDisabled(),true);assert.match(await p.locator('#demo-new').getAttribute('aria-label'),/ainda não está integrado/);}
+ if(tipo==='evento'){assert.equal(await p.locator('#demo-new').isEnabled(),true);}
  await p.screenshot({path:out+'/'+tipo+'-'+width+'.png',fullPage:true});
  if(tipo!=='evento'){
   await p.locator('#eventos-open').click();await p.locator('#eventos-painel').waitFor();

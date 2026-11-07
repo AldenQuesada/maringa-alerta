@@ -105,7 +105,7 @@ function gerarOcorrencia(config={}){
 }
 function refreshOcTooltip(o){
   if(!o.marker)return;
-  const statusLabel = o.confirmado===false ? 'EM TRIAGEM' : o.status==='ativa' ? 'AGUARDANDO EQUIPE' : o.status==='em_atendimento' ? 'EM ATENDIMENTO' : 'RESOLVIDA';
+  const statusLabel = o.remota ? o.registro.status.toLocaleUpperCase('pt-BR') : o.confirmado===false ? 'EM TRIAGEM' : o.status==='ativa' ? 'AGUARDANDO EQUIPE' : o.status==='em_atendimento' ? 'EM ATENDIMENTO' : 'RESOLVIDA';
   o.marker.unbindTooltip();
   o.marker.bindTooltip(
     `<div class="tt-title">${o.icone} ${dependencias.escHtml(o.tipo)}</div>

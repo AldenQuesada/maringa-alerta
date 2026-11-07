@@ -26,7 +26,7 @@ function isViewOnly(){ return !dependencias.currentRole || dependencias.currentR
 function applyRolePermissions(){
   document.getElementById('open-audit').style.display = canAdmin() ? '' : 'none';
   document.getElementById('open-admin').style.display = isViewOnly() ? 'none' : '';
-  document.getElementById('demo-new').disabled = isViewOnly();
+  document.getElementById('demo-new').disabled = dependencias.conectado?!root.AlertaNuvem.repositorio().pode('incidentes','gravar'):isViewOnly();
 }
 function selecionarPerfilDemo(perfil) {
   dependencias.currentRole = perfil && ['admin','responsavel','visualizacao'].includes(perfil.tipo)
@@ -47,7 +47,7 @@ function selecionarPerfilDemo(perfil) {
  if(dependencias.conectado){
   selecionarPerfilDemo({tipo:'visualizacao'});
   const cadastro=document.getElementById('demo-new');
-  cadastro.title='O registro de ocorrências neste mapa ainda não está integrado ao banco.';
+  cadastro.title=root.AlertaGestaoDados.ESQUEMAS.incidentes?'Registrar ocorrência conforme permissão do banco':'O banco ainda não possui o contrato de ocorrências do mapa.';
   cadastro.setAttribute('aria-label',cadastro.title);
   document.getElementById('session-anchor').textContent=window.AlertaNuvem.email;
 }else if(window.AlertaSessao && window.AlertaSessaoUI){

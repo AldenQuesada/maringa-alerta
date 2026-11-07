@@ -13,7 +13,7 @@ function tabelaLinhas(){
   return;
  }
  tbody.innerHTML=list.map(item=>'<tr>'+def.columns.map(c=>'<td>'+esc(c==="responsavel_id"?(db.lista("pessoas").find(p=>p.id===item[c])?.nome||"Não vinculado"):(item[c]===0?0:item[c]||"—"))+'</td>').join("")+
- '<td><div class="row-actions">'+(state.atual==="eventos"?'<a class="row-action" href="../index.html?evento='+encodeURIComponent(item.id)+'" target="_blank" rel="noopener">Abrir mapa</a>':'')+'<button class="row-action" type="button" data-edit="'+esc(item.id)+'" title="Editar">Editar</button>'+(state.atual==="eventos"?'':'<button class="row-action danger" type="button" data-delete="'+esc(item.id)+'" title="Excluir">Excluir</button>')+'</div></td></tr>').join("");
+ '<td><div class="row-actions">'+(state.atual==="eventos"?'<a class="row-action" href="../index.html?evento='+encodeURIComponent(item.id)+'" target="_blank" rel="noopener">Abrir mapa</a>':'')+(def.editor==='mapa'?'<a class="row-action" href="../index.html?incidente='+encodeURIComponent(item.id)+'">Abrir no mapa</a>':'<button class="row-action" type="button" data-edit="'+esc(item.id)+'" title="Editar">Editar</button>')+(state.atual==="eventos"?'':'<button class="row-action danger" type="button" data-delete="'+esc(item.id)+'" title="Excluir">Excluir</button>')+'</div></td></tr>').join("");
 }
 function mapaPreview(){
  const p=db.municipioAtivo();
@@ -38,7 +38,8 @@ function renderModulo(){
   PAGE.innerHTML=topo("Bairros","Inventário territorial e vínculos com as zonas operacionais. Utilize Novo cadastro para incluir um bairro.","bairros");
   return; // O catálogo de bairros é o único inventário visível, montado pelo adaptador territorial existente.
  }
- PAGE.innerHTML=topo(d.label,d.summary,state.atual)+
+ PAGE.innerHTML=topo(d.label,d.summary,d.editor==='mapa'?null:state.atual)+
+ (d.editor==='mapa'?'<div class="heading-actions"><a class="btn btn-primary" data-permission-collection="'+esc(d.collection)+'" href="../index.html?novaOcorrencia=1">'+icon('plus')+'Registrar no mapa</a></div>':'')+
  (state.atual==='eventos'&&D.config.referencias(db.municipioAtivo()).eventoHistorico?'<div class="heading-actions"><button type="button" class="btn btn-primary" data-importar-tornado>+ '+esc(D.config.referencias(db.municipioAtivo()).eventoHistorico.rotulo)+'</button></div>':'')+
  '<section class="table-shell"><div class="table-toolbar"><label class="search-field">'+icon("search")+'<input id="table-search" type="search" placeholder="Buscar cadastro" aria-label="Buscar cadastros" autocomplete="off"></label><span id="table-count" class="table-count"></span></div>'+
  '<div class="table-scroll"><table><thead><tr>'+d.columns.map(c=>'<th scope="col">'+esc(d.fields.find(f=>f.key===c)?.label||c)+'</th>').join("")+'<th scope="col" style="text-align:right">Ações</th></tr></thead><tbody id="table-body"></tbody></table></div></section>'+

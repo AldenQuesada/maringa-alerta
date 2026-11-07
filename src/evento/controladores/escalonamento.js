@@ -88,7 +88,7 @@ function zonasComAlertaAtivo(){
  (SLA_LIMITE_MIN=2);
 setInterval(()=>{
   dependencias.ocorrencias.forEach(o=>{
-    if(o.confirmado!==false && o.status==='ativa' && o.gravidade===3 && !o._escalado && dependencias.minutosDesde(o.reportadoEm) >= SLA_LIMITE_MIN){
+    if(!o.remota && o.confirmado!==false && o.status==='ativa' && o.gravidade===3 && !o._escalado && dependencias.minutosDesde(o.reportadoEm) >= SLA_LIMITE_MIN){
       o._escalado = true;
       const zona = dependencias.bairros.find(b=>b.nome===o.bairro);
       const coord = zona?.equipe?.coordenador;

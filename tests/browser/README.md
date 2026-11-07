@@ -22,6 +22,8 @@ Cobre:
 - três mapas em 1440 e 390 px;
 - marcadores, filtros de estruturas, ocultar/restaurar unidades, busca, zona e localizar;
 - ausência de exceções JavaScript e de tentativas de conexão ao Supabase remoto;
-- bloqueio explícito do registro legado de ocorrências ainda não integrado.
+- ocorrência conectada: gravação, recarga, confirmação, vínculo, resolução/arquivamento, falha de gravação e acesso pelo cadastro existente.
+
+`BROWSER_SCENARIO` permite repetir somente um cenário pelo nome. O contrato da fixture de ocorrências é extraído da migração local; a fixture não substitui os testes SQL de validação e RLS.
 
 Fixtures nunca entram no artefato de publicação (`tests/` é excluído pelo preparador).

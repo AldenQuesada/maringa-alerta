@@ -10,7 +10,7 @@ function mostrarEtapa(indice){
   overlay.querySelectorAll('button[type="submit"]').forEach(el=>{el.hidden=indice!==3;});
   overlay.querySelector('.cad-step-content').scrollTop=0;
   error.textContent='';
-  if(indice===1 && state.map)setTimeout(()=>state.map.invalidateSize(),50);
+  if(indice===1 && state.map)state.map.invalidateSize({animate:false});
   if(indice===3)verificar();
  }
 function validarEtapa(indice){

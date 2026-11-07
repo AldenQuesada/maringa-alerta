@@ -13,12 +13,12 @@ function dados(){
    riscos:form.elements.riscos.value.trim(),endereco:form.elements.endereco.value.trim(),pos:state.pos,bairro:bairro.value,
    acesso:form.elements.acesso.value.trim(),origem:form.elements.origem.value,quando:form.elements.quando.value,
    comunicante:form.elements.comunicante.value.trim(),contato:form.elements.contato.value.trim(),
-   raio:Number(form.elements.raio.value)||AlertaGestaoDados.parametros.ocorrencias.raioDuplicidadeMetros,janela:Number(form.elements.janela.value)||AlertaGestaoDados.parametros.ocorrencias.janelaDuplicidadeHoras,fotosPublicas:form.elements.fotosPublicas.checked,organizacoes:[...overlay.querySelectorAll('#cad-oc-orgs input:checked')].map(x=>x.value),fotos:state.files};
+   raio:Number(form.elements.raio.value)||(api.limits||AlertaGestaoDados.parametros.ocorrencias).raioDuplicidadeMetros,janela:Number(form.elements.janela.value)||(api.limits||AlertaGestaoDados.parametros.ocorrencias).janelaDuplicidadeHoras,fotosPublicas:form.elements.fotosPublicas.checked,organizacoes:[...overlay.querySelectorAll('#cad-oc-orgs input:checked')].map(x=>x.value),fotos:state.files};
  }
 function verificar(){
   state.duplicateAcknowledged=false;
   state.matches=api.findDuplicates(dados());
-  overlay.querySelector('#cad-oc-duplicates').innerHTML=state.matches.length?`<h3>Possíveis registros relacionados</h3><p>Compare antes de confirmar. Relatos do WhatsApp aparecem quando estão no cadastro deste navegador.</p>
+  overlay.querySelector('#cad-oc-duplicates').innerHTML=state.matches.length?`<h3>Possíveis registros relacionados</h3><p>Compare antes de confirmar. ${api.connected?'Registros existentes no cadastro municipal.':'Relatos do WhatsApp aparecem quando estão no cadastro deste navegador.'}</p>
    ${state.matches.map(m=>`<div class="cad-duplicate"><strong>${esc(m.tipo)}</strong> · ${esc(m.local)} · ${esc(m.origem)} <details><summary>Comparar detalhes</summary><p>Situação: ${esc(m.situacao||'Não informada')}</p><p>${esc(m.descricao||'Sem descrição adicional')}</p></details> ${m.vinculavel?`<button type="button" class="admin-btn" data-link="${esc(m.id)}">Vincular relato</button>`:''}</div>`).join('')}
    <label class="cad-choice"><input type="checkbox" id="cad-oc-separate"> Revisei e se trata de uma ocorrência separada.</label>`:'';
  }

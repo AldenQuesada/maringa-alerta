@@ -34,6 +34,7 @@ root.AlertaEventoControladores.definir('ocorrencias',{
   return `<span class="badge" style="background:${color}22;color:${color};border:1px solid ${color}66">${label}</span>`;
 }
 function openOcorrencia(o){
+  if(root.AlertaOcorrenciasServidor?.abrir(o))return;
   if(document.getElementById('panel').classList.contains('com-ficha-ponto')) dependencias.painelPonto.fechar();
   currentPanelOcId=o.id;
   const panel=document.getElementById('panel'), body=document.getElementById('panel-body');

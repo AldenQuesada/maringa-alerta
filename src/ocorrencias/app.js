@@ -3,7 +3,7 @@
 "use strict";
 const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function iniciar(api){
- const limites=global.AlertaGestaoDados.parametros.ocorrencias;
+ const limites=api.limits||global.AlertaGestaoDados.parametros.ocorrencias;
  const overlay=document.createElement('div');
  overlay.className='modal-overlay cadastro-ocorrencia';
  overlay.hidden=true;
@@ -12,7 +12,7 @@ function iniciar(api){
  <form id="cad-oc-form" novalidate>
  <nav class="cad-steps" aria-label="Etapas do cadastro"><span data-step-label="0">1. Ocorrência</span><span data-step-label="1">2. Local</span><span data-step-label="2">3. Equipes</span><span data-step-label="3">4. Relato e revisão</span></nav>
  <div class="cad-step-content"><section class="cad-step" data-step="0">
- <p class="demo-caption">Registro e acionamento de demonstração neste navegador.</p>
+ <p class="demo-caption">${api.connected?'Registro no cadastro municipal. Nenhum acionamento automático.':'Registro e acionamento de demonstração neste navegador.'}</p>
  <div class="cad-grid">
  <label>Tipo de ocorrência <span class="cad-select-add"><select name="tipo" required></select><button type="button" class="cad-add" data-add="tipo" aria-label="Adicionar tipo de ocorrência" title="Adicionar tipo de ocorrência">+</button></span></label>
  <label>Gravidade <select name="gravidade" required><option value="">Selecione a gravidade</option><option value="1">Baixa</option><option value="2">Média</option><option value="3">Alta</option></select></label>
@@ -47,9 +47,10 @@ function iniciar(api){
  </div>
  <div id="cad-oc-duplicates" role="status"></div>
  </section></div><p id="cad-oc-error" role="alert"></p>
- <div class="cad-footer"><button type="button" id="cad-oc-back" class="admin-btn" hidden>Voltar</button><button type="button" id="cad-oc-next" class="admin-btn primary">Continuar</button><button type="button" id="cad-oc-cancel" class="admin-btn">Cancelar</button><button type="submit" name="acao" value="triagem" class="admin-btn" hidden>Salvar para triagem</button><button type="submit" name="acao" value="confirmar" class="admin-btn primary" hidden>Confirmar e acionar</button></div>
+ <div class="cad-footer"><button type="button" id="cad-oc-back" class="admin-btn" hidden>Voltar</button><button type="button" id="cad-oc-next" class="admin-btn primary">Continuar</button><button type="button" id="cad-oc-cancel" class="admin-btn">Cancelar</button><button type="submit" name="acao" value="triagem" class="admin-btn" hidden>Salvar para triagem</button><button type="submit" name="acao" value="confirmar" class="admin-btn primary" hidden>${api.connected?'Confirmar ocorrência':'Confirmar e acionar'}</button></div>
  </form></section>`;
  document.body.appendChild(overlay);
+ if(api.connected){overlay.querySelector('[name=fotosPublicas]').closest('label').hidden=true;overlay.querySelector('[data-add=tipo]').hidden=!api.canCreateType();overlay.querySelector('[data-add=org]').hidden=!api.canCreateOrganization();}
  const form=overlay.querySelector('form'), error=overlay.querySelector('#cad-oc-error'), tipo=form.elements.tipo, bairro=form.elements.bairro;
  const state={map:undefined,marker:undefined,pos:null,files:[],matches:[],busy:false,duplicateAcknowledged:false,duplicateSignature:"",etapa:0};
 
@@ -77,7 +78,7 @@ const {marcar}=AlertaOcorrenciasMapa.criar({api,bairro,error,overlay,preencherOr
   const aviso=overlay.querySelector('#cad-tipo-status');
   if(!nome){aviso.textContent='Informe o nome do tipo.';return;}
   try{
-   await api.createType(nome,prioridade);tipo.innerHTML=escOptions(api.types());tipo.value=nome;
+   await api.createType(nome,prioridade);tipo.innerHTML=escOptions(api.types());tipo.value=api.types().find(x=>x.label===nome)?.value||nome;
    tipo.dispatchEvent(new Event('change'));aviso.textContent='Tipo salvo e selecionado.';
   }catch(e){aviso.textContent=e.message;}
  };
@@ -100,6 +101,7 @@ const {marcar}=AlertaOcorrenciasMapa.criar({api,bairro,error,overlay,preencherOr
 
 
  api.trigger.addEventListener('click',()=>{
+  if(api.canCreate&&!api.canCreate())return;
   overlay.hidden=false;form.reset();state.files=[];state.pos=null;state.matches=[];state.busy=false;
   overlay.querySelectorAll('.cad-add-panel').forEach(p=>p.hidden=true);overlay.querySelectorAll('[data-add],#cad-criterios-toggle').forEach(b=>b.setAttribute('aria-expanded','false'));overlay.querySelectorAll('.cad-add-panel [role=status]').forEach(p=>p.textContent='');state.duplicateAcknowledged=false;state.duplicateSignature='';overlay.querySelector('#cad-criterios').hidden=true;mostrarEtapa(0);
   error.textContent='';overlay.querySelector('#cad-oc-previews').replaceChildren();overlay.querySelector('#cad-oc-duplicates').replaceChildren();
@@ -107,7 +109,7 @@ const {marcar}=AlertaOcorrenciasMapa.criar({api,bairro,error,overlay,preencherOr
   tipo.innerHTML=escOptions(api.types());form.elements.evento.innerHTML='<option value="">Selecione o evento cadastrado no Dashboard</option>'+escOptions(api.events());form.elements.evento.value=api.selectedEvent?.()||'';bairro.innerHTML='<option value="">Selecione o bairro ou zona</option>'+escOptions(api.neighborhoods());
   const now=new Date();const offset=now.getTimezoneOffset()*60000;form.elements.quando.value=new Date(now-offset).toISOString().slice(0,16);
   if(!state.map){state.map=L.map('cad-oc-map').setView(api.center,13);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(state.map);state.map.on('click',e=>marcar(e.latlng));}
-  if(state.marker){state.map.removeLayer(state.marker);state.marker=null;} state.map.setView(api.center,13);setTimeout(()=>state.map.invalidateSize(),50);
+  if(state.marker){state.map.removeLayer(state.marker);state.marker=null;} state.map.setView(api.center,13,{animate:false});
   tipo.dispatchEvent(new Event('change'));tipo.focus();
  });
  overlay.querySelector('#cad-oc-search').onclick=async ()=>{

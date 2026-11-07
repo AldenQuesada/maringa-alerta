@@ -19,7 +19,7 @@ run_sql(){
 }
 run_sql tests/backend/bootstrap-local.sql
 for migration in supabase/migrations/*.sql;do run_sql "$migration";done
-for suite in permissoes seguranca-servidor operacoes painel admin-geral integracao;do
+for suite in permissoes seguranca-servidor operacoes painel admin-geral integracao incidentes;do
  run_sql "tests/backend/$suite.sql"
  printf 'SQL aprovado: %s\n' "$suite"
 done
