@@ -1,0 +1,1422 @@
+{
+  "source_hashes": {
+    "src/atendimento/app.js": "a078b30a54017f2abf46aa0eedd07b6d113212669a9c34b378ddbbfd26ffd228",
+    "src/atendimento/passos.js": "cf2bf241390437aae7c47a7f408fe9791055df06ec0f4e5a82c2c39da4967421",
+    "src/atendimento/registro.js": "bf47ee6e8e2333bbca1a8b36c3d1ec4875e66085391f05c30f1fc3f49df182a9",
+    "src/atendimento/foto.js": "57b2b456f85749db469e282aed56401bb11adbf4cb977be8a1cfc499d4c2b792",
+    "src/cadastros/esquemas.js": "766b9b043f5a31982ac23660f180e314a9c7f5a60470dd6b40a75d7643348ee2",
+    "config/municipios.js": "efd2d4b5053db494f9c624fb851bfca75d1f9887f5b1fd53037bdddde43fa427",
+    "assets/pra-somar-original.webp": "c5b0b4056c63522f1db91f2aa19b2d4b156d3794e1dc16a2116f03d12bf3ef84"
+  },
+  "cases": [
+    {
+      "key": "menu",
+      "state": {
+        "flow": null,
+        "stage": "menu",
+        "position": 0,
+        "answers": {}
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Olá! Bem-vindo ao Maringá Alerta.\n\nUm sistema desenvolvido pela Prefeitura de Maringá para que todos possam somar esforços na recuperação da nossa cidade em caso de eventos climáticos e desastres naturais.\n\nEscolha uma opção para continuar:",
+            "image": null
+          }
+        ],
+        "buttons": [
+          "Ser colaborador",
+          "Relatar ocorrência",
+          "Preciso de ajuda"
+        ]
+      }
+    },
+    {
+      "key": "colaborador/nome",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 1,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Programa de Apoio Social e Mobilização Voluntária de Maringá\n\n“Onde a boa vontade se transforma em ação”\n\nUnindo:\nEmpresas 🤝 Voluntários 🤝 Entidades\n\nPara começar, digite seu nome e sobrenome 👇",
+            "image": {
+              "src": "../assets/pra-somar-original.webp",
+              "alt": "Identidade visual do Pra Somar enviada para a demonstração",
+              "titulo": "Pra Somar · Mobilização voluntária"
+            }
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "colaborador/tipo_pessoa",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 2,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Muito obrigado, Pessoa Exemplo! Como você gostaria de se cadastrar?\n\n◾ Pessoa física\n◾ Pessoa jurídica\n\nToque em uma das opções abaixo. 👇",
+            "image": null
+          }
+        ],
+        "buttons": [
+          "Pessoa física",
+          "Pessoa jurídica"
+        ]
+      }
+    },
+    {
+      "key": "colaborador/endereco",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 3,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Informe seu endereço seguindo este formato:\nRua ou avenida, número, complemento (se houver), bairro, cidade/UF e CEP (se souber).\n\nExemplo: Rua das Flores, 100, Centro, Maringá/PR, CEP.\n\nSe não houver número, escreva s/n. 👇",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "colaborador/telefone",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 4,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Qual é seu telefone com DDD?",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "colaborador/ajudas",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 5,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Que tipo de ajuda pode oferecer para pessoas atingidas?\n\n1. FORNECER ALIMENTAÇÃO\n2. ATENDER PESSOAS COM NECESSIDADES ESPECIAIS\n3. CUIDADOR\n4. LIMPEZA\n5. PEDREIRO\n6. METALÚRGICO\n7. CARPINTEIRO\n8. OPERADOR DE MOTOSSERRA\n9. ELETRICISTA\n10. LAUDO\n11. EMITIR LAUDOS DE PREJUÍZOS\n12. OUTRO\n13. INFLUENCIADORES E DIVULGAÇÃO DE NOTÍCIAS\n14. OPERADOR DE DRONE\n0. Nenhuma das opções\n\nVocê pode escolher mais de uma opção. Digite os números separados por vírgula. Exemplo: 1, 3, 5. Se nenhuma se aplica, digite 0.",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "colaborador/maquinas",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 6,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "MAQUINÁRIO, equipamentos e materiais disponíveis\n\n1. PÁ CARREGADEIRA\n2. RETROESCAVADEIRA\n3. MUNCK\n4. CAMIONETE\n5. BOBCAT\n6. CAMINHÃO GARRA\n7. CAMINHÃO BASCULANTE\n8. GERADOR\n9. MATERIAL DE CONSTRUÇÃO\n10. STAR LINK\n11. OUTRO\n12. MOTOSSERRA COM OPERADOR\n13. MOTOSSERRA\n0. Nenhuma das opções\n\nVocê pode escolher mais de uma opção. Digite os números separados por vírgula. Exemplo: 1, 3, 5. Se nenhuma se aplica, digite 0.",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "colaborador/empreendedores",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 7,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Que tipo de apoio pode oferecer para empreendedores?\n\n1. ESPAÇO EM FREEZER PARA PERECÍVEIS\n2. AMBIENTE DE TRABALHO\n3. OUTRO\n0. Nenhuma das opções\n\nVocê pode escolher mais de uma opção. Digite os números separados por vírgula. Exemplo: 1, 3, 5. Se nenhuma se aplica, digite 0.",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "colaborador/outros",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 8,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Especifique qual outra ajuda, equipamento ou apoio você pode oferecer.",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "colaborador/materiais",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 9,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "MATERIAL CONSTRUÇÃO / COMBUSTÍVEL\n\n1. MATERIAL DE CONSTRUÇÃO\n2. COMBUSTÍVEL\n0. Nenhuma das opções\n\nVocê pode escolher mais de uma opção. Digite os números separados por vírgula. Exemplo: 1, 3, 5. Se nenhuma se aplica, digite 0.",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "colaborador/forma_entrega_doacao",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 10,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Como você disponibiliza sua doação?",
+            "image": null
+          }
+        ],
+        "buttons": [
+          "Preciso que retirem no meu endereço",
+          "Consigo entregar no centro de acolhimento mais próximo"
+        ]
+      }
+    },
+    {
+      "key": "colaborador/ponto_publico",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 11,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Você oferece um ponto de atendimento e autoriza publicar seu nome, endereço, serviço e telefone nos mapas?",
+            "image": null
+          }
+        ],
+        "buttons": [
+          "Sim, cadastrar ponto público",
+          "Não"
+        ]
+      }
+    },
+    {
+      "key": "colaborador/ponto_tipo",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 12,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Qual é o tipo do ponto?",
+            "image": null
+          }
+        ],
+        "buttons": [
+          "Ponto de água potável",
+          "Ponto de banho",
+          "Centro de coleta de donativos",
+          "Outro"
+        ]
+      }
+    },
+    {
+      "key": "colaborador/ponto_nome",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 13,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Qual é o nome do ponto de atendimento?",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "colaborador/ponto_responsavel",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 14,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Qual é o nome do responsável pelo ponto?",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "colaborador/ponto_endereco",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 15,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Qual é o endereço do ponto? Informe rua, número, bairro e cidade.",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "colaborador/ponto_telefone",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 16,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Qual é o telefone do ponto com DDD?",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "colaborador/ponto_funcao",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 17,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "O que o ponto oferece?",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "colaborador/ponto_horario",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 18,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Qual é o horário de atendimento?",
+            "image": null
+          }
+        ],
+        "buttons": [
+          "Pular esta pergunta"
+        ]
+      }
+    },
+    {
+      "key": "colaborador/ponto_capacidade",
+      "state": {
+        "flow": "colaborador",
+        "stage": "question",
+        "position": 19,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Quantas pessoas o ponto consegue atender? Informe um número ou pule se não souber.",
+            "image": null
+          }
+        ],
+        "buttons": [
+          "Pular esta pergunta"
+        ]
+      }
+    },
+    {
+      "key": "colaborador/revisao",
+      "state": {
+        "flow": "colaborador",
+        "stage": "review",
+        "position": 0,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Confira suas informações antes de concluir:\n\nNome: Pessoa Exemplo\nPessoa: FÍSICA\nEndereço: Rua Exemplo, 100, Centro, Maringá/PR\nTelefone: 44999990000\nAjuda a pessoas: FORNECER ALIMENTAÇÃO, OUTRO\nMáquinas e equipamentos: GERADOR\nEmpreendedores: OUTRO\nEspecificar outros: Apoio de exemplo\nMateriais e combustível: COMBUSTÍVEL\nEntrega da doação: Consigo entregar no centro de acolhimento mais próximo\nDivulgar ponto: Sim, cadastrar ponto público\nTipo de ponto: Ponto de água potável\nNome do ponto: Ponto Exemplo\nResponsável: Responsável Exemplo\nEndereço do ponto: Rua Exemplo, 200\nTelefone do ponto: 44999990000\nServiço oferecido: Água potável\nHorário de atendimento: 8h às 18h\nCapacidade em pessoas: 20\n\nEstá tudo correto?",
+            "image": null
+          }
+        ],
+        "buttons": [
+          "✓ Confirmar e concluir",
+          "✎ Corrigir respostas"
+        ]
+      }
+    },
+    {
+      "key": "colaborador/conclusao",
+      "state": {
+        "flow": "colaborador",
+        "stage": "done",
+        "position": 0,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "tipo_pessoa": "FÍSICA",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "ajudas": [
+            "FORNECER ALIMENTAÇÃO",
+            "OUTRO"
+          ],
+          "maquinas": [
+            "GERADOR"
+          ],
+          "empreendedores": [
+            "OUTRO"
+          ],
+          "outros": "Apoio de exemplo",
+          "materiais": [
+            "COMBUSTÍVEL"
+          ],
+          "forma_entrega_doacao": "Consigo entregar no centro de acolhimento mais próximo",
+          "ponto_publico": "Sim, cadastrar ponto público",
+          "ponto_tipo": "Ponto de água potável",
+          "ponto_nome": "Ponto Exemplo",
+          "ponto_responsavel": "Responsável Exemplo",
+          "ponto_endereco": "Rua Exemplo, 200",
+          "ponto_telefone": "44999990000",
+          "ponto_funcao": "Água potável",
+          "ponto_horario": "8h às 18h",
+          "ponto_capacidade": "20"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Cadastro de colaborador concluído! ✅\n\nProtocolo: COL-SIM-1234567\nOfertas cadastradas: 4\nDoação: Consigo entregar no centro de acolhimento mais próximo\n\nOs dados aparecem na Gestão e no Mapa de Colaboradores no sistema municipal. Nenhuma mensagem foi enviada a órgãos ou voluntários.",
+            "image": null
+          }
+        ],
+        "buttons": [
+          "Voltar ao início"
+        ]
+      }
+    },
+    {
+      "key": "relato/nome",
+      "state": {
+        "flow": "relato",
+        "stage": "question",
+        "position": 1,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "telefone": "44999990000",
+          "endereco_ocorrencia": "Rua Exemplo, 300",
+          "pessoas_no_local": [
+            "PESSOA IDOSA"
+          ],
+          "necessidade_relato": "Árvore caída",
+          "foto": "Foto anexada"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Vamos registrar a ocorrência em poucos passos. Em risco imediato, ligue 190, 192 ou 193. Não se aproxime de fios, árvores instáveis ou estruturas danificadas.",
+            "image": null
+          },
+          {
+            "text": "Qual é seu nome?",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "relato/telefone",
+      "state": {
+        "flow": "relato",
+        "stage": "question",
+        "position": 2,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "telefone": "44999990000",
+          "endereco_ocorrencia": "Rua Exemplo, 300",
+          "pessoas_no_local": [
+            "PESSOA IDOSA"
+          ],
+          "necessidade_relato": "Árvore caída",
+          "foto": "Foto anexada"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Qual é seu telefone com DDD?",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "relato/endereco_ocorrencia",
+      "state": {
+        "flow": "relato",
+        "stage": "question",
+        "position": 3,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "telefone": "44999990000",
+          "endereco_ocorrencia": "Rua Exemplo, 300",
+          "pessoas_no_local": [
+            "PESSOA IDOSA"
+          ],
+          "necessidade_relato": "Árvore caída",
+          "foto": "Foto anexada"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Qual é o endereço exato da ocorrência? Informe rua, número e referência.",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "relato/pessoas_no_local",
+      "state": {
+        "flow": "relato",
+        "stage": "question",
+        "position": 4,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "telefone": "44999990000",
+          "endereco_ocorrencia": "Rua Exemplo, 300",
+          "pessoas_no_local": [
+            "PESSOA IDOSA"
+          ],
+          "necessidade_relato": "Árvore caída",
+          "foto": "Foto anexada"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Há alguma destas pessoas no local? Selecione todas as opções aplicáveis.\n\n1. CRIANÇA / ADOLESCENTE\n2. PESSOA IDOSA\n3. PCD\n4. NÃO HÁ\n\nVocê pode escolher mais de uma opção. Digite os números separados por vírgula. Exemplo: 1, 3, 5.",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "relato/necessidade_relato",
+      "state": {
+        "flow": "relato",
+        "stage": "question",
+        "position": 5,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "telefone": "44999990000",
+          "endereco_ocorrencia": "Rua Exemplo, 300",
+          "pessoas_no_local": [
+            "PESSOA IDOSA"
+          ],
+          "necessidade_relato": "Árvore caída",
+          "foto": "Foto anexada"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Descreva o que aconteceu e a ajuda necessária.",
+            "image": null
+          }
+        ],
+        "buttons": [
+          "Pular esta pergunta"
+        ]
+      }
+    },
+    {
+      "key": "relato/foto",
+      "state": {
+        "flow": "relato",
+        "stage": "question",
+        "position": 6,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "telefone": "44999990000",
+          "endereco_ocorrencia": "Rua Exemplo, 300",
+          "pessoas_no_local": [
+            "PESSOA IDOSA"
+          ],
+          "necessidade_relato": "Árvore caída",
+          "foto": "Foto anexada"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Envie uma foto da ocorrência, se for seguro fotografar. Você também pode concluir sem foto.",
+            "image": null
+          }
+        ],
+        "buttons": [
+          "Continuar sem foto"
+        ]
+      }
+    },
+    {
+      "key": "relato/revisao",
+      "state": {
+        "flow": "relato",
+        "stage": "review",
+        "position": 0,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "telefone": "44999990000",
+          "endereco_ocorrencia": "Rua Exemplo, 300",
+          "pessoas_no_local": [
+            "PESSOA IDOSA"
+          ],
+          "necessidade_relato": "Árvore caída",
+          "foto": "Foto anexada"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Confira suas informações antes de concluir:\n\nNome: Pessoa Exemplo\nTelefone: 44999990000\nLocal da ocorrência: Rua Exemplo, 300\nPessoas no local: PESSOA IDOSA\nDescrição: Árvore caída\nFotografia: Imagem anexada\n\nEstá tudo correto?",
+            "image": null
+          }
+        ],
+        "buttons": [
+          "✓ Confirmar e concluir",
+          "✎ Corrigir respostas",
+          "Voltar ao início"
+        ]
+      }
+    },
+    {
+      "key": "relato/conclusao",
+      "state": {
+        "flow": "relato",
+        "stage": "done",
+        "position": 0,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "telefone": "44999990000",
+          "endereco_ocorrencia": "Rua Exemplo, 300",
+          "pessoas_no_local": [
+            "PESSOA IDOSA"
+          ],
+          "necessidade_relato": "Árvore caída",
+          "foto": "Foto anexada"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Relato recebido para triagem! ✅\n\nProtocolo de demonstração: OCO-SIM-1234567\nEndereço: Rua Exemplo, 300\nSituação: Em triagem\nFoto anexada com sucesso.\n\nA equipe deverá verificar antes de confirmar uma ocorrência no Mapa de Evento. Nenhum acionamento real foi realizado.",
+            "image": null
+          }
+        ],
+        "buttons": [
+          "Voltar ao início"
+        ]
+      }
+    },
+    {
+      "key": "solicitacao/nome",
+      "state": {
+        "flow": "solicitacao",
+        "stage": "question",
+        "position": 1,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "descricao": "Alimentos"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Qual é seu nome?",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "solicitacao/endereco",
+      "state": {
+        "flow": "solicitacao",
+        "stage": "question",
+        "position": 2,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "descricao": "Alimentos"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Qual é o endereço onde você precisa de ajuda?",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "solicitacao/telefone",
+      "state": {
+        "flow": "solicitacao",
+        "stage": "question",
+        "position": 3,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "descricao": "Alimentos"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Qual é seu telefone com DDD?",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "solicitacao/descricao",
+      "state": {
+        "flow": "solicitacao",
+        "stage": "question",
+        "position": 4,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "descricao": "Alimentos"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Do que você precisa? Descreva a ajuda que está solicitando.",
+            "image": null
+          }
+        ],
+        "buttons": []
+      }
+    },
+    {
+      "key": "solicitacao/revisao",
+      "state": {
+        "flow": "solicitacao",
+        "stage": "review",
+        "position": 0,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "descricao": "Alimentos"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Confira suas informações antes de concluir:\n\nNome: Pessoa Exemplo\nEndereço: Rua Exemplo, 100, Centro, Maringá/PR\nTelefone: 44999990000\nAjuda solicitada: Alimentos\n\nEstá tudo correto?",
+            "image": null
+          }
+        ],
+        "buttons": [
+          "✓ Confirmar e concluir",
+          "✎ Corrigir respostas"
+        ]
+      }
+    },
+    {
+      "key": "solicitacao/conclusao",
+      "state": {
+        "flow": "solicitacao",
+        "stage": "done",
+        "position": 0,
+        "answers": {
+          "nome": "Pessoa Exemplo",
+          "endereco": "Rua Exemplo, 100, Centro, Maringá/PR",
+          "telefone": "44999990000",
+          "descricao": "Alimentos"
+        }
+      },
+      "canonical": {
+        "messages": [
+          {
+            "text": "Seu pedido de ajuda foi registrado. ✅\n\nAjuda solicitada: Alimentos\nSituação: Aguardando\n\nO pedido aparece no Mapa da Ajuda no sistema municipal, sem divulgar seu endereço. Nenhuma mensagem real foi enviada.",
+            "image": null
+          }
+        ],
+        "buttons": [
+          "Voltar ao início"
+        ]
+      }
+    }
+  ]
+}

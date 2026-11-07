@@ -75,3 +75,18 @@ jobs:
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/admin-geral.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/integracao.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/incidentes.sql
+
+      - name: Testar fluxos e cópia canônica do WhatsApp
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/fluxos.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/catalogo.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/canonico.sql
+          MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres PGDATABASE=postgres python3 tests/whatsapp/comparar-copia.py
+  transporte-whatsapp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.7.14
+      - run: deno test --allow-env tests/whatsapp/edge.test.ts
