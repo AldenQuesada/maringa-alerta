@@ -2,34 +2,23 @@
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(()=>{ /* alguns navegadores/visualizacoes bloqueiam; segue sem offline */ });
 }
-const OFFLINE_QUEUE_KEY = storageKey('offline');
-let filaOffline = [];
-try{ if(!conectado)filaOffline = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]'); }catch(e){ filaOffline = []; }
+const filaLocal=AlertaEventoFilaLocal.criar({armazenamento:localStorage,chave:storageKey('offline'),habilitado:!conectado});
+const enfileirarOffline=filaLocal.enfileirar;
 
 function atualizarBannerOffline(){
   document.getElementById('offline-banner').hidden = navigator.onLine;
 }
-function enfileirarOffline(tipo,dados){
-  if(conectado)throw Error("Mensagens offline não estão habilitadas no ambiente conectado.");
-  const id=crypto.randomUUID();
-  filaOffline.push({id,tipo,dados,ts:Date.now()});
-  try{localStorage.setItem(OFFLINE_QUEUE_KEY,JSON.stringify(filaOffline));}catch(e){}
-  return id;
-}
 function processarFilaOffline(){
-  if(conectado)return;
-  if(!filaOffline.length)return;
-  filaOffline=filaOffline.filter(item=>{
-    if(item.tipo!=='chat')return true;
+  const processados=filaLocal.processar(item=>{
+    if(item.tipo!=='chat')return false;
     const id=item.dados.contatoId;
     chatHistorico[id]=chatHistorico[id]||[];
     const pendente=chatHistorico[id].find(m=>m.filaId===item.id);
     if(pendente){pendente.texto=item.dados.texto+' (reconexão simulada)';delete pendente.filaId;}
     else chatHistorico[id].push({de:'eu',texto:item.dados.texto+' (reconexão simulada)',ts:item.ts});
-    return false;
+    return true;
   });
-  try{localStorage.setItem(OFFLINE_QUEUE_KEY,JSON.stringify(filaOffline));}catch(e){}
-  renderChatContacts();salvarPrototipo();
+  if(processados){renderChatContacts();salvarPrototipo();}
 }
 window.addEventListener('offline', atualizarBannerOffline);
 window.addEventListener('online', ()=>{ atualizarBannerOffline(); processarFilaOffline(); });

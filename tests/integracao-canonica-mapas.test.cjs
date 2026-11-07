@@ -60,7 +60,7 @@ test("três mapas têm seleção canônica, visibilidade e cartografia não simu
  assert.match(maps,/id="camada"/);
  assert.match(maps,/id="mostrar-unidades"/);
  assert.match(aux,/function renderUnidadesMunicipais\(/);
- assert.match(aux,/MaringaBairros.carregar\(/);
+ assert.match(aux,/config.referencias\(app.prefeitura\(\)\).catalogoBairros/);
  assert.doesNotMatch(aux,/const shapes=\[/);
  assert.match(mapaEvento,/const demoMode=!conectado/);
  assert.match(html,/data-area="evento"/);

@@ -15,8 +15,9 @@ test("três mapas têm nomes completos e abrem telas independentes",()=>{
  assert.match(html,/href="\.\.\/index\.html"/);
  assert.match(html,/href="\.\.\/mapas\/\?tipo=colaboradores"/);
  assert.match(html,/href="\.\.\/mapas\/\?tipo=ajuda"/);
- assert.equal((html.match(/class="map-arrow"/g)||[]).length,0,"não usar setas decorativas");
+ assert.doesNotMatch(html,/class="map-arrow"|↗/,"sem setas decorativas");
  assert.equal((html.match(/class="map-symbol"/g)||[]).length,3,"os três botões devem ter o mesmo ícone");
+
 });
 test("o cabeçalho preserva sessão, três mapas e acesso canônico sem menus redundantes",()=>{
  assert.match(html,/id="sidebar-nav"/);
@@ -59,9 +60,10 @@ function harness(nuvem=null){
  const overlay={hidden:true,innerHTML:"",addEventListener(){},querySelectorAll(){return []}};
  const fakeDoc={getElementById:id=>node(id),createElement:()=>overlay,body:{appendChild(){}},addEventListener(){}};
  const state={solicitacoes:[{id:"p1",municipioId:"maringa",status:"Aguardando",necessidade:"Alimentação",urgencia:"Alta",zona:"Zona 7"}],mobilizacoes:[],apoios:[]};
- const db={municipioAtivo:()=>({id:"maringa",nome:"Maringá",uf:"PR"}),estado:()=>state};
- const ctx={AlertaNuvem:nuvem,document:fakeDoc,AlertaGestaoDados:{CHAVE:"local_data",criar:()=>db},localStorage:memory,crypto:{randomUUID:()=>"newtask"},navigator:{clipboard:{writeText:async()=>{}}},addEventListener(){},confirm:()=>true,
+ const db={municipios:()=>[{id:"maringa"}],municipioAtivo:()=>({id:"maringa",nome:"Maringá",uf:"PR"}),estado:()=>state};
+ const ctx={document:fakeDoc,AlertaGestaoDados:{CHAVE:"local_data",config:require("../dados.js").config,criar:()=>db},localStorage:memory,crypto:{randomUUID:()=>"newtask"},navigator:{clipboard:{writeText:async()=>{}}},addEventListener(){},confirm:()=>true,
   FormData:class{constructor(form){this.form=form;}get(k){return this.form[k]}},setTimeout,clearTimeout};
+ ctx.AlertaNuvem=nuvem;
  vm.runInNewContext(js,ctx,{filename:"acoes-cabecalho.js"});
  return {buttons,node,overlay,store,ctx};
 }

@@ -95,14 +95,11 @@
 .map-hub .map-launch{display:flex;align-items:center;justify-content:center;gap:7px}
 .map-hub .map-symbol{width:17px;height:17px;flex:none}
 .map-hub .map-name{display:inline;min-width:0;white-space:normal;text-align:center}
-.map-hub .map-arrow{display:inline-flex;align-items:center;justify-content:center;flex:none;font-size:16px;font-weight:800;line-height:1;opacity:.9}
 @media(max-width:1210px){
  .map-hub .map-symbol{display:none}
  .map-hub .map-name{display:inline}
- .map-hub .map-arrow{display:inline-flex}
 }
 @media(max-width:520px){
  .map-hub .map-launch{gap:4px}
  .map-hub .map-name{display:inline;font-size:10px}
- .map-hub .map-arrow{display:inline-flex;font-size:13px}
 }

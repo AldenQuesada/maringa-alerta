@@ -4,10 +4,14 @@ const Dados=require("../gestao/dados.js"),Crise=require("../crise/core.js");
 const root=path.resolve(__dirname,"..");
 const page=fs.readFileSync(path.join(root,"atendimento/index.html"),"utf8");
 const chat=fs.readFileSync(path.join(root,"atendimento/chat.js"),"utf8");
+const passosFonte=fs.readFileSync(path.join(root,'src/atendimento/passos.js'),'utf8');
+const registroFonte=fs.readFileSync(path.join(root,'src/atendimento/registro.js'),'utf8');
+function passos(){const ctx={};require('node:vm').runInNewContext(passosFonte,ctx);return ctx.AlertaAtendimentoPassos.criar({catalogos:Dados.CATALOGOS,dados:{lista:()=>[]},municipio:'Manaus',uf:'AM'});}
 function storage(){const m=new Map();return {getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k)};}
-test("o cabeçalho identifica Prefeitura Maringá e o perfil Pra Somar, sem avisos no chat",()=>{
- assert.match(page,/<div class="header-title"><strong>Prefeitura Maringá<\/strong><small>@prasomarmga<\/small><\/div>/);
- assert.match(page,/<div class="avatar"><img src="https:\/\/previdencia\.maringa\.pr\.gov\.br\/assets\/images\/logoprefeituranova\.png"/);
+test("o cabeçalho inicial é neutro e a identidade vem da configuração municipal",()=>{
+ assert.match(page,/<div class="header-title"><strong>Prefeitura<\/strong><small>Atendimento municipal<\/small><\/div>/);
+ assert.ok(Dados.config.referencias({codigo_ibge:'4115200'}).identidade.logo.endsWith('logoprefeituranova.png'));
+ assert.equal(Dados.config.referencias({codigo_ibge:'1302603'}).identidade,undefined);
  assert.doesNotMatch(page,/Atendimento demonstrativo/);
  assert.doesNotMatch(page,/SIMULAÇÃO · Não envia mensagens reais/);
  assert.doesNotMatch(page,/class="sim-banner"/);
@@ -16,13 +20,13 @@ test("interface de smartphone inclui reinício e apresentação do Pra Somar",()
  assert.match(page,/class="phone-frame"/);
  assert.match(page,/id="restart-demo"/);
  assert.match(page,/id="go-home"/);
- assert.match(page,/logoprefeituranova\.png/);
+ assert.match(chat,/identidade.logo/);
  assert.match(chat,/abrirPraSomar\(\)/);
- assert.match(chat,/assets\/pra-somar-original\.webp/);
+ assert.equal(Dados.config.referencias({codigo_ibge:"4115200"}).identidade.apresentacao,"assets/pra-somar-original.webp");
  assert.ok(fs.existsSync(path.join(root,"assets/pra-somar-original.webp")));
 });
 test("apresentação do Pra Somar conserva o lema e une empresas, voluntários e entidades",()=>{
- assert.match(chat,/Programa de Apoio Social e Mobilização Voluntária de Maringá/);
+ assert.match(chat,/Programa de Apoio Social e Mobilização Voluntária de /);
  assert.match(chat,/Onde a boa vontade se transforma em ação/);
  assert.match(chat,/Empresas 🤝 Voluntários 🤝 Entidades/);
 });
@@ -34,7 +38,7 @@ test("a entrada cidadã oferece exatamente três fluxos canônicos",()=>{
  assert.doesNotMatch(menu,/Consultar cadastro|Cheguei|Terminei|protocolo/i);
  assert.match(menu,/identity=null/,"novo atendimento não deve reaproveitar a pessoa anterior");
  assert.match(chat,/function abrirPraSomar\(\)/);
- assert.match(chat,/src:"\.\.\/assets\/pra-somar-original\.webp"/);
+ assert.match(chat,/identidade.apresentacao/);
  assert.match(chat,/function reiniciarDemonstracao\(/);
  assert.match(chat,/function mostrarRevisao\(/);
  assert.match(chat,/function prepararFoto\(/);
@@ -42,7 +46,7 @@ test("a entrada cidadã oferece exatamente três fluxos canônicos",()=>{
 });
 test("Ser colaborador começa pelo nome na mensagem com a foto, sem outra introdução ou e-mail",()=>{
  const vm=require("node:vm");
- const img=chat.slice(chat.indexOf("function abrirPraSomar(){"),chat.indexOf("const BENS=new Set("));
+ const img=chat.slice(chat.indexOf("function abrirPraSomar(){"),chat.indexOf("function start(papel",chat.indexOf("function abrirPraSomar(){")));
  assert.match(img,/Pra Somar/);
  assert.match(img,/Para começar, digite seu nome e sobrenome 👇/);
  assert.doesNotMatch(img,/nome completo|razão social/i);
@@ -51,7 +55,7 @@ test("Ser colaborador começa pelo nome na mensagem com a foto, sem outra introd
  const inicio=chat.indexOf("function identificarCampos(papel)");
  const fim=chat.indexOf("function zonaPeloEndereco(",inicio);
  assert.ok(inicio>=0&&fim>inicio,"campos de identificação ausentes");
- const campos=vm.runInNewContext("let identity=null;\n"+chat.slice(inicio,fim)+"\nidentificarCampos;")("colaborador");
+ const campos=passos().identificarCampos("colaborador");
  assert.deepEqual(Array.from(campos.map(x=>x.key)),["nome","tipo_pessoa","endereco","telefone"]);
  assert.equal(campos.filter(x=>x.required).length,4);
  assert.equal(campos[1].kind,"single");
@@ -92,7 +96,7 @@ test("colaborador informa endereço no padrão brasileiro com exemplo e sem nova
  const vm=require("node:vm");
  const inicio=chat.indexOf("function identificarCampos(papel){");
  const fim=chat.indexOf("function zonaPeloEndereco(",inicio);
- const identificar=vm.runInNewContext("let identity=null;\n"+chat.slice(inicio,fim)+"\nidentificarCampos;");
+ const identificar=passos().identificarCampos;
  const campos=identificar("colaborador");
  assert.deepEqual(Array.from(campos.map(x=>x.key)),["nome","tipo_pessoa","endereco","telefone"]);
  const endereco=campos.find(c=>c.key==="endereco");
@@ -100,7 +104,7 @@ test("colaborador informa endereço no padrão brasileiro com exemplo e sem nova
  assert.equal(endereco.required,true);
  assert.match(endereco.q,/Informe seu endereço seguindo este formato:/);
  assert.match(endereco.q,/Rua ou avenida, número, complemento \(se houver\), bairro, cidade\/UF e CEP \(se souber\)/);
- assert.match(endereco.q,/Av\. XV de Novembro, 701, Centro, Maringá\/PR, 87013-230/);
+ assert.match(endereco.q,/Rua das Flores, 100, Centro, Manaus\/AM, CEP/);
  assert.match(endereco.q,/Se não houver número, escreva s\/n/);
  assert.equal(identificar("solicitacao").find(x=>x.key==="endereco").q,"Qual é o endereço onde você precisa de ajuda?");
  assert.equal(identificar("relato").some(x=>x.key==="endereco"),false);
@@ -130,7 +134,7 @@ test("números são validados e convertidos nas opções originais sem perder as
  const inicio=chat.indexOf("function interpretarEscolhaMultipla(");
  const fim=chat.indexOf("function proxima(",inicio);
  assert.ok(inicio>=0&&fim>inicio,"parser numérico ausente");
- const interpretar=vm.runInNewContext(chat.slice(inicio,fim)+"\ninterpretarEscolhaMultipla;");
+ const interpretar=passos().interpretarEscolhaMultipla;
  const ajuda=Dados.CATALOGOS.ajudas;
  const influencer=ajuda.indexOf("INFLUENCIADORES E DIVULGAÇÃO DE NOTÍCIAS");
  const drone=ajuda.indexOf("OPERADOR DE DRONE");
@@ -200,15 +204,7 @@ test("cadastro de colaborador segue somente campos e ordem do formulário aprova
  const fim=chat.indexOf("function start(papel",inicio);
  assert.ok(inicio>=0&&fim>inicio);
  const trecho=chat.slice(inicio,fim);
- const preparar=[
-  "const catalogos="+JSON.stringify(Dados.CATALOGOS)+";",
-  'const BENS=new Set(["FORNECER ALIMENTAÇÃO","MATERIAL DE CONSTRUÇÃO","COMBUSTÍVEL"]);',
-  'const ofereceBens=a=>["ajudas","maquinas","materiais"].some(k=>(a[k]||[]).some(x=>BENS.has(x)));',
-  'const identificarCampos=()=>[{key:"nome",kind:"text",required:true},{key:"tipo_pessoa",kind:"single",required:true,opts:["FÍSICA","JURÍDICA"]},{key:"endereco",kind:"text",required:true},{key:"telefone",kind:"tel",required:true}];',
-  trecho,
-  "definirSteps;"
- ].join("\n");
- const definirSteps=vm.runInNewContext(preparar);
+ const definirSteps=passos().definirSteps;
  const fluxo=definirSteps("colaborador");
  assert.deepEqual(Array.from(fluxo.map(s=>s.key)),[
   "nome","tipo_pessoa","endereco","telefone",
@@ -257,7 +253,7 @@ test("resumo de colaborador permite confirmar ou corrigir sem terceira etapa",()
  const revisao=chat.slice(inicio,fim);
  assert.ok(revisao.includes('outros:"Especificar outros"'));
  assert.ok(revisao.includes('if(role==="relato")acoes.push('));
- const conclusao=chat.slice(chat.indexOf('if(role==="colaborador"){',fim),chat.indexOf('}else if(role==="solicitacao"){',fim));
+ const conclusao=registroFonte.slice(registroFonte.indexOf('if(role==="colaborador"){'),registroFonte.indexOf('}else if(role==="solicitacao"){'));
  assert.match(conclusao,/const outros=String\(answers\.outros\|\|""\)\.trim\(\)/);
  assert.match(conclusao,/new Set\(\[resultado\.ajudas/);
  assert.doesNotMatch(conclusao,/answers\.outros_ajudas|answers\.outros_maquinas/);
@@ -270,11 +266,11 @@ test("Preciso de ajuda usa só nome, endereço, telefone e relato da necessidade
  const c=chat.indexOf("function definirSteps(papel){");
  const d=chat.indexOf("function start(papel",c);
  assert.ok(a>=0&&b>a&&c>b&&d>c);
- const definirSteps=vm.runInNewContext("let identity=null;\n"+chat.slice(a,b)+chat.slice(c,d)+"\ndefinirSteps;");
- const passos=definirSteps("solicitacao");
- assert.deepEqual(Array.from(passos.map(x=>x.key)),["nome","endereco","telefone","descricao"]);
- assert.ok(passos.every(x=>x.kind==="text"||x.kind==="tel"));
- assert.ok(passos.every(x=>x.required));
+ const definirSteps=passos().definirSteps;
+ const etapas=definirSteps("solicitacao");
+ assert.deepEqual(Array.from(etapas.map(x=>x.key)),["nome","endereco","telefone","descricao"]);
+ assert.ok(etapas.every(x=>x.kind==="text"||x.kind==="tel"));
+ assert.ok(etapas.every(x=>x.required));
  assert.doesNotMatch(chat.slice(c,d),/key:"urgencia"|key:"modo_recebimento"/);
  const inicio=chat.slice(chat.indexOf("function start(papel"),chat.indexOf("function gravarResposta("));
  assert.match(inicio,/if\(papel==="solicitacao"\)\{proxima\(\);return;\}/,"a primeira mensagem já pergunta o nome");
@@ -286,8 +282,8 @@ test("Preciso de ajuda usa só nome, endereço, telefone e relato da necessidade
 
 
 test("reiniciar demonstração preserva colaboradores, pedidos e relatos na base municipal",()=>{
- assert.match(chat,/MaringaCrise\.criar\(\{municipioId:"maringa",escopoMunicipal:true\}\)/,
-  "a rota da Prefeitura Maringá não pode usar município de outra sessão");
+ assert.match(chat,/municipioId:AlertaGestaoDados\.config\.selecionar\(AlertaGestaoDados,sessionStorage\),escopoMunicipal:true/,
+  "o atendimento deve usar o contexto municipal validado da sessão");
  assert.doesNotMatch(chat,/sessionStorage\.getItem\("alerta_contexto_municipal_demo_v1"\)/);
  const inicio=chat.indexOf("function reiniciarDemonstracao(){");
  const fim=chat.indexOf('$("go-home").onclick=',inicio);

@@ -2,12 +2,37 @@
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
-const app=MaringaCrise.criar({municipioId:"maringa",escopoMunicipal:true}); // Esta rota é exclusiva da Prefeitura de Maringá.
+const app=MaringaCrise.criar({municipioId:AlertaGestaoDados.config.selecionar(AlertaGestaoDados,sessionStorage),escopoMunicipal:true}); // O contexto acompanha a prefeitura selecionada.
 const dados=app.db, catalogos=AlertaGestaoDados.CATALOGOS;
 const municipio=app.prefeitura()?.nome||"Município";
+const identidade=AlertaGestaoDados.config.referencias(app.prefeitura()).identidade||{};
+const cabecalho=document.querySelector('.header-title');
+if(cabecalho){cabecalho.querySelector('strong').textContent='Prefeitura '+municipio;cabecalho.querySelector('small').textContent=identidade.perfil||'Atendimento municipal';}
+document.title='Prefeitura '+municipio+' · Pra Somar';
+const toolbar=document.querySelector('.demo-brand');
+if(toolbar){toolbar.querySelector('strong').textContent='Prefeitura '+municipio;toolbar.querySelector('small').textContent=identidade.perfil||'Atendimento municipal';}
+const logo=document.querySelector('#municipal-logo');if(logo&&identidade.logo){logo.src=identidade.logo;logo.alt='Brasão da Prefeitura de '+municipio;logo.hidden=false;}
+const avatar=document.querySelector('.avatar');
+if(avatar&&identidade.logo){const img=document.createElement('img');img.src=identidade.logo;img.alt='Logo da Prefeitura de '+municipio;avatar.replaceChildren(img);}
 const history=$("history"),options=$("options"),form=$("reply-form"),input=$("reply");
 const uploadArea=$("upload-area"),photoInput=$("photo-input"),photoPreview=$("photo-preview");
 let identity=null,role=null,answers={},steps=[],index=0,current=null,arquivosFoto=null;
+
+const {ofereceBens,identificarCampos,zonaPeloEndereco,definirSteps,interpretarEscolhaMultipla}=AlertaAtendimentoPassos.criar({catalogos,dados,municipio,uf:app.prefeitura()?.uf,obterIdentidade:()=>identity});
+const {prepararFoto}=AlertaAtendimentoFoto.criar({document,URL,Image});
+const registroAtendimento=AlertaAtendimentoRegistro.criar({app,dados,zonaPeloEndereco});
+let salvando=false;
+async function concluir(){
+ if(salvando)return;
+ salvando=true;clear();
+ try{
+  const result=await registroAtendimento.concluir({papel:role,respostas:answers,foto:arquivosFoto,identidade:identity});
+  identity=result.identidade;bot(result.mensagem);finalizarOpcoes();
+ }catch(err){
+  bot('Não foi possível salvar: '+(err?.message||'erro desconhecido')+'. Confira seus dados ou reduza a foto.',true);
+  optionsSimple([['Revisar respostas',()=>mostrarRevisao(),'submit'],['Voltar ao início',()=>startMenu()]]);
+ }finally{salvando=false;}
+}
 const hora=()=>new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
 function msg(texto,person=false,notice=false,imagem=null){
  const el=document.createElement("div");el.className="message"+(person?" person":"")+(notice?" notice":"");
@@ -38,10 +63,11 @@ function optionsSimple(itens){
  }
 }
 function startMenu(){
+ if(salvando)return;
  // O cidadão entra exclusivamente pelos três fluxos canônicos.
  identity=null;role=null;answers={};steps=[];index=0;current=null;arquivosFoto=null;
  form.onsubmit=responderEtapa;
- bot("Olá! Bem-vindo ao Maringá Alerta.\n\nUm sistema desenvolvido pela Prefeitura de Maringá para que todos possam somar esforços na recuperação da nossa cidade em caso de eventos climáticos e desastres naturais.\n\nEscolha uma opção para continuar:");
+ bot("Olá! Bem-vindo ao "+AlertaGestaoDados.config.marca(app.prefeitura())+".\n\nUm sistema desenvolvido pela Prefeitura de "+municipio+" para que todos possam somar esforços na recuperação da nossa cidade em caso de eventos climáticos e desastres naturais.\n\nEscolha uma opção para continuar:");
  optionsSimple([
   ["Ser colaborador",()=>abrirPraSomar(),"submit"],
   ["Relatar ocorrência",()=>start("relato")],
@@ -49,68 +75,14 @@ function startMenu(){
  ]);
 }
 function abrirPraSomar(){
- bot("Programa de Apoio Social e Mobilização Voluntária de Maringá\n\n“Onde a boa vontade se transforma em ação”\n\nUnindo:\nEmpresas 🤝 Voluntários 🤝 Entidades\n\nPara começar, digite seu nome e sobrenome 👇",false,{
-  src:"../assets/pra-somar-original.webp",alt:"Identidade visual do Pra Somar enviada para a demonstração",titulo:"Pra Somar · Mobilização voluntária"
- });
+ bot("Programa de Apoio Social e Mobilização Voluntária de "+municipio+"\n\n“Onde a boa vontade se transforma em ação”\n\nUnindo:\nEmpresas 🤝 Voluntários 🤝 Entidades\n\nPara começar, digite seu nome e sobrenome 👇",false,identidade.apresentacao?{
+  src:"../"+identidade.apresentacao,alt:"Identidade visual do Pra Somar enviada para a demonstração",titulo:"Pra Somar · Mobilização voluntária"
+ }:null);
  start("colaborador",true); // O nome já foi perguntado na mensagem com a imagem; sem etapa intermediária.
 }
-const BENS=new Set(["FORNECER ALIMENTAÇÃO","MATERIAL DE CONSTRUÇÃO","COMBUSTÍVEL"]);
-const ofereceBens=a=>["ajudas","maquinas","materiais"].some(k=>(a[k]||[]).some(x=>BENS.has(x)));
-function identificarCampos(papel){
- if(papel==="solicitacao")return [
-  {key:"nome",q:"Qual é seu nome?",kind:"text",required:true},
-  {key:"endereco",q:"Qual é o endereço onde você precisa de ajuda?",kind:"text",required:true},
-  {key:"telefone",q:"Qual é seu telefone com DDD?",kind:"tel",required:true}
- ];
- const b=[];
- if(!identity?.nome)b.push({key:"nome",q:"Qual é seu nome?",kind:"text",required:true});
- if(papel!=="relato"&&!identity?.tipo_pessoa)b.push({key:"tipo_pessoa",q:"Como você gostaria de se cadastrar?",kind:"single",opts:["FÍSICA","JURÍDICA"],required:true});
- if(papel!=="relato"&&!identity?.endereco)b.push({key:"endereco",q:papel==="colaborador"?"Informe seu endereço seguindo este formato:\nRua ou avenida, número, complemento (se houver), bairro, cidade/UF e CEP (se souber).\n\nExemplo: Av. XV de Novembro, 701, Centro, Maringá/PR, 87013-230.\n\nSe não houver número, escreva s/n. 👇":"Informe seu endereço. Ele ficará reservado à equipe de atendimento.",kind:"text",required:true});
- if(!identity?.telefone)b.push({key:"telefone",q:"Qual é seu telefone com DDD?",kind:"tel",required:true});
- return b;
-}
+
 // Não exigir que o cidadão saiba a zona: usa somente vínculos territoriais já cadastrados.
-function zonaPeloEndereco(endereco){
- const norm=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
- const texto=" "+norm(endereco)+" ";
- if(!texto.trim())return "";
- const zonas=dados.lista("zonas").map(z=>z.nome).filter(Boolean);
- const encontradas=zonas.filter(nome=>texto.includes(" "+norm(nome)+" "));
- if(encontradas.length===1)return encontradas[0];
- const referencias=dados.lista("bairros").filter(b=>b.nome&&b.zona&&texto.includes(" "+norm(b.nome)+" "));
- const associadas=[...new Set(referencias.map(b=>b.zona))];
- return associadas.length===1?associadas[0]:"";
-}
-function definirSteps(papel){
- const base=identificarCampos(papel);
- if(papel==="colaborador")return [...base,
-  {key:"ajudas",q:"Que tipo de ajuda pode oferecer para pessoas atingidas?",kind:"multi",opts:catalogos.ajudas},
-  {key:"maquinas",q:"MAQUINÁRIO, equipamentos e materiais disponíveis",kind:"multi",opts:catalogos.maquinas},
-  {key:"empreendedores",q:"Que tipo de apoio pode oferecer para empreendedores?",kind:"multi",opts:catalogos.empreendedores},
-  {key:"outros",q:"Especifique qual outra ajuda, equipamento ou apoio você pode oferecer.",kind:"text",required:true,
-   quando:a=>["ajudas","maquinas","empreendedores"].some(grupo=>(a[grupo]||[]).includes("OUTRO"))},
-  {key:"materiais",q:"MATERIAL CONSTRUÇÃO / COMBUSTÍVEL",kind:"multi",opts:catalogos.materiais},
-  {key:"forma_entrega_doacao",q:"Como você disponibiliza sua doação?",kind:"single",opts:catalogos.formas_entrega_doacao,quando:ofereceBens},
-  {key:"ponto_publico",q:"Você oferece um ponto de atendimento e autoriza publicar seu nome, endereço, serviço e telefone nos mapas?",kind:"single",opts:["Sim, cadastrar ponto público","Não"],required:true},
-  {key:"ponto_tipo",q:"Qual é o tipo do ponto?",kind:"single",opts:["Ponto de água potável","Ponto de banho","Centro de coleta de donativos","Outro"],quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"},
-  {key:"ponto_nome",q:"Qual é o nome do ponto de atendimento?",kind:"text",required:true,quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"},
-  {key:"ponto_responsavel",q:"Qual é o nome do responsável pelo ponto?",kind:"text",required:true,quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"},
-  {key:"ponto_endereco",q:"Qual é o endereço do ponto? Informe rua, número, bairro e cidade.",kind:"text",required:true,quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"},
-  {key:"ponto_telefone",q:"Qual é o telefone do ponto com DDD?",kind:"tel",required:true,quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"},
-  {key:"ponto_funcao",q:"O que o ponto oferece?",kind:"text",required:true,quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"},
-  {key:"ponto_horario",q:"Qual é o horário de atendimento?",kind:"text",optional:true,quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"},
-  {key:"ponto_capacidade",q:"Quantas pessoas o ponto consegue atender? Informe um número ou pule se não souber.",kind:"text",optional:true,quando:a=>a.ponto_publico==="Sim, cadastrar ponto público"}
- ];
- if(papel==="solicitacao")return [...base,
-  {key:"descricao",q:"Do que você precisa? Descreva a ajuda que está solicitando.",kind:"text",required:true}
- ];
- return [...base,
-  {key:"endereco_ocorrencia",q:"Qual é o endereço exato da ocorrência? Informe rua, número e referência.",kind:"text",required:true},
-  {key:"pessoas_no_local",q:"Há alguma destas pessoas no local? Selecione todas as opções aplicáveis.",kind:"multi",opts:["CRIANÇA / ADOLESCENTE","PESSOA IDOSA","PCD","NÃO HÁ"],exclusive:"NÃO HÁ",required:true},
-  {key:"necessidade_relato",q:"Descreva o que aconteceu e a ajuda necessária.",kind:"text",optional:true},
-  {key:"foto",q:"Envie uma foto da ocorrência, se for seguro fotografar. Você também pode concluir sem foto.",kind:"photo"}
- ];
-}
+
 function start(papel,nomeJaPerguntado=false){
  form.onsubmit=responderEtapa;role=papel;answers=identity?{...identity}:{};steps=definirSteps(papel);index=0;current=null;arquivosFoto=null;
  if(papel==="colaborador" && nomeJaPerguntado){proxima(true);return;}
@@ -128,24 +100,7 @@ function gravarResposta(valor,exibicao=null){
  msg(exib,true);index++;proxima();
 }
 // Uma única escolha usa botões; múltiplas usam números digitados no chat.
-function interpretarEscolhaMultipla(texto,pergunta){
- const entrada=String(texto||"").trim().replace(/\s+e\s+/gi,",");
- const partes=entrada.split(/[,;\s]+/).filter(Boolean);
- if(!partes.length || partes.some(parte=>!/^\d+$/.test(parte)))
-  return {erro:"Digite somente os números das opções, separados por vírgula. Exemplo: 1, 3, 5."};
- const indices=[...new Set(partes.map(Number))];
- if(indices.includes(0)){
-  if(indices.length!==1 || pergunta.required)
-   return {erro:"A opção 0 (nenhuma) deve ser enviada sozinha e só vale para perguntas opcionais."};
-  return {opcoes:[]};
- }
- if(indices.some(n=>n<1||n>pergunta.opts.length))
-  return {erro:"Escolha apenas números da lista, entre 1 e "+pergunta.opts.length+"."};
- const opcoes=indices.map(n=>pergunta.opts[n-1]);
- if(pergunta.exclusive&&opcoes.includes(pergunta.exclusive)&&opcoes.length>1)
-  return {erro:'"'+pergunta.exclusive+'" não pode ser combinada com outras respostas. Informe apenas o seu número.'};
- return {opcoes};
-}
+
 function proxima(perguntaJaExibida=false){
  clear();
  while(index<steps.length&&steps[index].quando&&!steps[index].quando(answers))index++;
@@ -189,7 +144,7 @@ function proxima(perguntaJaExibida=false){
   input.type=current.kind==="tel"?"tel":"text";
   input.inputMode=current.kind==="tel"?"tel":"text";
   input.value=answers[current.key]||"";input.required=!!current.required;
-  input.placeholder=current.kind==="tel"?"(44) 99999-9999":"Digite sua resposta";
+  input.placeholder=current.kind==="tel"?"DDD + número do celular":"Digite sua resposta";
   if(current.optional)button("Pular esta pergunta",()=>gravarResposta("","Prefiro não informar"),"secondary");
   input.focus();
  }
@@ -208,3 +163,65 @@ function mostrarRevisao(){
  if(role==="relato")acoes.push(["Voltar ao início",()=>startMenu(),"secondary"]);
  optionsSimple(acoes);
 }
+function responderEtapa(e){
+ e.preventDefault();
+ if(!current)return;
+ const valor=input.value.trim();
+ if(current.required&&!valor){input.focus();return;}
+ if(current.kind==="multi"){
+  const resultado=interpretarEscolhaMultipla(valor,current);
+  if(resultado.erro){msg(resultado.erro,false,true);input.focus();return;}
+  gravarResposta(resultado.opcoes,valor);
+  return;
+ }
+ if(current.key==="ponto_capacidade"&&valor&&!/^\d+$/.test(valor)){msg("Informe um número de pessoas ou pule esta pergunta.",false,true);input.focus();return;}
+ if(current.key==="ponto_telefone"||current.key==="telefone"||current.key==="consulta_telefone"||current.key==="fase_telefone"){
+  const n=MaringaCrise.telefone(valor);
+  if(n.length<10||n.length>13){msg("Informe um telefone válido com DDD.",false,true);input.focus();return;}
+ }
+ gravarResposta(valor);
+}
+form.onsubmit=responderEtapa;
+
+function finalizarOpcoes(){
+ optionsSimple([["Voltar ao início",()=>startMenu(),"submit"]]);
+}
+
+$("upload-photo").onclick=()=>photoInput.click();
+photoInput.addEventListener("change",async()=>{
+ const f=photoInput.files?.[0];if(!f||current?.kind!=="photo")return;
+ $("upload-photo").disabled=true;
+ try{
+  arquivosFoto=await prepararFoto(f);
+  photoPreview.replaceChildren();
+  const img=document.createElement("img");img.src=arquivosFoto.dados;img.alt="Prévia da fotografia anexada";
+  const label=document.createElement("span");label.textContent=arquivosFoto.nome+" · pronta para anexar";
+  photoPreview.append(img,label);photoPreview.hidden=false;
+  gravarResposta("Foto anexada","📷 "+arquivosFoto.nome);
+ }catch(err){msg(err.message,false,true);}
+ finally{$("upload-photo").disabled=false;photoInput.value="";}
+});
+function reiniciarDemonstracao(){
+ if(salvando)return;
+ // Reiniciar a conversa NÃO apaga registros municipais, pedidos nem relatos.
+ if(!window.confirm("Reiniciar a conversa? Os cadastros, pedidos e relatos já registrados serão preservados."))return;
+ identity=null;role=null;steps=[];answers={};current=null;index=0;arquivosFoto=null;photoInput.value="";
+ history.replaceChildren();
+ const divisor=document.createElement("div");divisor.className="day-divider";divisor.textContent="HOJE";history.appendChild(divisor);
+ form.onsubmit=responderEtapa;
+ startMenu();
+}
+$("go-home").onclick=()=>{form.onsubmit=responderEtapa;startMenu();};
+$("restart-demo").onclick=reiniciarDemonstracao;
+$("menu-toggle").onclick=()=>{
+ const menu=$("chat-menu");menu.hidden=!menu.hidden;$("menu-toggle").setAttribute("aria-expanded",String(!menu.hidden));
+};
+$("chat-menu").addEventListener("click",e=>{
+ const acao=e.target.closest("[data-action]")?.dataset.action;
+ if(!acao)return;
+ $("chat-menu").hidden=true;$("menu-toggle").setAttribute("aria-expanded","false");
+ if(acao==="reset")reiniciarDemonstracao();else{form.onsubmit=responderEtapa;startMenu();}
+});
+$("phone-hour").textContent=hora();
+startMenu();
+})();

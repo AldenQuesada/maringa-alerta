@@ -1,26 +1,3 @@
-async function carregarIBGE(uf){
- if(!D.UFS.includes(uf))return;
- const lista=$("ibge-cidades");if(!lista)return;
- let cidades=cidadesPorUf.get(uf);
- try{
-  if(!cidades){
-   const res=await fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados/"+encodeURIComponent(uf)+"/municipios",{cache:"force-cache"});
-   if(!res.ok)throw Error("Não foi possível consultar o IBGE.");
-   cidades=await res.json();cidadesPorUf.set(uf,cidades);
-  }
-  if(!DRAWER.hidden&&$("field-uf")?.value===uf&&$("ibge-cidades")){
-   $("ibge-cidades").innerHTML=cidades.map(x=>'<option value="'+esc(x.nome)+'"></option>').join("");
-   atualizarCodigoIBGE();
-  }
- }catch(_){/* Permitir preenchimento manual do código IBGE quando a API estiver indisponível. */}
-}
-function atualizarCodigoIBGE(){
- const uf=$("field-uf")?.value,cidade=$("field-nome")?.value?.trim(),codigo=$("field-codigo_ibge");
- if(!uf||!cidade||!codigo)return;
- const normal=s=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR");
- const found=(cidadesPorUf.get(uf)||[]).find(x=>normal(x.nome)===normal(cidade));
- if(found)codigo.value=String(found.id);
-}
 async function geocodificarPrefeitura(item) {
  if(item.lat!==undefined||!item.nome||!item.uf)return;
  try{
@@ -52,16 +29,18 @@ async function excluir(id){
  if(!confirm('Excluir "'+label+'"?'))return;
  try{const anterior=db.municipioAtivo()?.id;await db.excluir(atual,id);if(atual==="prefeituras"){renderMunicipios();if(anterior!==db.municipioAtivo()?.id){location.reload();return;}}render();if(atual==="bairros")window.dispatchEvent(new Event("gestao:bairros-atualizados"));toast("Cadastro excluído.");}catch(e){toast(e.message);}
 }
+const drawer=AlertaGestaoFormulario.criar({db,D,document,esc,structures,getCurrentPage:()=>atual,onDenied:toast});
+const {abrirDrawer,fecharDrawer}=drawer;
 FORM.addEventListener("submit",async e=>{
- e.preventDefault();const modulo=drawerModulo||atual;
+ e.preventDefault();const modulo=drawer.modulo||atual;
  const submit=$("drawer-save");if(submit.disabled)return;
  const data={};
  for(const [k,v] of new FormData(FORM).entries()){if(Object.hasOwn(data,k))data[k]=[].concat(data[k],v);else data[k]=v;}
  for(const f of D.ESQUEMAS[modulo].fields)if(f.type==="multi")data[f.key]=Array.isArray(data[f.key])?data[f.key]:data[f.key]?[data[f.key]]:[];
  submit.disabled=true;
  try{
-  const item=await db.gravar(modulo,data,edicao);
-  const novo=!edicao;
+  const item=await db.gravar(modulo,data,drawer.edicao);
+  const novo=!drawer.edicao;
   fecharDrawer();
   if(modulo==="prefeituras")renderMunicipios();
   render();if(modulo==="bairros")window.dispatchEvent(new Event("gestao:bairros-atualizados"));toast("Cadastro salvo.");
@@ -69,7 +48,9 @@ FORM.addEventListener("submit",async e=>{
  }catch(err){$("form-error").textContent=err.message;}finally{submit.disabled=false;}
 });
 PAGE.addEventListener("click",async e=>{
- if(e.target.closest('[data-importar-tornado]')){try{if(db.tipo==="supabase")throw Error("Eventos demonstrativos não são enviados ao Supabase.");EventoTornado2026.importar(db);render();toast('Evento histórico disponível no cadastro.');}catch(err){toast(err.message||'Não foi possível importar.');}return;}
+ if(e.target.closest('[data-importar-tornado]')){try{if(db.tipo==="supabase")throw Error("Eventos demonstrativos não são enviados ao Supabase.");const reference=D.config.referencias(db.municipioAtivo()).eventoHistorico;
+if(!reference||!globalThis[reference.adaptador])throw Error("Não há evento de referência configurado para esta prefeitura.");
+globalThis[reference.adaptador].importar(db);render();toast('Evento histórico disponível no cadastro.');}catch(err){toast(err.message||'Não foi possível importar.');}return;}
 
  const novo=e.target.closest("[data-new]");
  const edit=e.target.closest("[data-edit]");
@@ -114,13 +95,12 @@ $("sidebar-scrim").onclick=()=>{FRAME.classList.remove("mobile-open");$("toggle-
 window.addEventListener("hashchange",()=>{pesquisa="";render();});
 renderMunicipios();
 const abrirMapa=$("abrir-mapa");
-// O Mapa de Evento original contém apenas simulação de Maringá;
-// não mostrar ocorrências de Maringá a uma Prefeitura recém-provisionada.
-if(db.municipioAtivo()?.id!=="maringa"){
+// A liberação operacional permanece explícita até a homologação do mapa municipal.
+if(db.tipo!=='supabase'&&!D.config.referencias(db.municipioAtivo()).mapaDemonstrativo){
  abrirMapa.href="#";
  abrirMapa.title="Mapa de Evento deste município requer implantação operacional.";
  abrirMapa.setAttribute("aria-disabled","true");
- abrirMapa.addEventListener("click",e=>{e.preventDefault();toast("O Mapa de Evento desta Prefeitura ainda precisa ser configurado. Não serão mostradas ocorrências de Maringá.");},true);
+ abrirMapa.addEventListener("click",e=>{e.preventDefault();toast("O Mapa de Evento desta Prefeitura ainda precisa ser configurado.");},true);
 }
 abrirMapa.addEventListener("click",e=>{
  if(window.matchMedia("(max-width:850px)").matches)return; // navegador móvel controla a janela
@@ -129,7 +109,7 @@ abrirMapa.addEventListener("click",e=>{
  const altura=Math.max(550,Math.min(950,screen.availHeight-70));
  const esquerda=Math.max(0,Math.round((screen.availWidth-largura)/2));
  const topo=Math.max(0,Math.round((screen.availHeight-altura)/2));
- const win=window.open(abrirMapa.href,"MaringaAlertaMapaOperacional",
+ const win=window.open(abrirMapa.href,"AlertaMapaOperacional",
   "popup=yes,width="+largura+",height="+altura+",left="+esquerda+",top="+topo);
  if(win){try{win.opener=null;win.focus();}catch(_){}}
  else{const fallback=document.createElement("a");fallback.href=abrirMapa.href;fallback.target="_blank";fallback.rel="noopener noreferrer";document.body.appendChild(fallback);fallback.click();fallback.remove();}

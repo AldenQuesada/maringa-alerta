@@ -1,13 +1,6 @@
-/* Maringá Unida · Núcleo da simulação de assistência pós-evento.
-   Não envia mensagens nem substitui autenticação, banco, reservas ou APIs oficiais.
-   Reaproveita as coleções locais da Gestão; não modifica o mapa de eventos. */
-(function(root,factory) {
-  const api=factory(root);
-  if(typeof module==="object"&&module.exports)module.exports=api;
-  root.MaringaCrise=api;
-})(typeof globalThis!=="undefined"?globalThis:this,function(root) {
-"use strict";
-const COMPATIBILIDADE=root.AlertaRegrasOperacionais?.compatibilidade||{
+/* Correspondência de recursos usada pela triagem local; não representa despacho oficial. */
+(function(root){'use strict';
+const COMPATIBILIDADE={
  "Alimentação":["FORNECER ALIMENTAÇÃO"],
  "Telhas e cobertura":["PEDREIRO","CARPINTEIRO","MATERIAL DE CONSTRUÇÃO","CAMIONETE","CAMINHÃO BASCULANTE"],
  "Apoio financeiro":[],
@@ -24,28 +17,41 @@ const COMPATIBILIDADE=root.AlertaRegrasOperacionais?.compatibilidade||{
  "Apoio a empreendedores":["ESPAÇO EM FREEZER PARA PERECÍVEIS","AMBIENTE DE TRABALHO"],
  "Outro":[]
 };
+root.AlertaCriseConfiguracao={COMPATIBILIDADE};
+})(globalThis);
+/* Domínio de utilidades: dependências explícitas, sem estado compartilhado entre arquivos. */
+(function(root){
+'use strict';
 const LIMITE_MENSAGEM=2500;
 const norm=x=>String(x??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
 const telefone=x=>String(x??"").replace(/\D/g,"");
 const mesmoTelefone=(a,b)=>{const x=telefone(a),y=telefone(b);return x&&y&&(x===y||x.length>=10&&y.length>=10&&x.slice(-11)===y.slice(-11));};
-const resumoPonto=(x,c=0)=>({lat:Number(x.lat),lng:Number(x.lng),label:x.nome});
 function waLink(numero,mensagem) {
  const n=telefone(numero);
  if(n.length<10||n.length>13)return null;
  const full=n.startsWith("55")?n:"55"+n;
  return "https://wa.me/"+full+"?text="+encodeURIComponent(String(mensagem||"").slice(0,LIMITE_MENSAGEM));
 }
-function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal=false,repositorio=null}={}) {
- const D=root.AlertaGestaoDados;
- if(!D)throw Error("Carregue gestao/dados.js primeiro.");
- const db=repositorio||D.criar(armazenamento,escopoMunicipal&&municipioId?{municipioId}:{});
- if(municipioId&&db.municipioAtivo()?.id!==municipioId&&!escopoMunicipal)db.selecionarMunicipio(municipioId);
- const prefeitura=()=>db.municipioAtivo();
- function zonas() {
+const array=x=>Array.isArray(x)?x.filter(Boolean):typeof x==="string"?x.split(/[;,]/).map(y=>y.trim()).filter(Boolean):[];
+function validarBase({nome,telefone:tel,endereco,tipo_pessoa},{exigirTipoPessoa=true}={}) {
+  if(!String(nome||"").trim())throw Error("Informe o nome ou a razão social.");
+  if((exigirTipoPessoa||tipo_pessoa)&&!["FÍSICA","JURÍDICA"].includes(tipo_pessoa))
+   throw Error("Escolha pessoa física ou jurídica.");
+  if(!String(endereco||"").trim())throw Error("Informe o endereço.");
+  if(telefone(tel).length<10||telefone(tel).length>13)throw Error("Informe um telefone/WhatsApp válido.");
+ }
+root.AlertaCriseUtilidades={LIMITE_MENSAGEM,norm,telefone,mesmoTelefone,waLink,array,validarBase};
+})(globalThis);
+/* Domínio de consultas: dependências explícitas, sem estado compartilhado entre arquivos. */
+(function(root){
+'use strict';
+function criar({db,norm,mesmoTelefone}){
+const prefeitura=()=>db.municipioAtivo();
+function zonas() {
   return [...new Set(db.lista("zonas").map(x=>x.nome).filter(Boolean))]
    .sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true}));
  }
- function pontoDaZona(nome) {
+function pontoDaZona(nome) {
   const zona=db.lista("zonas").find(z=>norm(z.nome)===norm(nome));
   if(!zona)return null;
   const lat=Number(zona.lat),lng=Number(zona.lng);
@@ -64,7 +70,23 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
    return {lat:(south+north)/2,lng:(west+east)/2,label:zona.nome};
   }catch(_){return null}
  }
- const geofence=(point,geometry)=>{
+function oferentes() {return db.lista("voluntarios");}
+function pedidos(){return db.lista("solicitacoes");}
+function mobilizacoes(){return db.lista("mobilizacoes");}
+function apoios(){return db.lista("apoios");}
+function encontrarPessoa(tel) {return oferentes().find(x=>mesmoTelefone(x.telefone,tel))||null;}
+function encontrarIdentidade(tel){
+  return encontrarPessoa(tel)||pedidos().find(x=>mesmoTelefone(x.telefone,tel))||null;
+ }
+return {prefeitura,zonas,pontoDaZona,oferentes,pedidos,mobilizacoes,apoios,encontrarPessoa,encontrarIdentidade};
+}
+root.AlertaCriseConsultas={criar};
+})(globalThis);
+/* Domínio de presenca: dependências explícitas, sem estado compartilhado entre arquivos. */
+(function(root){
+'use strict';
+function criar({db,norm,oferentes}){
+const geofence=(point,geometry)=>{
   if(!point||!geometry||!["Polygon","MultiPolygon"].includes(geometry.type))return false;
   const insideRing=ring=>{let hit=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){
     const a=ring[i],b=ring[j];if((a[1]>point[1])!==(b[1]>point[1])&&point[0]<(b[0]-a[0])*(point[1]-a[1])/(b[1]-a[1])+a[0])hit=!hit;
@@ -72,12 +94,12 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
   const insidePolygon=rings=>Array.isArray(rings)&&rings.length>0&&insideRing(rings[0])&&!rings.slice(1).some(insideRing);
   return (geometry.type==="Polygon"?[geometry.coordinates]:geometry.coordinates).some(insidePolygon);
  };
- function situacaoBairro(bairro) {
+function situacaoBairro(bairro) {
   const pessoas=oferentes().filter(x=>norm(x.bairro||x.zona)===norm(bairro));
   const ativos=pessoas.filter(x=>x.checkin_status==="presente"&&x.checkin_bairro&&norm(x.checkin_bairro)===norm(bairro));
   return {bairro,colaboradores:pessoas.length,ativos:ativos.length,percentual:pessoas.length?Math.round(100*ativos.length/pessoas.length):0,pessoas};
  }
- function registrarCheckin({colaboradorId,bairro,lat,lng,precisao,geometry,origem="IBGE 2022"}={}) {
+function registrarCheckin({colaboradorId,bairro,lat,lng,precisao,geometry,origem="IBGE 2022"}={}) {
   const item=db.registro("voluntarios",colaboradorId);
   if(!item)throw Error("Colaborador não cadastrado nesta Prefeitura.");
    if(item.status_simulacao==="simulado")throw Error("Cadastro de demonstração não permite check-in real.");
@@ -90,28 +112,20 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
    checkin_em:new Date().toISOString(),checkin_lat:lat,checkin_lng:lng,checkin_precisao:precisao,
    checkin_fonte:origem,checkin_tipo:"autodeclarado_local"},colaboradorId);
  }
- function registrarSaida(colaboradorId) {
+function registrarSaida(colaboradorId) {
   const item=db.registro("voluntarios",colaboradorId);
   if(!item||item.checkin_status!=="presente")throw Error("Não há chegada ativa para este colaborador.");
   return db.gravar("voluntarios",{...item,checkin_status:"finalizado",...(!root.AlertaNuvem?.ativo?{checkout_em:new Date().toISOString()}: {})},colaboradorId);
  }
- function oferentes() {return db.lista("voluntarios");}
- function pedidos(){return db.lista("solicitacoes");}
- function mobilizacoes(){return db.lista("mobilizacoes");}
- function apoios(){return db.lista("apoios");}
- function encontrarPessoa(tel) {return oferentes().find(x=>mesmoTelefone(x.telefone,tel))||null;}
- function encontrarIdentidade(tel){
-  return encontrarPessoa(tel)||pedidos().find(x=>mesmoTelefone(x.telefone,tel))||null;
- }
- function validarBase({nome,telefone:tel,endereco,tipo_pessoa},{exigirTipoPessoa=true}={}) {
-  if(!String(nome||"").trim())throw Error("Informe o nome ou a razão social.");
-  if((exigirTipoPessoa||tipo_pessoa)&&!["FÍSICA","JURÍDICA"].includes(tipo_pessoa))
-   throw Error("Escolha pessoa física ou jurídica.");
-  if(!String(endereco||"").trim())throw Error("Informe o endereço.");
-  if(telefone(tel).length<10||telefone(tel).length>13)throw Error("Informe um telefone/WhatsApp válido.");
- }
- const array=x=>Array.isArray(x)?x.filter(Boolean):typeof x==="string"?x.split(/[;,]/).map(y=>y.trim()).filter(Boolean):[];
- function registrarColaborador(dados){
+return {geofence,situacaoBairro,registrarCheckin,registrarSaida};
+}
+root.AlertaCrisePresenca={criar};
+})(globalThis);
+/* Domínio de colaboradores: dependências explícitas, sem estado compartilhado entre arquivos. */
+(function(root){
+'use strict';
+function criar({db,validarBase,encontrarPessoa,array}){
+function registrarColaborador(dados){
   validarBase(dados);
   const existente=encontrarPessoa(dados.telefone);
   const campos={...(existente||{}),nome:String(dados.nome).trim(),tipo_pessoa:dados.tipo_pessoa,
@@ -130,7 +144,15 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
   }
   return pessoa;
  }
- function pontuacaoOferta(pedido,voluntario) {
+return {registrarColaborador};
+}
+root.AlertaCriseColaboradores={criar};
+})(globalThis);
+/* Domínio de compatibilidade: dependências explícitas, sem estado compartilhado entre arquivos. */
+(function(root){
+'use strict';
+function criar({COMPATIBILIDADE,norm,mesmoTelefone,array,oferentes}){
+function pontuacaoOferta(pedido,voluntario) {
   if(voluntario.status_simulacao==="simulado")return -1;
    if(pedido.telefone&&mesmoTelefone(pedido.telefone,voluntario.telefone))return -1;
   if(voluntario.disponibilidade==="Indisponível")return -1;
@@ -143,13 +165,21 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
   const pesos=root.AlertaRegrasOperacionais?.pesosCompatibilidade||{mesmaZona:100,outraZona:10,disponivel:5};
   return (mesmaZona?pesos.mesmaZona:pesos.outraZona)+(voluntario.disponibilidade==="Disponível"?pesos.disponivel:0);
  }
- function compatíveis(pedido) {
+function compatíveis(pedido) {
   return oferentes().map(x=>({colaborador:x,pontos:pontuacaoOferta(pedido,x)}))
    .filter(x=>x.pontos>=0)
    .sort((a,b)=>b.pontos-a.pontos||String(a.colaborador.nome).localeCompare(String(b.colaborador.nome)))
    .map(x=>x.colaborador);
  }
- function registrarPedido(dados) {
+return {pontuacaoOferta,compatíveis};
+}
+root.AlertaCriseCompatibilidade={criar};
+})(globalThis);
+/* Domínio de pedidos: dependências explícitas, sem estado compartilhado entre arquivos. */
+(function(root){
+'use strict';
+function criar({db,D,prefeitura,encontrarIdentidade,validarBase,compatíveis}){
+function registrarPedido(dados) {
   const pessoa=encontrarIdentidade(dados.telefone);
   const base={...dados,nome:dados.nome||pessoa?.nome,tipo_pessoa:dados.tipo_pessoa||pessoa?.tipo_pessoa,
     endereco:dados.endereco||pessoa?.endereco,zona:dados.zona||pessoa?.zona};
@@ -170,14 +200,14 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
   return {pedido:result,indicados:matches,mensagemPreparada:atribuido?mensagemParaColaborador(result):null,
    aviso:base.urgencia==="Crítica"?"Pedido prioritário para avaliação por equipe competente. Em risco imediato, contate 190, 192 ou 193.":atribuido?"Há colaborador compatível no cadastro; mensagem preparada para envio manual.":"A solicitação está aguardando disponibilidade/triagem."};
  }
- function mensagemParaColaborador(pedido){
+function mensagemParaColaborador(pedido){
   const p=prefeitura();
   return "REDE MUNICIPAL · "+(p?.nome||"Município")+
    "\nHá um pedido de ajuda "+(pedido.necessidade||"")+" na zona "+(pedido.zona||"não informada")+
    ".\nReferência: "+pedido.id+"\nAo chegar, envie CHEGUEI. Ao concluir, envie TERMINEI."+
    "\nUma equipe municipal deve fornecer instruções e endereço privadamente.";
  }
- function registrarFase(pedidoId,fase) {
+function registrarFase(pedidoId,fase) {
   if(!["Cheguei","Terminei"].includes(fase))throw Error("Só são aceitos Cheguei e Terminei.");
   const pedido=db.registro("solicitacoes",pedidoId);
   if(!pedido)throw Error("Pedido não encontrado.");
@@ -188,7 +218,15 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
   const result=db.gravar("solicitacoes",{...pedido,status:novo},pedido.id);
   return result;
  }
- function acionarBrigada(zona,descricao=""){
+return {registrarPedido,mensagemParaColaborador,registrarFase};
+}
+root.AlertaCrisePedidos={criar};
+})(globalThis);
+/* Domínio de mobilizacao: dependências explícitas, sem estado compartilhado entre arquivos. */
+(function(root){
+'use strict';
+function criar({db,prefeitura,zonas,oferentes,norm,telefone,waLink}){
+function acionarBrigada(zona,descricao=""){
   if(!zona||!zonas().includes(zona))throw Error("Selecione uma zona cadastrada.");
   const voluntarios=oferentes().filter(x=>norm(x.zona)===norm(zona)&&x.disponibilidade!=="Indisponível"&&x.status_simulacao!=="simulado");
   const equipes=db.lista("equipes").filter(x=>norm(x.zona)===norm(zona)&&x.status!=="Indisponível");
@@ -202,7 +240,7 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
     destinatarios:JSON.stringify(unicos),criado_em:new Date().toISOString()});
   return {mobilizacao:item,destinatarios:unicos,mensagem:msg,envios:unicos.map(x=>({nome:x.nome,tipo:x.tipo,link:waLink(x.telefone,msg)}))};
  }
- function solicitarOutraPrefeitura(destinoId,recurso){
+function solicitarOutraPrefeitura(destinoId,recurso){
   const origem=prefeitura(),destino=db.municipios().find(x=>x.id===destinoId);
   if(!destino||destino.id===origem?.id)throw Error("Selecione outra prefeitura cadastrada.");
   if(!String(recurso||"").trim())throw Error("Especifique o recurso ou apoio solicitado.");
@@ -213,9 +251,28 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
     destino_id:destino.id,recurso:String(recurso).trim(),mensagem:msg,status:"Preparada",criado_em:new Date().toISOString()});
   return {pedido:item,mensagem:msg,link:waLink(destino.telefone,msg),destino};
  }
- const api={db,prefeitura,zonas,pontoDaZona,oferentes,pedidos,mobilizacoes,apoios,
-  encontrarPessoa,encontrarIdentidade,registrarColaborador,registrarPedido,compatíveis,registrarFase,acionarBrigada, situacaoBairro,registrarCheckin,registrarSaida,
-  solicitarOutraPrefeitura,mensagemParaColaborador};
+return {acionarBrigada,solicitarOutraPrefeitura};
+}
+root.AlertaCriseMobilizacao={criar};
+})(globalThis);
+/* Composição dos serviços de assistência no cadastro canônico. */
+(function(root){
+'use strict';
+const COMPATIBILIDADE=root.AlertaRegrasOperacionais?.compatibilidade||root.AlertaCriseConfiguracao.COMPATIBILIDADE;
+const {norm,telefone,mesmoTelefone,waLink}=root.AlertaCriseUtilidades;
+function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal=false,repositorio=null}={}){
+ const D=root.AlertaGestaoDados;
+ if(!D)throw Error('Carregue gestao/dados.js primeiro.');
+ const db=repositorio||D.criar(armazenamento,escopoMunicipal&&municipioId?{municipioId}:{});
+ if(municipioId&&db.municipioAtivo()?.id!==municipioId&&!escopoMunicipal)db.selecionarMunicipio(municipioId);
+ const deps={db,D,...root.AlertaCriseUtilidades,COMPATIBILIDADE};
+ const consultas=root.AlertaCriseConsultas.criar(deps);Object.assign(deps,consultas);
+ const presenca=root.AlertaCrisePresenca.criar(deps);
+ const colaboradores=root.AlertaCriseColaboradores.criar(deps);
+ const compatibilidade=root.AlertaCriseCompatibilidade.criar(deps);Object.assign(deps,compatibilidade);
+ const pedidos=root.AlertaCrisePedidos.criar(deps);
+ const mobilizacao=root.AlertaCriseMobilizacao.criar(deps);
+ const api={db,...consultas,...presenca,...colaboradores,...pedidos,...mobilizacao,compatíveis:compatibilidade.compatíveis};
  if(db.tipo==='supabase')for(const name of ['registrarColaborador','registrarPedido','registrarFase','acionarBrigada','registrarCheckin','registrarSaida','solicitarOutraPrefeitura']){
   api[name]=async(...args)=>{
    const result=await db.transacao(draft=>criar({repositorio:draft,municipioId,escopoMunicipal})[name](...args));
@@ -231,5 +288,7 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
  }
  return api;
 }
-return {criar,COMPATIBILIDADE,norm,telefone,mesmoTelefone,waLink};
-});
+const api={criar,COMPATIBILIDADE,norm,telefone,mesmoTelefone,waLink};
+root.AlertaCrise=api;root.MaringaCrise=api;
+if(typeof module==='object'&&module.exports)module.exports=api;
+})(globalThis);

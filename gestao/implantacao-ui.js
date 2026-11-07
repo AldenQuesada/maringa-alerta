@@ -4,7 +4,7 @@
  */
 (function(global){
 "use strict";
-const C=global.AlertaImplantacaoCore,D=global.AlertaGestaoDados;
+let C=global.AlertaImplantacaoCore;const D=global.AlertaGestaoDados;
 if(!C||!D)return;
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $=id=>document.getElementById(id);
@@ -13,7 +13,7 @@ const normal=x=>String(x??"").toLowerCase();
 const TAB=["bairros","zonas","saude","emergencias","parceiros","bases","riscos","pontos"];
 const LABEL={
  bairros:"Bairros",zonas:"Zonas operacionais",saude:"Unidades de saúde",emergencias:"Bombeiros e polícias",
- parceiros:"Copel, Sanepar e parceiros",bases:"Bases de apoio",riscos:"Áreas de risco",pontos:"Pontos críticos"
+ parceiros:"Concessionárias e parceiros",bases:"Bases de apoio",riscos:"Áreas de risco",pontos:"Pontos críticos"
 };
 let ctx=null,tab="saude",search="",activeEdit=null,map=null,geoLayer=null,markerLayer=null,busy=false,rhRole="",rhZone="",rhSearch="",rhEdit=null;
 const uid=()=>global.crypto?.randomUUID?.()||"draft-"+Date.now()+"-"+Math.random().toString(36).slice(2);
@@ -25,8 +25,8 @@ function addStage(modulo,items){if(!TAB.includes(modulo))return;const list=stage
  for(const x of items){if(x?.nome)byKey.set(C.uniqueKey(x),x);}
  stage.grupos[modulo]=[...byKey.values()];
 }
-function ready(){return ctx?.db?.municipioAtivo()?.codigo_ibge==="4115200"&&ctx?.db?.municipioAtivo()?.id==="maringa";}
-function locState(){const p=ctx.db.municipioAtivo();return '<div class="mi-context"><strong>BRASIL</strong><span>›</span><strong>PARANÁ</strong><span>›</span><strong>'+esc(p?.nome||"Maringá")+'</strong><span class="mi-code">IBGE '+esc(p?.codigo_ibge||"4115200")+'</span><small>Administração nacional e estadual: estrutura futura, sem autorização global neste protótipo.</small></div>';}
+function ready(){return !!ctx?.db?.municipioAtivo()?.codigo_ibge;}
+function locState(){const p=ctx.db.municipioAtivo();return '<div class="mi-context"><strong>'+esc(p?.pais||'Brasil')+'</strong><strong>'+esc(p?.estado||p?.uf||'')+'</strong><strong>'+esc(p?.nome||'Município')+'</strong><span class="mi-code">IBGE '+esc(p?.codigo_ibge||'')+'</span></div>';}
 function summary(){
  const state=ctx.db.estado(),id=ctx.db.municipioAtivo()?.id;
  const count=k=>(state[D.ESQUEMAS[k].collection]||[]).filter(x=>x.municipioId===id&&(!D.ESQUEMAS[k].category||x.categoria===D.ESQUEMAS[k].category)).length;
@@ -53,7 +53,7 @@ function selectedRows(){
 function renderTerritory(){
  if(!ctx)return;const page=ctx.page;
  const disable=!ready();
- page.innerHTML='<div class="mi-head"><div><div class="eyebrow">CADASTRO TERRITORIAL ÚNICO</div><h1 class="page-title">Implantar Maringá</h1><p class="page-subtitle">País → Estado → Prefeitura → Bairros e zonas → Unidades → Gabinete de crise. Uma única tela, com importação, mapa, tabela e conferência.</p></div></div>'+
+ page.innerHTML='<div class="mi-head"><div><div class="eyebrow">CADASTRO TERRITORIAL ÚNICO</div><h1 class="page-title">Implantação municipal</h1><p class="page-subtitle">País, estado, prefeitura, bairros e zonas, unidades e gabinete de crise. Uma única tela, com importação, mapa, tabela e conferência.</p></div></div>'+
  locState()+summary()+
  '<div class="mi-workflow"><div class="mi-workflow-title"><strong>Importar e conferir</strong><small>Registros só são gravados quando você escolher Salvar implantação.</small></div>'+
  '<div class="mi-actions"><button class="btn btn-primary" type="button" id="mi-import"'+(busy||disable?" disabled":"")+'>Importar IBGE + CNES</button>'+
@@ -70,8 +70,8 @@ function renderTerritory(){
  '<div class="mi-map-pane"><div class="mi-map-header"><strong>Georreferenciamento</strong><small>Marcadores privados de consulta administrativa, não mapa público.</small></div><div id="mi-map" class="mi-map"></div><div class="mi-map-footer">Sem geometria oficial? O registro fica na tabela, marcado para conferência.</div></div></div></div>'+
  '<section class="mi-review" id="mi-editor" hidden></section>'+
  '<section class="mi-sources"><strong>Fontes e importação</strong>'+
- '<p>IBGE Localidades e Malhas; CNES Ministério da Saúde. Para bairros, áreas de risco ou pontos ainda não publicados por API acessível, importe o GeoJSON/CSV municipal exportado do GeoMaringá/IPPLAM. Os órgãos sem endereço ficam como pendentes.</p>'+
- '<div><a href="'+esc(C.FONTES.ibge)+'" target="_blank" rel="noopener">IBGE</a><a href="'+esc(C.FONTES.cnes)+'" target="_blank" rel="noopener">CNES</a><a href="'+esc(C.FONTES.cnesCsv)+'" target="_blank" rel="noopener">Extrair CNES CSV</a><a href="https://www.maringa.pr.gov.br/" target="_blank" rel="noopener">Prefeitura / GeoMaringá</a></div>'+
+ '<p>IBGE Localidades e Malhas; CNES Ministério da Saúde. Para bairros, áreas de risco ou pontos ainda não publicados por API acessível, importe o GeoJSON/CSV municipal exportado da fonte territorial da prefeitura. Os órgãos sem endereço ficam como pendentes.</p>'+
+ '<div><a href="'+esc(C.FONTES.ibge)+'" target="_blank" rel="noopener">IBGE</a><a href="'+esc(C.FONTES.cnes)+'" target="_blank" rel="noopener">CNES</a><a href="'+esc(C.FONTES.cnesCsv)+'" target="_blank" rel="noopener">Extrair CNES CSV</a></div>'+
  '</section>';
  $("mi-tab").onchange=e=>{tab=e.target.value;search="";renderTerritory();};
  $("mi-search").oninput=e=>{search=e.target.value;refreshTable();};
@@ -101,7 +101,8 @@ function initMap(){
  if(!global.L||!$("mi-map")){$("mi-map").textContent="A biblioteca cartográfica não está disponível. A tabela permanece funcional.";return;}
  if(map){map.remove();map=null;}
  const p=ctx.db.municipioAtivo();
- map=L.map("mi-map",{zoomControl:true}).setView([Number(p.lat)||-23.4205,Number(p.lng)||-51.9333],12);
+ const centro=globalThis.AlertaGestaoDados.config.centro(p);
+ map=L.map("mi-map",{zoomControl:true}).setView(centro||[0,0],centro?12:2);
  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"&copy; OpenStreetMap contributors"}).addTo(map);
  geoLayer=L.layerGroup().addTo(map);markerLayer=L.layerGroup().addTo(map);
  renderMarkers();setTimeout(()=>map.invalidateSize(),80);
@@ -152,7 +153,7 @@ function openEditor(x){
   for(const [k,value] of form.entries())v[k]=String(value).trim();
   const locationGiven=String(v.lat||"").trim()||String(v.lng||"").trim();
   const xy=C.normalizeCoordinates(v.lat,v.lng);
-  if(locationGiven&&!xy){notify("Coordenadas inválidas ou fora da região de Maringá.");return;}
+  if(locationGiven&&!xy){notify("Coordenadas inválidas ou fora do território configurado.");return;}
   if(xy){v.lat=xy.lat;v.lng=xy.lng;}
   if(!v.nome){notify("Informe o nome.");return;}
   const keys=stage.grupos[tab]||[],key=C.uniqueKey(activeEdit),idx=keys.findIndex(r=>C.uniqueKey(r)===key);
@@ -183,7 +184,7 @@ async function importOfficial(){
   try{
    const data=await request(C.FONTES.ibge,18000);
    const p=C.validarMunicipioIBGE(data);stage.ibge=p;
-   log("IBGE","Maringá / PR (4115200) identificada por código oficial.","ok");
+   log("IBGE",p.nome+" / "+p.uf+" ("+p.codigo_ibge+") identificado por código oficial.","ok");
   }catch(e){errors.push("IBGE Localidades: "+e.message);log("IBGE",e.message,"error");}
   try{
    const geo=await request(C.FONTES.malha,22000);
@@ -204,10 +205,10 @@ async function importOfficial(){
     }
     pages++;
     if(!parsed.rows.length||parsed.rows.length<20||parsed.total&&pages*20>=parsed.total)stop=true;
-    if(pages%5===0){const info=$("mi-progress");if(info)info.textContent="CNES: "+pages+" páginas consultadas, "+all.length+" registros de Maringá identificados...";}
+    if(pages%5===0){const info=$("mi-progress");if(info)info.textContent="CNES: "+pages+" páginas consultadas, "+all.length+" registros municipais identificados...";}
    }
    if(pages>=150)errors.push("Limite preventivo de 150 páginas CNES atingido. Complete pelo CSV oficial.");
-   if(!all.length)throw Error("CNES não retornou estabelecimentos aproveitáveis de Maringá.");
+   if(!all.length)throw Error("CNES não retornou estabelecimentos aproveitáveis do município.");
    addStage("saude",all);log("CNES",all.length+" estabelecimentos recebidos em "+pages+" página(s), sujeitos a conferência.","ok");
   }catch(e){errors.push("CNES: "+e.message);log("CNES",e.message+" · alternativa: baixar CSV oficial e importar por arquivo.","error");}
  }finally{
@@ -225,7 +226,7 @@ async function loadFile(file){
   let rows=[];
   if(isCSV){
    rows=C.parseCSV(contents).map(x=>C.linhaCSVParaCNES(x)).filter(Boolean);
-   if(!rows.length)throw Error("Nenhum estabelecimento de Maringá encontrado no CSV CNES.");
+   if(!rows.length)throw Error("Nenhum estabelecimento do município encontrado no CSV CNES.");
    addStage("saude",rows);
   }else{
    const data=JSON.parse(contents);
@@ -249,10 +250,10 @@ async function loadFile(file){
 }
 async function saveAll(){
  if(busy||!ready())return;
- const packageData={grupos:stage.grupos,fonte:"IBGE / CNES / GeoMaringá / fonte municipal"};
+ const packageData={codigo_ibge:C.MUNICIPIO,grupos:stage.grupos,fonte:"IBGE / CNES / fonte municipal"};
  if(stage.geo||stage.ibge){
   const geo=stage.geo?{limite_geojson:stage.geo,fonte_geo:C.FONTES.malha,geo_atualizado:new Date().toISOString()}:{}; 
-  if(stage.ibge)Object.assign(geo,{pais:"Brasil",paisId:"BR",estado:"Paraná",codigo_uf:"41"});
+  if(stage.ibge)Object.assign(geo,{pais:C.PAIS.nome,paisId:C.PAIS.id,estado:C.ESTADO.nome,codigo_uf:C.ESTADO.codigo_ibge});
   packageData.municipioGeo=geo;
  }
  if(!Object.values(stage.grupos).some(v=>v.length)&&!packageData.municipioGeo){notify("Não há dados novos para salvar.");return;}
@@ -327,6 +328,8 @@ function openRH(person=null,reference=null){
  parent.querySelector("input")?.focus();
 }
 function montar({page,db,mode,toast}){
+ if(ctx?.db?.municipioAtivo()?.id!==db.municipioAtivo()?.id){stage.grupos={};stage.geo=null;stage.ibge=null;stage.logs=[];}
+ C=global.AlertaImplantacaoCore.criar(db.municipioAtivo());
  ctx={page,db,toast};if(mode==="pessoas"){if(map){map.remove();map=null;}renderRH();}
  else if(mode==="implantacao")renderTerritory();
 }

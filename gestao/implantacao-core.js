@@ -1,52 +1,27 @@
-/* Implantação georreferenciada · motor determinístico, sem rede nem DOM.
- * As fontes remotas ficam na UI; este módulo valida, normaliza e prepara dados para revisão.
- */
-(function(global,factory){
- const api=factory();
- if(typeof module==="object"&&module.exports)module.exports=api;
- global.AlertaImplantacaoCore=api;
-})(typeof globalThis!=="undefined"?globalThis:this,function(){
-"use strict";
-const MUNICIPIO="4115200";
-const PAIS={id:"BR",nome:"Brasil"};
-const ESTADO={id:"PR",nome:"Paraná",codigo_ibge:"41",paisId:"BR"};
-const MUNICIPIO_PADRAO={id:"maringa",nome:"Maringá",uf:"PR",codigo_ibge:MUNICIPIO,lat:-23.4205,lng:-51.9333};
-const FONTES={
- ibge:"https://servicodados.ibge.gov.br/api/v1/localidades/municipios/4115200",
- malha:"https://servicodados.ibge.gov.br/api/v3/malhas/municipios/4115200?formato=application%2Fvnd.geo%2Bjson&qualidade=minima",
- cnes:"https://apidadosabertos.saude.gov.br/cnes/estabelecimentos",
- geomaringa:"https://www.maringa.pr.gov.br/",
- cnesCsv:"https://cnes.datasus.gov.br/pages/estabelecimentos/extracao.jsp"
-};
-const FONTES_DESC={
- ibge:"IBGE · Localidades (geocódigo 4115200)",
- malha:"IBGE · Malhas municipais (GeoJSON)",
- cnes:"Ministério da Saúde · Cadastro CNES",
- geomaringa:"GeoMaringá / IPPLAM (importação de arquivo municipal)",
- manual:"Cadastro municipal"
-};
-const EMERGENCIA=[
- {nome:"Corpo de Bombeiros",tipo:"Bombeiros",categoria:"Emergência",fonte:"cadastro_institucional",verificacao:"Pendente",observacoes:"Localizar unidade, endereço e contato oficial."},
- {nome:"Polícia Militar",tipo:"Polícia Militar",categoria:"Emergência",fonte:"cadastro_institucional",verificacao:"Pendente",observacoes:"Confirmar unidade de referência e endereço."},
- {nome:"Polícia Civil",tipo:"Polícia Civil",categoria:"Emergência",fonte:"cadastro_institucional",verificacao:"Pendente",observacoes:"Confirmar unidade de referência e endereço."},
- {nome:"Guarda Municipal",tipo:"Guarda Municipal",categoria:"Emergência",fonte:"cadastro_institucional",verificacao:"Pendente",observacoes:"Confirmar base e contato institucional."},
- {nome:"Defesa Civil Municipal",tipo:"Defesa Civil",categoria:"Emergência",fonte:"cadastro_institucional",verificacao:"Pendente",observacoes:"Confirmar sede e responsável."},
- {nome:"Copel",tipo:"Energia",categoria:"Parceiros",fonte:"cadastro_institucional",verificacao:"Pendente",observacoes:"Vincular agência/unidade oficial e contato de operação."},
- {nome:"Sanepar",tipo:"Água",categoria:"Parceiros",fonte:"cadastro_institucional",verificacao:"Pendente",observacoes:"Vincular agência/unidade oficial e contato de operação."}
-];
+/* Normalização textual compartilhada pelos importadores. */
+(function(root){
+'use strict';
 const norm=x=>String(x??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 const str=x=>String(x??"").trim();
 const pick=(x,keys)=>{for(const k of keys){if(x?.[k]!==undefined&&x?.[k]!==null&&x?.[k]!=="")return x[k];}return "";};
 const digits=x=>str(x).replace(/\D/g,"");
-function isMaringa(value){
+
+root.AlertaImplantacaoTexto={norm,str,pick,digits};
+})(globalThis);
+/* cnes: domínio independente com dependências explícitas. */
+(function(root){
+'use strict';
+function criar({municipio,MUNICIPIO,FONTES,norm,str,pick,digits}){
+function isMunicipio(value){
  const d=digits(value);
- return d==="4115200"||d==="411520";
+ return d===MUNICIPIO||d===MUNICIPIO.slice(0,6);
 }
 function normalizeCoordinates(lat,lng){
  const a=Number(String(lat??"").replace(",",".")),b=Number(String(lng??"").replace(",","."));
  if(!Number.isFinite(a)||!Number.isFinite(b)||Math.abs(a)>90||Math.abs(b)>180)return null;
  if(a===0&&b===0)return null;
- if(a < -25||a > -22||b < -53||b > -50)return null; // Fora da região de Maringá; não confiar em coord. erradas do CNES
+ const box=municipio.bbox_verificacao||municipio.bbox;
+ if(Array.isArray(box)&&box.length===4){const [s,n,w,e]=box.map(Number);if([s,n,w,e].every(Number.isFinite)&&(a<s||a>n||b<w||b>e))return null;}
  return {lat:a,lng:b};
 }
 function tipoSaude(item){
@@ -62,8 +37,8 @@ function cnesItem(raw,{fonte=FONTES.cnes}={}){
  if(!raw||typeof raw!=="object")return null;
  const city=pick(raw,["codigo_municipio","codigo_ibge","CO_MUNICIPIO_GESTOR","CO_MUNICIPIO_GESTOR_ESTABELECIMENTO","municipio_codigo","IBGE","ibge","codigo_municipio_estabelecimento","codigo_municipio_gestor"]);
  const cityName=pick(raw,["municipio","nome_municipio","municipio_estabelecimento","MUNICIPIO"]);
- if(city&&!isMaringa(city))return null;
- if(!city&&cityName&&norm(cityName)!=="maringa")return null;
+ if(city&&!isMunicipio(city))return null;
+ if(!city&&cityName&&norm(cityName)!==norm(municipio.nome))return null;
  if(!city&&!cityName)return null; // Não importar unidades sem prova do município
  const nome=str(pick(raw,["nome_fantasia","nome","nome_estabelecimento","NO_FANTASIA","NOME FANTASIA","nome_empresarial"]));
  if(!nome)return null;
@@ -94,6 +69,32 @@ function unwrapCNES(value){
  const total=Number(pick(value,["total","total_registros","totalRegistros","total_de_registros","count","total_itens"]));
  return {rows:list,total:Number.isFinite(total)&&total>0?total:null};
 }
+function linhaCSVParaCNES(row){
+ const o={};
+ for(const [k,v] of Object.entries(row))o[norm(k).replace(/ /g,"_")]=v;
+ return cnesItem({
+  codigo_cnes:pick(o,["cnes","codigo_cnes"]),
+  nome_fantasia:pick(o,["nome_fantasia","nome","nome_estabelecimento"]),
+  codigo_municipio:pick(o,["ibge","codigo_ibge"]),
+  municipio:pick(o,["municipio"]),
+  logradouro:pick(o,["logradouro","endereco"]),
+  numero:pick(o,["numero"]),
+  bairro:pick(o,["bairro"]),
+  cep:pick(o,["cep"]),
+  latitude:pick(o,["latitude","latitude_estabelecimento"]),
+  longitude:pick(o,["longitude","longitude_estabelecimento"]),
+  tipo_unidade:pick(o,["tipo_unidade","tipo"]),
+  telefone:pick(o,["telefone"])
+ },{fonte:FONTES.cnesCsv});
+}
+return {isMunicipio,normalizeCoordinates,tipoSaude,cnesItem,unwrapCNES,linhaCSVParaCNES};
+}
+root.AlertaImplantacaoCnes={criar};
+})(globalThis);
+/* arquivos: domínio independente com dependências explícitas. */
+(function(root){
+'use strict';
+function criar({norm,str,pick,normalizeCoordinates}){
 function normalizaMalha(geo){
  if(!geo||typeof geo!=="object")throw Error("Malha IBGE inválida.");
  let feature;
@@ -103,14 +104,6 @@ function normalizaMalha(geo){
  if(!feature||!["Polygon","MultiPolygon"].includes(feature.geometry?.type))throw Error("O arquivo não contém um polígono GeoJSON.");
  if(JSON.stringify(feature.geometry).length>1300000)throw Error("Geometria grande demais para o armazenamento local.");
  return feature.geometry;
-}
-function validarMunicipioIBGE(data){
- const id=str(data?.id||data?.codigo_ibge);
- if(id!==MUNICIPIO)throw Error("IBGE retornou município diferente de Maringá.");
- if(norm(data?.nome)!=="maringa")throw Error("Nome do município não corresponde a Maringá.");
- const uf=pick(data,["microrregiao","regiao-imediata"])?.mesorregiao?.UF?.sigla||data?.["regiao-imediata"]?.["regiao-intermediaria"]?.UF?.sigla||data?.uf?.sigla;
- if(uf&&uf!=="PR")throw Error("IBGE retornou UF incompatível.");
- return {...MUNICIPIO_PADRAO,nome:data.nome,uf:"PR",codigo_ibge:id,pais:"Brasil",paisId:"BR",estado:"Paraná",ufCodigoIbge:"41",fonte:"IBGE",verificacao:"Fonte oficial",url_fonte:FONTES.ibge};
 }
 function parseCSV(txt){
  const text=String(txt||"").replace(/^\uFEFF/,"");if(text.length>14e6)throw Error("Arquivo CSV maior que 14 MB.");
@@ -130,24 +123,6 @@ function parseCSV(txt){
  const head=out.shift().map(k=>str(k));
  return out.slice(0,7000).map(cols=>Object.fromEntries(head.map((h,i)=>[h,cols[i]??""])));
 }
-function linhaCSVParaCNES(row){
- const o={};
- for(const [k,v] of Object.entries(row))o[norm(k).replace(/ /g,"_")]=v;
- return cnesItem({
-  codigo_cnes:pick(o,["cnes","codigo_cnes"]),
-  nome_fantasia:pick(o,["nome_fantasia","nome","nome_estabelecimento"]),
-  codigo_municipio:pick(o,["ibge","codigo_ibge"]),
-  municipio:pick(o,["municipio"]),
-  logradouro:pick(o,["logradouro","endereco"]),
-  numero:pick(o,["numero"]),
-  bairro:pick(o,["bairro"]),
-  cep:pick(o,["cep"]),
-  latitude:pick(o,["latitude","latitude_estabelecimento"]),
-  longitude:pick(o,["longitude","longitude_estabelecimento"]),
-  tipo_unidade:pick(o,["tipo_unidade","tipo"]),
-  telefone:pick(o,["telefone"])
- },{fonte:FONTES.cnesCsv});
-}
 function normalizarGeoFeature(f,kind){
  if(!f||f.type!=="Feature"||!f.geometry)return null;
  const p=f.properties||{},name=str(pick(p,["nome","NOME","NM_BAIRRO","nm_bairro","BAIRRO","bairro","name","Name","NOME_BAIRRO","DESCRICAO","descricao","NO_BAIRRO"]));
@@ -156,12 +131,12 @@ function normalizarGeoFeature(f,kind){
  if(kind==="bairros"||kind==="riscos"){
   if(!["Polygon","MultiPolygon"].includes(f.geometry.type))return null;
   const geo=normalizaMalha(f);
-  return {id:(kind==="bairros"?"bairro-":"risco-")+id,nome:name,geojson:JSON.stringify(geo),tipo:kind==="bairros"?"Bairro":"Área de risco",fonte:"GeoMaringá/importação municipal",verificacao:"Pendente",zona:"",localizacao:name};
+  return {id:(kind==="bairros"?"bairro-":"risco-")+id,nome:name,geojson:JSON.stringify(geo),tipo:kind==="bairros"?"Bairro":"Área de risco",fonte:"Importação municipal",verificacao:"Pendente",zona:"",localizacao:name};
  }
  if(kind==="pontos"||kind==="instituicoes"){
   if(f.geometry.type!=="Point")return null;
   const c=f.geometry.coordinates,point=normalizeCoordinates(c?.[1],c?.[0]);if(!point)return null;
-  return {id:(kind==="pontos"?"ponto-":"instituicao-")+id,nome:name,...point,bairro:str(pick(p,["bairro","BAIRRO"])),tipo:str(pick(p,["tipo","TIPO"]))||"Outro",endereco:str(pick(p,["endereco","ENDERECO"])),fonte:"GeoMaringá/importação municipal",verificacao:"Pendente",zona:""};
+  return {id:(kind==="pontos"?"ponto-":"instituicao-")+id,nome:name,...point,bairro:str(pick(p,["bairro","BAIRRO"])),tipo:str(pick(p,["tipo","TIPO"]))||"Outro",endereco:str(pick(p,["endereco","ENDERECO"])),fonte:"Importação municipal",verificacao:"Pendente",zona:""};
  }
  return null;
 }
@@ -172,6 +147,14 @@ function geoItems(geo,kind){
  if(feats.length>12000)throw Error("Camada acima do limite de 12 mil feições.");
  return feats.map(x=>normalizarGeoFeature(x,kind)).filter(Boolean);
 }
+return {normalizaMalha,parseCSV,normalizarGeoFeature,geoItems};
+}
+root.AlertaImplantacaoArquivos={criar};
+})(globalThis);
+/* conciliacao: domínio independente com dependências explícitas. */
+(function(root){
+'use strict';
+function criar({norm,str}){
 function uniqueKey(x){return str(x.externalId||x.codigo_cnes&&"cnes:"+x.codigo_cnes||x.id||"n:"+norm(x.nome)+"|"+norm(x.endereco));}
 function merge(existing,incoming,{preserveVerified=true}={}){
  const current=new Map(existing.map(x=>[uniqueKey(x),x]));
@@ -188,8 +171,56 @@ function merge(existing,incoming,{preserveVerified=true}={}){
  }
  return {items:result,stats};
 }
-function validarHierarquia({pais="BR",uf="PR",codigo=MUNICIPIO}={}){
- if(pais!=="BR"||uf!=="PR"||String(codigo)!==MUNICIPIO)throw Error("Nesta implantação, somente Brasil / Paraná / Maringá está habilitado.");
+return {uniqueKey,merge};
+}
+root.AlertaImplantacaoConciliacao={criar};
+})(globalThis);
+/* Implantação georreferenciada · motor determinístico, sem rede nem DOM.
+ * As fontes remotas ficam na UI; este módulo valida, normaliza e prepara dados para revisão.
+ */
+(function(global,factory){
+ const config=global.AlertaMunicipiosConfiguracao||(typeof require==='function'?require('../config/municipios.js'):null);
+ const api={...factory(config?.demonstracao),criar:factory};
+ if(typeof module==="object"&&module.exports)module.exports=api;
+ global.AlertaImplantacaoCore=api;
+})(typeof globalThis!=="undefined"?globalThis:this,function(municipio){
+"use strict";
+if(!municipio||!/^\d{7}$/.test(String(municipio.codigo_ibge))||!municipio.uf||!municipio.nome)throw Error('Município de implantação inválido.');
+const MUNICIPIO=String(municipio.codigo_ibge);
+const PAIS={id:municipio.paisId||'BR',nome:municipio.pais||'Brasil'};
+const ESTADO={id:municipio.uf,nome:municipio.estado||municipio.uf,codigo_ibge:MUNICIPIO.slice(0,2),paisId:PAIS.id};
+const MUNICIPIO_PADRAO={...municipio};
+const FONTES={ibge:'https://servicodados.ibge.gov.br/api/v1/localidades/municipios/'+MUNICIPIO,
+ malha:'https://servicodados.ibge.gov.br/api/v3/malhas/municipios/'+MUNICIPIO+'?formato=application%2Fvnd.geo%2Bjson&qualidade=minima',
+ cnes:'https://apidadosabertos.saude.gov.br/cnes/estabelecimentos',
+ cnesCsv:'https://cnes.datasus.gov.br/pages/estabelecimentos/extracao.jsp'};
+const FONTES_DESC={ibge:'IBGE · Localidades',malha:'IBGE · Malhas municipais (GeoJSON)',cnes:'Ministério da Saúde · Cadastro CNES',manual:'Cadastro municipal'};
+const EMERGENCIA=[
+ {nome:"Corpo de Bombeiros",tipo:"Bombeiros",categoria:"Emergência",fonte:"cadastro_institucional",verificacao:"Pendente",observacoes:"Localizar unidade, endereço e contato oficial."},
+ {nome:"Polícia Militar",tipo:"Polícia Militar",categoria:"Emergência",fonte:"cadastro_institucional",verificacao:"Pendente",observacoes:"Confirmar unidade de referência e endereço."},
+ {nome:"Polícia Civil",tipo:"Polícia Civil",categoria:"Emergência",fonte:"cadastro_institucional",verificacao:"Pendente",observacoes:"Confirmar unidade de referência e endereço."},
+ {nome:"Guarda Municipal",tipo:"Guarda Municipal",categoria:"Emergência",fonte:"cadastro_institucional",verificacao:"Pendente",observacoes:"Confirmar base e contato institucional."},
+ {nome:"Defesa Civil Municipal",tipo:"Defesa Civil",categoria:"Emergência",fonte:"cadastro_institucional",verificacao:"Pendente",observacoes:"Confirmar sede e responsável."},
+ {nome:"Distribuidora de energia",tipo:"Energia",categoria:"Parceiros",fonte:"cadastro_institucional",verificacao:"Pendente",observacoes:"Vincular agência/unidade oficial e contato de operação."},
+ {nome:"Prestador de abastecimento de água",tipo:"Água",categoria:"Parceiros",fonte:"cadastro_institucional",verificacao:"Pendente",observacoes:"Vincular agência/unidade oficial e contato de operação."}
+];
+const {norm,str,pick,digits}=globalThis.AlertaImplantacaoTexto;
+const cnes=globalThis.AlertaImplantacaoCnes.criar({municipio,MUNICIPIO,FONTES,norm,str,pick,digits});
+const {normalizeCoordinates,tipoSaude,cnesItem,unwrapCNES,linhaCSVParaCNES}=cnes;
+const {normalizaMalha,parseCSV,geoItems}=globalThis.AlertaImplantacaoArquivos.criar({norm,str,pick,normalizeCoordinates});
+const {uniqueKey,merge}=globalThis.AlertaImplantacaoConciliacao.criar({norm,str});
+
+function validarMunicipioIBGE(data){
+ const id=str(data?.id||data?.codigo_ibge);
+ if(id!==MUNICIPIO)throw Error("IBGE retornou município diferente do selecionado.");
+ if(norm(data?.nome)!==norm(municipio.nome))throw Error("Nome do município não corresponde ao selecionado.");
+ const uf=pick(data,["microrregiao","regiao-imediata"])?.mesorregiao?.UF?.sigla||data?.["regiao-imediata"]?.["regiao-intermediaria"]?.UF?.sigla||data?.uf?.sigla;
+ if(uf&&uf!==municipio.uf)throw Error("IBGE retornou UF incompatível.");
+ return {...MUNICIPIO_PADRAO,nome:data.nome,uf:municipio.uf,codigo_ibge:id,pais:PAIS.nome,paisId:PAIS.id,estado:ESTADO.nome,ufCodigoIbge:ESTADO.codigo_ibge,fonte:"IBGE",verificacao:"Fonte oficial",url_fonte:FONTES.ibge};
+}
+
+function validarHierarquia({pais=PAIS.id,uf=ESTADO.id,codigo=MUNICIPIO}={}){
+ if(pais!==PAIS.id||uf!==ESTADO.id||String(codigo)!==MUNICIPIO)throw Error("A implantação aceita somente a prefeitura selecionada e sua hierarquia.");
  return true;
 }
 return {MUNICIPIO,PAIS,ESTADO,MUNICIPIO_PADRAO,FONTES,FONTES_DESC,EMERGENCIA,

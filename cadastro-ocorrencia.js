@@ -134,7 +134,7 @@ function iniciar(api){
    <label class="cad-choice"><input type="checkbox" id="cad-oc-separate"> Revisei e se trata de uma ocorrência separada.</label>`:'';
  }
  function marcar(latlng){
-  if(!api.isWithinMunicipality([latlng.lat,latlng.lng])){if(marker&&pos)marker.setLatLng(pos);error.textContent='Selecione um ponto dentro da área de navegação de Maringá.';return;}
+  if(!api.isWithinMunicipality([latlng.lat,latlng.lng])){if(marker&&pos)marker.setLatLng(pos);error.textContent='Selecione um ponto dentro da área de navegação do município.';return;}
   error.textContent='';pos=[latlng.lat,latlng.lng];
   if(marker) marker.setLatLng(latlng);else marker=L.marker(latlng,{draggable:true}).addTo(map).on('dragend',()=>marcar(marker.getLatLng()));
   overlay.querySelector('#cad-oc-pos').textContent=`Local selecionado: ${pos[0].toFixed(5)}, ${pos[1].toFixed(5)}`;
@@ -158,7 +158,11 @@ function iniciar(api){
   error.textContent='Buscando endereço…';
   try{
    const url=new URL('https://nominatim.openstreetmap.org/search');
-   url.search=new URLSearchParams({q:endereco+', Maringá, Paraná, Brasil',format:'jsonv2',limit:'5',viewbox:'-52.123,-23.235,-51.813,-23.578',bounded:'1'});
+   const municipio=api.municipio||{};
+   const params=new URLSearchParams({q:[endereco,municipio.nome,municipio.uf,municipio.pais||'Brasil'].filter(Boolean).join(', '),format:'jsonv2',limit:'5'});
+   const box=municipio.bbox_navegacao||municipio.bbox;
+   if(Array.isArray(box)&&box.length===4&&box.every(x=>Number.isFinite(Number(x)))){const [s,n,w,e]=box;params.set('viewbox',[w,n,e,s].join(','));params.set('bounded','1');}
+   url.search=params;
    const response=await fetch(url,{headers:{'Accept':'application/json'}});
    if(!response.ok)throw Error();
    const lista=await response.json();const item=lista.find(x=>Number.isFinite(Number(x.lat))&&Number.isFinite(Number(x.lon)));

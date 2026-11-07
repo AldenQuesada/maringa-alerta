@@ -17,7 +17,8 @@ function initMap(){
  if(!global.L||!$("mi-map")){$("mi-map").textContent="A biblioteca cartográfica não está disponível. A tabela permanece funcional.";return;}
  if(map){map.remove();map=null;}
  const p=ctx.db.municipioAtivo();
- map=L.map("mi-map",{zoomControl:true}).setView([Number(p.lat)||-23.4205,Number(p.lng)||-51.9333],12);
+ const centro=globalThis.AlertaGestaoDados.config.centro(p);
+ map=L.map("mi-map",{zoomControl:true}).setView(centro||[0,0],centro?12:2);
  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"&copy; OpenStreetMap contributors"}).addTo(map);
  geoLayer=L.layerGroup().addTo(map);markerLayer=L.layerGroup().addTo(map);
  renderMarkers();setTimeout(()=>map.invalidateSize(),80);
@@ -68,7 +69,7 @@ function openEditor(x){
   for(const [k,value] of form.entries())v[k]=String(value).trim();
   const locationGiven=String(v.lat||"").trim()||String(v.lng||"").trim();
   const xy=C.normalizeCoordinates(v.lat,v.lng);
-  if(locationGiven&&!xy){notify("Coordenadas inválidas ou fora da região de Maringá.");return;}
+  if(locationGiven&&!xy){notify("Coordenadas inválidas ou fora do território configurado.");return;}
   if(xy){v.lat=xy.lat;v.lng=xy.lng;}
   if(!v.nome){notify("Informe o nome.");return;}
   const keys=stage.grupos[tab]||[],key=C.uniqueKey(activeEdit),idx=keys.findIndex(r=>C.uniqueKey(r)===key);

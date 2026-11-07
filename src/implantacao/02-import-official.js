@@ -5,7 +5,7 @@ async function importOfficial(){
   try{
    const data=await request(C.FONTES.ibge,18000);
    const p=C.validarMunicipioIBGE(data);stage.ibge=p;
-   log("IBGE","Maringá / PR (4115200) identificada por código oficial.","ok");
+   log("IBGE",p.nome+" / "+p.uf+" ("+p.codigo_ibge+") identificado por código oficial.","ok");
   }catch(e){errors.push("IBGE Localidades: "+e.message);log("IBGE",e.message,"error");}
   try{
    const geo=await request(C.FONTES.malha,22000);
@@ -26,10 +26,10 @@ async function importOfficial(){
     }
     pages++;
     if(!parsed.rows.length||parsed.rows.length<20||parsed.total&&pages*20>=parsed.total)stop=true;
-    if(pages%5===0){const info=$("mi-progress");if(info)info.textContent="CNES: "+pages+" páginas consultadas, "+all.length+" registros de Maringá identificados...";}
+    if(pages%5===0){const info=$("mi-progress");if(info)info.textContent="CNES: "+pages+" páginas consultadas, "+all.length+" registros municipais identificados...";}
    }
    if(pages>=150)errors.push("Limite preventivo de 150 páginas CNES atingido. Complete pelo CSV oficial.");
-   if(!all.length)throw Error("CNES não retornou estabelecimentos aproveitáveis de Maringá.");
+   if(!all.length)throw Error("CNES não retornou estabelecimentos aproveitáveis do município.");
    addStage("saude",all);log("CNES",all.length+" estabelecimentos recebidos em "+pages+" página(s), sujeitos a conferência.","ok");
   }catch(e){errors.push("CNES: "+e.message);log("CNES",e.message+" · alternativa: baixar CSV oficial e importar por arquivo.","error");}
  }finally{
@@ -47,7 +47,7 @@ async function loadFile(file){
   let rows=[];
   if(isCSV){
    rows=C.parseCSV(contents).map(x=>C.linhaCSVParaCNES(x)).filter(Boolean);
-   if(!rows.length)throw Error("Nenhum estabelecimento de Maringá encontrado no CSV CNES.");
+   if(!rows.length)throw Error("Nenhum estabelecimento do município encontrado no CSV CNES.");
    addStage("saude",rows);
   }else{
    const data=JSON.parse(contents);
@@ -71,10 +71,10 @@ async function loadFile(file){
 }
 async function saveAll(){
  if(busy||!ready())return;
- const packageData={grupos:stage.grupos,fonte:"IBGE / CNES / GeoMaringá / fonte municipal"};
+ const packageData={codigo_ibge:C.MUNICIPIO,grupos:stage.grupos,fonte:"IBGE / CNES / fonte municipal"};
  if(stage.geo||stage.ibge){
   const geo=stage.geo?{limite_geojson:stage.geo,fonte_geo:C.FONTES.malha,geo_atualizado:new Date().toISOString()}:{}; 
-  if(stage.ibge)Object.assign(geo,{pais:"Brasil",paisId:"BR",estado:"Paraná",codigo_uf:"41"});
+  if(stage.ibge)Object.assign(geo,{pais:C.PAIS.nome,paisId:C.PAIS.id,estado:C.ESTADO.nome,codigo_uf:C.ESTADO.codigo_ibge});
   packageData.municipioGeo=geo;
  }
  if(!Object.values(stage.grupos).some(v=>v.length)&&!packageData.municipioGeo){notify("Não há dados novos para salvar.");return;}

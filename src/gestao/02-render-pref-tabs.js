@@ -21,32 +21,3 @@ function renderTerritorioMunicipal(){
  (people.length?people.map(x=>{const org=orgs.find(o=>o.id===x.estrutura_id||o.responsavel_id===x.id);return '<tr><td><strong>'+esc(x.nome)+'</strong></td><td>'+esc(x.cargo||"Não informado")+'</td><td>'+esc(x.funcao||"—")+'</td><td>'+esc(org?.nome||x.orgao||"Não vinculada")+'</td><td>'+esc(x.telefone||"—")+'</td><td>'+esc(x.email||"—")+'</td><td><button type="button" class="row-action" data-canon-edit="pessoas" data-id="'+esc(x.id)+'">Editar</button></td></tr>';}).join(""):'<tr><td colspan="7">Nenhum membro cadastrado. Use Novo cadastro acima.</td></tr>')+
  '</tbody></table></div></section>';
 }
-async function importarBasesERiscosPublicos(){
- if(db.tipo==="supabase")return;
- const municipio=db.municipioAtivo();
- if(referenciasPublicasConsultadas||municipio?.codigo_ibge!=="4115200")return;
- referenciasPublicasConsultadas=true;
- const docs=["../dados-territoriais/maringa-bases-riscos-publicos.json","../dados-territoriais/maringa-abrigos-publicos.json","../dados-territoriais/maringa-apoio-imagens-2026.json"];
- const results=await Promise.allSettled(docs.map(url=>globalThis.AlertaImportacaoPublica.carregar(db,{url})));
- const alterados=results.some(r=>r.status==="fulfilled"&&(r.value.novos||r.value.atualizados));
- if(results.some(r=>r.status==="rejected"))console.warn("Algumas referências públicas ainda não estão disponíveis.");
- if(alterados&&["bases","riscos","abrigos","inicio"].includes(atual))render();
-}
-async function importarUnidadesCNES(){
- if(db.tipo==="supabase")return;
- if(cnesConsultado||db.municipioAtivo()?.codigo_ibge!=="4115200")return;
- cnesConsultado=true;
- const codigosExistentes=new Set(["saude","emergencias"].flatMap(modulo=>db.lista(modulo)).map(x=>String(x.codigo_cnes||"")).filter(Boolean));
- if(codigosExistentes.size>=69)return;
- try{
-  const r=await fetch("../dados-territoriais/maringa-unidades-cnes.json",{cache:"no-cache"});
-  if(!r.ok)throw Error("Arquivo de referência CNES indisponível");
-  const doc=await r.json();
-  if(doc.municipio_ibge!=="4115200"||!Array.isArray(doc.unidades)||doc.unidades.length!==69)throw Error("Base CNES inválida");
-  for(const [grupo] of [["saude"],["emergencias"]]){
-   const linhas=doc.unidades.filter(x=>x.grupo===grupo&&!codigosExistentes.has(String(x.codigo_cnes))).map(x=>({nome:x.nome,tipo:x.tipo,codigo_cnes:x.codigo_cnes,externalId:"cnes:"+x.codigo_cnes,fonte:"CNES · Ministério da Saúde",url_fonte:doc.url_fonte,verificacao:"Em conferência"}));
-   if(linhas.length)await db.importarLote(grupo,linhas);
-  }
-  if(atual==="estruturas"||atual==="inicio")render();
- }catch(err){toast("Não foi possível importar unidades do CNES: "+err.message);}
-}

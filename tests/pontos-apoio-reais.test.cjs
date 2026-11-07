@@ -15,6 +15,8 @@ test('pontos informados são importados sem duplicação no cadastro municipal e
  assert.match(itens.find(x=>x.nome.startsWith('Igreja')).telefone,/99918/);
 });
 test('dashboard e mapas carregam o mesmo conjunto e usam símbolo compartilhado',()=>{
- for(const p of ['gestao/gestao.js','evento/app.js','mapas/app.js'])assert.match(fs.readFileSync(p,'utf8'),/maringa-apoio-imagens-2026\.json/);
+ for(const p of ['gestao/gestao.js','evento/app.js','mapas/app.js'])assert.match(fs.readFileSync(p,'utf8'),/config.referencias/);
+ assert.ok(require('../gestao/dados.js').config.referencias({codigo_ibge:'4115200'}).publicas.includes('dados-territoriais/maringa-apoio-imagens-2026.json'));
+ assert.deepEqual(require('../gestao/dados.js').config.referencias({codigo_ibge:'1302603'}),{});
  for(const p of ['evento/app.js','mapas/app.js'])assert.match(fs.readFileSync(p,'utf8'),/INVENTARIO\.simbolo\(/);
 });

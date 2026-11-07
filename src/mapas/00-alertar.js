@@ -5,18 +5,19 @@ const $=id=>document.getElementById(id);
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const TIPO=new URLSearchParams(location.search).get("tipo")==="ajuda"?"ajuda":"colaboradores";
 document.body.classList.toggle("mapa-ajuda",TIPO==="ajuda");
-const cidadeContexto=()=>sessionStorage.getItem("alerta_contexto_municipal_demo_v1")||"maringa";
+const cidadeContexto=()=>AlertaGestaoDados.config.selecionar(AlertaGestaoDados,sessionStorage);
 let app=MaringaCrise.criar({municipioId:cidadeContexto(),escopoMunicipal:true}),filtroZona="",filtroClasse="",texto="",camadaAtual="principal";
 const INVENTARIO=globalThis.AlertaInventarioMapas;
 let territorio=null;
 let toastTimer;
-const nomeTipo=TIPO==="ajuda"?"Pra Somar Maringá":"Mapa de Colaboradores";
-$("map-brand-title").textContent=TIPO==="ajuda"?"MARINGÁ Pra Somar":"MARINGÁ ALERTA";
+const nomeTipo=TIPO==="ajuda"?"Pra Somar "+(app.prefeitura()?.nome||"Município"):"Mapa de Colaboradores";
+$("map-brand-title").textContent=TIPO==="ajuda"?(app.prefeitura()?.nome||"Município").toLocaleUpperCase("pt-BR")+" Pra Somar":AlertaGestaoDados.config.marca(app.prefeitura()).toLocaleUpperCase("pt-BR");
+if($("pra-somar-brand-title"))$("pra-somar-brand-title").textContent=$("map-brand-title").textContent;
 // Pra Somar já tem identificação no cabeçalho; retirar a caixa que encobre o mapa.
 if(TIPO==="ajuda")document.querySelector(".map-info")?.remove();
 document.title=nomeTipo+" | "+(app.prefeitura()?.nome||"Município")+" · Sistema Integrado de Crise";
 $("nav-"+TIPO).classList.add("active");
-$("title").textContent=TIPO==="ajuda"?"Pra Somar Maringá":"Colaboradores por zona";
+$("title").textContent=TIPO==="ajuda"?"Pra Somar "+(app.prefeitura()?.nome||"Município"):"Colaboradores por zona";
 $("eyebrow").textContent=TIPO==="ajuda"?"RECUPERAÇÃO PÓS-EVENTO":"REDE DE COLABORADORES";
 $("subtitle").textContent=TIPO==="ajuda"?"Pessoas e empresas que precisam de apoio após uma crise.":"Pessoas físicas, empresas e recursos disponíveis antes da emergência.";
 if($("map-label"))$("map-label").textContent=nomeTipo+" · "+(app.prefeitura()?.nome||"Município");
@@ -42,8 +43,8 @@ function municipSelector(){
   $("busca").value="";$("filtro").value="";
   renderMunicipio();configurarCamadas();render();
   if(territorio){territorio.destroy();territorio=null;}
-  if(app.prefeitura()?.id==="maringa"&&globalThis.MaringaBairros)
-    territorio=MaringaBairros.iniciar({map,L,simulatedLayers:poligonos.getLayers(),recolherInicial:TIPO==="ajuda"});
+  if(AlertaGestaoDados.config.referencias(app.prefeitura()).catalogoBairros&&globalThis[AlertaGestaoDados.config.referencias(app.prefeitura()).catalogoBairros])
+    territorio=globalThis[AlertaGestaoDados.config.referencias(app.prefeitura()).catalogoBairros].iniciar({map,L,simulatedLayers:poligonos.getLayers(),recolherInicial:TIPO==="ajuda"});
  };
 }
 function zoneSelect(){
@@ -66,7 +67,7 @@ function configurarCamadas(){
  $("command").hidden=!principal;
  zoneSelect();
 }
-const map=L.map("map",{zoomControl:true,zoomSnap:0,zoomDelta:.5}).setView([-23.42,-51.934],12);
+const map=L.map("map",{zoomControl:true,zoomSnap:0,zoomDelta:.5}).setView(AlertaGestaoDados.config.centro(app.prefeitura())||[0,0],AlertaGestaoDados.config.centro(app.prefeitura())?12:2);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
  maxZoom:18,subdomains:"abc",attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
@@ -75,14 +76,14 @@ const marcadores=L.layerGroup().addTo(map);
 function renderMunicipio(){
  if($("map-label"))$("map-label").textContent=nomeTipo+" · "+(app.prefeitura()?.nome||"Município");
  poligonos.clearLayers();
- const p=app.prefeitura(),lat=Number(p?.lat),lng=Number(p?.lng);
+ const p=app.prefeitura(),centro=AlertaGestaoDados.config.centro(p);
  if(p?.limite_geojson){
   try{
    const geo=typeof p.limite_geojson==="string"?JSON.parse(p.limite_geojson):p.limite_geojson;
    const bounds=L.geoJSON(geo).getBounds();
    if(bounds?.isValid())map.fitBounds(bounds,{padding:[24,24],maxZoom:12});
   }catch(_){}
- }else if(p?.lat!==undefined&&p?.lng!==undefined&&Number.isFinite(lat)&&Number.isFinite(lng))map.setView([lat,lng],12);
+ }else if(centro)map.setView(centro,12);
  zoneSelect();setTimeout(()=>map.invalidateSize(),100);
 }
 function colaboradoresDisponiveis(){

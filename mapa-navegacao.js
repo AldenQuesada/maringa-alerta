@@ -5,10 +5,11 @@
  */
 (function(global){
  "use strict";
- const AREA_MARINGA=Object.freeze([
-  Object.freeze([-23.578,-52.123]),
-  Object.freeze([-23.235,-51.813])
- ]);
+ function areaPadrao(){
+  const config=global.AlertaMunicipiosConfiguracao||(typeof require==='function'?require('./config/municipios.js'):null);
+  const box=config?.demonstracao?.bbox_navegacao;
+  return box?[[box[0],box[2]],[box[1],box[3]]]:null;
+ }
  const PADDING=24;
  function margem(map){
   const size=map.getSize();
@@ -24,10 +25,10 @@
   if(emCalibracao()||map.getZoom()>map.getMinZoom()+0.001)map.dragging?.enable?.();
   else map.dragging?.disable?.();
  }
- function liberarNavegacao(map,L){
+ function liberarNavegacao(map,L,limites){
   // Filtros e buscas continuam podendo centralizar pelo Leaflet.
   atualizarArraste(map);
-  map.setMaxBounds(L.latLngBounds(AREA_MARINGA).pad(.08));
+  map.setMaxBounds(limites?L.latLngBounds(limites).pad(.08):L.latLngBounds([]));
   map.options.maxBoundsViscosity=1;
   map.zoomControl.getContainer().classList?.remove("camera-original-fixa");
  }
@@ -71,11 +72,12 @@
   map.on("moveend zoomend resize",atualizar);
   atualizar();
  }
- function instalar({map,L,zonas,aoRestaurar,identificador="evento"}){
+ function instalar({map,L,zonas,aoRestaurar,identificador="evento",limites=areaPadrao()}){
   if(!map||!L||!map.zoomControl?.getContainer)
    throw new TypeError("Mapa Leaflet com controle de zoom obrigatório.");
-  if(!Array.isArray(zonas)||!zonas.length||!zonas.every(z=>Array.isArray(z)&&z.length>=3))
+  if(!Array.isArray(zonas)||!zonas.every(z=>Array.isArray(z)&&z.length>=3))
    throw new TypeError("É necessário informar os polígonos da vista geral.");
+  if(!zonas.length)return instalarVistaSalva({map,L,limites,identificador,aoRestaurar});
   const bounds=L.latLngBounds(zonas.flat());
   let home=null,ultimoZoom=null;
   function enquadrar(){
@@ -86,7 +88,7 @@
    home={lat:map.getCenter().lat,lng:map.getCenter().lng,zoom:map.getZoom()};
    ultimoZoom=home.zoom;
    map.setMinZoom(home.zoom);
-   liberarNavegacao(map,L);
+   liberarNavegacao(map,L,limites);
   }
   enquadrar();
   map.on("zoomend",()=>atualizarArraste(map));
@@ -98,19 +100,19 @@
   map.on("resize",()=>{
    // A vista geral precisa considerar a largura após abrir/recolher painéis.
    if(Math.abs(map.getZoom()-ultimoZoom)<.01)enquadrar();
-   else liberarNavegacao(map,L);
+   else liberarNavegacao(map,L,limites);
   });
   referenciaVisivel(map,identificador);
   return {restaurar,limites:bounds,botao,zoomMinimo:()=>ultimoZoom};
  }
- function instalarVistaSalva({map,L,identificador="colaboradores",vistaInicial=null}){
+ function instalarVistaSalva({limites=areaPadrao(),map,L,identificador="colaboradores",vistaInicial=null,aoRestaurar}){
   if(!map||!L||!map.zoomControl?.getContainer)throw new TypeError("Mapa Leaflet inválido.");
   // Somente a câmera institucional expressamente aprovada pode definir o padrão.
   // Na calibração, não aplicar essa câmera para permitir reposicionamento manual.
   const fixar=(!emCalibracao()&&vistaInicial&&
     [vistaInicial.lat,vistaInicial.lng,vistaInicial.zoom].every(Number.isFinite)&&
-    vistaInicial.lat>=AREA_MARINGA[0][0]&&vistaInicial.lat<=AREA_MARINGA[1][0]&&
-    vistaInicial.lng>=AREA_MARINGA[0][1]&&vistaInicial.lng<=AREA_MARINGA[1][1]&&
+    (!limites||(vistaInicial.lat>=limites[0][0]&&vistaInicial.lat<=limites[1][0]))&&
+    (!limites||(vistaInicial.lng>=limites[0][1]&&vistaInicial.lng<=limites[1][1]))&&
     vistaInicial.zoom>=2&&vistaInicial.zoom<=18);
   if(fixar){
     map.setMinZoom(0);
@@ -119,12 +121,12 @@
   const c=map.getCenter();
   const home={lat:c.lat,lng:c.lng,zoom:map.getZoom()};
   map.setMinZoom(home.zoom);
-  liberarNavegacao(map,L);
-  const restaurar=()=>map.setView([home.lat,home.lng],home.zoom,{animate:false});
+  liberarNavegacao(map,L,limites);
+  const restaurar=()=>{if(aoRestaurar)aoRestaurar();map.setView([home.lat,home.lng],home.zoom,{animate:false});};
   const botao=botaoInicio(map,L,restaurar);
   map.on("zoomend",()=>atualizarArraste(map));
   map.on("resize",()=>{
-    liberarNavegacao(map,L);
+    liberarNavegacao(map,L,limites);
     // Mudança de tamanho do painel não pode deslocar a vista inicial aprovada.
     if(fixar&&Math.abs(map.getZoom()-home.zoom)<.0001)
       map.setView([home.lat,home.lng],home.zoom,{animate:false});
@@ -132,7 +134,7 @@
   referenciaVisivel(map,identificador);
   return {restaurar,botao,zoomMinimo:()=>home.zoom};
  }
- const api={instalar,instalarVistaSalva,AREA_MARINGA};
+ const api={instalar,instalarVistaSalva,get AREA_MARINGA(){return areaPadrao();}};
  global.AlertaMapaNavegacao=api;
  if(typeof module==="object"&&module.exports)module.exports=api;
 })(typeof globalThis!=="undefined"?globalThis:window);
