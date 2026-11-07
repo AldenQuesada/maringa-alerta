@@ -41,7 +41,7 @@ As dez migrações iniciais do WhatsApp documentam a fundação já implantada. 
 
 ## Verificação
 
-- `tests/whatsapp/copy.py`: 36 situações comparadas com uma fotografia dos textos, botões e imagem do simulador; adaptações reais explícitas.
+- `tests/whatsapp/comparar-copia.py`: 36 situações comparadas com uma fotografia dos textos, botões e imagem do simulador; adaptações reais explícitas.
 - `fluxos.sql`: três fluxos completos, condições, cadastro existente, confirmação idempotente, isolamento do simulador e permissões.
 - `canonico.sql`: imagem antes do texto, revisão/correção, telefone, múltiplas escolhas, ausência de oferta, foto e ordem de entrega.
 - `catalogo.sql`: publicação imutável, referência inválida, fixação de versão e bloqueio de acesso anônimo.
