@@ -5,6 +5,12 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 function montar({alvo,inventario,db,recorte=()=>true,aoMudar=()=>{},localizar=()=>{},baseGestao='gestao/'}){
  const state={modulo:'todos',classe:'',busca:''}, ocultos=new Set();
  const key=x=>x.modulo+'::'+(x.categoria||'Não informado');
+ // O padrão pertence à prefeitura e chega pelo repositório do Supabase.
+ const padrao=db.municipioAtivo?.()?.mapa_filtros_padrao;
+ if(Array.isArray(padrao?.tipos_visiveis)){
+  const visiveis=new Set(padrao.tipos_visiveis);
+  for(const x of inventario.registros(db))if(['saude','emergencias','parceiros','bases','abrigos'].includes(x.modulo)&&!visiveis.has(key(x)))ocultos.add(key(x));
+ }
  const rows=()=>inventario.filtrar(inventario.registros(db),state).filter(recorte).filter(x=>!ocultos.has(key(x)));
  alvo.classList.add('municipal-filters');
  alvo.innerHTML='<button type="button" id="mun-toggle" aria-expanded="false">Cadastros da Prefeitura <span id="mun-count"></span></button><div id="mun-body" hidden><label class="mun-toggle-show"><input type="checkbox" id="mun-mostrar" checked> Mostrar unidades e recursos no mapa</label><label for="mun-camada">Cadastro<select id="mun-camada"></select></label><label for="mun-classe">Situação ou tipo<select id="mun-classe"></select></label><label for="mun-busca">Buscar<input id="mun-busca" type="search" placeholder="Unidades, abrigos, equipes, centros de doação..."></label><details class="filter-group"><summary>Tipos de unidades</summary><div class="mun-tipos"></div></details><div class="mun-acoes"><button type="button" data-tipos="todos">Mostrar todos</button><button type="button" data-tipos="nenhum">Ocultar todos</button></div><p id="mun-status" aria-live="polite"></p><div id="mun-rows" class="mun-rows"></div></div>';
