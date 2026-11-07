@@ -7,7 +7,8 @@ root.AlertaParametros=Object.freeze({
  atendimento:Object.freeze({fotoBytesMaximos:8*1024*1024,fotoDimensaoMaxima:920,fotoQualidade:0.67,fotoTextoMaximo:900000})
 });
 })(globalThis);
-/* Dados de referência e bootstrap exclusivo da demonstração local.
+/* Configuração municipal; apenas o bootstrap é exclusivo da demonstração local.
+ * A câmera institucional também é usada na operação conectada.
  * Novos municípios são cadastrados no Admin Geral; não exigem alterar regras. */
 (function(root){
 'use strict';
@@ -22,7 +23,8 @@ const referencias={
   mapaDemonstrativo:true,
   importarZonasReferencia:true,
   legadoAdmin:"maringa_admin_v1",
-  vistaAjuda:{lat:-23.4398505,lng:-51.9680312,zoom:12.7027}
+  // Vista indicada na tela em 07/11/2026; zoom mínimo do Pra Somar.
+  vistaAjuda:{lat:-23.4211409,lng:-51.9242705,zoom:13.2441}
  }
 };
 root.AlertaMunicipiosConfiguracao={demonstracao,referencias};
@@ -36,6 +38,12 @@ function demonstracao(){return clone(root.AlertaMunicipiosConfiguracao.demonstra
 function referencias(municipio){
  if(root.AlertaNuvem?.ativo)return {catalogoBairros:'MaringaBairros',identidade:clone(municipio?.identidade||{}),mapaDemonstrativo:false,importarZonasReferencia:false};
  return clone(root.AlertaMunicipiosConfiguracao.referencias[municipio?.codigo_ibge]||{});
+}
+// A câmera é uma preferência de navegação, independente das fontes de demonstração.
+// Não passar por referencias(): o modo conectado filtra essas fontes.
+function vistaMapa(municipio,tipo){
+ const vista=tipo==='ajuda'?root.AlertaMunicipiosConfiguracao.referencias[municipio?.codigo_ibge]?.vistaAjuda:null;
+ return vista?clone(vista):null;
 }
 function selecionar(dados,sessoes=root.sessionStorage){
  const db=dados.criar(),requested=sessoes?.getItem('alerta_contexto_municipal_demo_v1');
@@ -55,7 +63,7 @@ function limites(municipio){
  const box=municipio?.bbox_navegacao||municipio?.bbox;
  return Array.isArray(box)&&box.length===4&&box.every(x=>Number.isFinite(Number(x)))?[[Number(box[0]),Number(box[2])],[Number(box[1]),Number(box[3])]]:null;
 }
-root.AlertaMunicipios={demonstracao,referencias,selecionar,marca,centro,limites};
+root.AlertaMunicipios={demonstracao,referencias,vistaMapa,selecionar,marca,centro,limites};
 })(globalThis);
 /* Catálogo declarativo de campos e coleções. */
 (function(global){
