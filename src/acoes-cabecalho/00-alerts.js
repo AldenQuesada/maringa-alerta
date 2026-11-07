@@ -35,8 +35,8 @@ const getPref=()=>scopedDB().municipioAtivo();
 const getId=()=>getPref()?.id||"maringa";
 const read=(key,def)=>{try{const x=JSON.parse(global.localStorage.getItem(key)||"null");return x??def;}catch(_){return def;}};
 const put=(key,x)=>{try{global.localStorage.setItem(key,JSON.stringify(x));return true;}catch(_){return false;}};
-const tasks=()=>{const x=read(TKEY+getId(),[]);return Array.isArray(x)?x:[];};
-const taskSave=x=>put(TKEY+getId(),x);
+const tasks=()=>{const x=global.AlertaNuvem?.ativo?global.AlertaNuvem.painel.ler(getId(),"tasks"):read(TKEY+getId(),[]);return Array.isArray(x)?x:[];};
+const taskSave=async x=>{try{return global.AlertaNuvem?.ativo?await global.AlertaNuvem.painel.salvar(getId(),"tasks",x):put(TKEY+getId(),x);}catch(error){message(error.message);return false;}};
 const safeDate=iso=>{if(!iso)return "";const d=new Date(iso);return Number.isNaN(d.valueOf())?String(iso):d.toLocaleDateString("pt-BR")};
 function alerts(){
  const db=scopedDB(),id=getId();
@@ -59,7 +59,8 @@ function alerts(){
  return list.sort((a,b)=>rank[a.kind]-rank[b.kind]||a.title.localeCompare(b.title,"pt-BR"));
 }
 const chaveAlertas=()=>LKEY+getId()+(wrap.dataset.escopo?":"+wrap.dataset.escopo:"");
-const readIds=()=>{const x=read(chaveAlertas(),[]);return new Set(Array.isArray(x)?x:[])};
+const readIds=()=>{const x=global.AlertaNuvem?.ativo?global.AlertaNuvem.painel.ler(getId(),"alerts"):read(chaveAlertas(),[]);return new Set(Array.isArray(x)?x:[])};
+const salvarLeituras=async ids=>{try{return global.AlertaNuvem?.ativo?await global.AlertaNuvem.painel.salvar(getId(),"alerts",ids):put(chaveAlertas(),ids);}catch(error){message(error.message);return false;}};
 function updateBadges(){
  const n=tasks().filter(t=>t.status!=="done").length;
  const a=alerts();const seen=readIds(),unread=a.filter(x=>!seen.has(x.id)).length;

@@ -32,7 +32,7 @@ test('busca escapa curingas para não ampliar o conjunto solicitado',async()=>{
 });
 test('edição mantém geometria e usa versão original no RPC canônico',async()=>{
  const original={id:'x',nome:'Cidade',codigo_ibge:'1234567',limite_geojson:'poligono'};
- const f=fixture([{data:{dados:original,versao:4}},{data:null}]);
+ const f=fixture([{data:{dados:original,versao:4}},{data:[{colecao:'prefeituras',id:'x',dados:{...original,status:'suspensa'},versao:5}]}]);
  const row=await f.service.detalhe('x');await f.service.salvar({...row,status:'suspensa'},row);
  const op=f.calls[1].args.alteracoes[0];assert.equal(f.calls[1].rpc,'ma_aplicar_alteracoes');
  assert.equal(op.versao,4);assert.equal(op.operacao,'atualizar');assert.equal(op.dados.limite_geojson,'poligono');assert.equal(op.dados._versao,undefined);
@@ -56,7 +56,7 @@ async function boot(admin){
  const fields=new Map(),elements=[];let municipalLoads=0,adminLoads=0;
  const element=()=>({remove(){},querySelector(key){if(!fields.has(key))fields.set(key,{focus(){}});return fields.get(key);}});
  const ctx={URL,URLSearchParams,location:{href:'http://localhost/plataforma/',search:''},
-  document:{currentScript:{dataset:{area:'plataforma'}},createElement:element,querySelectorAll:()=>[],getElementById:()=>null,addEventListener(){},documentElement:{classList:{add(){},remove(){}}},body:{appendChild(e){elements.push(e);}}},
+  document:{currentScript:{src:'http://localhost/backend/boot.js',dataset:{area:'plataforma'}},createElement:element,querySelectorAll:()=>[],getElementById:()=>null,addEventListener(){},documentElement:{classList:{add(){},remove(){}}},body:{appendChild(e){elements.push(e);}}},
   MARINGA_SUPABASE:{url:'https://example.invalid',publishableKey:'sb_publishable_fixture'},
   supabase:{createClient:()=>({auth:{getSession:async()=>({data:{session:{}}}),getUser:async()=>({data:{user:{email:'fixture@example.invalid'}}}),onAuthStateChange(){}},rpc:async()=>({data:{admin_plataforma:admin}})})},
   AlertaRepositorioSupabase:{criar(){municipalLoads++;throw Error('Não deve carregar cadastros municipais');}},
@@ -72,4 +72,14 @@ test('guard da rota nega não-admin antes de carregar serviços ou dados',async(
 });
 test('administrador global inicia mesmo sem prefeitura ou vínculo municipal',async()=>{
  const f=await boot(true);assert.equal(f.municipalLoads,0);assert.equal(f.adminLoads,1);assert.equal(f.ctx.AlertaNuvem.ativo,true);
+});
+
+test('Admin Geral exige confirmação canônica da versão integrada',async()=>{
+ const f=fixture([{data:[{colecao:'prefeituras',id:'x',dados:{id:'x',nome:'Confirmado'},versao:7}]}]);
+ const saved=await f.service.salvar({id:'x',nome:'Rascunho'},{_versao:6});
+ assert.equal(saved.nome,'Confirmado');assert.equal(saved._versao,7);
+ const incomplete=fixture([{data:null}]);
+ await assert.rejects(incomplete.service.salvar({id:'x'}),/incompleta/);
+ await assert.rejects(incomplete.service.salvar({id:'x'}),/Atualize/);
+ assert.equal(incomplete.calls.length,1);
 });

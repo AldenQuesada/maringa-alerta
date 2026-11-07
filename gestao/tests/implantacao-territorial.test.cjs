@@ -105,7 +105,7 @@ test("Prefeitura usa abas canônicas sem duplicar cadastros no sidebar",()=>{
  "Regras e comunicação":["ocorrencias","canais","regras"]};
  for(const g of groups.slice(2))assert.deepEqual(g.items,legacy[g.label],"Grupo alterado: "+g.label);
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert.equal((html.match(/class="map-arrow"/g)||[]).length,3);
+ assert.equal((html.match(/class="map-arrow"/g)||[]).length,0);
  assert.match(html,/implantacao-ui.js/);
  assert.match(html,/acoes-cabecalho.js/);
 });

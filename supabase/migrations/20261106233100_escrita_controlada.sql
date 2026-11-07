@@ -23,7 +23,7 @@ create function private.ma_gravar_cadastro(item jsonb) returns void
 language plpgsql security invoker set search_path='' as $$
 declare linhas integer;
 begin
-  if not private.ma_acesso(item->>'municipio_id',true) then
+  if not private.ma_permitido(item->>'municipio_id',item->>'colecao',case when item->>'operacao'='excluir' then 'excluir' else 'gravar' end) then
     raise exception 'Sem permissão de escrita nesta prefeitura' using errcode='42501';
   end if;
   if item->>'operacao'='inserir' then
@@ -47,31 +47,21 @@ end;
 $$;
 revoke all on function private.ma_gravar_cadastro(jsonb) from public,anon,authenticated;
 
--- Única fronteira privilegiada de escrita. Os helpers revalidam papel e município
--- no servidor em CADA operação; não dependem de filtros ou claims editáveis no cliente.
-create function private.ma_aplicar_lote(alteracoes jsonb) returns void
+-- Integração: o papel sem BYPASSRLS continua sendo a única fronteira de escrita.
+grant execute on function private.ma_exigir_admin(),private.ma_gravar_prefeitura(jsonb),private.ma_gravar_cadastro(jsonb) to ma_escritor;
+grant select on public.ma_ufs,public.ma_municipios_ibge to ma_escritor;
+create policy escritor_catalogo_ufs on public.ma_ufs for select to ma_escritor using(true);
+create policy escritor_catalogo_municipios on public.ma_municipios_ibge for select to ma_escritor using(true);
+create or replace function private.ma_aplicar_alteracoes(alteracoes jsonb) returns void
 language plpgsql security definer set search_path='' as $$
 declare item jsonb;
 begin
-  if auth.uid() is null then raise exception 'Autenticação obrigatória' using errcode='42501'; end if;
-  if alteracoes is null or jsonb_typeof(alteracoes) is distinct from 'array' then
-    raise exception 'Lote inválido' using errcode='22023'; end if;
-  if jsonb_array_length(alteracoes)>5000 then raise exception 'Lote excede 5000 alterações' using errcode='22023'; end if;
-  for item in select value from jsonb_array_elements(alteracoes) loop
-    if jsonb_typeof(item) is distinct from 'object' then raise exception 'Alteração inválida' using errcode='22023';end if;
-    if item->>'colecao'='prefeituras' then perform private.ma_gravar_prefeitura(item);
-    else perform private.ma_gravar_cadastro(item);
-    end if;
-  end loop;
+ if auth.uid() is null then raise exception 'Autenticação obrigatória' using errcode='42501';end if;
+ if alteracoes is null or jsonb_typeof(alteracoes)<>'array' or jsonb_array_length(alteracoes)>5000 then raise exception 'Lote inválido' using errcode='23514';end if;
+ for item in select value from jsonb_array_elements(alteracoes) loop
+  if item->>'colecao'='prefeituras' then perform private.ma_gravar_prefeitura(item);
+  else perform private.ma_gravar_cadastro(item);end if;
+ end loop;
 end;
 $$;
-revoke all on function private.ma_aplicar_lote(jsonb) from public,anon;
-grant execute on function private.ma_aplicar_lote(jsonb) to authenticated;
-create or replace function public.ma_aplicar_alteracoes(alteracoes jsonb) returns void
-language sql security invoker set search_path='' as $$
-  select private.ma_aplicar_lote(alteracoes);
-$$;
-revoke all on function public.ma_aplicar_alteracoes(jsonb) from public,anon;
-grant execute on function public.ma_aplicar_alteracoes(jsonb) to authenticated;
-revoke insert,update,delete on public.ma_prefeituras,public.ma_cadastros from authenticated;
 commit;

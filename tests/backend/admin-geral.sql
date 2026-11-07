@@ -26,7 +26,7 @@ do $$begin
  if (select count(distinct uf) from public.ma_prefeituras)<>27 then raise exception 'UF faltante';end if;
  begin update public.ma_prefeituras set dados=dados where id='maringa';raise exception 'Escrita direta contorna versão';exception when insufficient_privilege then null;end;
  begin perform private.ma_gravar_prefeitura('{}');raise exception 'Helper interno exposto';exception when insufficient_privilege then null;end;
- begin perform public.ma_aplicar_alteracoes(null);raise exception 'Lote nulo aceito';exception when invalid_parameter_value then null;end;
+ begin perform public.ma_aplicar_alteracoes(null);raise exception 'Lote nulo aceito';exception when check_violation then null;end;
  if (select count(*) from public.ma_admin_listar_acessos())<>1 then raise exception 'Admin global não listado';end if;
  begin insert into private.ma_admins values(auth.uid());raise exception 'Tabela de admins exposta';exception when insufficient_privilege then null;end;
  begin perform public.ma_aplicar_alteracoes((select jsonb_build_array(jsonb_build_object('operacao','atualizar','colecao','prefeituras','id',id,'versao',versao,'dados',jsonb_set(dados,'{codigo_ibge}','"3304557"'))) from public.ma_prefeituras where id='maringa'));raise exception 'IBGE mutável';exception when check_violation then null;end;

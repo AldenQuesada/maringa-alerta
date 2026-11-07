@@ -7,7 +7,7 @@
   root.MaringaCrise=api;
 })(typeof globalThis!=="undefined"?globalThis:this,function(root) {
 "use strict";
-const COMPATIBILIDADE={
+const COMPATIBILIDADE=root.AlertaRegrasOperacionais?.compatibilidade||{
  "Alimentação":["FORNECER ALIMENTAÇÃO"],
  "Telhas e cobertura":["PEDREIRO","CARPINTEIRO","MATERIAL DE CONSTRUÇÃO","CAMIONETE","CAMINHÃO BASCULANTE"],
  "Apoio financeiro":[],
@@ -83,7 +83,7 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
    if(item.status_simulacao==="simulado")throw Error("Cadastro de demonstração não permite check-in real.");
   const origemBairro=String(item.bairro||item.zona||"").trim();
   if(!origemBairro||norm(origemBairro)!==norm(bairro))throw Error("A pessoa só pode registrar presença no bairro de cadastro.");
-  if(!Number.isFinite(lat)||!Number.isFinite(lng)||!Number.isFinite(precisao)||precisao>100||precisao<0)
+  if(!Number.isFinite(lat)||!Number.isFinite(lng)||!Number.isFinite(precisao)||precisao>(root.AlertaRegrasOperacionais?.gpsPrecisaoMaxima??100)||precisao<0)
    throw Error("GPS insuficiente para validar chegada (precisão exigida: até 100 m).");
   if(!geometry||!geofence([lng,lat],geometry))throw Error("Fora do polígono do bairro cadastrado ou malha não disponível.");
   return db.gravar("voluntarios",{...item,checkin_status:"presente",checkin_bairro:origemBairro,
@@ -93,7 +93,7 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
  function registrarSaida(colaboradorId) {
   const item=db.registro("voluntarios",colaboradorId);
   if(!item||item.checkin_status!=="presente")throw Error("Não há chegada ativa para este colaborador.");
-  return db.gravar("voluntarios",{...item,checkin_status:"finalizado",checkout_em:new Date().toISOString()},colaboradorId);
+  return db.gravar("voluntarios",{...item,checkin_status:"finalizado",...(!root.AlertaNuvem?.ativo?{checkout_em:new Date().toISOString()}: {})},colaboradorId);
  }
  function oferentes() {return db.lista("voluntarios");}
  function pedidos(){return db.lista("solicitacoes");}
@@ -125,7 +125,7 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
    const idExterno="colaborador:ponto:"+pessoa.id;
    const anterior=db.lista("bases").find(x=>x.externalId===idExterno);
    const tipos=["Ponto de água potável","Ponto de banho","Centro de coleta de donativos","Outro"];
-   const ponto={...(anterior||{}),nome:String(dados.ponto_nome||anterior?.nome||("Ponto de atendimento · "+pessoa.nome)),tipo:tipos.includes(dados.ponto_tipo)?dados.ponto_tipo:"Outro",responsavel:String(dados.ponto_responsavel||pessoa.nome),telefone:String(dados.ponto_telefone||pessoa.telefone),endereco:String(dados.ponto_endereco||pessoa.endereco),zona:pessoa.zona,bairro:pessoa.bairro,funcao:String(dados.ponto_funcao||""),horario:String(dados.ponto_horario||""),capacidade:String(dados.ponto_capacidade||""),externalId:idExterno,fonte:"Colaborador · atendimento simulado",verificacao:anterior?.verificacao||"Em conferência"};
+   const ponto={...(anterior||{}),nome:String(dados.ponto_nome||anterior?.nome||("Ponto de atendimento · "+pessoa.nome)),tipo:tipos.includes(dados.ponto_tipo)?dados.ponto_tipo:"Outro",responsavel:String(dados.ponto_responsavel||pessoa.nome),telefone:String(dados.ponto_telefone||pessoa.telefone),endereco:String(dados.ponto_endereco||pessoa.endereco),zona:pessoa.zona,bairro:pessoa.bairro,funcao:String(dados.ponto_funcao||""),horario:String(dados.ponto_horario||""),capacidade:String(dados.ponto_capacidade||""),externalId:idExterno,fonte:"Cadastro de colaborador",verificacao:anterior?.verificacao||"Em conferência"};
    db.gravar("bases",ponto,anterior?.id||null);
   }
   return pessoa;
@@ -140,7 +140,8 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
     ...array(voluntario.empreendedores),...array(voluntario.materiais)];
   if(!recursos.some(x=>candidatas.some(t=>norm(t)===norm(x))))return -1;
   const mesmaZona=Boolean(pedido.zona&&voluntario.zona&&norm(pedido.zona)===norm(voluntario.zona));
-  return (mesmaZona?100:10)+(voluntario.disponibilidade==="Disponível"?5:0);
+  const pesos=root.AlertaRegrasOperacionais?.pesosCompatibilidade||{mesmaZona:100,outraZona:10,disponivel:5};
+  return (mesmaZona?pesos.mesmaZona:pesos.outraZona)+(voluntario.disponibilidade==="Disponível"?pesos.disponivel:0);
  }
  function compatíveis(pedido) {
   return oferentes().map(x=>({colaborador:x,pontos:pontuacaoOferta(pedido,x)}))
@@ -167,7 +168,7 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
    evento_referencia:String(base.evento_referencia||"").trim(),criado_em:new Date().toISOString()
   });
   return {pedido:result,indicados:matches,mensagemPreparada:atribuido?mensagemParaColaborador(result):null,
-   aviso:base.urgencia==="Crítica"?"Pedido prioritário para avaliação por equipe competente. Em risco imediato, contate 190, 192 ou 193.":atribuido?"Há colaborador compatível no cadastro; mensagem apenas preparada na simulação.":"A solicitação está aguardando disponibilidade/triagem."};
+   aviso:base.urgencia==="Crítica"?"Pedido prioritário para avaliação por equipe competente. Em risco imediato, contate 190, 192 ou 193.":atribuido?"Há colaborador compatível no cadastro; mensagem preparada para envio manual.":"A solicitação está aguardando disponibilidade/triagem."};
  }
  function mensagemParaColaborador(pedido){
   const p=prefeitura();
@@ -216,7 +217,17 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
   encontrarPessoa,encontrarIdentidade,registrarColaborador,registrarPedido,compatíveis,registrarFase,acionarBrigada, situacaoBairro,registrarCheckin,registrarSaida,
   solicitarOutraPrefeitura,mensagemParaColaborador};
  if(db.tipo==='supabase')for(const name of ['registrarColaborador','registrarPedido','registrarFase','acionarBrigada','registrarCheckin','registrarSaida','solicitarOutraPrefeitura']){
-  api[name]=(...args)=>db.transacao(draft=>criar({repositorio:draft,municipioId,escopoMunicipal})[name](...args));
+  api[name]=async(...args)=>{
+   const result=await db.transacao(draft=>criar({repositorio:draft,municipioId,escopoMunicipal})[name](...args));
+   if(name==='acionarBrigada'){
+    result.mobilizacao=db.registro('mobilizacoes',result.mobilizacao.id);
+    result.destinatarios=JSON.parse(result.mobilizacao.destinatarios);
+    result.envios=result.destinatarios.map(x=>({nome:x.nome,tipo:x.tipo,link:waLink(x.telefone,result.mensagem)}));
+   }else if(['registrarCheckin','registrarSaida','registrarColaborador'].includes(name))return db.registro('voluntarios',result.id);
+   else if(name==='registrarFase')return db.registro('solicitacoes',result.id);
+   else if(name==='registrarPedido')result.pedido=db.registro('solicitacoes',result.pedido.id);
+   return result;
+  };
  }
  return api;
 }

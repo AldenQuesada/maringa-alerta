@@ -77,7 +77,7 @@ async function render(){
   const codigo=x.codigo||x.codigo_bairro||x.externalId?.split(":").pop()||"—";
   const action=x.cadastrado?
    '<button type="button" class="row-action" data-geo-edit="'+esc(x.id)+'" data-geo-module="'+type+'">Editar</button>':
-   '<button type="button" class="row-action" data-geo-ref="'+esc(key)+'">Cadastrar</button>';
+   '<button type="button" class="row-action" data-geo-module="'+type+'" data-geo-ref="'+esc(key)+'">Cadastrar</button>';
   return '<tr><td><strong>'+esc(x.nome)+'</strong></td><td>'+esc(codigo)+'</td><td>'+esc(vinculo)+'</td>'+
    '<td>'+esc(x.fonte||"Cadastro municipal")+'</td><td>'+action+'</td></tr>';
  }).join("")||'<tr><td colspan="5">Nenhum território encontrado para esta pesquisa.</td></tr>';

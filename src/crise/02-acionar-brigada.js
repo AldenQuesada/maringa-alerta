@@ -27,7 +27,17 @@
   encontrarPessoa,encontrarIdentidade,registrarColaborador,registrarPedido,compatíveis,registrarFase,acionarBrigada, situacaoBairro,registrarCheckin,registrarSaida,
   solicitarOutraPrefeitura,mensagemParaColaborador};
  if(db.tipo==='supabase')for(const name of ['registrarColaborador','registrarPedido','registrarFase','acionarBrigada','registrarCheckin','registrarSaida','solicitarOutraPrefeitura']){
-  api[name]=(...args)=>db.transacao(draft=>criar({repositorio:draft,municipioId,escopoMunicipal})[name](...args));
+  api[name]=async(...args)=>{
+   const result=await db.transacao(draft=>criar({repositorio:draft,municipioId,escopoMunicipal})[name](...args));
+   if(name==='acionarBrigada'){
+    result.mobilizacao=db.registro('mobilizacoes',result.mobilizacao.id);
+    result.destinatarios=JSON.parse(result.mobilizacao.destinatarios);
+    result.envios=result.destinatarios.map(x=>({nome:x.nome,tipo:x.tipo,link:waLink(x.telefone,result.mensagem)}));
+   }else if(['registrarCheckin','registrarSaida','registrarColaborador'].includes(name))return db.registro('voluntarios',result.id);
+   else if(name==='registrarFase')return db.registro('solicitacoes',result.id);
+   else if(name==='registrarPedido')result.pedido=db.registro('solicitacoes',result.pedido.id);
+   return result;
+  };
  }
  return api;
 }

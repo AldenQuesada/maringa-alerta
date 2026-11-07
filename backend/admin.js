@@ -27,10 +27,14 @@ function criar(client){
   }
   async function salvar(dados,anterior=null){
     const clean={...dados};delete clean._versao;
-    await gravarRPC('ma_aplicar_alteracoes',{alteracoes:[{
+    const result=await gravarRPC('ma_aplicar_alteracoes',{alteracoes:[{
       colecao:'prefeituras',id:clean.id,dados:clean,operacao:anterior?'atualizar':'inserir',versao:anterior?anterior._versao:null
     }]});
-    return clean;
+    const row=Array.isArray(result.data)&&result.data.length===1?result.data[0]:null;
+    if(!row||row.colecao!=='prefeituras'||row.id!==clean.id||!row.dados||!Number.isInteger(row.versao)){
+      precisaAtualizar=true;throw Error('Confirmação do servidor incompleta. Atualize a página.');
+    }
+    return {...row.dados,_versao:row.versao};
   }
   async function estatisticas(){
     const statuses=[null,'implantacao','ativa','suspensa'];

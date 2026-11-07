@@ -33,10 +33,12 @@ jobs:
         uses: actions/checkout@v4
       - name: Configurar Pages
         uses: actions/configure-pages@v5
+      - name: Preparar artefato sem simulador
+        run: node scripts/preparar-publicacao.mjs
       - name: Preparar conteúdo do site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: .publicacao
       - name: Publicar
         id: deployment
         uses: actions/deploy-pages@v4

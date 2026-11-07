@@ -48,10 +48,28 @@ async function criar({client,dados,municipioId=null,onStatus=()=>{}}){
  for(const c of collections)state[c]=[];
  const checked=r=>{if(r.error)throw Error(r.error.message);return r.data;};
  const pages=(table,order,scope)=>root.AlertaRepositorioConsultas.pages(client,table,order,scope);
- const [cities,profile]=await Promise.all([pages('ma_prefeituras',['id'],municipioId),client.rpc('ma_meu_perfil').then(checked)]);
+ const [cities,profile,initialCapabilities]=await Promise.all([pages('ma_prefeituras',['id'],municipioId),client.rpc('ma_meu_perfil').then(checked),client.rpc('ma_minhas_capacidades').then(checked)]);
  if(!cities.length)throw Error('Sem acesso à prefeitura solicitada. Solicite o vínculo ao administrador.');
  const selected=municipioId||cities[0].dados.id;
- const records=await pages('ma_cadastros',['municipio_id','colecao','id'],selected);
+ const [records,painelInicial]=await Promise.all([pages('ma_cadastros',['municipio_id','colecao','id'],selected),pages('ma_painel',['municipio_id','user_id','chave'],selected)]);
+ const painelEstado=new Map(painelInicial.map(row=>[JSON.stringify([row.municipio_id,row.chave]),row]));
+ let painelFila=Promise.resolve(),painelInseguro=false;
+ const painel={
+  ler(municipio,tipo){return copy(painelEstado.get(JSON.stringify([municipio,tipo]))?.documento||[]);},
+  salvar(municipio,tipo,conteudo){
+   const key=JSON.stringify([municipio,tipo]),esperada=painelEstado.get(key)?.versao||0;
+   const run=painelFila.then(async()=>{
+    if(painelInseguro)throw Error(reloadMessage);
+    try{
+     const row=checked(await client.rpc('ma_salvar_painel',{municipio,tipo,conteudo,versao_esperada:esperada}));
+     if(!row||row.municipio_id!==municipio||row.chave!==tipo||!Array.isArray(row.documento)||!Number.isInteger(row.versao))throw Error('Confirmação de painel inválida.');
+     painelEstado.set(key,row);return true;
+    }catch(error){painelInseguro=true;throw Error(error.message+' '+reloadMessage);}
+   });painelFila=run.catch(()=>{});return run;
+  }
+ };
+ let capabilities=initialCapabilities;
+ async function atualizarPermissoes(){try{const previous=JSON.stringify(capabilities);capabilities=checked(await client.rpc('ma_minhas_capacidades'));return previous!==JSON.stringify(capabilities);}catch(error){capabilities={};throw error;}}
  for(const row of cities){state.prefeituras.push(row.dados);versions.set(key('prefeituras',row.dados),row.versao);}
  for(const row of records){if(collections.includes(row.colecao)){state[row.colecao].push(row.dados);versions.set(key(row.colecao,row.dados),row.versao);}}
  if(!cities.length)throw Error('Seu e-mail está autenticado, mas ainda não possui acesso a uma prefeitura. Solicite o vínculo ao administrador.');
@@ -65,6 +83,10 @@ async function criar({client,dados,municipioId=null,onStatus=()=>{}}){
  let readState=null;const readCache=new Map();
  function repositorio(options={}){
   const scope=options.municipioId;
+  const pode=(module,action='ler',municipio=scope||state.municipioAtivo)=>{
+   const collection=dados.ESQUEMAS[module]?.collection||module;
+   return capabilities?.[municipio]?.[collection]?.[action]===true;
+  };
   if(scope&&scope!==selected)throw Error('Sem acesso à prefeitura selecionada.');
   const leitura=name=>(...args)=>{
    if(readState!==state){readCache.clear();readState=state;}
@@ -81,22 +103,35 @@ async function criar({client,dados,municipioId=null,onStatus=()=>{}}){
      const result=await fn(draft.db);
      const after=draft.read(),diff=changes(before,after,collections,versions);
      if(diff.length){
-      try{checked(await client.rpc('ma_aplicar_alteracoes',{alteracoes:diff}));}
+      for(const op of diff)if(!(op.colecao==='prefeituras'&&op.operacao==='inserir'&&profile.admin_plataforma===true)&&!pode(op.colecao,op.operacao==='excluir'?'excluir':'gravar',op.municipio_id||op.id))throw Error('Você não tem permissão para esta operação.');
+      try{
+       const confirmed=checked(await client.rpc('ma_aplicar_alteracoes',{alteracoes:diff}));
+       if(!Array.isArray(confirmed)||confirmed.length!==diff.length)throw Error('Confirmação do servidor incompleta.');
+       for(const op of diff){
+        const row=confirmed.find(r=>r.colecao===op.colecao&&r.id===op.id&&(r.municipio_id||null)===(op.municipio_id||null)&&r.operacao===op.operacao);
+        if(!row||(op.operacao!=='excluir'&&(!row.dados||!Number.isInteger(row.versao))))throw Error('Confirmação do servidor inválida.');
+        if(op.operacao!=='excluir'){
+         const index=after[op.colecao].findIndex(x=>key(op.colecao,x)===key(op.colecao,op.dados));
+         after[op.colecao][index]=copy(row.dados);op.confirmada=row.versao;
+        }
+       }
+      }
       catch(error){needsReload=true;throw Error(error.message+' '+reloadMessage);}
      }
-     for(const op of diff){const k=JSON.stringify([op.colecao,op.municipio_id||'',op.id]);if(op.operacao==='excluir')versions.delete(k);else versions.set(k,op.operacao==='inserir'?1:Number(op.versao)+1);}
+     for(const op of diff){const k=JSON.stringify([op.colecao,op.municipio_id||'',op.id]);if(op.operacao==='excluir')versions.delete(k);else versions.set(k,op.confirmada);}
      state=after;onStatus('salvo');return copy(result??null);
     }catch(error){onStatus('erro',error.message);throw error;}
    });
    queue=run.catch(()=>{});return run;
   }
-  const api={tipo:'supabase',modo:scope?'municipal':'plataforma',municipioEscopo:scope||null,transacao};
+  const api={tipo:'supabase',modo:scope?'municipal':'plataforma',municipioEscopo:scope||null,transacao,pode};
   for(const name of ['municipios','municipioAtivo','lista','registro','estado'])api[name]=leitura(name);
   api.selecionarMunicipio=id=>{if(id!==selected)throw Error('Abra a prefeitura selecionada em uma nova sessão.');const draft=local(state,options);const result=draft.db.selecionarMunicipio(id);state=draft.read();return copy(result);};
   for(const name of ['gravar','excluir','importarLote','implantarPacote','atualizarGeo'])api[name]=(...args)=>transacao(db=>db[name](...args));
+  api.gravar=(module,data,id)=>transacao(db=>db.gravar(module,data,id)).then(saved=>api.registro(module,saved.id));
   return api;
  }
- return {repositorio,perfil:profile};
+ return {repositorio,perfil:profile,atualizarPermissoes,painel};
 }
 const api={criar,changes};root.AlertaRepositorioSupabase=api;
 if(typeof module==='object'&&module.exports)module.exports=api;

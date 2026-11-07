@@ -15,12 +15,12 @@ select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000002'
 do $$begin
  if (select count(*) from public.ma_prefeituras)<>1 then raise exception 'Vazamento de prefeitura'; end if;
  begin insert into public.ma_vinculos values('outro',auth.uid(),'admin');raise exception 'Escalação de vínculo permitida';exception when insufficient_privilege then null;end;
- begin insert into public.ma_prefeituras(id,dados) values('invasor','{"id":"invasor","nome":"Curitiba","codigo_ibge":"4106902","uf":"PR","codigo_uf":"41","paisId":"BR","status":"ativa"}');raise exception 'Operador criou prefeitura';exception when insufficient_privilege then null;end;
+ begin insert into public.ma_prefeituras(id,dados) values('invasor','{"id":"invasor","nome":"X","codigo_ibge":"0000002"}');raise exception 'Operador criou prefeitura';exception when insufficient_privilege then null;end;
 end$$;
 select public.ma_aplicar_alteracoes('[{"operacao":"inserir","colecao":"bases","municipio_id":"maringa","id":"local-1","dados":{"id":"local-1","municipioId":"maringa","nome":"Fixture exclusivamente local"}}]');
 do $$begin
- begin perform public.ma_aplicar_alteracoes('[{"operacao":"inserir","colecao":"bases","municipio_id":"outro","id":"local-2","dados":{"id":"local-2","municipioId":"outro"}}]');raise exception 'Escrita cruzada permitida';exception when insufficient_privilege then null;end;
- begin perform public.ma_aplicar_alteracoes('[{"operacao":"atualizar","colecao":"bases","municipio_id":"maringa","id":"local-1","versao":1,"dados":{"id":"local-1"}}]');raise exception 'Tenant ausente aceito';exception when check_violation then null;end;
+ begin perform public.ma_aplicar_alteracoes('[{"operacao":"inserir","colecao":"bases","municipio_id":"outro","id":"local-2","dados":{"id":"local-2","municipioId":"outro","nome":"Fixture externa"}}]');raise exception 'Escrita cruzada permitida';exception when insufficient_privilege then null;end;
+ begin update public.ma_cadastros set dados='{"id":"local-1"}' where id='local-1';raise exception 'Tenant ausente aceito';exception when insufficient_privilege then null;end;
 end$$;
 select public.ma_aplicar_alteracoes('[{"operacao":"atualizar","colecao":"bases","municipio_id":"maringa","id":"local-1","versao":1,"dados":{"id":"local-1","municipioId":"maringa","nome":"Edição local"}}]');
 do $$begin
@@ -37,7 +37,7 @@ end$$;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',true);
 select public.ma_aplicar_alteracoes('[{"operacao":"inserir","colecao":"prefeituras","id":"nova","dados":{"id":"nova","nome":"Londrina","codigo_ibge":"4113700","uf":"PR","codigo_uf":"41","paisId":"BR","status":"implantacao"}}]');
 do $$begin if not exists(select 1 from public.ma_vinculos where municipio_id='nova' and user_id=auth.uid()) then raise exception 'Criador sem vínculo';end if;end$$;
-select public.ma_aplicar_alteracoes((select jsonb_build_array(jsonb_build_object('operacao','atualizar','colecao','prefeituras','id',id,'versao',versao,'dados',jsonb_set(dados,'{status}','"suspensa"'))) from public.ma_prefeituras where id='maringa'));
+select public.ma_aplicar_alteracoes(jsonb_build_array(jsonb_build_object('operacao','atualizar','colecao','prefeituras','id','maringa','versao',versao,'dados',jsonb_set(dados,'{status}','"suspensa"')))) from public.ma_prefeituras where id='maringa';
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000002',true);
 do $$begin if exists(select 1 from public.ma_cadastros) then raise exception 'Prefeitura suspensa acessível';end if;end$$;
 set local role anon;

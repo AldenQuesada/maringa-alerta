@@ -7,7 +7,7 @@
   root.MaringaCrise=api;
 })(typeof globalThis!=="undefined"?globalThis:this,function(root) {
 "use strict";
-const COMPATIBILIDADE={
+const COMPATIBILIDADE=root.AlertaRegrasOperacionais?.compatibilidade||{
  "Alimentação":["FORNECER ALIMENTAÇÃO"],
  "Telhas e cobertura":["PEDREIRO","CARPINTEIRO","MATERIAL DE CONSTRUÇÃO","CAMIONETE","CAMINHÃO BASCULANTE"],
  "Apoio financeiro":[],
@@ -83,7 +83,7 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
    if(item.status_simulacao==="simulado")throw Error("Cadastro de demonstração não permite check-in real.");
   const origemBairro=String(item.bairro||item.zona||"").trim();
   if(!origemBairro||norm(origemBairro)!==norm(bairro))throw Error("A pessoa só pode registrar presença no bairro de cadastro.");
-  if(!Number.isFinite(lat)||!Number.isFinite(lng)||!Number.isFinite(precisao)||precisao>100||precisao<0)
+  if(!Number.isFinite(lat)||!Number.isFinite(lng)||!Number.isFinite(precisao)||precisao>(root.AlertaRegrasOperacionais?.gpsPrecisaoMaxima??100)||precisao<0)
    throw Error("GPS insuficiente para validar chegada (precisão exigida: até 100 m).");
   if(!geometry||!geofence([lng,lat],geometry))throw Error("Fora do polígono do bairro cadastrado ou malha não disponível.");
   return db.gravar("voluntarios",{...item,checkin_status:"presente",checkin_bairro:origemBairro,
