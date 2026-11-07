@@ -24,7 +24,11 @@ try{
 
  const config=window.MARINGA_SUPABASE;
  if(!config?.publishableKey?.startsWith('sb_publishable_'))throw Error('Configuração pública do Supabase ausente.');
- client=window.supabase.createClient(config.url,config.publishableKey,{auth:{storageKey:'maringa-supabase-auth-v1',flowType:'pkce',detectSessionInUrl:true}});
+ // Convites e links administrativos retornam sessão no fragmento; o login normal usa PKCE.
+ // O SDK valida a sessão e remove o fragmento. Nenhum token é copiado pela aplicação.
+ const retorno=new URLSearchParams(new URL(location.href).hash.slice(1));
+ const fluxo=retorno.get('access_token')&&retorno.get('refresh_token')&&retorno.get('token_type')==='bearer'?'implicit':'pkce';
+ client=window.supabase.createClient(config.url,config.publishableKey,{auth:{storageKey:'maringa-supabase-auth-v1',flowType:fluxo,detectSessionInUrl:true}});
  window.AlertaSupabaseClient=client;
  const {data:{session},error}=await client.auth.getSession();if(error)throw error;
  if(session){
@@ -67,7 +71,7 @@ function showLogin(error=''){
  gate.querySelector('#backend-reset').onclick=async()=>{if(client)await client.auth.signOut({scope:'local'});location.reload();};
  gate.querySelector('form').onsubmit=async e=>{e.preventDefault();const button=e.currentTarget.querySelector('button'),feedback=gate.querySelector('[role=alert]');button.disabled=true;
   try{if(!client)throw Error('Conexão indisponível. Atualize a página.');const redirect=new URL(location.href);redirect.hash='';redirect.search='';const {error}=await client.auth.signInWithOtp({email:gate.querySelector('input').value.trim(),options:{emailRedirectTo:redirect.href}});if(error)throw error;feedback.textContent='Link enviado. Abra seu e-mail neste navegador para entrar.';}
-  catch(err){feedback.textContent=err.message;}finally{button.disabled=false;}
+  catch(err){feedback.textContent=err.code==='over_email_send_rate_limit'||/email rate limit exceeded/i.test(err.message)?'O limite de envio de e-mails foi atingido. Seu cadastro continua ativo. Use o último link recebido ou tente novamente mais tarde.':err.message;}finally{button.disabled=false;}
  };
  document.body.appendChild(gate);gate.querySelector('input').focus();
 }
