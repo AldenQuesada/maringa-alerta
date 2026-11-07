@@ -46,6 +46,9 @@ function selecionarPerfilDemo(perfil) {
  async function iniciar(){
  if(dependencias.conectado){
   selecionarPerfilDemo({tipo:'visualizacao'});
+  const cadastro=document.getElementById('demo-new');
+  cadastro.title='O registro de ocorrências neste mapa ainda não está integrado ao banco.';
+  cadastro.setAttribute('aria-label',cadastro.title);
   document.getElementById('session-anchor').textContent=window.AlertaNuvem.email;
 }else if(window.AlertaSessao && window.AlertaSessaoUI){
   const servicoSessao = AlertaSessao.criar({ municipioId:dependencias.tenantId });

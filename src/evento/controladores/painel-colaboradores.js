@@ -116,12 +116,12 @@ root.AlertaEventoControladores.definir('painel-colaboradores',{
     const ativos=colaboradores.filter(p=>dependencias.colaboradorAtivo(p.id)).length;
     const percentual=colaboradores.length?Math.round(100*ativos/colaboradores.length):0;
     return `<section class="person-territory">
-      <h4>${dependencias.escHtml(grupo.nome)} <span class="equipe-kpis" title="Ativos incluem presenças registradas e, para cadastros fictícios, situações simuladas.">Colab: ${colaboradores.length} · Act: ${ativos} · ${percentual}%</span></h4>
+      <h4>${dependencias.escHtml(grupo.nome)} <span class="equipe-kpis" title="${globalThis.AlertaNuvem?.ativo?'Ativos incluem presenças registradas.':'Ativos incluem presenças registradas e, para cadastros fictícios, situações simuladas.'}">Colab: ${colaboradores.length} · Act: ${ativos} · ${percentual}%</span></h4>
       <h3 class="person-section">Responsáveis da equipe</h3>
       ${oficiais.map(item).join('')||'<p>Nenhum responsável cadastrado.</p>'}
       <h3 class="person-section">Colaboradores · ${colaboradores.length}</h3>
       ${colaboradores.map(item).join('')||'<p>Nenhum colaborador cadastrado.</p>'}
-      <p class="equipe-nota">Act: presença registrada e situações simuladas.</p>
+      <p class="equipe-nota">${globalThis.AlertaNuvem?.ativo?'Act: presença registrada.':'Act: presença registrada e situações simuladas.'}</p>
     </section>`;
   }).join('')||'<p>Nenhuma equipe no recorte.</p>';
   body.scrollTop=antes;

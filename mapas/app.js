@@ -168,7 +168,7 @@ function renderEquipeNoElemento(xs,el){
     (x.status_simulacao==="simulado"?'<small>Simulação · sem check-in</small>':x.registroAnterior?'<small>Registro anterior</small>':x.checkin_status==="presente"?'<button type="button" data-saida="'+esc(x.id)+'">Registrar saída</button>':
     '<button type="button" data-checkin="'+esc(x.id)+'"'+(bairro==="Bairro não informado"?' disabled title="Cadastre o bairro antes"':'')+'>Check-in GPS</button>')+
     '</div>').join("")+'</section>';
- }).join("")+'<p class="presence-note">Check-in local experimental: exige permissão GPS, precisão de até 100 m e polígono de bairro compatível. Não comprova identidade nem sincroniza entre dispositivos.</p>';
+ }).join("")+'<p class="presence-note">'+(root.AlertaNuvem?.ativo?'Check-in registrado no cadastro municipal: exige permissão GPS, precisão de até '+esc(root.AlertaRegrasOperacionais?.gpsPrecisaoMaxima??100)+' m e polígono de bairro compatível. A localização é autodeclarada.':'Check-in local experimental: exige permissão GPS, precisão de até '+esc(root.AlertaGestaoDados.parametros.gps.precisaoMaximaMetros)+' m e polígono de bairro compatível. Não comprova identidade nem sincroniza entre dispositivos.')+'</p>';
  el.querySelectorAll("[data-checkin]").forEach(b=>b.onclick=()=>void iniciarCheckin(b.dataset.checkin,b));
  el.querySelectorAll("[data-saida]").forEach(b=>b.onclick=async()=>{
   try{await state.app.registrarSaida(b.dataset.saida);render();alertar("Saída registrada.");}catch(err){alertar(err.message);}
@@ -465,6 +465,7 @@ const cidadeContexto=()=>AlertaGestaoDados.config.selecionar(AlertaGestaoDados,s
 const state={app:MaringaCrise.criar({municipioId:cidadeContexto(),escopoMunicipal:true}),filtroZona:"",filtroClasse:"",texto:"",camadaAtual:"principal",territorio:null,toastTimer:undefined,mostrarUnidades:true,zonasConsultadas:false,cozinhasPontos:[],caminhaoDemo:null,simulacaoRodando:false,simulacaoIniciada:false,cicloAtivo:true,frameCaminhao:null,reinicioCaminhao:null,contadorDemo:0};
 
 const INVENTARIO=globalThis.AlertaInventarioMapas;
+if($("map-data-status"))$("map-data-status").textContent=globalThis.AlertaNuvem?.ativo?"Cadastros municipais no Supabase":"Dados locais · sem envio automático";
 
 const nomeTipo=TIPO==="ajuda"?"Pra Somar "+(state.app.prefeitura()?.nome||"Município"):"Mapa de Colaboradores";
 $("map-brand-title").textContent=TIPO==="ajuda"?(state.app.prefeitura()?.nome||"Município").toLocaleUpperCase("pt-BR")+" Pra Somar":AlertaGestaoDados.config.marca(state.app.prefeitura()).toLocaleUpperCase("pt-BR");

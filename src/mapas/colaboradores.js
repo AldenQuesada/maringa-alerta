@@ -19,7 +19,7 @@ function renderEquipeNoElemento(xs,el){
     (x.status_simulacao==="simulado"?'<small>Simulação · sem check-in</small>':x.registroAnterior?'<small>Registro anterior</small>':x.checkin_status==="presente"?'<button type="button" data-saida="'+esc(x.id)+'">Registrar saída</button>':
     '<button type="button" data-checkin="'+esc(x.id)+'"'+(bairro==="Bairro não informado"?' disabled title="Cadastre o bairro antes"':'')+'>Check-in GPS</button>')+
     '</div>').join("")+'</section>';
- }).join("")+'<p class="presence-note">Check-in local experimental: exige permissão GPS, precisão de até 100 m e polígono de bairro compatível. Não comprova identidade nem sincroniza entre dispositivos.</p>';
+ }).join("")+'<p class="presence-note">'+(root.AlertaNuvem?.ativo?'Check-in registrado no cadastro municipal: exige permissão GPS, precisão de até '+esc(root.AlertaRegrasOperacionais?.gpsPrecisaoMaxima??100)+' m e polígono de bairro compatível. A localização é autodeclarada.':'Check-in local experimental: exige permissão GPS, precisão de até '+esc(root.AlertaGestaoDados.parametros.gps.precisaoMaximaMetros)+' m e polígono de bairro compatível. Não comprova identidade nem sincroniza entre dispositivos.')+'</p>';
  el.querySelectorAll("[data-checkin]").forEach(b=>b.onclick=()=>void iniciarCheckin(b.dataset.checkin,b));
  el.querySelectorAll("[data-saida]").forEach(b=>b.onclick=async()=>{
   try{await state.app.registrarSaida(b.dataset.saida);render();alertar("Saída registrada.");}catch(err){alertar(err.message);}

@@ -160,7 +160,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .stat span{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 .stat.red b{color:var(--red)} .stat.green b{color:var(--green)} .stat.blue b{color:var(--blue)}
 
-.main{flex:1;display:flex;min-height:0;position:relative}
+.main{flex:1;display:flex;min-height:0;position:relative;overflow:hidden}
 .mapwrap{flex:1;position:relative;min-width:0;background:#060809}
 #map{width:100%;height:100%;background:#060809}
 

@@ -12,7 +12,7 @@ async function start(){
  // Os mapas iniciam ocultos pelo bloqueio de acesso; recalcular ao torná-los visíveis.
  window.dispatchEvent(new Event('resize'));
  if(window.AlertaNuvem?.ativo){
-  const anchor=document.getElementById('session-anchor');if(anchor)anchor.textContent=window.AlertaNuvem.email;
+  const anchor=document.getElementById('session-anchor');if(anchor){anchor.textContent=window.AlertaNuvem.email;anchor.classList.add('backend-session');anchor.title=window.AlertaNuvem.email;}
   for(const a of document.querySelectorAll('a[href]')){const u=new URL(a.href,location.href);if(u.origin===location.origin&&/\/atendimento\//.test(u.pathname)){a.hidden=true;a.removeAttribute('href');}}
   const bar=document.createElement('div');bar.id='backend-bar';bar.innerHTML='<span>Conectado · cadastros no Supabase</span><button type="button" data-refresh>Atualizar</button><button type="button" data-logout>Sair</button>';document.body.appendChild(bar);
   bar.querySelector('[data-refresh]').onclick=()=>location.reload();

@@ -9,6 +9,7 @@ const cidadeContexto=()=>AlertaGestaoDados.config.selecionar(AlertaGestaoDados,s
 const state={app:MaringaCrise.criar({municipioId:cidadeContexto(),escopoMunicipal:true}),filtroZona:"",filtroClasse:"",texto:"",camadaAtual:"principal",territorio:null,toastTimer:undefined,mostrarUnidades:true,zonasConsultadas:false,cozinhasPontos:[],caminhaoDemo:null,simulacaoRodando:false,simulacaoIniciada:false,cicloAtivo:true,frameCaminhao:null,reinicioCaminhao:null,contadorDemo:0};
 
 const INVENTARIO=globalThis.AlertaInventarioMapas;
+if($("map-data-status"))$("map-data-status").textContent=globalThis.AlertaNuvem?.ativo?"Cadastros municipais no Supabase":"Dados locais · sem envio automático";
 
 const nomeTipo=TIPO==="ajuda"?"Pra Somar "+(state.app.prefeitura()?.nome||"Município"):"Mapa de Colaboradores";
 $("map-brand-title").textContent=TIPO==="ajuda"?(state.app.prefeitura()?.nome||"Município").toLocaleUpperCase("pt-BR")+" Pra Somar":AlertaGestaoDados.config.marca(state.app.prefeitura()).toLocaleUpperCase("pt-BR");

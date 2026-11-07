@@ -27,7 +27,7 @@ html:not(.pagina-pra-somar) #pra-somar-brand-title{display:none!important}
 <link rel="stylesheet" href="./style.css?v=c83cb64e75b7">
 <link rel="stylesheet" href="../dados-territoriais/camadas-mapas.css?v=0b4a9ef36d48">
 <link rel="stylesheet" href="../mapa-navegacao.css?v=dcb1e617dbd1">
-<link rel="stylesheet" href="../backend/boot.css?v=6715b7121dab">
+<link rel="stylesheet" href="../backend/boot.css?v=5a7137088c83">
 </head>
 <body>
 <div class="layout">
@@ -45,7 +45,7 @@ html:not(.pagina-pra-somar) #pra-somar-brand-title{display:none!important}
    <div id="map" role="application" aria-label="Mapa por zonas"></div>
    <section id="eventos-painel" class="eventos-painel mapa-unidades-painel" aria-label="Filtros de unidades" hidden><header id="eventos-painel-head" class="eventos-painel-head"><strong>Filtros de unidades</strong><span class="eventos-painel-acoes"><button type="button" id="eventos-minimizar" aria-label="Minimizar filtros" aria-expanded="true">−</button><button type="button" id="eventos-close" aria-label="Fechar filtros">×</button></span></header><div id="eventos-painel-body" class="eventos-painel-body"><section id="filtros-cadastros-municipais" aria-label="Camadas do cadastro municipal"></section></div></section>
    <button id="painel-ajuda-toggle" class="painel-ajuda-toggle" type="button" aria-controls="painel-ajuda" aria-expanded="true" aria-label="Abrir painel" title="Abrir painel" hidden>+</button>
-   <div class="map-info"><span class="signal"></span><span id="map-label">Mapa</span><small>Dados locais de demonstração · sem envio real</small></div>
+   <div class="map-info"><span class="signal"></span><span id="map-label">Mapa</span><small id="map-data-status">Carregando dados municipais</small></div>
    <div id="notificacao-chegada" class="notificacao-chegada" role="status" hidden><strong>Chegada simulada</strong><button id="notificacao-fechar" type="button" aria-label="Fechar notificação">×</button><p id="notificacao-texto"></p></div>
    <div class="map-legend"><span><i class="color-collab"></i>Colaboradores</span><span><i class="color-help"></i>Pedidos</span><span>Localização aproximada quando sem GPS</span><span id="legenda-cozinhas" hidden>🍲 Cozinhas simuladas</span></div>
   </div>
@@ -96,10 +96,10 @@ html:not(.pagina-pra-somar) #pra-somar-brand-title{display:none!important}
 <script type="application/x-maringa-modulo" src="../sessao-ui.js?v=9a6003d065ad"></script>
 <script type="application/x-maringa-modulo" src="../painel-eventos.js?v=8cf0d1639b15"></script>
 <script type="application/x-maringa-modulo" src="../filtros-cadastros.js?v=6169b44fc16b"></script>
-<script type="application/x-maringa-modulo" src="./app.js?v=5ca512852bbd"></script>
+<script type="application/x-maringa-modulo" src="./app.js?v=a8b97a3ecbdd"></script>
 <script src="../backend/vendor/supabase-2.119.0.js?v=f7b5aa661799"></script>
 <script src="../backend/config.js?v=96a06e7e3cd1"></script>
 <script src="../backend/repositorio.js?v=bb6c4a9868c3"></script>
-<script src="../backend/boot.js?v=a69849cddb3a" data-area="mapas"></script>
+<script src="../backend/boot.js?v=c93209d738bd" data-area="mapas"></script>
 </body>
 </html>

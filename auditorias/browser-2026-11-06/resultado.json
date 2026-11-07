@@ -1,0 +1,46 @@
+[
+  {
+    "name": "cadastros-editor",
+    "ok": true
+  },
+  {
+    "name": "cadastro-mobile",
+    "ok": true
+  },
+  {
+    "name": "permissoes-leitor",
+    "ok": true
+  },
+  {
+    "name": "permissoes-rota",
+    "ok": true
+  },
+  {
+    "name": "login-sem-sessao",
+    "ok": true
+  },
+  {
+    "name": "evento-1440",
+    "ok": true
+  },
+  {
+    "name": "colaboradores-1440",
+    "ok": true
+  },
+  {
+    "name": "ajuda-1440",
+    "ok": true
+  },
+  {
+    "name": "evento-390",
+    "ok": true
+  },
+  {
+    "name": "colaboradores-390",
+    "ok": true
+  },
+  {
+    "name": "ajuda-390",
+    "ok": true
+  }
+]
