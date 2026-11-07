@@ -17,6 +17,6 @@ function criarAdaptador(storage,options={}){
  if(global.AlertaNuvem?.ativo&&(storage===undefined||storage===global.localStorage))return global.AlertaNuvem.repositorio(options);
  return criar(storage,options);
 }
-const api={CHAVE,UFS,CATALOGOS,ESQUEMAS,GROUPS,config:global.AlertaMunicipios,criar:criarAdaptador,criarLocal:criar};
+const api={CHAVE,UFS,CATALOGOS,ESQUEMAS,GROUPS,config:global.AlertaMunicipios,parametros:global.AlertaParametros,criar:criarAdaptador,criarLocal:criar};
 global.AlertaGestaoDados=api;if(typeof module==='object'&&module.exports)module.exports=api;
 })(globalThis);

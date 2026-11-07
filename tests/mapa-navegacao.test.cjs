@@ -278,8 +278,8 @@ test("Pra Somar abre na câmera exata aprovada, sem afetar Colaboradores",()=>{
 });
 test("câmera institucional do Pra Somar vem da fonte, não do navegador ou de outra prefeitura",()=>{
  const fs=require("node:fs");
- const source=fs.readFileSync("src/mapas/02-counters.js","utf8");
- assert.match(source,/vistaInicial:TIPO==="ajuda"\?AlertaGestaoDados.config.referencias\(app.prefeitura\(\)\).vistaAjuda\|\|null:null/);
+ const source=fs.readFileSync("src/mapas/app.js","utf8");
+ assert.match(source,/vistaInicial:TIPO==="ajuda"\?AlertaGestaoDados.config.referencias\(state.app.prefeitura\(\)\).vistaAjuda\|\|null:null/);
  const config=require('../gestao/dados.js').config;
  assert.deepEqual(config.referencias(config.demonstracao()).vistaAjuda,{lat:-23.4398505,lng:-51.9680312,zoom:12.7027});
  assert.equal(config.referencias({codigo_ibge:'1302603'}).vistaAjuda,undefined);
@@ -338,9 +338,9 @@ test("nos três mapas: arraste apenas com zoom acima do inicial, volta a travar 
 test("Pra Somar usa MARINGÁ Pra Somar no cabeçalho e remove o card flutuante, sem mudar Colaboradores",()=>{
  const fs=require("node:fs");
  const html=fs.readFileSync("mapas/index.html","utf8");
- const source=fs.readFileSync("src/mapas/00-alertar.js","utf8");
+ const source=fs.readFileSync("src/mapas/app.js","utf8");
  assert.match(html,/id="map-brand-title"/);
- assert.match(source,/config.marca\(app.prefeitura\(\)\)/);
+ assert.match(source,/config.marca\(state.app.prefeitura\(\)\)/);
  assert.match(source,/pra-somar-brand-title/);
  assert.match(source,/if\(TIPO==="ajuda"\)document\.querySelector\("\.map-info"\)\?\.remove\(\)/);
  assert.match(source,/if\(\$\("map-label"\)\)\$\("map-label"\)\.textContent=/);

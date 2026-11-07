@@ -19,7 +19,7 @@ const uploadArea=$("upload-area"),photoInput=$("photo-input"),photoPreview=$("ph
 let identity=null,role=null,answers={},steps=[],index=0,current=null,arquivosFoto=null;
 
 const {ofereceBens,identificarCampos,zonaPeloEndereco,definirSteps,interpretarEscolhaMultipla}=AlertaAtendimentoPassos.criar({catalogos,dados,municipio,uf:app.prefeitura()?.uf,obterIdentidade:()=>identity});
-const {prepararFoto}=AlertaAtendimentoFoto.criar({document,URL,Image});
+const {prepararFoto}=AlertaAtendimentoFoto.criar({document,URL,Image,limites:AlertaGestaoDados.parametros.atendimento});
 const registroAtendimento=AlertaAtendimentoRegistro.criar({app,dados,zonaPeloEndereco});
 let salvando=false;
 async function concluir(){

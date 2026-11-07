@@ -85,7 +85,7 @@ root.AlertaCriseConsultas={criar};
 /* Domínio de presenca: dependências explícitas, sem estado compartilhado entre arquivos. */
 (function(root){
 'use strict';
-function criar({db,norm,oferentes}){
+function criar({db,norm,oferentes,limitesGPS}){
 const geofence=(point,geometry)=>{
   if(!point||!geometry||!["Polygon","MultiPolygon"].includes(geometry.type))return false;
   const insideRing=ring=>{let hit=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){
@@ -105,8 +105,8 @@ function registrarCheckin({colaboradorId,bairro,lat,lng,precisao,geometry,origem
    if(item.status_simulacao==="simulado")throw Error("Cadastro de demonstração não permite check-in real.");
   const origemBairro=String(item.bairro||item.zona||"").trim();
   if(!origemBairro||norm(origemBairro)!==norm(bairro))throw Error("A pessoa só pode registrar presença no bairro de cadastro.");
-  if(!Number.isFinite(lat)||!Number.isFinite(lng)||!Number.isFinite(precisao)||precisao>100||precisao<0)
-   throw Error("GPS insuficiente para validar chegada (precisão exigida: até 100 m).");
+  if(!Number.isFinite(lat)||!Number.isFinite(lng)||!Number.isFinite(precisao)||precisao>limitesGPS.precisaoMaximaMetros||precisao<0)
+   throw Error("GPS insuficiente para validar chegada (precisão exigida: até "+limitesGPS.precisaoMaximaMetros+" m).");
   if(!geometry||!geofence([lng,lat],geometry))throw Error("Fora do polígono do bairro cadastrado ou malha não disponível.");
   return db.gravar("voluntarios",{...item,checkin_status:"presente",checkin_bairro:origemBairro,
    checkin_em:new Date().toISOString(),checkin_lat:lat,checkin_lng:lng,checkin_precisao:precisao,
@@ -264,7 +264,7 @@ function criar({armazenamento=root.localStorage,municipioId=null,escopoMunicipal
  if(!D)throw Error('Carregue gestao/dados.js primeiro.');
  const db=repositorio||D.criar(armazenamento,escopoMunicipal&&municipioId?{municipioId}:{});
  if(municipioId&&db.municipioAtivo()?.id!==municipioId&&!escopoMunicipal)db.selecionarMunicipio(municipioId);
- const deps={db,D,...root.AlertaCriseUtilidades,COMPATIBILIDADE};
+ const deps={db,D,limitesGPS:D.parametros.gps,...root.AlertaCriseUtilidades,COMPATIBILIDADE};
  const consultas=root.AlertaCriseConsultas.criar(deps);Object.assign(deps,consultas);
  const presenca=root.AlertaCrisePresenca.criar(deps);
  const colaboradores=root.AlertaCriseColaboradores.criar(deps);

@@ -1,0 +1,26 @@
+/* Referência histórica versionada, com identidade municipal explícita. */
+(function(root){'use strict';root.AlertaEventoHistoricoConfiguracao={
+  "codigo_ibge": "4115200",
+  "dados": {
+    "nome": "Tornado de Maringá — 2 de novembro de 2026",
+    "tipo": "Tornado",
+    "status": "A confirmar",
+    "inicio": "2026-11-02T03:00:00-03:00",
+    "descricao": "Tornado classificado pelo Simepar como F2. Início aproximado: madrugada de 2 de novembro de 2026.",
+    "fonte": "Simepar · publicado em 04/11/2026",
+    "url_fonte": "https://www.simepar.br/simepar/post/79990",
+    "externalId": "simepar-tornado-maringa-2026-11-02",
+    "referencias": "Simepar, 04/11: tornado F2, trajeto estimado de 15 km.\nDefesa Civil Estadual, 02/11: telhado do prédio administrativo do 5º Batalhão de Bombeiros danificado e cinco viaturas atingidas; sem militares feridos. https://www.defesacivil.pr.gov.br/Noticia/Governo-do-Parana-mobiliza-equipes-para-atender-cidades-atingidas-por-tempestades-e\nAgência Estadual de Notícias, 04/11: árvores e galhos caídos no Parque do Ingá dificultaram o acesso. https://www.parana.pr.gov.br/aen/Noticia/Policia-Penal-mobiliza-70-apenados-para-ajudar-na-recuperacao-de-Maringa-apos-tornado\nCopel, tarde de 04/11: 302 postes danificados em Maringá; 186 substituídos. Balanço geral, sem endereços individuais. https://www.copel.com/site/noticias/apos-tornado-copel-religa-mais-de-60-dos-clientes-afetados-e-mantem-forca-tarefa-para-reconstruir-rede-eletrica-em-maringa/\nAvenida Colombo: há relato jornalístico de bloqueios em 02/11; trecho exato e situação atual a confirmar. https://jornalreporterdovale.com/prf-alerta-para-situacao-critica-em-maringa-apos-fortes-chuvas/\nEstas referências são históricas. Não indicam situação atual, atendimento concluído nem ponto preciso."
+  },
+  "tipos": [
+    "Árvore caída",
+    "Poste danificado",
+    "Fiação danificada",
+    "Destelhamento",
+    "Edificação danificada",
+    "Via bloqueada",
+    "Serviço interrompido",
+    "Parque ou área pública danificada",
+    "Veículo danificado"
+  ]
+};})(globalThis);
