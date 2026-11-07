@@ -73,3 +73,4 @@ jobs:
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/painel.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/admin-geral.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/integracao.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/incidentes.sql
