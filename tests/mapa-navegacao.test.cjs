@@ -253,24 +253,24 @@ test("Pra Somar abre na câmera exata aprovada, sem afetar Colaboradores",()=>{
   const {map,L}=simularMapa();
   map.setView([-23.4205,-51.9333],12);
   const n=instalarVistaSalva({map,L,identificador:"pra-somar",arrasteNoMinimo:true,
-   vistaInicial:{lat:-23.4211409,lng:-51.9242705,zoom:13.2441}});
-  assert.equal(map.center.lat,-23.4211409);
-  assert.equal(map.center.lng,-51.9242705);
-  assert.equal(map.zoom,13.2441);
-  assert.equal(map.getMinZoom(),13.2441);
+   vistaInicial:{lat:-23.4196153,lng:-51.9357534,zoom:13.5732}});
+  assert.equal(map.center.lat,-23.4196153);
+  assert.equal(map.center.lng,-51.9357534);
+  assert.equal(map.zoom,13.5732);
+  assert.equal(map.getMinZoom(),13.5732);
   assert.equal(map.dragging.enabled,true);
   map.setView([-23.41,-51.94],15);
   n.restaurar();
-  assert.deepEqual(map.center,{lat:-23.4211409,lng:-51.9242705});
-  assert.equal(map.zoom,13.2441);
+  assert.deepEqual(map.center,{lat:-23.4196153,lng:-51.9357534});
+  assert.equal(map.zoom,13.5732);
   const colab=simularMapa();
   colab.map.setView([-23.42,-51.934],12);
   instalarVistaSalva({map:colab.map,L:colab.L,identificador:"colaboradores",vistaInicial:null});
   assert.deepEqual(colab.map.center,{lat:-23.42,lng:-51.934});
   assert.equal(colab.map.zoom,12);
   map.resize(1024,768);
-  assert.deepEqual(map.center,{lat:-23.4211409,lng:-51.9242705});
-  assert.equal(map.zoom,13.2441);
+  assert.deepEqual(map.center,{lat:-23.4196153,lng:-51.9357534});
+  assert.equal(map.zoom,13.5732);
  }finally{
   if(anterior===undefined)delete globalThis.location;
   else globalThis.location=anterior;
@@ -282,7 +282,7 @@ test("câmera institucional do Pra Somar vem da fonte, não do navegador ou de o
  assert.match(source,/vistaInicial:AlertaGestaoDados.config.vistaMapa\(state.app.prefeitura\(\),TIPO\)/);
  assert.match(source,/arrasteNoMinimo:TIPO==="ajuda"/);
  const config=require('../gestao/dados.js').config;
- assert.deepEqual(config.vistaMapa(config.demonstracao(),'ajuda'),{lat:-23.4211409,lng:-51.9242705,zoom:13.2441});
+ assert.deepEqual(config.vistaMapa(config.demonstracao(),'ajuda'),{lat:-23.4196153,lng:-51.9357534,zoom:13.5732});
  assert.equal(config.referencias({codigo_ibge:'1302603'}).vistaAjuda,undefined);
  assert.doesNotMatch(source,/maringa_pra_somar_vista_original_v1/);
 });
@@ -373,12 +373,12 @@ test('prefeitura sem polígonos conserva sua vista e não herda limites da demon
 
 test('câmera de Ajuda sobrevive ao modo conectado e à exclusão das fontes demonstrativas',()=>{
  const fs=require('node:fs'),vm=require('node:vm'),ctx={AlertaNuvem:{ativo:true}};
- for(const arquivo of ['config/municipios.js','src/cadastros/municipios.js'])vm.runInNewContext(fs.readFileSync(arquivo,'utf8'),ctx);
+ for(const arquivo of ['config/cameras-mapas.js','config/municipios.js','src/cadastros/municipios.js'])vm.runInNewContext(fs.readFileSync(arquivo,'utf8'),ctx);
  // Reproduz o filtro presente em gestao/dados.js publicado em 07/11/2026.
  ctx.AlertaMunicipios.referencias=()=>({mapaDemonstrativo:false,importarZonasReferencia:false});
  const cidade={codigo_ibge:'4115200'},config=ctx.AlertaMunicipios;
  const vista=config.vistaMapa(cidade,'ajuda');
- assert.deepEqual(JSON.parse(JSON.stringify(vista)),{lat:-23.4211409,lng:-51.9242705,zoom:13.2441});
+ assert.deepEqual(JSON.parse(JSON.stringify(vista)),{lat:-23.4196153,lng:-51.9357534,zoom:13.5732});
  const {map,L}=simularMapa();
  require('../mapa-navegacao.js').instalarVistaSalva({map,L,vistaInicial:vista,arrasteNoMinimo:true});
  assert.deepEqual(map.center,{lat:vista.lat,lng:vista.lng});
@@ -386,11 +386,11 @@ test('câmera de Ajuda sobrevive ao modo conectado e à exclusão das fontes dem
  assert.equal(config.vistaMapa(cidade,'colaboradores'),null);
  assert.equal(config.vistaMapa({codigo_ibge:'1302603'},'ajuda'),null);
  vista.zoom=2;
- assert.equal(config.vistaMapa(cidade,'ajuda').zoom,13.2441,'consumidores não modificam a referência');
+ assert.equal(config.vistaMapa(cidade,'ajuda').zoom,13.5732,'consumidores não modificam a referência');
 });
 
 test('Pra Somar permite arraste no mínimo, limita zoom negativo e preserva navegação ao redimensionar',()=>{
- const vista={lat:-23.4211409,lng:-51.9242705,zoom:13.2441};
+ const vista={lat:-23.4196153,lng:-51.9357534,zoom:13.5732};
  for(const [w,h] of [[2210,1001],[1440,900],[390,844]]){
   const {map,L}=simularMapa(w,h);
   const nav=require('../mapa-navegacao.js').instalarVistaSalva({map,L,vistaInicial:vista,arrasteNoMinimo:true});

@@ -1,5 +1,5 @@
 /* Configuração municipal; apenas o bootstrap é exclusivo da demonstração local.
- * A câmera institucional também é usada na operação conectada.
+ * Câmeras institucionais são declaradas separadamente em cameras-mapas.js.
  * Novos municípios são cadastrados no Admin Geral; não exigem alterar regras. */
 (function(root){
 'use strict';
@@ -13,9 +13,7 @@ const referencias={
   eventoHistorico:{adaptador:'EventoTornado2026',rotulo:'Importar tornado de 02/11/2026'},
   mapaDemonstrativo:true,
   importarZonasReferencia:true,
-  legadoAdmin:"maringa_admin_v1",
-  // Vista indicada na tela em 07/11/2026; zoom mínimo do Pra Somar.
-  vistaAjuda:{lat:-23.4211409,lng:-51.9242705,zoom:13.2441}
+  legadoAdmin:"maringa_admin_v1"
  }
 };
 root.AlertaMunicipiosConfiguracao={demonstracao,referencias};
