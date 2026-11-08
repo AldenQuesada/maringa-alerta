@@ -276,7 +276,7 @@ language plpgsql security definer set search_path='' as $$
 declare atual bigint; retorno jsonb;
 begin
  perform private.ma_exigir_admin();
- if entidade not in ('categoria','tipo') or jsonb_typeof(item)<>'object' or item is null then
+ if entidade is null or entidade not in ('categoria','tipo') or jsonb_typeof(item)<>'object' or item is null then
   raise exception 'Item de catálogo inválido' using errcode='22023';end if;
  -- Serializa alterações da hierarquia para impedir ciclos entre transações.
  perform pg_advisory_xact_lock(hashtext('ma_catalogo_territorial'));

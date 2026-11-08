@@ -30,6 +30,7 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000081',true);
 select pg_temp.exigir(jsonb_array_length(public.ma_catalogo_territorial()->'categorias')=12,'12 categorias configuráveis');
 select pg_temp.exigir(public.ma_minhas_capacidades()#>>'{maringa,servicos,gravar}'='true','Capacidades do domínio novo');
+select pg_temp.rejeitar($q$select public.ma_salvar_catalogo_territorial(null,'{"id":"sem_entidade","nome":"Inválido"}',0)$q$,'22023');
 select public.ma_salvar_catalogo_territorial('categoria','{"id":"nova_categoria","nome":"Categoria configurada"}',0);
 select public.ma_salvar_catalogo_territorial('tipo','{"id":"novo_servico","categoria_id":"nova_categoria","dominio":"servico","nome":"Serviço sem alteração de JavaScript"}',0);
 select public.ma_salvar_catalogo_territorial('tipo','{"id":"novo_subtipo","categoria_id":"nova_categoria","dominio":"servico","pai_id":"novo_servico","nome":"Subtipo configurado"}',0);
