@@ -21,7 +21,7 @@ function montar({target,db,onEdit}){desmontar();const U=root.AlertaContatosApres
     target.querySelector('tbody').innerHTML=U.linhas(items,config);snapshot=next;
     if(key){[...target.querySelectorAll('[data-key]')].find(b=>b.dataset.key===key&&b.dataset.ctAction===action)?.focus();}
    }
-   target.querySelector('[role=status]').textContent='';target.querySelector('.ct-pagination span').textContent=result.total+' '+l.total+' · '+l.page+' '+result.page;
+   target.querySelector('[role=status]').textContent='';target.querySelector('.ct-pagination span').textContent=result.total+' '+(result.total===1?(l.total_singular||l.total):l.total)+' · '+l.page+' '+result.page;
    target.querySelector('[data-ct-action=previous]').disabled=filters.pagina===1;target.querySelector('[data-ct-action=next]').disabled=filters.pagina*config.page_size>=result.total;
   }catch(_){if(active){const el=target.querySelector('[role=status]');if(el)el.textContent=config?.labels.error||'Não foi possível carregar os contatos.';}}
   finally{busy=false;if(active){clearTimeout(timer);if(request!==seq)void update();else timer=setTimeout(poll,config?.poll_ms||8000);}}

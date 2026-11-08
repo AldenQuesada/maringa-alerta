@@ -22,7 +22,7 @@ const button=(action,label,attrs='')=>'<button type="button" class="btn" data-ct
 function linhas(items,c){const l=c.labels;
  return items.length?items.map(r=>'<tr data-ct-row="'+esc(r.id)+'">'+c.columns.map(col=>{
   let body=esc(r[col.key]||l.missing);
-  if(col.key==='name')body='<strong>'+esc(r.name)+'</strong><small>'+esc(l[r.name_source]||r.origin)+'</small>';
+  if(col.key==='name')body='<strong>'+esc(r.name)+'</strong><small>'+esc(r.name_source==='unnamed'?r.origin:(l[r.name_source]||r.origin))+'</small>';
   if(col.key==='stage_label')body='<span class="ct-badge">'+esc(r.stage_label)+'</span>'+(r.total?'<small>'+r.completed_steps+' / '+r.total+'</small>':'');
   if(col.key==='category_label')body='<span class="ct-category" data-category="'+esc(r.category)+'">'+body+'</span>';
   if(col.key==='updated_at')body=esc(date(r.updated_at));
@@ -58,7 +58,7 @@ function criar({service,config,onDeleted,onEdit}){
    if(!el.isConnected||dialog!==target)return;const img=document.createElement('img');img.src=u.href;img.alt=data.alt||l.image;img.loading='lazy';img.onerror=()=>{el.textContent=l.media_error;};el.appendChild(img);
   }catch(_){if(el.isConnected)el.textContent=l.media_error;}})();
  }}
- function content(){if(!dialog||!current)return;const r=current.contact;dialog.querySelector('#ct-dialog-title').textContent=r.name;dialog.querySelector('[data-subtitle]').textContent=r.category_label+' · '+r.stage_label;
+ function content(){if(!dialog||!current)return;const r=current.contact;dialog.querySelector('#ct-dialog-title').textContent=r.name;dialog.querySelector('[data-subtitle]').textContent=[...new Set([r.category_label,r.stage_label])].join(' · ');
   const area=dialog.querySelector('.ct-dialog-body'),scroll=area.scrollTop;
   if(mode==='delete'){area.innerHTML='<section class="ct-confirm"><h3>'+U.esc(l.delete_title)+'</h3><p>'+U.esc(l.delete_description)+'</p><div class="ct-confirm-actions">'+U.button('cancel-delete',l.cancel)+U.button('confirm-delete',l.confirm_delete)+'</div></section>';return;}
   const body=tab==='summary'?U.resumo(current,config):tab==='answers'?U.respostas(current,config):
@@ -115,7 +115,7 @@ function montar({target,db,onEdit}){desmontar();const U=root.AlertaContatosApres
     target.querySelector('tbody').innerHTML=U.linhas(items,config);snapshot=next;
     if(key){[...target.querySelectorAll('[data-key]')].find(b=>b.dataset.key===key&&b.dataset.ctAction===action)?.focus();}
    }
-   target.querySelector('[role=status]').textContent='';target.querySelector('.ct-pagination span').textContent=result.total+' '+l.total+' · '+l.page+' '+result.page;
+   target.querySelector('[role=status]').textContent='';target.querySelector('.ct-pagination span').textContent=result.total+' '+(result.total===1?(l.total_singular||l.total):l.total)+' · '+l.page+' '+result.page;
    target.querySelector('[data-ct-action=previous]').disabled=filters.pagina===1;target.querySelector('[data-ct-action=next]').disabled=filters.pagina*config.page_size>=result.total;
   }catch(_){if(active){const el=target.querySelector('[role=status]');if(el)el.textContent=config?.labels.error||'Não foi possível carregar os contatos.';}}
   finally{busy=false;if(active){clearTimeout(timer);if(request!==seq)void update();else timer=setTimeout(poll,config?.poll_ms||8000);}}
