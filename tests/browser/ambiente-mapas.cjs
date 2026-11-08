@@ -1,7 +1,11 @@
 // Fixture exclusiva do navegador isolado; nunca expõe ou acessa Supabase remoto.
 const D=require('../../gestao/dados.js');
 const operacao={};
-async function ambiente({browser,contextOptions={}}){
+async function ambiente({browser,contextOptions={},latenciaMs=0,segurarSessao=false}){
+ const esperar=()=>new Promise(resolve=>setTimeout(resolve,latenciaMs));
+ let liberarSessao;
+ const sessaoPronta=new Promise(resolve=>{liberarSessao=resolve;});
+ if(!segurarSessao)liberarSessao();
  const context=await browser.newContext({...contextOptions,serviceWorkers:'block'});
  const city={id:'maringa',nome:'Maringá',uf:'PR',codigo_ibge:'4115200',status:'ativa',lat:-23.4205,lng:-51.9333,bbox_navegacao:[-23.578,-23.235,-52.123,-51.813]};
  const rows=[],calls=[],blocked=[],errors=[];
@@ -15,7 +19,9 @@ async function ambiente({browser,contextOptions={}}){
  fixture('voluntarios','voluntario-teste',{nome:'Colaborador de teste isolado',tipo_pessoa:'FÍSICA',telefone:'44999990000',endereco:'Endereço exclusivo do teste',zona:'Zona Teste',bairro:'Bairro Teste',ajudas:['LIMPEZA'],disponibilidade:'Disponível',lat:-23.421,lng:-51.934});
  fixture('solicitacoes','pedido-teste',{nome:'Pedido de teste isolado',telefone:'44999990000',endereco:'Endereço exclusivo do teste',zona:'Zona Teste',necessidade:'Água potável',status:'Aguardando',urgencia:'Normal',lat:-23.423,lng:-51.935});
  const caps=()=>({maringa:Object.fromEntries([...new Set(Object.values(D.ESQUEMAS).map(x=>x.collection))].map(c=>[c,{ler:c!=='incidentes',gravar:false,excluir:false}]))});
+ await context.exposeBinding('__fixtureSession',async()=>{await sessaoPronta;return {data:{session:{}}};});
  await context.exposeBinding('__fixtureRequest',async(_,type,name,args)=>{
+  if(latenciaMs)await esperar();
   if(type==='query'){
    if(name==='ma_configuracao')return {data:{documento:args.find(x=>x[0]==='id')?.[1]==='interface'?{esquemas:D.ESQUEMAS,catalogos:D.CATALOGOS,grupos:D.GROUPS}:operacao}};
    return {data:name==='ma_prefeituras'?[{id:city.id,dados:city,versao:1}]:name==='ma_cadastros'?rows.filter(x=>caps().maringa[x.colecao]?.ler):[]};
@@ -27,8 +33,9 @@ async function ambiente({browser,contextOptions={}}){
  });
  await context.route('**/*',async route=>{
   const url=new URL(route.request().url());
+  if(latenciaMs&&['script','stylesheet'].includes(route.request().resourceType()))await esperar();
   if(url.hostname.endsWith('supabase.co')){blocked.push(url.href);return route.abort();}
-  if(url.pathname.includes('/backend/vendor/supabase-'))return route.fulfill({contentType:'text/javascript',body:`window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{}}}),getUser:async()=>({data:{user:{email:'teste@example.invalid'}}}),onAuthStateChange(){},signOut:async()=>({}),signInWithOtp:async()=>({error:{message:'Envio bloqueado no teste'}})},from(table){const filters=[];const q={select(){return q},eq(k,v){filters.push([k,v]);return q},order(){return q},range(){return window.__fixtureRequest('query',table,filters)},single(){return window.__fixtureRequest('query',table,filters)}};return q},rpc:(name,args)=>window.__fixtureRequest('rpc',name,args)})};`});
+  if(url.pathname.includes('/backend/vendor/supabase-'))return route.fulfill({contentType:'text/javascript',body:`window.supabase={createClient:()=>({auth:{getSession:()=>window.__fixtureSession(),getUser:async()=>({data:{user:{email:'teste@example.invalid'}}}),onAuthStateChange(){},signOut:async()=>({}),signInWithOtp:async()=>({error:{message:'Envio bloqueado no teste'}})},from(table){const filters=[];const q={select(){return q},eq(k,v){filters.push([k,v]);return q},order(){return q},range(){return window.__fixtureRequest('query',table,filters)},single(){return window.__fixtureRequest('query',table,filters)}};return q},rpc:(name,args)=>window.__fixtureRequest('rpc',name,args)})};`});
   {
    const arquivos={
     '/ajax/libs/leaflet/1.9.4/leaflet.min.js':['leaflet/dist/leaflet.js','text/javascript'],
@@ -45,6 +52,6 @@ async function ambiente({browser,contextOptions={}}){
   return route.continue();
  });
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
- return {browser,context,page,rows,calls,blocked,errors};
+ return {browser,context,page,rows,calls,blocked,errors,liberarSessao};
 }
 module.exports={ambiente};

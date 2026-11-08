@@ -21,14 +21,16 @@ test("todos os bundles publicados correspondem byte a byte aos módulos de orige
 test("Mapa de Evento carrega CSS e JS externos versionados e com cache correspondente",()=>{
  const html=file("index.html"),sw=file("sw.js");
  const script=html.match(/<script type="application\/x-maringa-modulo" src="evento\/app\.js\?v=([^"]+)"><\/script>/);
- const stylesheet=html.match(/<link rel="stylesheet" href="evento\/style\.css\?v=([^"]+)">/);
+ const stylesheet=html.match(/<link rel="stylesheet" href="evento\/style\.css\?v=([^"]+)"[^>]*>/);
  assert.ok(script&&stylesheet,"Bundle e estilos externos");
  const hash=p=>{const data=fs.readFileSync(path.join(root,p));return require('node:crypto').createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex').slice(0,12);};
  assert.equal(script[1],hash('evento/app.js'),"Versão corresponde ao conteúdo do runtime");
  assert.equal(stylesheet[1],hash('evento/style.css'),"Versão corresponde ao conteúdo do CSS");
  assert.ok(sw.includes("evento/app.js?v="+script[1]),"Service Worker contém runtime atual");
  assert.ok(sw.includes("evento/style.css?v="+stylesheet[1]),"Service Worker contém CSS atual");
- assert.doesNotMatch(html,/<style\b|<script>\s*\(async function/);
+ // Apenas a abertura crítica fica inline para não esperar CSS externo pintar.
+ const semAbertura=html.replace(/<style id="mapa-abertura-critica">[\s\S]*?<\/style>/,'');
+ assert.doesNotMatch(semAbertura,/<style\b|<script>\s*\(async function/);
 });
 test("a modularização não cria armazenamento nem páginas canônicas alternativas",()=>{
  const outputs=manifest.bundles.map(x=>x.target);

@@ -4,10 +4,28 @@
 const gate=document.createElement('div');gate.id='backend-acesso';
 const scripts=[...document.querySelectorAll('script[type="application/x-maringa-modulo"]')];
 const entry=document.currentScript?.dataset.area||'gestao';
+const mapa=entry==='evento'||entry==='mapas';
 const permissionsUrl=new URL('permissoes-ui.js',document.currentScript.src).href;
+// Antecipar somente arquivos públicos. Os módulos só executam após sessão,
+// regras e permissões validadas; a ordem de suas dependências é preservada.
+if(mapa)for(const src of [...scripts.map(item=>item.src),permissionsUrl]){
+ const link=document.createElement('link');link.rel='preload';link.as='script';link.href=src;document.head.appendChild(link);
+}
+function carregarScript(item){return new Promise((resolve,reject)=>{
+ const s=document.createElement('script');s.async=false;s.src=item.src;
+ s.onload=resolve;s.onerror=()=>reject(Error('Não foi possível carregar '+new URL(item.src).pathname));document.body.appendChild(s);
+});}
+function aguardarEstilos(){return Promise.all([...document.querySelectorAll('link[data-mapa-estilo]')].map(link=>new Promise((resolve,reject)=>{
+ const falhou=()=>reject(Error('Não foi possível preparar o mapa. Recarregue a página.'));
+ if(link.dataset.falhou)return falhou();
+ if(link.sheet)return resolve();
+ link.addEventListener('load',resolve,{once:true});link.addEventListener('error',falhou,{once:true});
+})));}
+function encerrarCarregamento(){document.getElementById('mapa-carregando')?.remove();}
 async function start(){
- for(const item of scripts)await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=item.src;s.onload=resolve;s.onerror=()=>reject(Error('Não foi possível carregar '+new URL(item.src).pathname));document.body.appendChild(s);});
- document.documentElement.classList.remove('backend-pendente');gate.remove();
+ if(mapa){await aguardarEstilos();await Promise.all(scripts.map(carregarScript));}
+ else for(const item of scripts)await carregarScript(item);
+ document.documentElement.classList.remove('backend-pendente');gate.remove();encerrarCarregamento();
  // Os mapas iniciam ocultos pelo bloqueio de acesso; recalcular ao torná-los visíveis.
  window.dispatchEvent(new Event('resize'));
  if(window.AlertaNuvem?.ativo){
@@ -36,10 +54,12 @@ try{
    if(!result.data?.admin_plataforma)throw Error('Esta área requer acesso de Administração Geral.');
    remote={perfil:result.data,admin:AlertaAdminRemoto.criar(client)};
   }else{
-   const contrato=await client.from('ma_configuracao').select('documento').eq('id','interface').single();
+   const [contrato,operacao]=await Promise.all([
+    client.from('ma_configuracao').select('documento').eq('id','interface').single(),
+    client.from('ma_configuracao').select('documento').eq('id','operacao').single()
+   ]);
    if(contrato.error||!contrato.data)throw Error('Regras do servidor indisponíveis.');
    AlertaGestaoDados.aplicarConfiguracao(contrato.data.documento);
-   const operacao=await client.from('ma_configuracao').select('documento').eq('id','operacao').single();
    if(operacao.error||!operacao.data)throw Error('Regras operacionais indisponíveis.');
    window.AlertaRegrasOperacionais=operacao.data.documento;
    const municipioId=new URLSearchParams(location.search).get('municipio')||sessionStorage.getItem(cityKey)||null;
@@ -58,6 +78,7 @@ try{
  showLogin();
 }catch(error){showLogin(error.message||'Não foi possível conectar. Tente novamente.');}
 function showLogin(error=''){
+ encerrarCarregamento();
  document.documentElement.classList.add('backend-pendente');
  gate.innerHTML='<section><small>GESTÃO MUNICIPAL</small><h1>Acesso à gestão municipal</h1><p>Entre com seu e-mail autorizado. Você receberá um link de acesso, sem precisar criar uma senha.</p><form><label for="backend-email">E-mail</label><input id="backend-email" type="email" autocomplete="email" required><button type="submit">Receber link de acesso</button></form><p role="alert"></p><button type="button" id="backend-reset" hidden>Sair da sessão atual</button></section>';
  gate.querySelector('[role=alert]').textContent=error;

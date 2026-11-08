@@ -63,8 +63,10 @@ function innerHeightSeguro(h){return Math.max(80,h-80);}
 
 for(const [tipo,aprovada] of Object.entries(APROVADAS))test(tipo+': câmera, retorno, arraste e pinça móveis',async({browser,browserName},testInfo)=>{
  const options=testInfo.project.use;
- const a=await ambiente({browser,contextOptions:{viewport:options.viewport,isMobile:true,hasTouch:true,deviceScaleFactor:1}});
+ const a=await ambiente({browser,segurarSessao:true,contextOptions:{viewport:options.viewport,isMobile:true,hasTouch:true,deviceScaleFactor:1}});
  const {page,context}=a;
+ let liberarEstilos;const estilosProntos=new Promise(resolve=>{liberarEstilos=resolve;});
+ await page.route('**/leaflet.min.css',async route=>{await estilosProntos;await route.fallback();});
  await context.tracing.start({screenshots:true,snapshots:true});
  try{
   // Observação somente: não altera opções, câmera nem métodos do mapa.
@@ -80,11 +82,32 @@ for(const [tipo,aprovada] of Object.entries(APROVADAS))test(tipo+': câmera, ret
   });
   const url=origem+(tipo==='evento'?'/index.html':'/mapas/?tipo='+tipo);
   const abrir=async()=>{
-   await page.goto(url);await page.getByRole('button',{name:'Voltar à posição original',exact:true}).waitFor();
+   await page.goto(url,{waitUntil:'domcontentloaded'});
+   await test.step('abertura escura antes da sessão e sem inicializar o mapa sem CSS',async()=>{
+    await expect(page.getByRole('status',{name:'Carregando mapa',exact:true})).toBeVisible();
+    await expect(page.locator('#mapa-carregando')).toHaveCSS('background-color','rgb(9, 15, 23)');
+    await expect(page.locator('#map')).toBeHidden();
+    expect(await page.evaluate(()=>!!window.__cameraTeste)).toBe(false);
+    a.liberarSessao();
+    await page.waitForFunction(()=>window.AlertaNuvem?.ativo);
+    await expect(page.locator('#mapa-carregando')).toBeVisible();
+    expect(await page.evaluate(()=>!!window.__cameraTeste)).toBe(false);
+    liberarEstilos();
+   });
+   await page.getByRole('button',{name:'Voltar à posição original',exact:true}).waitFor();
    await page.waitForFunction(()=>window.__cameraTeste?.map?.getMinZoom()>2);
+   await expect(page.locator('#mapa-carregando')).toHaveCount(0);
    await encerrarAnimacao(page);
   };
   await abrir();await canonica(page,aprovada);
+  await test.step('controles escuros inclusive o zoom mínimo desabilitado',async()=>{
+   for(const name of ['Zoom in','Voltar à posição original']){
+    const botao=page.getByRole('button',{name,exact:true});
+    await expect(botao).toHaveCSS('background-color','rgb(19, 33, 49)');
+    await expect(botao).toHaveCSS('color','rgb(234, 240, 246)');
+   }
+   await expect(page.getByRole('button',{name:'Zoom out',exact:true})).toHaveCSS('background-color','rgb(16, 26, 39)');
+  });
   expect(await page.evaluate(()=>innerWidth)).toBe(options.viewport.width);
   await test.step('barra técnica removida dos mapas',async()=>{
    await expect(page.locator('#backend-bar,[data-refresh],[data-logout]')).toHaveCount(0);
@@ -122,6 +145,7 @@ for(const [tipo,aprovada] of Object.entries(APROVADAS))test(tipo+': câmera, ret
   await test.step('botões de zoom respeitam o limite e retorno',async()=>{
    await page.getByRole('button',{name:'Zoom in',exact:true}).tap();await encerrarAnimacao(page);
    expect((await estado(page)).zoom).toBeGreaterThan(aprovada.zoom);
+   await expect(page.getByRole('button',{name:'Zoom out',exact:true})).toHaveCSS('background-color','rgb(19, 33, 49)');
    await voltar();
    // O controle está desabilitado de propósito; tocar nele deve ser inofensivo.
    await page.getByRole('button',{name:'Zoom out',exact:true}).tap({force:true});await encerrarAnimacao(page);await canonica(page,aprovada);
@@ -137,6 +161,7 @@ for(const [tipo,aprovada] of Object.entries(APROVADAS))test(tipo+': câmera, ret
   await page.screenshot({path:testInfo.outputPath('falha.png'),fullPage:true}).catch(()=>{});
   throw error;
  }finally{
+  a.liberarSessao();liberarEstilos();
   await context.tracing.stop({path:testInfo.outputPath('trace.zip')}).catch(()=>{});await context.close();
  }
 });
