@@ -49,10 +49,16 @@ try{
   const {data:{user},error:authError}=await client.auth.getUser();if(authError||!user)throw authError||Error('Sessão inválida.');
   const cityKey='alerta_contexto_municipal_demo_v1';
   let remote;
-  if(entry==='plataforma'){
+  if(entry==='plataforma'||entry==='colaboradores'){
    const result=await client.rpc('ma_meu_perfil');if(result.error)throw result.error;
-   if(!result.data?.admin_plataforma)throw Error('Esta área requer acesso de Administração Geral.');
-   remote={perfil:result.data,admin:AlertaAdminRemoto.criar(client)};
+   if(entry==='plataforma'&&!result.data?.admin_plataforma)throw Error('Esta área requer acesso de Administração Geral.');
+   if(entry==='plataforma')remote={perfil:result.data,admin:AlertaAdminRemoto.criar(client)};
+   else{
+    const cities=await client.from('ma_prefeituras').select('id,dados').order('id');if(cities.error)throw cities.error;
+    const municipio=new URLSearchParams(location.search).get('municipio')||sessionStorage.getItem(cityKey)||cities.data?.[0]?.id;
+    const ctx=await client.rpc('ma_colaboradores_contexto',{municipio});if(ctx.error)throw ctx.error;
+    remote={perfil:result.data,colaboradores:ctx.data,municipios:cities.data};
+   }
   }else{
    const [contrato,operacao]=await Promise.all([
     client.from('ma_configuracao').select('documento').eq('id','interface').single(),
@@ -68,7 +74,7 @@ try{
   }
   window.AlertaNuvem={...remote,ativo:true,email:user.email};
   client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){window.AlertaNuvem=null;location.reload();}});
-  if(entry!=='plataforma'){
+  if(entry!=='plataforma'&&entry!=='colaboradores'){
    await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=permissionsUrl;script.onload=resolve;script.onerror=reject;document.head.appendChild(script);});
    AlertaPermissoesUI.instalar({document,db:remote.repositorio({municipioId:sessionStorage.getItem(cityKey)}),location,MutationObserver});
   }
@@ -80,15 +86,25 @@ try{
 function showLogin(error=''){
  encerrarCarregamento();
  document.documentElement.classList.add('backend-pendente');
- gate.innerHTML='<section><small>GESTÃO MUNICIPAL</small><h1>Acesso à gestão municipal</h1><p>Entre com seu e-mail autorizado. Você receberá um link de acesso, sem precisar criar uma senha.</p><form><label for="backend-email">E-mail</label><input id="backend-email" type="email" autocomplete="email" required><button type="submit">Receber link de acesso</button></form><p role="alert"></p><button type="button" id="backend-reset" hidden>Sair da sessão atual</button></section>';
+ gate.innerHTML='<section><small>GESTÃO MUNICIPAL</small><h1>Acesso à gestão municipal</h1><p>Entre com o e-mail e a senha da sua conta. Seu cadastro é feito pelo administrador.</p><form><label for="backend-email">E-mail</label><input id="backend-email" type="email" autocomplete="username" required><label for="backend-senha">Senha</label><input id="backend-senha" type="password" autocomplete="current-password" required><button type="submit">Entrar</button></form><button type="button" id="backend-recuperar">Esqueci minha senha</button><p role="alert"></p><button type="button" id="backend-reset" hidden>Sair da sessão atual</button></section>';
  gate.querySelector('[role=alert]').textContent=error;
  if(entry==='plataforma'){gate.querySelector('small').textContent='ADMINISTRAÇÃO GERAL';gate.querySelector('h1').textContent='Acesso à administração do sistema';}
 
  gate.querySelector('#backend-reset').hidden=!error;
  gate.querySelector('#backend-reset').onclick=async()=>{if(client)await client.auth.signOut({scope:'local'});location.reload();};
  gate.querySelector('form').onsubmit=async e=>{e.preventDefault();const button=e.currentTarget.querySelector('button'),feedback=gate.querySelector('[role=alert]');button.disabled=true;
-  try{if(!client)throw Error('Conexão indisponível. Atualize a página.');const redirect=new URL(location.href);redirect.hash='';redirect.search='';const {error}=await client.auth.signInWithOtp({email:gate.querySelector('input').value.trim(),options:{emailRedirectTo:redirect.href}});if(error)throw error;feedback.textContent='Link enviado. Abra seu e-mail neste navegador para entrar.';}
-  catch(err){feedback.textContent=err.code==='over_email_send_rate_limit'||/email rate limit exceeded/i.test(err.message)?'O limite de envio de e-mails foi atingido. Seu cadastro continua ativo. Use o último link recebido ou tente novamente mais tarde.':err.message;}finally{button.disabled=false;}
+  try{if(!client)throw Error('Conexão indisponível. Atualize a página.');const {error}=await client.auth.signInWithPassword({email:gate.querySelector('#backend-email').value.trim(),password:gate.querySelector('#backend-senha').value});if(error)throw Error('E-mail ou senha não conferem, ou o acesso está indisponível.');location.reload();}
+  catch(err){feedback.textContent=err.message;}finally{button.disabled=false;}
+ };
+ gate.querySelector('#backend-recuperar').onclick=async()=>{
+  const email=gate.querySelector('#backend-email'),feedback=gate.querySelector('[role=alert]'),button=gate.querySelector('#backend-recuperar');
+  if(!email.reportValidity())return;button.disabled=true;
+  try{
+   const config=window.MARINGA_SUPABASE,redirect=new URL('../acesso/?recuperar=1',permissionsUrl);
+   const recovery=window.supabase.createClient(config.url,config.publishableKey,{auth:{flowType:'implicit',persistSession:false,detectSessionInUrl:false,autoRefreshToken:false}});
+   const {error}=await recovery.auth.resetPasswordForEmail(email.value.trim(),{redirectTo:redirect.href});if(error)throw Error('Não foi possível enviar a recuperação agora. Tente novamente mais tarde.');
+   feedback.textContent='Se o e-mail estiver cadastrado, você receberá as instruções para recuperar a senha.';
+  }catch(err){feedback.textContent=err.message;}finally{button.disabled=false;}
  };
  document.body.appendChild(gate);gate.querySelector('input').focus();
 }

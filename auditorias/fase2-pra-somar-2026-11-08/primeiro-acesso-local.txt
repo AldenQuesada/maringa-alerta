@@ -1,0 +1,15 @@
+
+Running 10 tests using 1 worker
+
+  ✓   1 [chromium] › tests/acesso/primeiro-acesso.spec.cjs:31:1 › admin cadastra ficha inteira; e-mail só depois; primeiro acesso e login real com senha (5.9s)
+  ✓   2 [chromium] › tests/acesso/primeiro-acesso.spec.cjs:63:1 › falha de entrega preserva a ficha; repetição usa um envio; conta existente não perde senha (2.3s)
+  ✓   3 [chromium] › tests/acesso/primeiro-acesso.spec.cjs:75:1 › link revogado e inválido são recusados; suspensão corta sessão já emitida (816ms)
+  ✓   4 [chromium] › tests/acesso/primeiro-acesso.spec.cjs:86:1 › conta existente sem confirmação entra pelo link sem trocar a senha (1.4s)
+  ✓   5 [chromium] › tests/acesso/primeiro-acesso.spec.cjs:92:1 › falha na renovação da sessão preserva ativação e permite login posterior (1.3s)
+  ✓   6 [webkit-mobile] › tests/acesso/primeiro-acesso.spec.cjs:31:1 › admin cadastra ficha inteira; e-mail só depois; primeiro acesso e login real com senha (6.8s)
+  ✓   7 [webkit-mobile] › tests/acesso/primeiro-acesso.spec.cjs:63:1 › falha de entrega preserva a ficha; repetição usa um envio; conta existente não perde senha (2.6s)
+  ✓   8 [webkit-mobile] › tests/acesso/primeiro-acesso.spec.cjs:75:1 › link revogado e inválido são recusados; suspensão corta sessão já emitida (897ms)
+  ✓   9 [webkit-mobile] › tests/acesso/primeiro-acesso.spec.cjs:86:1 › conta existente sem confirmação entra pelo link sem trocar a senha (1.7s)
+  ✓  10 [webkit-mobile] › tests/acesso/primeiro-acesso.spec.cjs:92:1 › falha na renovação da sessão preserva ativação e permite login posterior (1.6s)
+
+  10 passed (27.7s)

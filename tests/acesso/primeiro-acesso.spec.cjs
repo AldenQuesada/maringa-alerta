@@ -1,0 +1,98 @@
+const {test,expect}=require('@playwright/test');
+const {createHash,randomUUID}=require('node:crypto');
+const password=' Senha de teste 2026! ';
+let service,adminToken;
+async function assets(context){await context.route('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',route=>route.fulfill({path:require.resolve('leaflet/dist/leaflet.js'),contentType:'text/javascript'}));}
+test.beforeEach(async({context,request})=>{await assets(context);await request.get('/test/mail/fail?value=0');});
+async function requestJson(request,path,body,token=service){
+ const response=await request.post(path,{headers:{Authorization:'Bearer '+token,apikey:token},data:body});
+ const result=await response.json();if(!response.ok())throw Error(path+': '+JSON.stringify(result));return result;
+}
+async function rpc(request,name,args,token=adminToken){return requestJson(request,'/rest/v1/rpc/'+name,args,token);}
+async function register(request,email){
+ const id=randomUUID();const saved=await rpc(request,'ma_colaborador_salvar',{municipio:'maringa',identificador:id,versao_esperada:null,ficha:{nome:'Colaborador de teste',email,telefone:'44999999999',endereco:'Endereço de teste',bairro:'Bairro de teste',cargo:'Apoio',funcao:'operador',horarios:[]},acesso:{papel:'leitor',colecoes:['eventos','incidentes'],situacao:'pendente'}});return{id,saved};
+}
+async function send(request,person,command=randomUUID()){
+ return request.post('/functions/v1/ma-colaboradores-acesso',{headers:{Authorization:'Bearer '+adminToken},data:{acao:'enviar',municipio:'maringa',colaborador:person.id,versao:person.saved.versao,comando:command}});
+}
+async function mailLink(request,email){const response=await request.get('/test/mails');const mails=await response.json();const mail=mails.filter(x=>x.to.includes(email)).at(-1);expect(mail).toBeTruthy();return mail.text.match(/http:\/\/[^\s]+/)[0];}
+test.beforeAll(async({request})=>{
+ const keys=await(await request.get('/test/keys')).json();service=keys.service;
+ const created=await request.post('/auth/v1/admin/users',{headers:{Authorization:'Bearer '+service},data:{email:'administrador@example.invalid',password,email_confirm:true}});expect([200,422],await created.text()).toContain(created.status());
+ const auth=await requestJson(request,'/auth/v1/token?grant_type=password',{email:'administrador@example.invalid',password});adminToken=auth.access_token;
+});
+async function adminSession(page){
+ await page.goto('/acesso/');
+ await page.evaluate(async({token,service,password})=>{
+  const c=window.supabase.createClient('http://127.0.0.1:8785','sb_publishable_test',{auth:{storageKey:'maringa-supabase-auth-v1'}});
+  const {error}=await c.auth.signInWithPassword({email:'administrador@example.invalid',password});if(error)throw error;
+ },{token:adminToken,service,password});
+}
+test('admin cadastra ficha inteira; e-mail só depois; primeiro acesso e login real com senha',async({page,browser,request},info)=>{
+ const email='novo-'+info.project.name+'-'+randomUUID()+'@example.invalid';
+ await adminSession(page);await page.goto('/colaboradores/?municipio=maringa');
+ await page.getByRole('button',{name:'Novo colaborador',exact:true}).click();
+ await page.getByLabel('Nome completo').fill('Pessoa nova de homologação');await page.getByLabel('E-mail de acesso').fill(email);
+ await page.getByLabel('Telefone',{exact:true}).fill('44999999999');await page.getByLabel('Endereço',{exact:true}).fill('Rua de homologação');await page.getByLabel('Bairro',{exact:true}).fill('Centro');
+ await page.getByRole('button',{name:'Continuar',exact:true}).click();await page.getByLabel('Cargo',{exact:true}).fill('Apoio operacional');
+ await page.getByRole('button',{name:'Continuar',exact:true}).click();await page.getByRole('button',{name:'Adicionar horário'}).click();
+ await page.getByRole('button',{name:'Continuar',exact:true}).click();
+ expect((await(await request.get('/test/mails')).json()).filter(x=>x.to.includes(email))).toHaveLength(0);
+ await page.locator('#editor').screenshot({path:'.test-results/acesso/cadastro-'+info.project.name+'.png'});
+ await page.getByRole('button',{name:'Salvar e enviar acesso',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Cadastro salvo',exact:true})).toBeVisible();
+ await expect(page.getByRole('alert')).toContainText('aceitou o envio');
+ const ctx=await rpc(request,'ma_colaboradores_contexto',{municipio:'maringa'});const saved=ctx.colaboradores.find(x=>x.dados.email===email);expect(saved.dados.horarios).toHaveLength(1);expect(saved.acesso.situacao).toBe('pendente');
+ const link=await mailLink(request,email);const fresh=await browser.newContext({viewport:info.project.use.viewport,isMobile:!!info.project.use.isMobile,hasTouch:!!info.project.use.hasTouch});await assets(fresh);const recipient=await fresh.newPage();
+ await recipient.goto(link);await expect(recipient.getByRole('heading',{name:'Definir sua senha'})).toBeVisible();expect(recipient.url()).not.toContain('token=');
+ await recipient.getByLabel('Senha',{exact:true}).fill(password);await recipient.getByLabel('Confirme a senha').fill('diferente');await recipient.getByRole('button',{name:'Salvar senha e entrar'}).click();await expect(recipient.getByRole('alert')).toHaveText('As senhas não conferem.');
+ await recipient.getByLabel('Confirme a senha').fill(password);await recipient.getByRole('button',{name:'Salvar senha e entrar'}).click();
+ await expect(recipient).toHaveURL(/\/gestao\/\?municipio=maringa/);await expect.poll(async()=>recipient.evaluate(()=>document.documentElement.classList.contains('backend-pendente')?(document.querySelector('#backend-acesso [role=alert]')?.textContent||'carregando'):'pronto')).toBe('pronto');await expect(recipient.locator('#backend-acesso')).toHaveCount(0);
+ const logged=await requestJson(request,'/auth/v1/token?grant_type=password',{email,password});expect(logged.access_token).toBeTruthy();
+ const caps=await rpc(request,'ma_minhas_capacidades',{},logged.access_token);expect(caps.maringa.eventos.ler).toBe(true);expect(caps.maringa.eventos.gravar).toBe(false);expect(caps.maringa.usuarios.ler).toBe(false);
+ const again=await rpc(request,'ma_colaboradores_contexto',{municipio:'maringa'});expect(again.colaboradores.filter(x=>x.dados.email===email)).toHaveLength(1);expect(again.colaboradores.find(x=>x.dados.email===email).acesso.situacao).toBe('ativo');
+ await recipient.goto(link);await expect(recipient.getByRole('heading',{name:'Entrar e ativar acesso'})).toBeVisible();await recipient.getByLabel('Senha',{exact:true}).fill(password);await recipient.getByRole('button',{name:'Entrar e ativar',exact:true}).click();await expect(recipient).toHaveURL(/\/gestao\//);
+ await expect.poll(async()=>recipient.evaluate(()=>!!window.AlertaNuvem?.ativo)).toBe(true);
+ await recipient.evaluate(()=>{void window.AlertaSupabaseClient.auth.signOut({scope:'local'});});
+ await expect(recipient.getByRole('button',{name:'Entrar',exact:true})).toBeVisible();
+ await recipient.getByLabel('E-mail',{exact:true}).fill(email);await recipient.getByLabel('Senha',{exact:true}).fill(password);
+ await recipient.getByRole('button',{name:'Entrar',exact:true}).click();await expect.poll(async()=>recipient.evaluate(()=>!!window.AlertaNuvem?.ativo)).toBe(true);
+ await expect(recipient.locator('#backend-acesso')).toHaveCount(0);
+ await fresh.close();
+});
+test('falha de entrega preserva a ficha; repetição usa um envio; conta existente não perde senha',async({request,page},info)=>{
+ const email='existente-'+info.project.name+'-'+randomUUID()+'@example.invalid';await requestJson(request,'/auth/v1/admin/users',{email,password,email_confirm:true});
+ const person=await register(request,email),command=randomUUID();await request.get('/test/mail/fail?value=1');
+ const failed=await send(request,person,command);expect(failed.status()).toBe(502);
+ const ctx=await rpc(request,'ma_colaboradores_contexto',{municipio:'maringa'});expect(ctx.colaboradores.find(x=>x.dados.id===person.id).envio.estado).toBe('falhou');
+ await request.get('/test/mail/fail?value=0');expect((await send(request,person,command)).ok()).toBe(true);expect((await send(request,person,command)).ok()).toBe(true);
+ const mails=await(await request.get('/test/mails')).json();expect(mails.filter(x=>x.to.includes(email))).toHaveLength(1);
+ await adminSession(page);await page.goto(await mailLink(request,email));await expect(page.getByRole('heading',{name:'Entrar e ativar acesso'})).toBeVisible();
+ await page.getByLabel('Senha',{exact:true}).fill('senha errada');await page.getByRole('button',{name:'Entrar e ativar',exact:true}).click();await expect(page.getByRole('alert')).toContainText('Confira sua senha');
+ await page.getByLabel('Senha',{exact:true}).fill(password);await page.getByRole('button',{name:'Entrar e ativar',exact:true}).click();await expect(page).toHaveURL(/\/gestao\//);
+ const logged=await requestJson(request,'/auth/v1/token?grant_type=password',{email,password});expect(logged.access_token).toBeTruthy();
+});
+test('link revogado e inválido são recusados; suspensão corta sessão já emitida',async({request,page},info)=>{
+ const email='revogado-'+info.project.name+'-'+randomUUID()+'@example.invalid';const person=await register(request,email);expect((await send(request,person)).ok()).toBe(true);const link=await mailLink(request,email);
+ await rpc(request,'ma_colaborador_salvar',{municipio:'maringa',identificador:person.id,ficha:{cargo:'Cargo atualizado'},acesso:{papel:'leitor',colecoes:['eventos'],situacao:'pendente'},versao_esperada:1});
+ await page.goto(link);await expect(page.getByRole('alert')).toContainText('inválido ou expirado');
+ await page.goto('/acesso/#token='+ '0'.repeat(64));await expect(page.getByRole('alert')).toContainText('inválido ou expirado');
+ const activeEmail='suspenso-'+info.project.name+'-'+randomUUID()+'@example.invalid';await requestJson(request,'/auth/v1/admin/users',{email:activeEmail,password,email_confirm:true});const active=await register(request,activeEmail);await send(request,active);
+ const activeLink=await mailLink(request,activeEmail);const token=new URLSearchParams(new URL(activeLink).hash.slice(1)).get('token');const logged=await requestJson(request,'/auth/v1/token?grant_type=password',{email:activeEmail,password});
+ await rpc(request,'ma_acesso_ativar',{hash_token:createHash('sha256').update(token).digest('hex')},logged.access_token);
+ await rpc(request,'ma_colaborador_salvar',{municipio:'maringa',identificador:active.id,ficha:{},acesso:{papel:'leitor',colecoes:['eventos'],situacao:'suspenso'},versao_esperada:1});
+ const caps=await rpc(request,'ma_minhas_capacidades',{},logged.access_token);expect(caps.maringa).toBeUndefined();
+});
+test('conta existente sem confirmação entra pelo link sem trocar a senha',async({request,page},info)=>{
+ const email='confirmar-'+info.project.name+'-'+randomUUID()+'@example.invalid';await requestJson(request,'/auth/v1/admin/users',{email,password,email_confirm:false});const person=await register(request,email);expect((await send(request,person)).ok()).toBe(true);
+ const link=await mailLink(request,email);await page.goto(link);await expect(page.getByRole('heading',{name:'Entrar e ativar acesso'})).toBeVisible();
+ await page.getByLabel('Senha',{exact:true}).fill(password);await page.getByRole('button',{name:'Entrar e ativar',exact:true}).click();await expect(page).toHaveURL(/\/gestao\//);
+ const login=await requestJson(request,'/auth/v1/token?grant_type=password',{email,password});expect(login.access_token).toBeTruthy();
+});
+test('falha na renovação da sessão preserva ativação e permite login posterior',async({request,page},info)=>{
+ const email='refresh-'+info.project.name+'-'+randomUUID()+'@example.invalid';const person=await register(request,email);await send(request,person);await page.goto(await mailLink(request,email));
+ await page.route('**/auth/v1/token?grant_type=refresh_token',route=>route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({code:'refresh_token_not_found',msg:'Refresh token not found'})}));
+ await page.getByLabel('Senha',{exact:true}).fill(password);await page.getByLabel('Confirme a senha').fill(password);await page.getByRole('button',{name:'Salvar senha e entrar'}).click();
+ await expect(page.getByRole('heading',{name:'Acesso ativado'})).toBeVisible();
+ const login=await requestJson(request,'/auth/v1/token?grant_type=password',{email,password});expect(login.access_token).toBeTruthy();const caps=await rpc(request,'ma_minhas_capacidades',{},login.access_token);expect(caps.maringa.eventos.ler).toBe(true);
+});

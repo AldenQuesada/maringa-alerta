@@ -1,0 +1,2 @@
+const {defineConfig}=require('@playwright/test');
+module.exports=defineConfig({testDir:'.',testMatch:'primeiro-acesso.spec.cjs',workers:1,fullyParallel:false,retries:0,timeout:60000,reporter:[['list'],['json',{outputFile:'.test-results/acesso/resultado.json'}]],use:{baseURL:'http://127.0.0.1:8785',browserName:'chromium'},projects:[{name:'chromium',use:{viewport:{width:1280,height:900}}},{name:'webkit-mobile',use:{browserName:'webkit',viewport:{width:390,height:844},isMobile:true,hasTouch:true}}]});

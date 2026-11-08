@@ -412,3 +412,7 @@ enabled = true
 # declarative_schema_path = "./schemas"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# Consulta pelo token de alta entropia; envio administrativo valida JWT e autorização dentro do serviço.
+[functions.ma-colaboradores-acesso]
+verify_jwt = false

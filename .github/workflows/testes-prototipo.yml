@@ -106,6 +106,8 @@ jobs:
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/admin-geral.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/integracao.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/incidentes.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/colaboradores.sql
+          MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres python3 tests/backend/colaboradores-concorrencia.py
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/territorio.sql
           MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres python3 tests/backend/territorio-concorrencia.py
           MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres python3 tests/backend/territorio-espacial.py
@@ -128,3 +130,31 @@ jobs:
         with:
           deno-version: v2.7.14
       - run: deno test --allow-env tests/whatsapp/edge.test.ts
+
+  primeiro-acesso:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Instalar ambiente vazio com autenticação real
+        run: tests/acesso/iniciar.sh
+      - name: Cadastro administrativo, envio e senha em Chromium e WebKit
+        run: docker exec pra-somar-fase2-web npx playwright test --config=tests/acesso/playwright.config.cjs
+      - name: Recolher evidências sem credenciais
+        if: always()
+        run: |
+          mkdir -p .test-results/acesso
+          docker cp pra-somar-fase2-web:/app/.test-results/acesso/resultado.json .test-results/acesso/resultado.json || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: primeiro-acesso-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .test-results/acesso
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14
