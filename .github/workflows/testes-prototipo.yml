@@ -75,21 +75,24 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17
+        image: postgis/postgis:17-3.5@sha256:01a6a70e41e6c4467c8f55f6063555ed72db2d6662cd0d571040d42eadaeb6f6
         env:
           POSTGRES_PASSWORD: teste-local-descartavel
         ports: ['5432:5432']
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -h 127.0.0.1"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
     env:
       PGPASSWORD: teste-local-descartavel
+      PGDATABASE: teste_pra_somar
     steps:
       - uses: actions/checkout@v4
       - name: Validar migrações e isolamento no banco descartável
         run: |
+          # template0 mantém o PostGIS fora de public; a migração instala em gis.
+          createdb -h localhost -U postgres --template=template0 teste_pra_somar
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/bootstrap-local.sql
           for migration in supabase/migrations/*.sql; do
             psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f "$migration"
@@ -98,11 +101,14 @@ jobs:
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/permissoes.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/seguranca-servidor.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/operacoes.sql
-          MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres PGDATABASE=postgres python3 tests/backend/concorrencia.py
+          MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres PGDATABASE=teste_pra_somar python3 tests/backend/concorrencia.py
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/painel.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/admin-geral.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/integracao.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/incidentes.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/territorio.sql
+          MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres python3 tests/backend/territorio-concorrencia.py
+          MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres python3 tests/backend/territorio-espacial.py
 
       - name: Testar fluxos e cópia canônica do WhatsApp
         run: |
@@ -111,9 +117,9 @@ jobs:
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/canonico.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/contatos.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/exclusao-definitiva.sql
-          MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres PGDATABASE=postgres python3 tests/whatsapp/exclusao-concorrente.py
+          MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres PGDATABASE=teste_pra_somar python3 tests/whatsapp/exclusao-concorrente.py
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/fotos-historicas.sql
-          MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres PGDATABASE=postgres python3 tests/whatsapp/comparar-copia.py
+          MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres PGDATABASE=teste_pra_somar python3 tests/whatsapp/comparar-copia.py
   transporte-whatsapp:
     runs-on: ubuntu-latest
     steps:

@@ -1,0 +1,234 @@
+{
+  "status": "passed",
+  "tables_checked": 29,
+  "tables": [
+    {
+      "schema": "private",
+      "table": "ma_admins",
+      "rows": 1,
+      "sha256_sorted_row_md5": "b9818b55cee9ee3262e58e9d78d16adb6e83081700eda9614934744b6acae827",
+      "preserved": true
+    },
+    {
+      "schema": "private",
+      "table": "ma_convites_iniciais",
+      "rows": 1,
+      "sha256_sorted_row_md5": "90bf0250f6b331335a7d0750b2f0d60390c3f5a145de3885189554cd80ffcd36",
+      "preserved": true
+    },
+    {
+      "schema": "private",
+      "table": "ma_historico",
+      "rows": 9,
+      "sha256_sorted_row_md5": "c8cf3250c92dcae1ed52e841e93dbd953b5cc1b61ab8593d74790270442d165b",
+      "preserved": true
+    },
+    {
+      "schema": "private",
+      "table": "ma_permissoes",
+      "rows": 39,
+      "sha256_sorted_row_md5": "f89d5d2c919e3151007fb4b2047b1fa5b325990aab990070854efc63cc07d941",
+      "preserved": true
+    },
+    {
+      "schema": "private",
+      "table": "ma_referencias",
+      "rows": 0,
+      "sha256_sorted_row_md5": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preserved": true
+    },
+    {
+      "schema": "public",
+      "table": "ma_auditoria",
+      "rows": 9,
+      "sha256_sorted_row_md5": "0657d0bdf6a7b104d2f6af2df6c29cb085fb842ff8f889ef84263d9c06a33f91",
+      "preserved": true
+    },
+    {
+      "schema": "public",
+      "table": "ma_cadastros",
+      "rows": 253,
+      "sha256_sorted_row_md5": "0eb750bab14a60cf269b214b58b6f811e8f965c9e57bb520e82f029552b1f9b2",
+      "preserved": true
+    },
+    {
+      "schema": "public",
+      "table": "ma_configuracao",
+      "rows": 5,
+      "sha256_sorted_row_md5": "678c20c6ea25584d3869e19917067d091025e027eb294a7ac08ce1161cf543e8",
+      "preserved": true
+    },
+    {
+      "schema": "public",
+      "table": "ma_municipios_ibge",
+      "rows": 5571,
+      "sha256_sorted_row_md5": "42c2f30c982316d3e56b9fd75732a0dd32e8b3acc0be1a4606aa4527c5d547ef",
+      "preserved": true
+    },
+    {
+      "schema": "public",
+      "table": "ma_painel",
+      "rows": 0,
+      "sha256_sorted_row_md5": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preserved": true
+    },
+    {
+      "schema": "public",
+      "table": "ma_prefeituras",
+      "rows": 1,
+      "sha256_sorted_row_md5": "12cac400a92ceab2aa21f86c21bd98a373bc4b655ae26a5add02f9bd75fbdfcf",
+      "preserved": true
+    },
+    {
+      "schema": "public",
+      "table": "ma_ufs",
+      "rows": 27,
+      "sha256_sorted_row_md5": "18870a29a4c27d4782ab4e3af5715fb2b0f02171e9f84ebdc58103b8d953b4bc",
+      "preserved": true
+    },
+    {
+      "schema": "public",
+      "table": "ma_vinculos",
+      "rows": 1,
+      "sha256_sorted_row_md5": "f6896ea48925eb842d5b32811795f89077928f1cc0372e32178db0ade8c5e526",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "channels",
+      "rows": 1,
+      "sha256_sorted_row_md5": "23f539751520a8bf9e6a29257aa1ce8804115bac09354f3ecb0873619e113404",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "completions",
+      "rows": 0,
+      "sha256_sorted_row_md5": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "contact_history",
+      "rows": 0,
+      "sha256_sorted_row_md5": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "contact_owned_records",
+      "rows": 0,
+      "sha256_sorted_row_md5": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "contact_records",
+      "rows": 0,
+      "sha256_sorted_row_md5": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "deleted_receipts",
+      "rows": 0,
+      "sha256_sorted_row_md5": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "delivery_events",
+      "rows": 12,
+      "sha256_sorted_row_md5": "035294fc810776415ee1f358d91a05830cbe2e0abb0f6c5a13368384723e2c7c",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "flows",
+      "rows": 6,
+      "sha256_sorted_row_md5": "644413ebb911de3d5502534657a9cab27373dacd8cf7cdf0a7bfa312dec91641",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "inbox",
+      "rows": 4,
+      "sha256_sorted_row_md5": "ea4edfa3219fd616c13ff00e61f22332392affa63d3dd65643f9d13bba874be0",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "media_deletions",
+      "rows": 0,
+      "sha256_sorted_row_md5": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "nodes",
+      "rows": 58,
+      "sha256_sorted_row_md5": "feaf4b220295824c82aa6d90772e2c0ce3f18c8d4a8b6d01913d7ea8e1c14502",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "operations",
+      "rows": 4,
+      "sha256_sorted_row_md5": "ab7fcfdce31f8a99d5a6b190aa280b439caa466ad2b148a425d4621c90ecf06a",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "outbox",
+      "rows": 4,
+      "sha256_sorted_row_md5": "403e53529ded18367dcfc9bb655a3439470b5df9255439aac22a763d2e605ecb",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "sessions",
+      "rows": 1,
+      "sha256_sorted_row_md5": "68dedcd3c027917a7afa2b0d10092770790f4234800533a70b8a817c079bb6d8",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "simulation_requests",
+      "rows": 0,
+      "sha256_sorted_row_md5": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preserved": true
+    },
+    {
+      "schema": "wa",
+      "table": "versions",
+      "rows": 2,
+      "sha256_sorted_row_md5": "48fa849169c8281b399f8a0a70da6b96d1655d68ea09baa394c1580811a64580",
+      "preserved": true
+    }
+  ],
+  "territory": {
+    "rls": true,
+    "areas": 174,
+    "tipos": 70,
+    "pontos": 79,
+    "postgis": "3.3.7",
+    "dominios": {
+      "area": 174,
+      "local": 79
+    },
+    "contratos": true,
+    "categorias": 12,
+    "projetados": 253,
+    "public_definer": 0,
+    "indices_validos": true,
+    "migration_count": 35,
+    "novos_cadastros": 0,
+    "novas_permissoes": 9
+  },
+  "expected_changes": [
+    "Três contratos adicionados e versão do documento incrementada em um",
+    "Nove permissões para as três novas coleções"
+  ],
+  "no_legacy_record_rewrite": true,
+  "no_production_fixtures": true
+}

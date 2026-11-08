@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "scope": "Banco PostgreSQL completo, papéis sem senhas de login, segredos Vault portáveis e objetos Storage inventariados",
+  "database_dump_sha256": "b42fd8ad6c5f682df95bb6c3752f30beafe2d8b23e51dd1f8295a3efda92e074",
+  "tables_verified": 72,
+  "rows_verified": 8280,
+  "catalog_entries": 1019,
+  "effective_sequence_privileges_preserved": true,
+  "sequences_verified": [
+    "auth.refresh_tokens_id_seq",
+    "cron.jobid_seq",
+    "cron.runid_seq",
+    "private.ma_historico_id_seq",
+    "public.ma_auditoria_id_seq",
+    "realtime.subscription_id_seq",
+    "wa.contact_history_id_seq",
+    "wa.inbox_id_seq",
+    "wa.operations_id_seq"
+  ],
+  "vault_secrets_reencrypted_and_verified": 3,
+  "storage_objects_verified": 1,
+  "network_mode": "none",
+  "cron_launch_active_jobs": false,
+  "postgres_superuser": false,
+  "limits": [
+    "Senhas de login dos papéis não são exportadas. Auth.users e seus hashes estão no dump.",
+    "Chave raiz gerenciada do Vault não exportada; segredos recuperados por recriptografia com IDs e conteúdo preservados.",
+    "Não é um teste de envio Meta, hospedagem Edge, login HTTP Auth ou serviço HTTP Storage."
+  ],
+  "captured_at": "2026-11-08T11:54:00.960135+00:00"
+}
