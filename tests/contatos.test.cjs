@@ -2,6 +2,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const {parseHTML}=require('linkedom');
 const catalogFile=fs.readdirSync('supabase/migrations').find(f=>f.endsWith('_contatos_catalogo.sql'));
 const config=JSON.parse(fs.readFileSync('supabase/migrations/'+catalogFile,'utf8').split('$catalog$')[1]);
+config.deletion={mode:'permanent',revision_prefix:'delete-v1:'};
 const tick=()=>new Promise(r=>setImmediate(r));
 function env(){
  const {window,document}=parseHTML('<html><body><main id="page"></main><button id="origin">Ver</button></body></html>');
@@ -31,7 +32,7 @@ test('one popup has peer tabs and deletes only after explicit confirmation with 
  assert.equal(scope.location.hash,'#voluntarios');dialog.close();assert.equal(document.activeElement,origin);
  await dialog.open(contact,'delete');assert.equal(calls.length,0);document.querySelector('[data-ct-action=cancel-delete]').click();assert.equal(deleted,0);
  await dialog.open(contact,'delete');document.querySelector('[data-ct-action=confirm-delete]').click();await tick();
- assert.deepEqual(calls,[['s:one','v1']]);assert.equal(deleted,1);assert.equal(document.querySelector('dialog'),null);
+ assert.deepEqual(calls,[['s:one','delete-v1:v1']]);assert.equal(deleted,1);assert.equal(document.querySelector('dialog'),null);
 });
 test('directory mounts real RPC rows, triage filters and disposes polling on route exit',async(t)=>{
  const {scope,document}=env();let calls=[];

@@ -1,3 +1,4 @@
+import { cleanDeletedMedia } from './cleanup.ts';
 import type { Database } from './database.ts';
 import { ingestImage } from './media.ts';
 import { deliver, type Delivery } from './transport.ts';
@@ -17,5 +18,6 @@ export async function drain(db: Database, token: string) {
     await db.rpc('ma_wa_resultado', { saida: item.id, reserva: item.lease, ...result });
     if (result.resultado === 'sent') sent++;
   }
-  return { processed, sent };
+  const removed = await cleanDeletedMedia(db, Math.max(0, 45000 - (Date.now() - start)));
+  return { processed, sent, removed };
 }

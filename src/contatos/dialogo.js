@@ -15,7 +15,7 @@ function criar({service,config,onDeleted,onEdit}){
    if(!el.isConnected||dialog!==target)return;const img=document.createElement('img');img.src=u.href;img.alt=data.alt||l.image;img.loading='lazy';img.onerror=()=>{el.textContent=l.media_error;};el.appendChild(img);
   }catch(_){if(el.isConnected)el.textContent=l.media_error;}})();
  }}
- function content(){if(!dialog||!current)return;const r=current.contact;dialog.querySelector('#ct-dialog-title').textContent=r.name;dialog.querySelector('[data-subtitle]').textContent=[...new Set([r.category_label,r.stage_label])].join(' · ');
+ function content(){if(!dialog||!current)return;const r=current.contact;dialog.querySelector('#ct-dialog-title').textContent=r.name;dialog.querySelector('[data-subtitle]').textContent=[...new Set([r.category_label,r.stage_label,r.phone].filter(Boolean))].join(' · ');
   const area=dialog.querySelector('.ct-dialog-body'),scroll=area.scrollTop;
   if(mode==='delete'){area.innerHTML='<section class="ct-confirm"><h3>'+U.esc(l.delete_title)+'</h3><p>'+U.esc(l.delete_description)+'</p><div class="ct-confirm-actions">'+U.button('cancel-delete',l.cancel)+U.button('confirm-delete',l.confirm_delete)+'</div></section>';return;}
   const body=tab==='summary'?U.resumo(current,config):tab==='answers'?U.respostas(current,config):
@@ -42,7 +42,7 @@ function criar({service,config,onDeleted,onEdit}){
   if(a==='tab'){tab=b.dataset.tab;content();dialog.querySelector('#ct-tab-'+tab).focus();return;}
   if(a==='older'){await refresh(true);return;}
   if(a==='edit'){const id=current.contact.record_id;close();onEdit(id);return;}
-  if(a==='confirm-delete'){busy=true;b.disabled=true;try{await service.excluir(current.contact.id,current.contact.revision);close();onDeleted();}
+  if(a==='confirm-delete'){busy=true;b.disabled=true;try{await service.excluir(current.contact.id,(config.deletion?.revision_prefix||'')+current.contact.revision);close();onDeleted();}
    catch(error){if(dialog)dialog.querySelector('[role=alert]').textContent=error.message||l.error;}finally{busy=false;b.disabled=false;}}
  }
  return {open,refresh,close,isOpen:()=>Boolean(dialog)};

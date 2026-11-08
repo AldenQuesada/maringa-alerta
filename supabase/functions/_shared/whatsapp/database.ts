@@ -9,6 +9,13 @@ export class Database {
     if (!response.ok) throw Error(`rpc_${response.status}`); // Never log payloads, tokens or citizen data.
     return response.json();
   }
+  async remove(path: string): Promise<void> {
+    if (!/^[0-9a-f-]{36}\/[0-9]+\.(jpg|png)$/.test(path)) throw Error('storage_path');
+    const response = await this.request(`${this.url}/storage/v1/object/ma-whatsapp`, { method: 'DELETE',
+      headers: { apikey: this.key, Authorization: `Bearer ${this.key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prefixes: [path] }), signal: AbortSignal.timeout(10000) });
+    if (!response.ok) throw Error(`storage_delete_${response.status}`);
+  }
   async store(path: string, mime: string, data: Uint8Array): Promise<void> {
     const response = await this.request(`${this.url}/storage/v1/object/ma-whatsapp/${path}`, { method: 'POST',
       headers: { apikey: this.key, Authorization: `Bearer ${this.key}`, 'Content-Type': mime, 'x-upsert': 'true' },
