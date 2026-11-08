@@ -778,7 +778,9 @@ dependencias.areas.forEach(area=>{
   }catch(_){ area.layer=null; }
 });
 (navegacaoMapa=window.AlertaMapaNavegacao.instalar({
-  map, L, armazenamento:localStorage, limites:AlertaGestaoDados.config.limites(dependencias.prefeituraContexto), chaveVista:dependencias.storageKey('mapa_vista'), zonas:[
+  map, L, limites:AlertaGestaoDados.config.limites(dependencias.prefeituraContexto),
+  vistaInicial:AlertaGestaoDados.config.vistaMapa(dependencias.prefeituraContexto,'evento'),
+  arrasteNoMinimo:true, zonas:[
     ...dependencias.bairros.map(b=>b.poly),
     ...dependencias.areasCadastradas.filter(a=>a.layer).map(a=>{
       const limites=a.layer.getBounds();
