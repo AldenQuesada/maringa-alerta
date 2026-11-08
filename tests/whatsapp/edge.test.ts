@@ -56,3 +56,10 @@ Deno.test('Long canonical labels survive Meta limits in list descriptions, inclu
   assert(result.interactive.action.sections[0].rows[0].description === full);
   assert(result.interactive.action.sections[0].rows[0].title.length <= 24);
 });
+Deno.test('Contact profile is bounded and belongs only to the verified sender', () => {
+ const body=JSON.parse(payload),v=body.entry[0].changes[0].value;
+ v.contacts=[{wa_id:'other',profile:{name:'Wrong person'}},{wa_id:v.messages[0].from,profile:{name:' Nome\n'+ 'x'.repeat(180)}}];
+ const name=parseEvents(body)[0].events[0].profile_name;
+ assert(name.startsWith('Nome'));assert(name.length===120);assert(!name.includes('\n'));
+ v.contacts=[{wa_id:'other',profile:{name:'Wrong person'}}];assert(parseEvents(body)[0].events[0].profile_name===undefined);
+});

@@ -325,6 +325,7 @@ root.AlertaGestaoPrefeitura={criar};
 (function(root){'use strict';
 function criar({D,PAGE,PREF_SECTIONS,abrirDrawer,db,renderEstruturas,renderGeoterritorialidade,renderInicio,renderModulo,renderNav,renderPrefTabs,renderTerritorioMunicipal,state,topo}){
 function render(){
+ root.AlertaContatos?.desmontar();
  if(db.municipioAtivo()?.status==="suspensa"){
   PAGE.innerHTML=topo("Município suspenso","O Admin Geral suspendeu este município. A gestão municipal não pode operar até reativação.");
   return;
@@ -344,6 +345,7 @@ function render(){
   try{db.tipo!=="supabase"&&window.MaringaColaboradoresDemo?.garantir(db,window.localStorage,{gerarExemplo:new URLSearchParams(location.search).get("modo")==="demo"||new URLSearchParams(location.search).get("demo")==="1"})}catch(err){console.warn("Ajudantes demonstrativos não puderam ser importados",err);}
   window.AlertaCentralConversas.montar({target:PAGE,db,onEdit:id=>abrirDrawer(id,"voluntarios"),onNew:()=>abrirDrawer(null,"voluntarios")});
  }
+ else if(state.atual==="voluntarios"&&db.tipo==="supabase")window.AlertaContatos.montar({target:PAGE,db,onEdit:id=>abrirDrawer(id,"voluntarios")});
  else if(state.atual==="territorio")renderTerritorioMunicipal();
  else if(state.atual==="estruturas")renderEstruturas();
  else if(state.atual==="geoterritorialidade")renderGeoterritorialidade();

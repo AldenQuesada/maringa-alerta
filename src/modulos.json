@@ -207,6 +207,15 @@
         "src/evento/referencia-historica.js",
         "src/evento/referencia-historica-adaptador.js"
       ]
+    },
+    {
+      "target": "gestao/contatos.js",
+      "sources": [
+        "src/contatos/servico.js",
+        "src/contatos/apresentacao.js",
+        "src/contatos/dialogo.js",
+        "src/contatos/app.js"
+      ]
     }
   ]
 }
