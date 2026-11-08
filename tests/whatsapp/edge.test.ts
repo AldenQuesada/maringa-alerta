@@ -63,3 +63,19 @@ Deno.test('Contact profile is bounded and belongs only to the verified sender', 
  assert(name.startsWith('Nome'));assert(name.length===120);assert(!name.includes('\n'));
  v.contacts=[{wa_id:'other',profile:{name:'Wrong person'}}];assert(parseEvents(body)[0].events[0].profile_name===undefined);
 });
+
+Deno.test('Private cleanup uses Storage API, exact keys, retries and fenced receipts', async () => {
+ const { Database } = await import('../../supabase/functions/_shared/whatsapp/database.ts');
+ const { cleanDeletedMedia } = await import('../../supabase/functions/_shared/whatsapp/cleanup.ts');
+ const path='00000000-0000-4000-8000-000000000001/12.jpg';let request:Request|null=null;
+ const db=new Database('https://example.invalid','test',async(input,init)=>{request=new Request(input,init);return Response.json([]);});
+ await db.remove(path);assert(request!.method==='DELETE');assert(request!.url==='https://example.invalid/storage/v1/object/ma-whatsapp');
+ assert(JSON.stringify(await request!.json())===JSON.stringify({prefixes:[path]}));
+ let rejected=false;try{await db.remove('../institutional-logo.png');}catch{rejected=true;}assert(rejected);
+ const calls:any[]=[];let remaining=1;
+ const fake={rpc:async(name:string,args?:any)=>{calls.push([name,args]);return name==='ma_wa_midia_excluir_reservar'&&remaining-- > 0?{id:'job',lease:'lease',path}:null;},remove:async():Promise<void>=>{throw Error('temporary');}};
+ assert(await cleanDeletedMedia(fake as any)===0);
+ assert(calls[1][1].sucesso===false&&calls[1][1].reserva==='lease');
+ remaining=1;calls.length=0;fake.remove=async()=>{};
+ assert(await cleanDeletedMedia(fake as any)===1);assert(calls[1][1].sucesso===true);
+});
