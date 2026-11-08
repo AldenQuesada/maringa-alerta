@@ -5,6 +5,7 @@
 - Em interfaces escuras, barras de rolagem também devem ter trilho e indicador escuros, em computador e celular.
 - Preferir formulários amplos ou divididos em etapas para reduzir rolagem. Preservar acessibilidade e telas pequenas.
 - Os três mapas usam o fundo escuro canônico do Pra Somar, definido em `mapa-navegacao.css`. Não exibir nomes do banco ou da infraestrutura nos textos da interface.
+- Os controles +, − e retorno também são escuros, inclusive nos estados desabilitado, foco e hover. A abertura deve mostrar o fundo escuro e o estado de carregamento imediatamente, antes dos assets externos e da sessão; executar módulos somente após validar acesso e carregar os estilos, preservando sua ordem.
 
 ## Câmeras canônicas dos três mapas
 

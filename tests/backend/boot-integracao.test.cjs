@@ -2,7 +2,8 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
-async function boot({missingRules=false,hash="",invalidUser=false}={}){
+async function boot({missingRules=false,hash="",invalidUser=false,aguardarOperacao=false}={}){
+ let liberarInterface;const operacaoIniciada=new Promise(resolve=>{liberarInterface=resolve;});
  const calls=[],fields=new Map(),storage=new Map([['alerta_contexto_municipal_demo_v1','cidade-antiga']]);
  const node=()=>({remove(){},querySelector(key){if(!fields.has(key))fields.set(key,{focus(){}});return fields.get(key);}});
  const db={municipioAtivo:()=>({id:'cidade-pedida'}),pode:()=>false};
@@ -15,7 +16,7 @@ async function boot({missingRules=false,hash="",invalidUser=false}={}){
   from(table){return {
    select(){return this;},
    eq(field,id){calls.push(['config',table,id]);this.id=id;return this;},
-   async single(){return missingRules&&this.id==='operacao'?{error:{message:'ausente'}}:{data:{documento:{origem:this.id}}};}
+   async single(){if(this.id==='operacao')liberarInterface();if(aguardarOperacao&&this.id==='interface')await operacaoIniciada;return missingRules&&this.id==='operacao'?{error:{message:'ausente'}}:{data:{documento:{origem:this.id}}};}
   };}
  });}},
  AlertaGestaoDados:{aplicarConfiguracao(value){calls.push(['schema',value.origem]);}},
@@ -28,8 +29,12 @@ async function boot({missingRules=false,hash="",invalidUser=false}={}){
 }
 test('boot integrado aplica regras, escolhe município da URL e instala controles do servidor',async()=>{
  const result=await boot();
- assert.deepEqual(result.calls,[['config','ma_configuracao','interface'],['schema','interface'],['config','ma_configuracao','operacao'],['repository','cidade-pedida'],['scope','cidade-pedida'],['controls',false]]);
+ assert.deepEqual(result.calls,[['config','ma_configuracao','interface'],['config','ma_configuracao','operacao'],['schema','interface'],['repository','cidade-pedida'],['scope','cidade-pedida'],['controls',false]]);
  assert.equal(result.storage.get('alerta_contexto_municipal_demo_v1'),'cidade-pedida');assert.equal(result.ctx.AlertaNuvem.ativo,true);
+});
+test('as duas regras independentes são consultadas em paralelo antes dos cadastros',{timeout:1000},async()=>{
+ const result=await boot({aguardarOperacao:true});
+ assert.equal(result.ctx.AlertaNuvem.ativo,true);
 });
 test('boot integrado não carrega cadastros nem controladores quando faltam regras',async()=>{
  const result=await boot({missingRules:true});
