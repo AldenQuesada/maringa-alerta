@@ -9,7 +9,7 @@ const button=(action,label,attrs='')=>'<button type="button" class="btn" data-ct
 function linhas(items,c){const l=c.labels;
  return items.length?items.map(r=>'<tr data-ct-row="'+esc(r.id)+'">'+c.columns.map(col=>{
   let body=esc(r[col.key]||l.missing);
-  if(col.key==='name')body='<strong>'+esc(r.name)+'</strong><small>'+esc(l[r.name_source]||r.origin)+'</small>';
+  if(col.key==='name')body='<strong>'+esc(r.name)+'</strong><small>'+esc(r.name_source==='unnamed'?r.origin:(l[r.name_source]||r.origin))+'</small>';
   if(col.key==='stage_label')body='<span class="ct-badge">'+esc(r.stage_label)+'</span>'+(r.total?'<small>'+r.completed_steps+' / '+r.total+'</small>':'');
   if(col.key==='category_label')body='<span class="ct-category" data-category="'+esc(r.category)+'">'+body+'</span>';
   if(col.key==='updated_at')body=esc(date(r.updated_at));

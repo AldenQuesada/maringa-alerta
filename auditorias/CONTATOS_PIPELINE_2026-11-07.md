@@ -52,3 +52,9 @@ Os leitores públicos da API são `SECURITY INVOKER`; as funções privadas veri
 Não foram enviados testes para cidadãos nem criados cadastros fictícios em produção. A entrega de uma nova conversa ponta a ponta no aparelho depende de uma mensagem real posterior à publicação; os testes de fluxo usaram filas locais, sem chamada à Meta.
 
 Referências de implementação: [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security) e [acesso ao Storage](https://supabase.com/docs/guides/storage/security/access-control).
+
+## Conferência em produção
+
+Em 07/11/2026 à noite (Brasília), o contato real anterior passou a aparecer como Aguardando triagem. O popup abriu na própria rota e mostrou as mensagens recebidas, os botões enviados e os estados de leitura. As cinco migrações iniciais foram aplicadas; o webhook foi republicado com captura limitada do nome de perfil. A versão de atendimento permaneceu `municipal-v2-canonico`, sem entradas pendentes. A consulta anônima e a leitura direta de sessões permanecem negadas.
+
+O histórico contém duas entradas de imagem anteriores ao pipeline, sem objetos correspondentes no armazenamento privado. A interface informa a indisponibilidade. A recuperação de referência só é permitida quando o arquivo privado exato já existe, sem reconstruir ou publicar fotos de cidadãos. Esse caminho tem teste próprio e a suíte SQL do pipeline foi incluída no CI.
