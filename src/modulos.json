@@ -62,6 +62,7 @@
       "target": "gestao/dados.js",
       "sources": [
         "config/parametros.js",
+        "config/cameras-mapas.js",
         "config/municipios.js",
         "src/cadastros/municipios.js",
         "src/cadastros/esquemas.js",

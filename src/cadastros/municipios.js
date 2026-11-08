@@ -10,7 +10,7 @@ function referencias(municipio){
 // A câmera é uma preferência de navegação, independente das fontes de demonstração.
 // Não passar por referencias(): o modo conectado filtra essas fontes.
 function vistaMapa(municipio,tipo){
- const vista=tipo==='ajuda'?root.AlertaMunicipiosConfiguracao.referencias[municipio?.codigo_ibge]?.vistaAjuda:null;
+ const vista=root.AlertaCamerasMapas?.[municipio?.codigo_ibge]?.[tipo];
  return vista?clone(vista):null;
 }
 function selecionar(dados,sessoes=root.sessionStorage){
