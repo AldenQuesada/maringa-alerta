@@ -19,7 +19,7 @@ let client;
 try{
 
  const config=window.MARINGA_SUPABASE;
- if(!config?.publishableKey?.startsWith('sb_publishable_'))throw Error('Configuração pública do Supabase ausente.');
+ if(!config?.publishableKey?.startsWith('sb_publishable_'))throw Error('O acesso está indisponível. Tente novamente mais tarde.');
  // Convites e links administrativos retornam sessão no fragmento; o login normal usa PKCE.
  // O SDK valida a sessão e remove o fragmento. Nenhum token é copiado pela aplicação.
  const retorno=new URLSearchParams(new URL(location.href).hash.slice(1));
@@ -56,7 +56,7 @@ try{
   await start();return;
  }
  showLogin();
-}catch(error){showLogin(error.message||'Falha ao conectar ao Supabase.');}
+}catch(error){showLogin(error.message||'Não foi possível conectar. Tente novamente.');}
 function showLogin(error=''){
  document.documentElement.classList.add('backend-pendente');
  gate.innerHTML='<section><small>GESTÃO MUNICIPAL</small><h1>Acesso à gestão municipal</h1><p>Entre com seu e-mail autorizado. Você receberá um link de acesso, sem precisar criar uma senha.</p><form><label for="backend-email">E-mail</label><input id="backend-email" type="email" autocomplete="email" required><button type="submit">Receber link de acesso</button></form><p role="alert"></p><button type="button" id="backend-reset" hidden>Sair da sessão atual</button></section>';

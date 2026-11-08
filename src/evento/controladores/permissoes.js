@@ -47,7 +47,7 @@ function selecionarPerfilDemo(perfil) {
  if(dependencias.conectado){
   selecionarPerfilDemo({tipo:'visualizacao'});
   const cadastro=document.getElementById('demo-new');
-  cadastro.title=root.AlertaGestaoDados.ESQUEMAS.incidentes?'Registrar ocorrência conforme permissão do banco':'O banco ainda não possui o contrato de ocorrências do mapa.';
+  cadastro.title=root.AlertaGestaoDados.ESQUEMAS.incidentes?'Registrar ocorrência':'Registro de ocorrências indisponível.';
   cadastro.setAttribute('aria-label',cadastro.title);
   document.getElementById('session-anchor').textContent=window.AlertaNuvem.email;
 }else if(window.AlertaSessao && window.AlertaSessaoUI){

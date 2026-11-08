@@ -21,6 +21,7 @@ Esse comando parcial não substitui o CI completo. No CI, o reporter reprova a e
 - Ajuda, Colaboradores e Evento, em Chromium e WebKit, nas larguras 320 e 390 pixels, com toque e comportamento de navegador móvel habilitados.
 - As páginas reais carregam os bundles, a configuração canônica e o Leaflet 1.9.4 reais. O teste só observa o mapa: não troca as opções de navegação nem chama seus manipuladores privados de toque.
 - Abertura, zoom mínimo, arraste com um dedo, pinça para aproximar, afastamento cruzando o mínimo, pinça já no mínimo, cancelamento, botão de retorno, zoom +/−, rotação e recarga.
+- Fundo escuro igual ao Pra Somar nos três mapas e ausência de referências técnicas ao banco nos painéis, legendas, títulos e rótulos acessíveis.
 - A amostragem do evento de zoom reprova qualquer afastamento abaixo do mínimo durante a pinça, mesmo que o mapa volte à escala correta no fim.
 - Os valores esperados são literais aprovados; não são lidos da configuração sob teste. Os testes Node verificam igualdade exata. No navegador há tolerância máxima de um pixel para o centro, devido ao arredondamento de projeção do Leaflet; zoom e mínimo não recebem essa tolerância.
 - Chromium recebe eventos multitoque pelo protocolo de entrada do navegador. WebKit recebe TouchEvents sintéticos nos listeners reais. São testes de motores de navegador, não certificação de aparelho físico Android/iPhone.

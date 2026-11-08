@@ -90,6 +90,15 @@ for(const [tipo,aprovada] of Object.entries(APROVADAS))test(tipo+': câmera, ret
    await expect(page.locator('#backend-bar,[data-refresh],[data-logout]')).toHaveCount(0);
    await expect(page.getByText('Conectado · cadastros no Supabase',{exact:true})).toHaveCount(0);
   });
+  await test.step('fundo escuro canônico e textos sem referências técnicas',async()=>{
+   await expect(page.locator('#map .leaflet-tile-pane')).toHaveCSS('filter','invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.92) saturate(0.9)');
+   await expect(page.locator('#map')).toHaveCSS('background-color','rgb(23, 42, 55)');
+   if(tipo!=='evento')await expect(page.locator('.territory-count')).toContainText('polígonos de bairros');
+   for(const texto of await page.locator('.territory-count,#map-data-status').allTextContents())expect(texto).not.toMatch(/supabase|banco de dados|backend/i);
+   expect(await page.locator('body').innerText()).not.toMatch(/supabase|banco de dados|backend/i);
+   const rotulos=await page.locator('[title],[aria-label]').evaluateAll(els=>els.flatMap(el=>[el.getAttribute('title')||'',el.getAttribute('aria-label')||'']));
+   for(const rotulo of rotulos)expect(rotulo).not.toMatch(/supabase|banco de dados|permissão do banco|o banco ainda|backend/i);
+  });
   const gesto=await gestos(page,context,browserName);
   const voltar=async()=>{await page.getByRole('button',{name:'Voltar à posição original',exact:true}).tap();await encerrarAnimacao(page);await canonica(page,aprovada);};
   await test.step('arraste de um dedo no zoom inicial',async()=>{
