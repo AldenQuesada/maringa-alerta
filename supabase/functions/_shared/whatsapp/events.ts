@@ -11,7 +11,9 @@ export function parseEvents(body: ObjectMap): Envelope[] {
     const events: ObjectMap[] = [];
     for (const m of value.messages ?? []) {
       if (!m.id || !/^\d{7,15}$/.test(m.from ?? '') || !/^\d{1,12}$/.test(m.timestamp ?? '')) throw Error('invalid_message');
-      events.push({ type: 'message', id: m.id, from: m.from, timestamp: m.timestamp,
+      const profile = value.contacts?.find((c: ObjectMap) => c.wa_id === m.from)?.profile?.name;
+      const profileName = typeof profile === 'string' ? profile.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 120) : undefined;
+      events.push({ profile_name: profileName || undefined, type: 'message', id: m.id, from: m.from, timestamp: m.timestamp,
         text: m.type === 'text' ? m.text?.body : undefined,
         button: m.type === 'interactive' ? m.interactive?.button_reply?.id ?? m.interactive?.list_reply?.id : undefined,
         image: m.type === 'image' ? { id: m.image?.id, mime_type: m.image?.mime_type, sha256: m.image?.sha256 } : undefined });
