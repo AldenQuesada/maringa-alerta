@@ -43,7 +43,7 @@ Os leitores públicos da API são `SECURITY INVOKER`; as funções privadas veri
 
 ## Validação
 
-- 267 testes Node de interface, regressão e contratos, incluindo a câmera canônica dos mapas.
+- 278 testes Node de interface, regressão e contratos, incluindo a câmera canônica dos mapas.
 - Oito testes Deno de assinatura, parser, mídia, transporte e procedência do perfil.
 - Onze suítes SQL em PostgreSQL descartável: catálogo, três fluxos, cópia canônica, pipeline, permissões e demais contratos municipais.
 - Pipeline: visibilidade antes do processamento, progresso sem avançar em resposta inválida, confirmação sem duplicar linha, isolamento de cadastro manual, exclusão concorrente com envio, replay, evento atrasado, reabertura e RLS real sob papel autenticado.
