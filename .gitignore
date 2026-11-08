@@ -6,3 +6,6 @@ supabase/.temp/
 supabase/.branches/
 
 .publicacao/
+
+.test-results/
+.playwright-report/

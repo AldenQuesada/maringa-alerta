@@ -131,7 +131,8 @@ button:disabled{opacity:.45;cursor:not-allowed!important}
 #floatwin .c-avatar{width:22px;height:22px;font-size:9px}
 #floatwin .floatwin-min{font-size:11px}
 @media(max-width:860px){
- #floatwin{width:min(320px,calc(100% - 24px))}
+ /* Reserva a coluna dos controles de zoom também em telas de 320 px. */
+ #floatwin{width:min(320px,calc(100% - 72px))}
  #zone-list{flex:0 0 auto;min-height:0;max-height:57dvh}
  #topbar .event-search{order:3;flex-basis:100%}
  #topbar .stats-row{order:4}

@@ -43,6 +43,34 @@ jobs:
           node --check backend/repositorio.js
       - name: Executar testes funcionais
         run: node --test tests/*.test.cjs gestao/tests/*.test.cjs crise/tests/*.test.cjs plataforma/tests/*.test.cjs tests/backend/*.test.cjs
+  # Nome estável: exigido na proteção da main e no workflow de publicação.
+  mapas-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Instalar navegadores isolados
+        run: npx playwright install --with-deps chromium webkit
+      - name: Conferir fontes e bundles
+        run: npm run check
+      - name: Câmeras canônicas, celular e pinça nos três mapas
+        run: npm run test:mapas:mobile
+      - name: Guardar relatório, capturas e rastros dos testes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mapas-mobile-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .test-results/mapas
+            .playwright-report/mapas
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14
   permissoes-banco:
     runs-on: ubuntu-latest
     services:
