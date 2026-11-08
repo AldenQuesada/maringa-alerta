@@ -9,3 +9,6 @@ supabase/.branches/
 
 .test-results/
 .playwright-report/
+
+# Backups e conexão privada das fases de implantação.
+.fase0-privado/

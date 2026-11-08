@@ -1,0 +1,233 @@
+{
+  "status": "passed",
+  "stages": [
+    {
+      "file": "tests/backend/bootstrap-local.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261106175630_fundacao_municipal.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261106180411_primeiro_administrador.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261106181707_restringir_funcoes_auxiliares.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261106231833_admin_catalogo_guards.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261106231835_admin_auditoria.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261106231836_admin_acessos.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261106232331_escrita_controlada.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261106232435_regras_servidor.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261106232743_historico_e_integridade.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261106233100_escrita_controlada.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261106233521_capacidades_e_regras_operacionais.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261106233717_indice_prefeitura_ibge_uf.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261106234426_painel_persistente.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261107013933_ocorrencias_mapa_persistentes.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261107023308_identidade_papel_interno.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261107030851_whatsapp_catalogo.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261107030853_whatsapp_conversas.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261107030855_whatsapp_validacao.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261107030856_whatsapp_renderizacao.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261107030858_whatsapp_persistencia.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261107030900_whatsapp_motor.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261107030901_whatsapp_transporte.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261107030903_whatsapp_fluxos_iniciais.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261107032058_whatsapp_operacao.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261107033002_whatsapp_resiliencia.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261107121719_whatsapp_copia_canonica.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261108010637_contatos_ciclo.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261108010638_contatos_catalogo.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261108010640_contatos_leitura.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261108010642_contatos_detalhe.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261108010643_contatos_exclusao.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261108012831_contatos_fotos_historicas.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261108030857_contatos_cascade.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261108031122_contatos_midia_exclusao.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261108031124_contatos_excluir_definitivo.sql",
+      "passed": true
+    },
+    {
+      "file": "supabase/migrations/20261108115725_fase1_catalogo_territorial.sql",
+      "passed": true
+    },
+    {
+      "file": "tests/backend/permissoes.sql",
+      "passed": true
+    },
+    {
+      "file": "tests/backend/seguranca-servidor.sql",
+      "passed": true
+    },
+    {
+      "file": "tests/backend/operacoes.sql",
+      "passed": true
+    },
+    {
+      "file": "tests/backend/concorrencia.py",
+      "passed": true
+    },
+    {
+      "file": "tests/backend/painel.sql",
+      "passed": true
+    },
+    {
+      "file": "tests/backend/admin-geral.sql",
+      "passed": true
+    },
+    {
+      "file": "tests/backend/integracao.sql",
+      "passed": true
+    },
+    {
+      "file": "tests/backend/incidentes.sql",
+      "passed": true
+    },
+    {
+      "file": "tests/backend/territorio.sql",
+      "passed": true
+    },
+    {
+      "file": "tests/backend/territorio-concorrencia.py",
+      "passed": true
+    },
+    {
+      "file": "tests/backend/territorio-espacial.py",
+      "passed": true
+    },
+    {
+      "file": "tests/whatsapp/fluxos.sql",
+      "passed": true
+    },
+    {
+      "file": "tests/whatsapp/catalogo.sql",
+      "passed": true
+    },
+    {
+      "file": "tests/whatsapp/canonico.sql",
+      "passed": true
+    },
+    {
+      "file": "tests/whatsapp/contatos.sql",
+      "passed": true
+    },
+    {
+      "file": "tests/whatsapp/exclusao-definitiva.sql",
+      "passed": true
+    },
+    {
+      "file": "tests/whatsapp/exclusao-concorrente.py",
+      "passed": true
+    },
+    {
+      "file": "tests/whatsapp/fotos-historicas.sql",
+      "passed": true
+    },
+    {
+      "file": "tests/whatsapp/comparar-copia.py",
+      "passed": true
+    }
+  ],
+  "migrations": 36,
+  "test_stages": 19,
+  "bootstrap": 1,
+  "disposable_network": "none"
+}

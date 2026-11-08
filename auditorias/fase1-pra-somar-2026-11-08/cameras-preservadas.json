@@ -1,0 +1,10 @@
+{
+  "same_as_base": true,
+  "mandatory_mobile_job_unchanged": true,
+  "files_sha256": {
+    "config/cameras-mapas.js": "eed243578d873edfb108f33b4092d231109a7c39f044d8ea0336d1ed765c4760",
+    "tests/cameras-mapas-canonicas.test.cjs": "d184ed6bd39ec171b8d57a247fa7fbebd97f6750aef29d49e5c5377bb0f046c1",
+    "tests/browser/mapas-mobile.spec.cjs": "4759bff23258547c30a721d4a376a787835cf9de055cedcd87fab79002884762",
+    "playwright.mapas.config.cjs": "7ae4885885e9ea08cb79495e14f5aaa1adbf205b07c22753789deb33fde2fb38"
+  }
+}
