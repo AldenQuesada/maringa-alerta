@@ -4,7 +4,8 @@
   "scripts": {
     "test": "node --test tests/*.test.cjs gestao/tests/*.test.cjs crise/tests/*.test.cjs plataforma/tests/*.test.cjs tests/backend/*.test.cjs",
     "build": "node scripts/build-modulos.mjs",
-    "check": "node scripts/build-modulos.mjs --check"
+    "check": "node scripts/build-modulos.mjs --check",
+    "test:mapas:mobile": "node --test tests/cameras-mapas-canonicas.test.cjs && playwright test --config=playwright.mapas.config.cjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.119.0"
@@ -13,6 +14,9 @@
     "node": ">=22"
   },
   "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "leaflet": "1.9.4",
+    "leaflet.heat": "0.2.0",
     "linkedom": "0.18.12"
   }
 }

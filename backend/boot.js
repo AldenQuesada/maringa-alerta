@@ -5,7 +5,6 @@ const gate=document.createElement('div');gate.id='backend-acesso';
 const scripts=[...document.querySelectorAll('script[type="application/x-maringa-modulo"]')];
 const entry=document.currentScript?.dataset.area||'gestao';
 const permissionsUrl=new URL('permissoes-ui.js',document.currentScript.src).href;
-function status(kind,message){const bar=document.getElementById('backend-bar');if(bar){bar.dataset.status=kind;bar.querySelector('span').textContent=message||({salvando:'Salvando no Supabase…',salvo:'Conectado · cadastros no Supabase',erro:'Não foi possível salvar. Revise o aviso e tente novamente.'}[kind]||'Conectado ao Supabase');}}
 async function start(){
  for(const item of scripts)await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=item.src;s.onload=resolve;s.onerror=()=>reject(Error('Não foi possível carregar '+new URL(item.src).pathname));document.body.appendChild(s);});
  document.documentElement.classList.remove('backend-pendente');gate.remove();
@@ -14,9 +13,6 @@ async function start(){
  if(window.AlertaNuvem?.ativo){
   const anchor=document.getElementById('session-anchor');if(anchor){anchor.textContent=window.AlertaNuvem.email;anchor.classList.add('backend-session');anchor.title=window.AlertaNuvem.email;}
   for(const a of document.querySelectorAll('a[href]')){const u=new URL(a.href,location.href);if(u.origin===location.origin&&/\/atendimento\//.test(u.pathname)){a.hidden=true;a.removeAttribute('href');}}
-  const bar=document.createElement('div');bar.id='backend-bar';bar.innerHTML='<span>Conectado · cadastros no Supabase</span><button type="button" data-refresh>Atualizar</button><button type="button" data-logout>Sair</button>';document.body.appendChild(bar);
-  bar.querySelector('[data-refresh]').onclick=()=>location.reload();
-  bar.querySelector('[data-logout]').onclick=async()=>{await client.auth.signOut({scope:'local'});location.reload();};
  }
 }
 let client;
@@ -47,7 +43,7 @@ try{
    if(operacao.error||!operacao.data)throw Error('Regras operacionais indisponíveis.');
    window.AlertaRegrasOperacionais=operacao.data.documento;
    const municipioId=new URLSearchParams(location.search).get('municipio')||sessionStorage.getItem(cityKey)||null;
-   remote=await AlertaRepositorioSupabase.criar({client,dados:AlertaGestaoDados,municipioId,onStatus:status});
+   remote=await AlertaRepositorioSupabase.criar({client,dados:AlertaGestaoDados,municipioId});
    sessionStorage.setItem(cityKey,remote.repositorio().municipioAtivo().id);
   }
   window.AlertaNuvem={...remote,ativo:true,email:user.email};

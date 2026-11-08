@@ -3,7 +3,7 @@ import {resolve} from 'node:path';
 const dest=resolve('.publicacao');
 if(existsSync(dest))throw Error('Use uma pasta de publicação nova; não reutilizar artefatos antigos.');
 mkdirSync(dest);
-const excluir=/(^|\/)(\.git|\.github|\.publicacao|node_modules|auditorias|tests|scripts|src|supabase|atendimento)(\/|$)/;
+const excluir=/(^|\/)(\.git|\.github|\.publicacao|\.test-results|\.playwright-report|node_modules|auditorias|tests|scripts|src|supabase|atendimento)(\/|$)/;
 for(const entry of readdirSync('.', {withFileTypes:true})){
  if(excluir.test(entry.name))continue;
  if(!entry.isDirectory()&&!/\.(html|js|css|svg|png|ico|webmanifest)$/.test(entry.name))continue;
