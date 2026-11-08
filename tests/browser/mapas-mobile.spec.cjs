@@ -34,10 +34,9 @@ async function gestos(page,context,browserName){
   if(cdp)return cdp.send('Input.dispatchTouchEvent',{type,touchPoints:points.map((p,i)=>({x:p.x,y:p.y,id:i+1,radiusX:5,radiusY:5,force:1}))});
   // Playwright não oferece multitouch no WebKit; eventos TouchEvent percorrem
   // os listeners reais do Leaflet, sem invocar seus manipuladores privados.
-  await page.locator('#map').evaluate((el,{type,points})=>{
-   const touches=points.map((p,i)=>new Touch({identifier:i+1,target:el,clientX:p.x,clientY:p.y,pageX:p.x+scrollX,pageY:p.y+scrollY,screenX:p.x,screenY:p.y,radiusX:5,radiusY:5,force:1}));
-   el.dispatchEvent(new TouchEvent(type.toLowerCase(),{bubbles:true,cancelable:true,touches,targetTouches:touches,changedTouches:touches}));
-  },{type,points});
+  // dispatchEvent adapta Touch/TouchList ao WebKit (new Touch é ilegal nele).
+  const touches=points.map((p,i)=>({identifier:i+1,clientX:p.x,clientY:p.y,screenX:p.x,screenY:p.y,radiusX:5,radiusY:5,force:1}));
+  await page.locator('#map').dispatchEvent(type.toLowerCase(),{touches,targetTouches:touches,changedTouches:touches});
  }
  async function quadro(){await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));}
  return {
