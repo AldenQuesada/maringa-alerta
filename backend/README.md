@@ -33,11 +33,11 @@ As URLs de retorno devem incluir os caminhos exatos `/maringa-alerta/gestao/`, `
 - `tests/backend/bootstrap-local.sql` + migrações + `tests/backend/permissoes.sql`: banco PostgreSQL **descartável**, isolamento entre prefeituras, anônimos, leitores, operadores, convite não confirmado e conflito de versões. Nunca executar essas fixtures no projeto real.
 - CI repete os testes de banco em PostgreSQL 17 + PostGIS, incluindo concorrência territorial e execução do índice espacial sob permissões municipais.
 
-As migrações desta implantação foram aplicadas pelo SQL Editor da conta autorizada. Antes de usar `supabase db push` pela primeira vez, vincular o projeto correto e marcar essas versões como aplicadas com `supabase migration repair`; não reaplicar CREATE TABLE em produção. A carga inicial é separada das migrações de estrutura.
+As migrações iniciais foram aplicadas pelo SQL Editor da conta autorizada. A fase 0 reconciliou o histórico remoto com as 35 versões canônicas; a fase 1 foi aplicada pela CLI e completou 36 versões alinhadas, sem pendências. Não repetir o reparo histórico nem reaplicar as migrações antigas. A carga inicial permanece separada das migrações de estrutura.
 
 ## Administração Geral — revisão de 06/11/2026
 
-Consulte [os contratos e limites da área central](../plataforma/README.md) e [a auditoria desta revisão](../AUDITORIA_ADMIN_GERAL_2026-11-06.md). A carga nacional é somente catálogo: nenhum novo ambiente municipal, conta ou vínculo foi criado em produção. As cinco novas migrações foram aplicadas pelo SQL Editor e verificadas; o frontend integra a versão atual. A reconciliação do histórico do CLI continua necessária antes do próximo db push.
+Consulte [os contratos e limites da área central](../plataforma/README.md) e [a auditoria desta revisão](../AUDITORIA_ADMIN_GERAL_2026-11-06.md). A carga nacional é somente catálogo: nenhum novo ambiente municipal, conta ou vínculo foi criado em produção. As cinco novas migrações foram aplicadas pelo SQL Editor e verificadas; o frontend integra a versão atual. O histórico da CLI foi reconciliado na fase 0 e conferido novamente após a fase 1.
 
 ## Catálogo territorial
 
