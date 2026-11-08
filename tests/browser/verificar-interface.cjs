@@ -4,13 +4,13 @@ const out=process.env.BROWSER_EVIDENCE_DIR||'/tmp/maringa-integracao-browser-evi
 const report=[];
 const only=process.env.BROWSER_SCENARIO;
 async function run(name,options,fn){if(only&&name!==only)return;const a=await ambiente(options);try{a.page.setDefaultTimeout(10000);await fn(a);assert.deepEqual(a.errors,[]);assert.deepEqual(a.blocked,[]);report.push({name,ok:true});}catch(e){report.push({name,ok:false,error:e.message});await a.page.screenshot({path:out+'/'+name+'-falha.png',fullPage:true}).catch(()=>{});}finally{await a.browser.close();console.log(JSON.stringify(report.at(-1)));}}
-async function open(a,url){await a.page.goto('http://127.0.0.1:8783/'+url);await a.page.locator('#backend-bar').waitFor();}
+async function open(a,url){await a.page.goto('http://127.0.0.1:8783/'+url);await a.page.locator('html:not(.backend-pendente)').waitFor();}
 (async()=>{
 await run('cadastros-editor',{},async a=>{const p=a.page;await open(a,'gestao/#bases');
  await p.locator('[data-new="bases"]').click();await p.locator('#field-nome').fill('Nova base do teste');await p.locator('#drawer-save').click();await p.locator('#drawer-overlay').waitFor({state:'hidden'});
  assert.ok(a.rows.some(x=>x.dados.nome==='Nova base do teste'));
  const row=p.locator('tr').filter({hasText:'Nova base do teste'});await row.locator('[data-edit]').click();await p.locator('#field-nome').fill('Base editada no teste');await p.locator('#drawer-save').click();await p.locator('#drawer-overlay').waitFor({state:'hidden'});
- await p.reload();await p.locator('#backend-bar').waitFor();assert.ok(await p.getByText('Base editada no teste',{exact:true}).isVisible());
+ await p.reload();await p.locator('html:not(.backend-pendente)').waitFor();assert.ok(await p.getByText('Base editada no teste',{exact:true}).isVisible());
  p.once('dialog',d=>d.accept());await p.locator('tr').filter({hasText:'Base editada no teste'}).locator('[data-delete]').click();await p.getByText('Base editada no teste',{exact:true}).waitFor({state:'hidden'});
  a.reject();await p.locator('[data-new="bases"]').click();await p.locator('#field-nome').fill('Não pode salvar');await p.locator('#drawer-save').click();await p.getByText(/Falha de gravação do teste isolado/).first().waitFor();assert.ok(!a.rows.some(x=>x.dados.nome==='Não pode salvar'));
 });
@@ -28,13 +28,13 @@ for(const width of [1440,390])await run('ocorrencia-banco-'+width,{width},async 
  assert.equal(a.rows.filter(x=>x.colecao==='incidentes').length,1);
  assert.match(await p.locator('#panel-body').innerText(),/OC-/);
  await p.locator('#incidente-acoes').getByRole('button',{name:'Confirmada',exact:true}).click();await p.getByText('Queda de árvore · Confirmada',{exact:true}).waitFor();
- await p.reload();await p.locator('#backend-bar').waitFor();
+ await p.reload();await p.locator('html:not(.backend-pendente)').waitFor();
  const records=await p.evaluate(()=>AlertaNuvem.repositorio().lista('incidentes'));assert.equal(records[0].status,'Confirmada');
  assert.equal(await p.evaluate(()=>Object.keys(localStorage).some(k=>k.includes('operacao'))),false);
  await p.locator('#demo-new').waitFor();await start();await p.locator('[data-link]').click();await p.locator('.cadastro-ocorrencia').waitFor({state:'hidden'});
  assert.equal(a.rows.filter(x=>x.colecao==='incidentes').length,1);assert.equal(a.rows.find(x=>x.colecao==='incidentes').dados.relatos.length,1);
  await p.locator('#incidente-acoes').getByRole('button',{name:finalStatus,exact:true}).click();await p.getByText('Queda de árvore · '+finalStatus,{exact:true}).waitFor();
- await p.locator('#panel-close').click();await open(a,'gestao/#incidentes');assert.ok(await p.getByText('Abrir no mapa',{exact:true}).isVisible());assert.equal(await p.locator('[data-edit]').count(),0);await p.getByText('Abrir no mapa',{exact:true}).click();await p.locator('#backend-bar').waitFor();await p.getByText('Queda de árvore · '+finalStatus,{exact:true}).waitFor();await p.locator('#panel-close').click();a.reject();await start();await p.locator('button[value=triagem]').click();await p.locator('#cad-oc-error').getByText(/Falha de gravação/).waitFor();
+ await p.locator('#panel-close').click();await open(a,'gestao/#incidentes');assert.ok(await p.getByText('Abrir no mapa',{exact:true}).isVisible());assert.equal(await p.locator('[data-edit]').count(),0);await p.getByText('Abrir no mapa',{exact:true}).click();await p.locator('html:not(.backend-pendente)').waitFor();await p.getByText('Queda de árvore · '+finalStatus,{exact:true}).waitFor();await p.locator('#panel-close').click();a.reject();await start();await p.locator('button[value=triagem]').click();await p.locator('#cad-oc-error').getByText(/Falha de gravação/).waitFor();
  assert.equal(a.rows.filter(x=>x.colecao==='incidentes').length,1);
  await p.screenshot({path:out+'/ocorrencia-'+width+'.png',fullPage:true});
 });

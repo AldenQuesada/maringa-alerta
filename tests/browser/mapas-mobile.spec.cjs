@@ -86,6 +86,10 @@ for(const [tipo,aprovada] of Object.entries(APROVADAS))test(tipo+': câmera, ret
   };
   await abrir();await canonica(page,aprovada);
   expect(await page.evaluate(()=>innerWidth)).toBe(options.viewport.width);
+  await test.step('barra técnica removida dos mapas',async()=>{
+   await expect(page.locator('#backend-bar,[data-refresh],[data-logout]')).toHaveCount(0);
+   await expect(page.getByText('Conectado · cadastros no Supabase',{exact:true})).toHaveCount(0);
+  });
   const gesto=await gestos(page,context,browserName);
   const voltar=async()=>{await page.getByRole('button',{name:'Voltar à posição original',exact:true}).tap();await encerrarAnimacao(page);await canonica(page,aprovada);};
   await test.step('arraste de um dedo no zoom inicial',async()=>{
