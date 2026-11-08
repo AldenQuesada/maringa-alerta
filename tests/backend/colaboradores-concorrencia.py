@@ -14,8 +14,8 @@ def success(query):
 def auth(query):
  return "begin;set local role authenticated;select set_config('request.jwt.claim.sub','"+actor+"',true);"+query+'commit;'
 def literal(data):return "'"+json.dumps(data).replace("'","''")+"'::jsonb"
-def save(ficha,version):
- return "select public.ma_colaborador_salvar('maringa','fase2-concorrente',"+literal(ficha)+",'{\"papel\":\"leitor\",\"colecoes\":[\"eventos\"],\"situacao\":\"pendente\"}',"+str(version)+");"
+def save(ficha,version,identificador='fase2-concorrente'):
+ return "select public.ma_colaborador_salvar('maringa','"+identificador+"',"+literal(ficha)+",'{\"papel\":\"leitor\",\"colecoes\":[\"eventos\"],\"situacao\":\"pendente\"}',"+str(version)+");"
 def race(queries,expected,service=False):
  barrier=threading.Barrier(len(queries))
  def execute(query):barrier.wait();return sql(('begin;set local role service_role;'+query+'commit;') if service else auth(query))
@@ -33,6 +33,12 @@ try:
  assert sum(json.loads(r.stdout.strip())['enviar'] for r in claims)==1,[r.stdout for r in claims]
  assert success("select count(*) from private.ma_acessos_envios where colaborador_id='fase2-concorrente';")=='1'
  assert success("select versao from public.ma_cadastros where municipio_id='maringa' and colecao='usuarios' and id='fase2-concorrente';")=='2'
+ # Dois formulários novos disputam o mesmo e-mail com caixa/espaços distintos.
+ ficha=dict(nome='Concorrência de e-mail',telefone='44999999999',endereco='Rua local',bairro='Centro',cargo='Apoio',funcao='operador',horarios=[])
+ duplicados=race([save(dict(ficha,email=email),'null','e1-email-'+str(i)) for i,email in enumerate(['e1-concorrente@example.invalid',' E1-CONCORRENTE@example.invalid '])],1)
+ assert any('já tem cadastro' in r.stderr for r in duplicados),[r.stderr for r in duplicados]
+ assert success("select count(*) from public.ma_cadastros where municipio_id='maringa' and colecao='usuarios' and id in ('e1-email-0','e1-email-1');")=='1'
+ assert success("select count(*) from private.ma_colaboradores_acesso where municipio_id='maringa' and id in ('e1-email-0','e1-email-1');")=='1'
 finally:
- success("begin;delete from private.ma_acessos_envios where colaborador_id='fase2-concorrente';delete from private.ma_colaboradores_acesso where municipio_id='maringa' and id='fase2-concorrente';delete from public.ma_cadastros where municipio_id='maringa' and id='fase2-concorrente';delete from auth.users where id='"+actor+"';commit;")
-print('PASS: edição concorrente recusada; um único registro e uma única reserva de envio concorrente.')
+ success("begin;delete from private.ma_acessos_envios where colaborador_id='fase2-concorrente';delete from private.ma_colaboradores_acesso where municipio_id='maringa' and id in ('fase2-concorrente','e1-email-0','e1-email-1');delete from public.ma_cadastros where municipio_id='maringa' and id in ('fase2-concorrente','e1-email-0','e1-email-1');delete from auth.users where id='"+actor+"';commit;")
+print('PASS: edição concorrente recusada; uma reserva de envio; mesmo e-mail concorrente cria uma única ficha e um único acesso.')

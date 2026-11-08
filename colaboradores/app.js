@@ -51,7 +51,7 @@ function edit(original){
    if(step<3){step++;draw();return;}
    busy=true;dialog.querySelectorAll('button').forEach(b=>b.disabled=true);const feedback=dialog.querySelector('[role=alert]');feedback.textContent='Salvando cadastro e permissões…';
    try{
-    const result=await rpc('ma_colaborador_salvar',{municipio:city,identificador:id,ficha:draft,acesso:access,versao_esperada:saved?.versao??null});
+    const result=await rpc('ma_colaborador_salvar',{municipio:city,identificador:id,ficha:draft,acesso:{papel:access.papel,colecoes:access.colecoes,situacao:access.situacao},versao_esperada:saved?.versao??null});
     if(result.dados?.id!==id||!Number.isSafeInteger(result.versao))throw Error('Não foi possível confirmar o salvamento. Atualize a lista.');
     saved={dados:result.dados,versao:result.versao,acesso:{...access,situacao:result.situacao}};dirty=false;command=crypto.randomUUID();
     await reload();

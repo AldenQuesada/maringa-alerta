@@ -19,7 +19,8 @@ done
  -e GOTRUE_SITE_URL=http://127.0.0.1:8785 -e GOTRUE_URI_ALLOW_LIST='http://127.0.0.1:8785/acesso/#token=*,http://127.0.0.1:8785/acesso/?recuperar=1' \
  -e GOTRUE_JWT_SECRET=segredo-jwt-exclusivo-dos-testes-descartaveis-2026 -e GOTRUE_JWT_AUD=authenticated \
  -e GOTRUE_JWT_DEFAULT_GROUP_NAME=authenticated -e GOTRUE_JWT_ADMIN_ROLES=service_role \
- -e GOTRUE_EXTERNAL_EMAIL_ENABLED=true -e GOTRUE_MAILER_AUTOCONFIRM=false -e GOTRUE_PASSWORD_MIN_LENGTH=12 \
+ -e GOTRUE_EXTERNAL_EMAIL_ENABLED=true -e GOTRUE_MAILER_AUTOCONFIRM=false -e GOTRUE_PASSWORD_MIN_LENGTH="$(node scripts/politica-auth.mjs minimo)" \
+ -e GOTRUE_SECURITY_UPDATE_PASSWORD_REQUIRE_REAUTHENTICATION="$(node scripts/politica-auth.mjs reautenticar)" -e GOTRUE_SECURITY_UPDATE_PASSWORD_REQUIRE_CURRENT_PASSWORD="$(node scripts/politica-auth.mjs exigirSenhaAtual)" \
  -e GOTRUE_SMTP_HOST=web -e GOTRUE_SMTP_PORT=2525 -e GOTRUE_SMTP_ADMIN_EMAIL=acesso@example.invalid \
  -e GOTRUE_SMTP_SENDER_NAME='Pra Somar' -e GOTRUE_SMTP_MAX_FREQUENCY=1s \
  -e GOTRUE_MAILER_TEMPLATES_INVITE=http://web:8785/supabase/templates/acesso-invite.html \

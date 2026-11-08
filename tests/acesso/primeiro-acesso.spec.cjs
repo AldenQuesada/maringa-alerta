@@ -147,3 +147,53 @@ test('recuperação por SMTP nativo permite definir outra senha e entrar normalm
  expect((await requestJson(request,'/auth/v1/token?grant_type=password',{email,password:newPassword})).access_token).toBeTruthy();
  const old=await request.post('/auth/v1/token?grant_type=password',{data:{email,password}});expect(old.ok()).toBe(false);
 });
+
+test('sessão normal não recupera senha por URL nem contorna a proteção na API',async({page,request},info)=>{
+ const email='e1-sessao-'+info.project.name+'-'+randomUUID()+'@example.invalid';
+ await requestJson(request,'/auth/v1/admin/users',{email,password,email_confirm:true});
+ const signed=await requestJson(request,'/auth/v1/token?grant_type=password',{email,password});
+ await page.goto('/acesso/');
+ await page.evaluate(async session=>{
+  const client=window.supabase.createClient('http://127.0.0.1:8785','sb_publishable_test',{auth:{storageKey:'maringa-supabase-auth-v1'}});
+  const result=await client.auth.setSession(session);if(result.error)throw result.error;
+ },signed);
+ await page.goto('/acesso/?recuperar=1');
+ await expect(page.getByRole('alert')).toContainText('sessão comum');await expect(page.locator('#senha')).toHaveCount(0);
+ const forged=new URLSearchParams({access_token:signed.access_token,refresh_token:signed.refresh_token,token_type:'bearer',type:'recovery'});
+ await page.goto('/acesso/?recuperar=1#'+forged);
+ await expect(page.getByRole('alert')).toContainText('recuperação é inválida');await expect(page.locator('#senha')).toHaveCount(0);
+ const change=(body)=>request.put('/auth/v1/user',{headers:{Authorization:'Bearer '+signed.access_token},data:body});
+ const newPassword=password+' E1';
+ const withoutProof=await change({password:newPassword,data:{amr:[{method:'recovery'}]}});
+ expect(withoutProof.status()).toBe(400);expect((await withoutProof.json()).error_code).toBe('current_password_required');
+ const wrongProof=await change({password:newPassword,current_password:'senha incorreta'});
+ expect(wrongProof.status()).toBe(400);expect((await wrongProof.json()).error_code).toBe('current_password_invalid');
+ expect((await requestJson(request,'/auth/v1/token?grant_type=password',{email,password})).access_token).toBeTruthy();
+ const correct=await change({password:newPassword,current_password:password});expect(correct.ok(),await correct.text()).toBe(true);
+ expect((await requestJson(request,'/auth/v1/token?grant_type=password',{email,password:newPassword})).access_token).toBeTruthy();
+ expect((await(await request.get('/test/mails')).json()).filter(x=>x.to.includes(email))).toHaveLength(0);
+});
+
+test('Auth rejeita senha abaixo da política mesmo sem validação do formulário',async({request},info)=>{
+ const email='e1-politica-'+info.project.name+'-'+randomUUID()+'@example.invalid';
+ const weakCreation=await request.post('/auth/v1/admin/users',{headers:{Authorization:'Bearer '+service},data:{email,password:'12345678901',email_confirm:true}});
+ expect(weakCreation.status()).toBe(422);expect((await weakCreation.json()).error_code).toBe('weak_password');
+ await requestJson(request,'/auth/v1/admin/users',{email,password,email_confirm:true});
+ const session=await requestJson(request,'/auth/v1/token?grant_type=password',{email,password});
+ const weakUpdate=await request.put('/auth/v1/user',{headers:{Authorization:'Bearer '+session.access_token},data:{password:'12345678901',current_password:password}});
+ expect(weakUpdate.status()).toBe(422);expect((await weakUpdate.json()).error_code).toBe('weak_password');
+ expect((await requestJson(request,'/auth/v1/token?grant_type=password',{email,password})).access_token).toBeTruthy();
+});
+
+test('cadastro via API rejeita formato inválido e e-mail duplicado sem perder a ficha',async({request},info)=>{
+ const email='e1-ficha-'+info.project.name+'-'+randomUUID()+'@example.invalid',person=await register(request,email);
+ const access={papel:'leitor',colecoes:['eventos'],situacao:'pendente'};
+ for(const ficha of [{telefone:'x'},{documento:{}},{nascimento:'3000-99-99'},{campo_inesperado:true}]){
+  const response=await request.post('/rest/v1/rpc/ma_colaborador_salvar',{headers:{Authorization:'Bearer '+adminToken},data:{municipio:'maringa',identificador:person.id,versao_esperada:1,ficha,acesso:access}});
+  expect(response.ok()).toBe(false);expect((await response.json()).code).toBe('23514');
+ }
+ const duplicate=await request.post('/rest/v1/rpc/ma_colaborador_salvar',{headers:{Authorization:'Bearer '+adminToken},data:{municipio:'maringa',identificador:randomUUID(),versao_esperada:null,ficha:{...person.saved.dados,email:' '+email.toUpperCase()+' '},acesso:access}});
+ expect(duplicate.ok()).toBe(false);
+ const context=await rpc(request,'ma_colaboradores_contexto',{municipio:'maringa'}),rows=context.colaboradores.filter(x=>x.dados.email===email);
+ expect(rows).toHaveLength(1);expect(rows[0].versao).toBe(1);expect(rows[0].dados.telefone).toBe('44999999999');
+});

@@ -5,10 +5,12 @@ const section=document.querySelector('section'),config=window.MARINGA_SUPABASE;
 const url=new URL(location.href),fragment=new URLSearchParams(url.hash.slice(1)),token=fragment.get('token');
 const authHash=fragment.get('auth_hash'),authType=fragment.get('tipo');
 const recovery=url.searchParams.get('recuperar')==='1';
+const recoveryLink=recovery&&fragment.get('type')==='recovery'&&fragment.has('access_token')&&fragment.has('refresh_token');
+const minimoSenha=window.PraSomarPoliticaSenha.minimo;
 // Um novo link pode ser aberto na mesma aba já posicionada em /acesso/.
-window.addEventListener('hashchange',()=>{if(new URLSearchParams(location.hash.slice(1)).has('token'))location.reload();});
+window.addEventListener('hashchange',()=>{const next=new URLSearchParams(location.hash.slice(1));if(next.has('token')||(next.get('type')==='recovery'&&next.has('access_token')))location.reload();});
 if(token||authHash){history.replaceState(null,'',url.pathname);}
-const client=window.supabase.createClient(config.url,config.publishableKey,{auth:{storageKey:'maringa-supabase-auth-v1',flowType:recovery?'implicit':'pkce',detectSessionInUrl:recovery}});
+const client=window.supabase.createClient(config.url,config.publishableKey,{auth:{storageKey:recovery?'pra-somar-recuperacao':'maringa-supabase-auth-v1',persistSession:!recovery,autoRefreshToken:!recovery,flowType:recovery?'implicit':'pkce',detectSessionInUrl:!!recoveryLink}});
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function service(acao,extra={}){
  const response=await fetch(config.url+'/functions/v1/ma-colaboradores-acesso',{method:'POST',headers:{apikey:config.publishableKey,'Content-Type':'application/json'},body:JSON.stringify({acao,token,...extra}),cache:'no-store'});
@@ -18,10 +20,13 @@ async function hash(value){return Array.from(new Uint8Array(await crypto.subtle.
 try{
  let preview,verifiedEmail=false;
  if(recovery){
+  if(!recoveryLink)throw Error('Abra o link de recuperação recebido por e-mail. Uma sessão comum não autoriza trocar a senha.');
+  const claims=await client.auth.getClaims();
+  if(claims.error||!claims.data?.claims?.amr?.some(x=>['otp','recovery','magiclink'].includes(x.method)))throw Error('A confirmação de recuperação é inválida. Solicite um novo link.');
   const {data,error}=await client.auth.getUser();if(error||!data.user)throw Error('Link de recuperação inválido ou expirado. Solicite uma nova recuperação na tela de entrada.');
-  preview={email:data.user.email,nome:'',minimo_senha:12,senha_definida:false};
+  preview={email:data.user.email,nome:'',minimo_senha:minimoSenha,senha_definida:false};
  }else{
-  preview=await service('consultar');
+  preview=await service('consultar');preview.minimo_senha=minimoSenha;
   // Nunca aproveitar a sessão de outra pessoa nem ativar sem a senha desta conta.
   await client.auth.signOut({scope:'local'});
  }
@@ -31,6 +36,7 @@ try{
   section.querySelector('form').onsubmit=async event=>{
    event.preventDefault();const button=section.querySelector('button'),feedback=section.querySelector('[role=alert]');if(button.disabled)return;
    const password=section.querySelector('#senha').value;
+   if(!existing&&Array.from(password).length<minimoSenha){feedback.textContent='Use pelo menos '+minimoSenha+' caracteres na senha.';return;}
    if(!existing&&password!==section.querySelector('#confirmacao').value){feedback.textContent='As senhas não conferem.';return;}
    button.disabled=true;feedback.textContent='Confirmando acesso…';
    try{
@@ -38,7 +44,7 @@ try{
     if(existing)await service('confirmar_email',{auth_hash:authHash,tipo:authType});
     if(!existing){
      const current=await service('consultar');
-     if(current.senha_definida){preview=current;render();section.querySelector('[role=alert]').textContent='A senha já foi definida. Entre com ela; nenhuma senha foi substituída.';return;}
+     if(current.senha_definida){preview={...current,minimo_senha:minimoSenha};render();section.querySelector('[role=alert]').textContent='A senha já foi definida. Entre com ela; nenhuma senha foi substituída.';return;}
      // Retorno perdido após salvar: testar a senha antes de tentar redefini-la.
      const resumed=await client.auth.signInWithPassword({email:preview.email,password});
      if(resumed.error){

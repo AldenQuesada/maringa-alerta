@@ -114,3 +114,9 @@ A fase ainda não está concluída em produção: falta a configuração autoriz
 ### Envio nativo do Supabase — atualização após escolha do usuário
 
 O usuário escolheu configurar o serviço remetente dentro do Supabase e informou que vai adquirir o domínio. A configuração remota fica para depois; o trabalho independente da fase 2 prosseguiu. A integração direta com Resend foi retirada: o Auth nativo envia após o cadastro completo, usando templates versionados. A definição da primeira senha e a recuperação foram homologadas em 20 cenários reais de navegador, com SMTP capturado em rede isolada. As 38 migrações passaram em banco vazio; dados preservados no novo clone e mapas canônicos mantidos. [Guia para configurar após adquirir o domínio](backend/SMTP_SUPABASE.md). A revisão atual deve passar na CI e continua sem publicação ou comprovação de entrega externa.
+
+### E1 — falhas de cadastro, senha e empacotamento
+
+Implementação e homologação local concluídas no mesmo candidato da fase 2. A porta genérica não grava pessoas; o banco valida a ficha completa e garante unicidade municipal do e-mail. Recuperação exige prova nativa, e o Auth de homologação recusa troca direta sem senha atual. Política de senha centralizada e pacote de publicação limitado a manifesto explícito. Passaram 286 testes Node, 26 cenários de acesso em navegador, 12 testes móveis, 39 migrações, 16 suítes SQL, seis verificações Python e nove testes de transporte. O backup real foi novamente restaurado; cadastros e contas preservados após as migrações. [Relatório e evidências da E1](auditorias/E1_CADASTRO_SENHA_EMPACOTAMENTO_2026-11-08.md).
+
+E1 não é certificação de escala nem publicação da fase 2. A conferência/aplicação das configurações do Auth hospedado, SMTP e entrega externa permanece na liberação E6. E2 não foi iniciada; as câmeras e as exigências do job móvel permanecem inalteradas.

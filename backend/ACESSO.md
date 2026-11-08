@@ -4,7 +4,9 @@ O administrador municipal (ou geral) preenche a ficha em `ma_cadastros`, coleç�
 
 `private.ma_colaboradores_acesso` contém somente o vínculo de acesso: identidade da ficha, e-mail autorizado, conta autenticada, papel, coleções permitidas e situação. Não é um segundo cadastro de pessoas. Os vínculos anteriores continuam funcionando. A suspensão é consultada no servidor em cada operação, inclusive com sessão já emitida.
 
-O comando especializado de salvamento usa a mesma tabela canônica, valida município e versão, preserva campos não editados e executa os triggers de contrato, relações e auditoria existentes. A edição genérica de uma ficha gerenciada é recusada para evitar divergência entre ficha e acesso.
+O comando especializado de salvamento usa a mesma tabela canônica, valida município e versão, preserva campos não editados e executa os triggers de contrato, relações e auditoria existentes. A porta genérica recusa criação, edição e exclusão de qualquer pessoa, inclusive uma ficha legada. O administrador completa a ficha existente no assistente, mantendo seu ID. Um índice único garante e-mail normalizado por município, incluindo cargas privilegiadas e requisições simultâneas.
+
+O contrato de campos fica em `ma_configuracao`, chave `colaboradores`, e é aplicado pelo validador privado do banco. Tipos, limites, e-mail, telefone com DDD, CEP e data real de nascimento são conferidos antes de gravar; campos desconhecidos novos são recusados. Extensões legadas permanecem intactas, mas não podem ser alteradas por esse comando. A migração interrompe se encontrar duplicidade, sem reescrever ou apagar fichas. Isso não substitui a revisão de autoridade e contratos prevista nas etapas E2/E4.
 
 O serviço `ma-colaboradores-acesso` só chama o Supabase Auth depois da confirmação do cadastro. Conta nova/não confirmada usa envio administrativo; conta confirmada usa a entrega nativa por e-mail sem criar outra conta. As credenciais SMTP e o remetente ficam no painel do Auth. Não há dependência da API do Resend na aplicação. [Preparação da configuração](SMTP_SUPABASE.md).
 
@@ -17,6 +19,8 @@ A confirmação de um convite pelo Auth pode criar uma senha temporária aleató
 Configuração privada da função: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (runtime), `PRA_SOMAR_ACCESS_SECRET` (32 bytes aleatórios ou mais) e `PRA_SOMAR_APP_URL` (raiz HTTPS da aplicação). Nenhuma senha SMTP entra no código ou navegador. O status `enviado` significa que o Auth aceitou a solicitação; o identificador armazenado é o da tentativa interna, não um comprovante de entrega na caixa de entrada.
 
 O login habitual usa e-mail e senha. Recuperação de senha permanece uma operação separada do cadastro. As rotas de recuperação devem estar autorizadas na configuração de autenticação.
+
+A recuperação exige um retorno nativo válido e uma sessão separada, sem reutilizar a sessão normal salva no navegador. O Auth deve exigir a senha atual fora dos fluxos nativos que comprovam a recuperação. O requisito é verificado também em chamadas diretas à API, incluindo tentativa de falsificar metadados. A política versionada em `supabase/config.toml` exige pelo menos 12 caracteres, `require_current_password = true` e `secure_password_change = true`. O build gera a política do formulário a partir desse arquivo, e o ambiente de teste deriva os mesmos valores. Editar o TOML não altera automaticamente o Auth hospedado: conferir a configuração remota e repetir os testes antes da publicação, conforme o guia SMTP.
 
 Referência: fluxo atual do Clinic AI v2, commit `58a2e1283a0087b96f05d1b41961adc56c1b327a`. A geração e cópia de link do Clinic foram adaptadas para envio automático com confirmação; seu fluxo de `signUp` sem sessão não foi copiado.
 
