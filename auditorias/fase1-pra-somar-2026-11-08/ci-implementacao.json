@@ -1,0 +1,34 @@
+{
+  "head": "db3fb3d0adf8677a0f8dbe19238b8725ed27f0b4",
+  "url": "https://github.com/AldenQuesada/maringa-alerta/actions/runs/42480384752",
+  "jobs": [
+    {
+      "id": 128730817920,
+      "name": "mapas-mobile",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/AldenQuesada/maringa-alerta/actions/runs/42480384752/job/128730817920"
+    },
+    {
+      "id": 128730818076,
+      "name": "permissoes-banco",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/AldenQuesada/maringa-alerta/actions/runs/42480384752/job/128730818076"
+    },
+    {
+      "id": 128730818116,
+      "name": "verificar",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/AldenQuesada/maringa-alerta/actions/runs/42480384752/job/128730818116"
+    },
+    {
+      "id": 128730818216,
+      "name": "transporte-whatsapp",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/AldenQuesada/maringa-alerta/actions/runs/42480384752/job/128730818216"
+    }
+  ]
+}

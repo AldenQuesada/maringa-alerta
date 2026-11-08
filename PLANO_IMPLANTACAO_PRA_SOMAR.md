@@ -4,7 +4,7 @@ Plano de execução iniciado em 08/11/2026, a partir do documento fornecido pelo
 
 ## Ponto de partida
 
-**Fase 0 concluída.** O backup real foi restaurado e validado, incluindo 72 tabelas, 8.233 registros, nove sequências, três segredos do Vault e o arquivo existente no Storage. O histórico remoto foi reconciliado com as 35 migrações locais; a CLI confirmou ausência de alterações pendentes. Os dados das 29 tabelas próprias foram preservados. Consulte o [evidência atualizada da recuperação](auditorias/FASE_1_BANCO_CATALOGO_2026-11-08.md). **Fase 1 implementada, em validação final para aplicação remota.** Consulte o [contrato territorial](backend/TERRITORIO.md).
+**Fase 0 concluída.** O backup real foi restaurado e validado, incluindo 72 tabelas, 8.233 registros, nove sequências, três segredos do Vault e o arquivo existente no Storage. O histórico remoto foi reconciliado com as 35 migrações locais; a CLI confirmou ausência de alterações pendentes. Os dados das 29 tabelas próprias foram preservados. Consulte o [evidência atualizada da recuperação](auditorias/FASE_1_BANCO_CATALOGO_2026-11-08.md). **Fase 1 concluída e aplicada: 12 categorias, 70 tipos, 253 cadastros preservados, 36 migrações alinhadas e testes móveis aprovados. Fase 2 não iniciada.** Consulte o [contrato territorial](backend/TERRITORIO.md).
 
 O desenvolvimento seguirá em entregas pequenas. Cada fase terá implementação, testes adequados, evidência do comportamento e registro das pendências. Uma funcionalidade só será marcada como operacional depois de validada no ambiente correspondente. Testes locais não comprovam publicação, envio de mensagem nem entrega de notificação.
 
@@ -13,7 +13,7 @@ O desenvolvimento seguirá em entregas pequenas. Cada fase terá implementação
 | Fase | Entrega | Critério de aceite | Dependência |
 |---|---|---|---|
 | **0. Reconciliar a base** | Conferir GitHub, pasta local, banco, migrações, contratos, backups e diferenças entre demonstração e produção. | Base reproduzível em banco descartável; divergências explicadas; histórico remoto conciliado por conteúdo; recuperação testada antes de alterar produção. | Concluída em 08/11/2026; backup real validado e 35 migrações alinhadas. |
-| **1. Banco e catálogo territorial** | Separar local, serviço, recurso, pessoa e operação. Definir vínculos municipais, permissões dos novos domínios, catálogo configurável, coordenadas, consultas espaciais e auditoria. | Uma unidade aceita vários serviços; geladeira/recurso tem identidade própria e vínculo ao local; tipos novos não exigem edição de JavaScript; migração preserva IDs e estabelece um único caminho de escrita. | Fase 0. |
+| **1. Banco e catálogo territorial** | Separar local, serviço, recurso, pessoa e operação. Definir vínculos municipais, permissões dos novos domínios, catálogo configurável, coordenadas, consultas espaciais e auditoria. | Uma unidade aceita vários serviços; geladeira/recurso tem identidade própria e vínculo ao local; tipos novos não exigem edição de JavaScript; migração preserva IDs e estabelece um único caminho de escrita. | Concluída em 08/11/2026; dependeu da fase 0. |
 | **2. Usuários, equipes e permissões** | Completar login, convite, acesso municipal, funções operacionais, integrantes, escalas, responsável, substituto e suspensão. | Usuários de papéis diferentes veem e executam apenas ações permitidas; suspensão funciona no servidor; isolamento entre municípios testado. | Fase 1. Módulo original 01. |
 | **3. Rede de ajuda e três mapas** | Formulários de unidades, serviços, recursos, capacidade, situação, horário, verificação, fotos e histórico. Conectar Evento, Colaboradores e Ajuda aos cadastros e filtros comuns. | Cadastrar, editar e desativar uma unidade atualiza a consulta do mapa correspondente sem outro cadastro. Cozinha, geladeira, dormitório e ponto de lonas representados corretamente. | Fases 1–2. Módulos originais 02–03. |
 | **4. Triagem e WhatsApp com localização** | Necessidades estruturadas, prioridade, localização confirmada, recursos próximos, distâncias no servidor, atribuição e comunicação; ampliar o fluxo WhatsApp existente. | Mensagem de localização válida integra pedido canônico e triagem; pedido aparece na Central e nos mapas; recurso compatível é encontrado; mensagem preparada, enfileirada, aceita, entregue e falha são estados distinguíveis. | Fase 3. Módulos originais 04–05. |
@@ -80,3 +80,15 @@ São categorias e tipos configuráveis, não tabelas físicas independentes para
 - [ ] Operação real independe de fixtures e armazenamento operacional em localStorage.
 
 Não há estimativa de prazo fechado nesta etapa: as diferenças da fase 0 precisam ser resolvidas para dimensionar a implementação com confiança.
+
+## Conclusão da fase 1
+
+- [x] Domínios e vínculos municipais, mantendo uma única gravação canônica.
+- [x] Catálogo configurável com subtipos, permissões e histórico.
+- [x] Coordenadas e consultas espaciais indexadas com acesso restrito.
+- [x] Backup real restaurado e migração ensaiada antes da aplicação.
+- [x] Conteúdo anterior das 29 tabelas próprias e 253 cadastros preservado.
+- [x] Concorrência, isolamento, regressões e 12 testes móveis aprovados.
+- [x] Migração aplicada, histórico de 36 versões alinhado e APIs conferidas no banco real.
+
+[Evidências completas](auditorias/FASE_1_BANCO_CATALOGO_2026-11-08.md). Formulários e integração visual dos novos domínios pertencem à fase 3; as câmeras canônicas continuam intactas.

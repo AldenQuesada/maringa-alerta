@@ -1,6 +1,6 @@
 # PRA SOMAR — banco e catálogo territorial
 
-Fase 1 implementada e validada em banco vazio e restauração real. Aplicação remota e CI final pendentes nesta revisão. Base: `f1b38bc` da main; migração nova: `20261108115725_fase1_catalogo_territorial.sql`.
+**Fase 1 concluída e aplicada ao banco real em 08/11/2026.** Os quatro jobs obrigatórios passaram, incluindo os 12 testes móveis. Base: `f1b38bc` da main; migração nova: `20261108115725_fase1_catalogo_territorial.sql`.
 
 ## Entrega
 
@@ -27,9 +27,19 @@ Os backups, senhas, segredos e dados pessoais permanecem em arquivos privados ig
 - Concorrência entre criação de vínculo/exclusão de local, ciclo de subtipos e duas atualizações do mesmo recurso: uma transação rejeitada, sem órfãos ou atualização perdida.
 - RPC real com usuário municipal e 3.000 pontos temporários: resultado correto e índice `entidades_ponto` efetivamente executado, confirmado por `auto_explain`.
 - 280 testes Node, 17 bundles canônicos e nove testes Deno do transporte; 36 casos de texto, botões e imagem do WhatsApp.
-- Câmeras e seus testes de contrato sem alteração. O job obrigatório `mapas-mobile` permanece sem filtros ou exceções. Os navegadores não estão instalados neste macOS; a validação móvel será registrada pelo CI desta revisão.
+- Câmeras e seus testes de contrato sem alteração. O job obrigatório `mapas-mobile` permanece sem filtros ou exceções. O [CI da implementação](https://github.com/AldenQuesada/maringa-alerta/actions/runs/42480384752) aprovou os quatro jobs; o [job móvel](https://github.com/AldenQuesada/maringa-alerta/actions/runs/42480384752/job/128730817920) registrou **12 passed**, nenhum ignorado, nos três mapas, dois navegadores e duas larguras. Nesta máquina os executáveis de navegador não estão disponíveis; a evidência móvel é do CI.
 
 A CLI 2.115.0 identificou exclusivamente a nova migração, sem seed, alteração de papéis ou Vault: [dry-run](fase1-pra-somar-2026-11-08/migracao-prevista.json). Os advisors anteriores apontam dois avisos já existentes: reavaliação de identidade na policy de configuração e `pg_net` instalado em `public`. Eles não foram alterados para esta entrega. [Diagnóstico anterior](fase1-pra-somar-2026-11-08/advisors-antes.json).
+
+## Aplicação e conferência remota
+
+A CLI aplicou exclusivamente a migração territorial, com `--skip-vault`, sem seeds. O histórico remoto contém **36 versões iguais às locais** e o novo dry-run informou `upToDate: true`, sem migrações pendentes. [Aplicação](fase1-pra-somar-2026-11-08/aplicacao-remota.json) e [alinhamento](fase1-pra-somar-2026-11-08/migracoes-alinhadas.json).
+
+A comparação pós-aplicação confirmou o conteúdo anterior das **29 tabelas próprias**, incluindo todos os **253 cadastros**. Não houve cadastro novo em produção. As quatro tabelas territoriais elevam o total próprio a 33, com RLS. [Preservação remota](fase1-pra-somar-2026-11-08/preservacao-remota.json).
+
+As APIs foram exercitadas em transação somente leitura com papel SQL `authenticated` e o vínculo municipal existente: catálogo 12/70, 79 locais, 174 áreas, raio e cobertura territorial funcionaram. Nenhuma sessão HTTP foi simulada nem mensagem enviada. [Verificação remota](fase1-pra-somar-2026-11-08/verificacao-remota.json).
+
+Os advisors posteriores apresentaram exatamente os dois avisos anteriores; **nenhum aviso novo**. [Diagnóstico posterior](fase1-pra-somar-2026-11-08/advisors-depois.json). A implementação está no [PR #109](https://github.com/AldenQuesada/maringa-alerta/pull/109). A fase 2 permanece não iniciada.
 
 ## Reprodução
 
