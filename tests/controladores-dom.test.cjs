@@ -83,3 +83,21 @@ test('Pra Somar inicializa no município escolhido sem ativar demonstração',as
  assert.match(document.getElementById('results').textContent,/Nenhum registro neste filtro/);
  assert.deepEqual(errors,[]);
 });
+
+for(const [tipo,pagina,search,vista] of [
+ ['evento','index.html','',{lat:-23.4130978,lng:-51.9164556,zoom:13.8408}],
+ ['colaboradores','mapas/index.html','?tipo=colaboradores',{lat:-23.4201743,lng:-51.9334015,zoom:12}],
+ ['ajuda','mapas/index.html','?tipo=ajuda',{lat:-23.4196153,lng:-51.9357534,zoom:13.5732}]
+])test('página real de '+tipo+' liga abertura, limite e retorno à câmera canônica',async()=>{
+ const cidade={id:'maringa',nome:'Maringá',codigo_ibge:'4115200',uf:'PR',status:'ativa',lat:-23.42,lng:-51.93};
+ const {map,errors,zoomContainer}=await iniciarPagina(pagina,search,cidade);
+ assert.deepEqual(errors,[]);
+ assert.deepEqual(map.center,{lat:vista.lat,lng:vista.lng});
+ assert.equal(map.zoom,vista.zoom);assert.equal(map.getMinZoom(),vista.zoom);
+ assert.equal(map.dragging.enabled,true);
+ map.setView([-23.43,-51.96],vista.zoom+2);
+ const voltar=zoomContainer.querySelector('[aria-label="Voltar à posição original"]');
+ assert.ok(voltar);voltar.click();
+ assert.deepEqual(map.center,{lat:vista.lat,lng:vista.lng});
+ assert.equal(map.zoom,vista.zoom);assert.equal(map.dragging.enabled,true);
+});

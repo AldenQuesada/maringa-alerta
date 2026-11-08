@@ -1,5 +1,5 @@
 /* Navegação dos três mapas, com câmera institucional e limite mínimo de zoom.
- * O Pra Somar permite arraste desde a origem; demais mapas preservam sua regra.
+ * As três telas permitem arraste desde a origem e preservam sua câmera canônica.
  * Preferências antigas de câmera (localStorage) não são usadas como padrão.
  */
 (function(global){
@@ -19,14 +19,14 @@
     new URLSearchParams(global.location.search).get("calibrar")==="1";
  }
  function atualizarArraste(map,arrasteNoMinimo=false){
-  // Pra Somar permite arraste desde a origem; os demais mapas mantêm sua regra.
+  // As telas principais habilitam arraste desde a origem explicitamente.
   if(arrasteNoMinimo||emCalibracao()||map.getZoom()>map.getMinZoom()+0.001)map.dragging?.enable?.();
   else map.dragging?.disable?.();
  }
  function liberarNavegacao(map,L,limites,arrasteNoMinimo=false){
   // Filtros e buscas continuam podendo centralizar pelo Leaflet.
   atualizarArraste(map,arrasteNoMinimo);
-  // No Pra Somar o limite pedido é de escala, não de deslocamento. maxBounds
+  // Com arraste livre o limite pedido é de escala, não de deslocamento. maxBounds
   // empurrava a câmera aprovada para outro centro em monitores largos.
   map.setMaxBounds(limites&&!arrasteNoMinimo?L.latLngBounds(limites).pad(.08):L.latLngBounds([]));
   map.options.maxBoundsViscosity=1;
@@ -72,12 +72,14 @@
   map.on("moveend zoomend resize",atualizar);
   atualizar();
  }
- function instalar({map,L,zonas,aoRestaurar,identificador="evento",limites=areaPadrao()}){
+ function instalar({map,L,zonas,aoRestaurar,identificador="evento",limites=areaPadrao(),vistaInicial=null,arrasteNoMinimo=false}){
   if(!map||!L||!map.zoomControl?.getContainer)
    throw new TypeError("Mapa Leaflet com controle de zoom obrigatório.");
+  // Uma câmera aprovada prevalece sobre polígonos, dados e tamanho da tela.
+  if(vistaInicial)return instalarVistaSalva({map,L,limites,identificador,aoRestaurar,vistaInicial,arrasteNoMinimo});
   if(!Array.isArray(zonas)||!zonas.every(z=>Array.isArray(z)&&z.length>=3))
    throw new TypeError("É necessário informar os polígonos da vista geral.");
-  if(!zonas.length)return instalarVistaSalva({map,L,limites,identificador,aoRestaurar});
+  if(!zonas.length)return instalarVistaSalva({map,L,limites,identificador,aoRestaurar,arrasteNoMinimo});
   const bounds=L.latLngBounds(zonas.flat());
   let home=null,ultimoZoom=null;
   function enquadrar(){
@@ -88,10 +90,10 @@
    home={lat:map.getCenter().lat,lng:map.getCenter().lng,zoom:map.getZoom()};
    ultimoZoom=home.zoom;
    map.setMinZoom(home.zoom);
-   liberarNavegacao(map,L,limites);
+   liberarNavegacao(map,L,limites,arrasteNoMinimo);
   }
   enquadrar();
-  map.on("zoomend",()=>atualizarArraste(map));
+  map.on("zoomend",()=>atualizarArraste(map,arrasteNoMinimo));
   const restaurar=()=>{
    if(typeof aoRestaurar==="function")aoRestaurar();
    map.setView([home.lat,home.lng],home.zoom,{animate:false});
@@ -100,7 +102,7 @@
   map.on("resize",()=>{
    // A vista geral precisa considerar a largura após abrir/recolher painéis.
    if(Math.abs(map.getZoom()-ultimoZoom)<.01)enquadrar();
-   else liberarNavegacao(map,L,limites);
+   else liberarNavegacao(map,L,limites,arrasteNoMinimo);
   });
   referenciaVisivel(map,identificador);
   return {restaurar,limites:bounds,botao,zoomMinimo:()=>ultimoZoom};
