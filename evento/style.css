@@ -272,7 +272,6 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,59,59,.6)}70%{box-shadow:0 0 0 8px rgba(255,59,59,0)}100%{box-shadow:0 0 0 0 rgba(255,59,59,0)}}
 
 .leaflet-container{background:#060809}
-.leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.92) saturate(.9)}
 .leaflet-marker-pane,.leaflet-tooltip-pane,.leaflet-overlay-pane,.leaflet-popup-pane{filter:none}
 .leaflet-tooltip.oc-tooltip{
   background:rgba(17,22,29,.96);color:var(--fg);border:1px solid var(--red);border-radius:8px;

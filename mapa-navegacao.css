@@ -1,3 +1,7 @@
+/* Fundo canônico dos três mapas: a mesma aparência escura do Pra Somar. */
+#map.leaflet-container{background:#172a37}
+#map .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.92) saturate(.9)}
+
 /* Terceiro botão no controle + / − do Leaflet. */
 .leaflet-control-zoom a.leaflet-control-zoom-out {
   border-bottom-left-radius: 0;

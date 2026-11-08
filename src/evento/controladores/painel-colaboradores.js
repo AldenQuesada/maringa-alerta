@@ -45,7 +45,7 @@ root.AlertaEventoControladores.definir('painel-colaboradores',{
       ? semTerritorio+' colaborador(es) aguardam identificação do bairro ou zona; continuam cadastrados e listados em "Bairro a confirmar".'
       : !dependencias.selecao.size&&!todosCadastrados.length
         ? (globalThis.AlertaNuvem?.ativo
-          ? 'Este mapa consulta os territórios e as estruturas no Supabase. Gerencie os cadastros de colaboradores na Gestão.'
+          ? 'Não há colaboradores cadastrados para esta prefeitura. Gerencie os cadastros de colaboradores na Gestão.'
           : 'Não há colaboradores cadastrados para esta prefeitura neste navegador. Este protótipo utiliza armazenamento local e não sincroniza cadastros entre dispositivos.')
         : '';
   const antes=body.scrollTop;
