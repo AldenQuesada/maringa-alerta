@@ -29,8 +29,10 @@ try:
  assert any('Atualize antes de salvar' in r.stderr for r in results)
  send="select public.ma_acesso_preparar('maringa','fase2-concorrente',2,'f2000000-0000-4000-8000-000000000092',repeat('c',64),'"+actor+"');"
  race([send,send],2,service=True)
+ claims=race(["select public.ma_acesso_reservar_envio('f2000000-0000-4000-8000-000000000092');"]*4,4,service=True)
+ assert sum(json.loads(r.stdout.strip())['enviar'] for r in claims)==1,[r.stdout for r in claims]
  assert success("select count(*) from private.ma_acessos_envios where colaborador_id='fase2-concorrente';")=='1'
  assert success("select versao from public.ma_cadastros where municipio_id='maringa' and colecao='usuarios' and id='fase2-concorrente';")=='2'
 finally:
  success("begin;delete from private.ma_acessos_envios where colaborador_id='fase2-concorrente';delete from private.ma_colaboradores_acesso where municipio_id='maringa' and id='fase2-concorrente';delete from public.ma_cadastros where municipio_id='maringa' and id='fase2-concorrente';delete from auth.users where id='"+actor+"';commit;")
-print('PASS: edição concorrente recusada; dois envios simultâneos do mesmo comando geram um único registro.')
+print('PASS: edição concorrente recusada; um único registro e uma única reserva de envio concorrente.')

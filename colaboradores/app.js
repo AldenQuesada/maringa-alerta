@@ -66,6 +66,7 @@ function edit(original){
   feedback.textContent='Cadastro salvo. Enviando acesso…';
   const result=await client.functions.invoke('ma-colaboradores-acesso',{body:{acao:'enviar',municipio:city,colaborador:id,versao:saved.versao,comando:command}});
   if(result.error){let message;try{message=(await result.error.context.json()).error;}catch{}throw Error(message||'Cadastro salvo. O envio não foi confirmado. Tente enviar novamente.');}
+  if(result.data?.estado==='aguardando')throw Error('Cadastro salvo. Uma tentativa de envio está em andamento. Aguarde um momento antes de tentar novamente.');
   if(result.data?.estado!=='enviado')throw Error('Cadastro salvo. O envio não foi confirmado.');
   sent=true;feedback.textContent='Cadastro salvo. O serviço de e-mail aceitou o envio do link de acesso.';await reload();
  }

@@ -1,0 +1,21 @@
+Supabase Auth e SMTP reais em rede isolada: 20 cenários aprovados, zero falhas, zero ignorados.
+PASS chromium — admin cadastra ficha inteira; e-mail só depois; primeiro acesso e login real com senha
+PASS webkit-mobile — admin cadastra ficha inteira; e-mail só depois; primeiro acesso e login real com senha
+PASS chromium — falha de entrega preserva a ficha; repetição usa um envio; conta existente não perde senha
+PASS webkit-mobile — falha de entrega preserva a ficha; repetição usa um envio; conta existente não perde senha
+PASS chromium — link revogado e inválido são recusados; suspensão corta sessão já emitida
+PASS webkit-mobile — link revogado e inválido são recusados; suspensão corta sessão já emitida
+PASS chromium — conta existente sem confirmação entra pelo link sem trocar a senha
+PASS webkit-mobile — conta existente sem confirmação entra pelo link sem trocar a senha
+PASS chromium — falha na renovação da sessão preserva ativação e permite login posterior
+PASS webkit-mobile — falha na renovação da sessão preserva ativação e permite login posterior
+PASS chromium — envios concorrentes usam uma entrega SMTP e preservam o cadastro
+PASS webkit-mobile — envios concorrentes usam uma entrega SMTP e preservam o cadastro
+PASS chromium — falha ao salvar senha antes da gravação pode ser retomada
+PASS webkit-mobile — falha ao salvar senha antes da gravação pode ser retomada
+PASS chromium — falha ao salvar senha com resposta perdida pode ser retomada
+PASS webkit-mobile — falha ao salvar senha com resposta perdida pode ser retomada
+PASS chromium — confirmação nativa inválida não grava senha nem ativa a ficha
+PASS webkit-mobile — confirmação nativa inválida não grava senha nem ativa a ficha
+PASS chromium — recuperação por SMTP nativo permite definir outra senha e entrar normalmente
+PASS webkit-mobile — recuperação por SMTP nativo permite definir outra senha e entrar normalmente

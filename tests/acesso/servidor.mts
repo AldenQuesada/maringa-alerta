@@ -3,11 +3,13 @@ import {readFile} from 'node:fs/promises';
 import {resolve,extname} from 'node:path';
 import {createHmac} from 'node:crypto';
 import {createHandler} from '../../supabase/functions/ma-colaboradores-acesso/handler.ts';
+import {captureSmtp} from './smtp.mts';
 const base='http://127.0.0.1:8785',secret='segredo-jwt-exclusivo-dos-testes-descartaveis-2026';
 const jwt=role=>{const enc=x=>Buffer.from(JSON.stringify(x)).toString('base64url');const body=enc({alg:'HS256',typ:'JWT'})+'.'+enc({role,iss:'supabase',iat:Math.floor(Date.now()/1000)-10,exp:Math.floor(Date.now()/1000)+7200});return body+'.'+createHmac('sha256',secret).update(body).digest('base64url');};
 const anon=jwt('anon'),service=jwt('service_role');
 const mails=new Map();let failMail=false;
-const handler=createHandler({url:base,anonKey:anon,serviceKey:service,secret:'segredo-token-exclusivo-dos-testes-descartaveis-2026',appUrl:base+'/',emailFrom:'Pra Somar <teste@example.invalid>',resendKey:'teste',mailUrl:base+'/mail'});
+captureSmtp(mails,()=>failMail);
+const handler=createHandler({url:base,anonKey:anon,serviceKey:service,secret:'segredo-token-exclusivo-dos-testes-descartaveis-2026',appUrl:base+'/'});
 const root=resolve('.');
 http.createServer(async(req,res)=>{
  try{
@@ -16,10 +18,6 @@ http.createServer(async(req,res)=>{
  if(url.pathname==='/test/mail/fail'){failMail=url.searchParams.get('value')==='1';res.end('{}');return;}
  if(url.pathname==='/test/mails'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify([...mails.values()]));return;}
  if(url.pathname==='/test/keys'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify({anon,service}));return;}
- if(url.pathname==='/mail'){
-  res.setHeader('Content-Type','application/json');if(failMail){res.statusCode=503;res.end('{}');return;}
-  const key=req.headers['idempotency-key'];if(!mails.has(key))mails.set(key,{...JSON.parse(body.toString()),id:key});res.end(JSON.stringify({id:key}));return;
- }
  if(url.pathname.startsWith('/functions/v1/ma-colaboradores-acesso')){
   const result=await handler(new Request(base+req.url,{method:req.method,headers:req.headers,...(body.length?{body}: {})}));
   res.writeHead(result.status,Object.fromEntries(result.headers));res.end(await result.text());return;

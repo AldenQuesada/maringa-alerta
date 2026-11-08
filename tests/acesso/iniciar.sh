@@ -16,10 +16,15 @@ done
 "${docker_cmd[@]}" run -d --name "$prefix-auth" --network "$network" --network-alias auth \
  -e GOTRUE_API_HOST=0.0.0.0 -e GOTRUE_API_PORT=9999 -e API_EXTERNAL_URL=http://127.0.0.1:8785/auth/v1 \
  -e GOTRUE_DB_DRIVER=postgres -e GOTRUE_DB_DATABASE_URL=postgres://supabase_auth_admin:teste-local-auth@db:5432/teste_acesso \
- -e GOTRUE_SITE_URL=http://127.0.0.1:8785 -e GOTRUE_URI_ALLOW_LIST='http://127.0.0.1:8785/**' \
+ -e GOTRUE_SITE_URL=http://127.0.0.1:8785 -e GOTRUE_URI_ALLOW_LIST='http://127.0.0.1:8785/acesso/#token=*,http://127.0.0.1:8785/acesso/?recuperar=1' \
  -e GOTRUE_JWT_SECRET=segredo-jwt-exclusivo-dos-testes-descartaveis-2026 -e GOTRUE_JWT_AUD=authenticated \
  -e GOTRUE_JWT_DEFAULT_GROUP_NAME=authenticated -e GOTRUE_JWT_ADMIN_ROLES=service_role \
  -e GOTRUE_EXTERNAL_EMAIL_ENABLED=true -e GOTRUE_MAILER_AUTOCONFIRM=false -e GOTRUE_PASSWORD_MIN_LENGTH=12 \
+ -e GOTRUE_SMTP_HOST=web -e GOTRUE_SMTP_PORT=2525 -e GOTRUE_SMTP_ADMIN_EMAIL=acesso@example.invalid \
+ -e GOTRUE_SMTP_SENDER_NAME='Pra Somar' -e GOTRUE_SMTP_MAX_FREQUENCY=1s \
+ -e GOTRUE_MAILER_TEMPLATES_INVITE=http://web:8785/supabase/templates/acesso-invite.html \
+ -e GOTRUE_MAILER_TEMPLATES_MAGIC_LINK=http://web:8785/supabase/templates/acesso-magic-link.html \
+ -e GOTRUE_MAILER_URLPATHS_RECOVERY=/auth/v1/verify \
  -e GOTRUE_RATE_LIMIT_EMAIL_SENT=1000 -e GOTRUE_RATE_LIMIT_TOKEN_REFRESH=1000 \
  supabase/gotrue:v2.197.0@sha256:1736a63078f5922b198c4cbe50f80ab9a2d3b54fe8b7b6cfb2e9dc5dbbc12c6b >/dev/null
 for attempt in $(seq 1 40); do

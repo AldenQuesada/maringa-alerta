@@ -15,7 +15,7 @@ async function register(request,email){
 async function send(request,person,command=randomUUID()){
  return request.post('/functions/v1/ma-colaboradores-acesso',{headers:{Authorization:'Bearer '+adminToken},data:{acao:'enviar',municipio:'maringa',colaborador:person.id,versao:person.saved.versao,comando:command}});
 }
-async function mailLink(request,email){const response=await request.get('/test/mails');const mails=await response.json();const mail=mails.filter(x=>x.to.includes(email)).at(-1);expect(mail).toBeTruthy();return mail.text.match(/http:\/\/[^\s]+/)[0];}
+async function mailLink(request,email,firstAccess=true){const response=await request.get('/test/mails');const mails=await response.json();const mail=mails.filter(x=>x.to.includes(email)).at(-1);expect(mail).toBeTruthy();const link=mail.text.match(/href="([^\"]+)"/)[1].replace(/&amp;/g,'&');if(firstAccess)expect(link).toContain('auth_hash=');return link;}
 test.beforeAll(async({request})=>{
  const keys=await(await request.get('/test/keys')).json();service=keys.service;
  const created=await request.post('/auth/v1/admin/users',{headers:{Authorization:'Bearer '+service},data:{email:'administrador@example.invalid',password,email_confirm:true}});expect([200,422],await created.text()).toContain(created.status());
@@ -95,4 +95,55 @@ test('falha na renovação da sessão preserva ativação e permite login poster
  await page.getByLabel('Senha',{exact:true}).fill(password);await page.getByLabel('Confirme a senha').fill(password);await page.getByRole('button',{name:'Salvar senha e entrar'}).click();
  await expect(page.getByRole('heading',{name:'Acesso ativado'})).toBeVisible();
  const login=await requestJson(request,'/auth/v1/token?grant_type=password',{email,password});expect(login.access_token).toBeTruthy();const caps=await rpc(request,'ma_minhas_capacidades',{},login.access_token);expect(caps.maringa.eventos.ler).toBe(true);
+});
+
+test('envios concorrentes usam uma entrega SMTP e preservam o cadastro',async({request},info)=>{
+ const email='simultaneo-'+info.project.name+'-'+randomUUID()+'@example.invalid',person=await register(request,email),command=randomUUID();
+ const results=await Promise.all(Array.from({length:4},()=>send(request,person,command)));
+ for(const result of results)expect([200,202]).toContain(result.status());
+ expect((await send(request,person,command)).status()).toBe(200);
+ const mails=await(await request.get('/test/mails')).json();expect(mails.filter(x=>x.to.includes(email))).toHaveLength(1);
+});
+
+for(const lostResponse of [false,true])test('falha ao salvar senha '+(lostResponse?'com resposta perdida':'antes da gravação')+' pode ser retomada',async({request,page},info)=>{
+ const email='senha-retry-'+info.project.name+'-'+randomUUID()+'@example.invalid',person=await register(request,email);
+ await send(request,person);let failed=false,verifications=0;
+ await page.route('**/auth/v1/verify',async route=>{verifications++;await route.continue();});
+ await page.route('**/auth/v1/user',async route=>{
+  if(route.request().method()==='PUT'&&!failed){failed=true;if(lostResponse)await route.fetch();await route.fulfill({status:503,contentType:'application/json',body:'{"msg":"Falha de teste"}'});return;}
+  await route.continue();
+ });
+ const link=await mailLink(request,email);await page.goto(link);await expect(page.getByRole('heading',{name:'Definir sua senha'})).toBeVisible();expect(verifications).toBe(0);
+ await page.getByLabel('Senha',{exact:true}).fill(password);await page.getByLabel('Confirme a senha').fill(password);await page.getByRole('button',{name:'Salvar senha e entrar'}).click();
+ await expect(page.getByRole('alert')).toContainText('Não foi possível salvar a senha');expect(verifications).toBe(1);
+ if(!lostResponse){
+  const token=new URLSearchParams(new URL(link).hash.slice(1)).get('token');
+  const activation=await page.evaluate(async token=>{
+   const c=window.supabase.createClient('http://127.0.0.1:8785','sb_publishable_test',{auth:{storageKey:'maringa-supabase-auth-v1'}});
+   const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token))),x=>x.toString(16).padStart(2,'0')).join('');
+   return (await c.rpc('ma_acesso_ativar',{hash_token:digest})).error?.message;
+  },token);
+  expect(activation).toContain('Entre com sua senha');
+ }
+ await page.getByRole('button',{name:'Salvar senha e entrar'}).click();
+ await expect(page).toHaveURL(/\/gestao\//);expect(verifications).toBe(1);
+ const login=await requestJson(request,'/auth/v1/token?grant_type=password',{email,password});expect(login.access_token).toBeTruthy();
+});
+
+test('confirmação nativa inválida não grava senha nem ativa a ficha',async({request,page},info)=>{
+ const email='prova-'+info.project.name+'-'+randomUUID()+'@example.invalid',person=await register(request,email);await send(request,person);
+ const link=new URL(await mailLink(request,email)),params=new URLSearchParams(link.hash.slice(1));params.set('auth_hash','0'.repeat(64));link.hash=params.toString();
+ await page.goto(link.href);await page.getByLabel('Senha',{exact:true}).fill(password);await page.getByLabel('Confirme a senha').fill(password);await page.getByRole('button',{name:'Salvar senha e entrar'}).click();
+ await expect(page.getByRole('alert')).toContainText('confirmação venceu ou já foi utilizado');
+ const ctx=await rpc(request,'ma_colaboradores_contexto',{municipio:'maringa'});expect(ctx.colaboradores.find(x=>x.dados.id===person.id).acesso.situacao).toBe('pendente');
+});
+
+test('recuperação por SMTP nativo permite definir outra senha e entrar normalmente',async({request,page},info)=>{
+ const email='recuperacao-'+info.project.name+'-'+randomUUID()+'@example.invalid';await requestJson(request,'/auth/v1/admin/users',{email,password,email_confirm:true});
+ await requestJson(request,'/auth/v1/recover?redirect_to='+encodeURIComponent('http://127.0.0.1:8785/acesso/?recuperar=1'),{email});
+ await page.goto(await mailLink(request,email,false));await expect(page.getByRole('heading',{name:'Definir nova senha'})).toBeVisible();
+ const newPassword=password+' nova';await page.getByLabel('Senha',{exact:true}).fill(newPassword);await page.getByLabel('Confirme a senha').fill(newPassword);await page.getByRole('button',{name:'Salvar senha',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Senha salva',exact:true})).toBeVisible();
+ expect((await requestJson(request,'/auth/v1/token?grant_type=password',{email,password:newPassword})).access_token).toBeTruthy();
+ const old=await request.post('/auth/v1/token?grant_type=password',{data:{email,password}});expect(old.ok()).toBe(false);
 });
