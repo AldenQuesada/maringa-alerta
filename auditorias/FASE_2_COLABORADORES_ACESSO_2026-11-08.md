@@ -1,6 +1,6 @@
 # Fase 2 — cadastro administrativo, permissões e primeiro acesso
 
-Estado: implementação em homologação. **Não publicada; fase 2 ainda não concluída em produção.** A conexão PostgreSQL está disponível, mas falta uma credencial autorizada para publicar o serviço de acesso e configurar o provedor de e-mail. Nenhum e-mail externo, conta de produção ou senha real foi criado ou modificado nesta fase.
+Estado: implementação e homologação local/CI concluídas; publicação pendente. **Não publicada; fase 2 ainda não concluída em produção.** A conexão PostgreSQL está disponível, mas falta uma credencial autorizada para publicar o serviço de acesso e configurar o provedor de e-mail. Nenhum e-mail externo, conta de produção ou senha real foi criado ou modificado nesta fase.
 
 ## Implementação
 
@@ -17,7 +17,7 @@ Referência do Clinic AI conferida em [auditoria própria](FASE_2_REFERENCIA_CLI
 
 ## Validação
 
-O backup de 08/11/2026 às 18:48 UTC foi restaurado antes da alteração: 77 tabelas com contagens e hashes iguais à origem, sequências verificadas, três segredos recuperados e um objeto Storage íntegro. A restauração ficou sem rede, sem cron ativo e sem superuser de aplicação. Evidência: [backup validado](fase2-pra-somar-2026-11-08/backup-validado.json).
+O backup de 08/11/2026 às 18:48 UTC foi restaurado antes da alteração: 77 tabelas com contagens e hashes iguais à origem, sequências verificadas, três segredos recuperados e um objeto Storage íntegro. A comparação posterior confirmou a preservação das 33 tabelas próprias, exceto a atualização prevista do catálogo de relações; veja [preservação no clone](fase2-pra-somar-2026-11-08/preservacao-clone.json). A restauração ficou sem rede, sem cron ativo e sem superuser de aplicação. Evidência: [backup validado](fase2-pra-somar-2026-11-08/backup-validado.json).
 
 As 37 migrações foram reproduzidas em banco vazio; passaram os 15 arquivos SQL da regressão e os seis programas de concorrência/validação, incluindo os 36 casos canônicos de mensagens. Também passaram os 280 testes Node, os nove testes de transporte e os 17 bundles determinísticos. Os verificadores oficiais do banco local apontaram apenas o aviso de desempenho já existente em `ma_configuracao`; nenhum achado novo da fase 2.
 
@@ -26,6 +26,12 @@ Os três mapas passaram nas 12 combinações de Chromium/WebKit, larguras 320/39
 O ambiente de primeiro acesso usa GoTrue e PostgREST reais, uma base vazia e o mesmo handler da publicação. A confirmação de e-mail permanece habilitada. As mensagens são capturadas por um transportador local em rede interna; isso **não comprova entrega de e-mail em produção**. Os casos incluem ficha completa antes do envio, conta nova e existente, confirmação de senha, sessão de outra pessoa, link inválido/revogado, repetição, falha de entrega, conta não confirmada, perda de renovação da sessão e login posterior pela interface. A expiração e a suspensão são verificadas também em SQL. A concorrência verifica versão e envio idempotente.
 
 Durante a homologação foi corrigida a abertura de um novo link na mesma aba já em `/acesso/`: a mudança apenas do fragmento agora reinicia a conferência do link. Esse achado não foi apresentado como reprodução da causa histórica do bug do Clinic AI.
+
+## Revisão e integração contínua
+
+[PR 110, em rascunho](https://github.com/AldenQuesada/maringa-alerta/pull/110), branch `codex/fase2-colaboradores-acesso`. O commit de implementação `ab2ad83c2b300816607a21a6884f4dd98e69e006` passou nos cinco jobs: verificar, permissoes-banco, transporte-whatsapp, mapas-mobile e primeiro-acesso. [Execução completa](https://github.com/AldenQuesada/maringa-alerta/actions/runs/42515107795); [resumo verificável](fase2-pra-somar-2026-11-08/ci.json).
+
+A implementação foi desenvolvida sobre a main publicada em uma cópia isolada, `/tmp/pra-somar-fase2`. A pasta compartilhada contém alterações anteriores e uma versão de autenticação diferente da main; não foi substituída ou mesclada automaticamente com código de produção. Plano e evidências são sincronizados na pasta compartilhada; a implementação validada está na branch e no PR.
 
 ## Pendências para encerrar a fase
 

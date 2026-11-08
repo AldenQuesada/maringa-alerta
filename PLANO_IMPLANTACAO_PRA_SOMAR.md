@@ -4,7 +4,7 @@ Plano de execução iniciado em 08/11/2026, a partir do documento fornecido pelo
 
 ## Ponto de partida
 
-**Fase 0 concluída.** O backup real foi restaurado e validado, incluindo 72 tabelas, 8.233 registros, nove sequências, três segredos do Vault e o arquivo existente no Storage. O histórico remoto foi reconciliado com as 35 migrações locais; a CLI confirmou ausência de alterações pendentes. Os dados das 29 tabelas próprias foram preservados. Consulte o [evidência atualizada da recuperação](auditorias/FASE_1_BANCO_CATALOGO_2026-11-08.md). **Fase 1 concluída e aplicada: 12 categorias, 70 tipos, 253 cadastros preservados, 36 migrações alinhadas e testes móveis aprovados. Fase 2 em implementação e homologação; publicação e entrega real ainda pendentes.** Consulte o [contrato territorial](backend/TERRITORIO.md).
+**Fase 0 concluída.** O backup real foi restaurado e validado, incluindo 72 tabelas, 8.233 registros, nove sequências, três segredos do Vault e o arquivo existente no Storage. O histórico remoto foi reconciliado com as 35 migrações locais; a CLI confirmou ausência de alterações pendentes. Os dados das 29 tabelas próprias foram preservados. Consulte o [evidência atualizada da recuperação](auditorias/FASE_1_BANCO_CATALOGO_2026-11-08.md). **Fase 1 concluída e aplicada: 12 categorias, 70 tipos, 253 cadastros preservados, 36 migrações alinhadas e testes móveis aprovados. Fase 2 implementada e homologada localmente e na CI; publicação e entrega real ainda pendentes.** Consulte o [contrato territorial](backend/TERRITORIO.md).
 
 O desenvolvimento seguirá em entregas pequenas. Cada fase terá implementação, testes adequados, evidência do comportamento e registro das pendências. Uma funcionalidade só será marcada como operacional depois de validada no ambiente correspondente. Testes locais não comprovam publicação, envio de mensagem nem entrega de notificação.
 
@@ -104,3 +104,9 @@ Referência conferida: Clinic AI v2, código da main e metadados/comandos do ban
 Critérios adicionais antes de concluir a fase 2: primeiro acesso em navegador sem sessão; criação e confirmação da senha; conta já existente; sessão de outro usuário; link expirado/usado/revogado; repetição de envio; falha de confirmação de e-mail ou renovação da sessão; novo login com senha; aplicação das permissões e bloqueio de acesso suspenso. O cadastro interno deve continuar preservado em todos esses casos.
 
 Esta revisão corrige o planejamento. A implementação da fase 2 permanece não iniciada.
+
+## Fase 2 — implementação e homologação, publicação pendente
+
+Cadastro completo pelo administrador, permissões, equipe, responsável/substituto, horários, envio ao final e primeiro acesso com senha estão implementados no [PR 110](https://github.com/AldenQuesada/maringa-alerta/pull/110). Os cinco jobs de CI passaram, incluindo autenticação real em Chromium/WebKit e os 12 testes móveis dos mapas. O backup atualizado foi restaurado e as tabelas próprias foram preservadas no clone. Consulte a [auditoria da fase 2](auditorias/FASE_2_COLABORADORES_ACESSO_2026-11-08.md).
+
+A fase ainda não está concluída em produção: falta a configuração autorizada de publicação e e-mail, seguida de aplicação da migração e homologação de entrega/primeiro acesso no endereço publicado. Nenhuma conta ou mensagem externa de teste foi criada nesta rodada. Não avançar para a fase 3 enquanto esses itens permanecerem pendentes.
