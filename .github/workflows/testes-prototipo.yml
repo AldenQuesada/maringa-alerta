@@ -107,6 +107,7 @@ jobs:
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/integracao.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/incidentes.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/territorio.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/monitoramento-animal.sql
           MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres python3 tests/backend/territorio-concorrencia.py
           MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres python3 tests/backend/territorio-espacial.py
 
