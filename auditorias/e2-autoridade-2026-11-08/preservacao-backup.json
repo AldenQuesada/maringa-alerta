@@ -1,0 +1,248 @@
+{
+  "status": "passed",
+  "scope": "Backup real restaurado sem rede, 36 migrações anteriores + 4 migrações candidatas; executor postgres sem superuser",
+  "tables": [
+    {
+      "table": "private.ma_admins",
+      "before_rows": 1,
+      "after_rows": 1,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "private.ma_convites_iniciais",
+      "before_rows": 1,
+      "after_rows": 1,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "private.ma_historico",
+      "before_rows": 9,
+      "after_rows": 9,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "private.ma_permissoes",
+      "before_rows": 48,
+      "after_rows": 48,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "private.ma_referencias",
+      "before_rows": 0,
+      "after_rows": 0,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.channels",
+      "before_rows": 1,
+      "after_rows": 1,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.completions",
+      "before_rows": 0,
+      "after_rows": 0,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.contact_history",
+      "before_rows": 0,
+      "after_rows": 0,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.contact_owned_records",
+      "before_rows": 0,
+      "after_rows": 0,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.contact_records",
+      "before_rows": 0,
+      "after_rows": 0,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.deleted_receipts",
+      "before_rows": 0,
+      "after_rows": 0,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.delivery_events",
+      "before_rows": 12,
+      "after_rows": 12,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.flows",
+      "before_rows": 6,
+      "after_rows": 6,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.inbox",
+      "before_rows": 4,
+      "after_rows": 4,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.media_deletions",
+      "before_rows": 0,
+      "after_rows": 0,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.nodes",
+      "before_rows": 58,
+      "after_rows": 58,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.operations",
+      "before_rows": 4,
+      "after_rows": 4,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.outbox",
+      "before_rows": 4,
+      "after_rows": 4,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.sessions",
+      "before_rows": 1,
+      "after_rows": 1,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.simulation_requests",
+      "before_rows": 0,
+      "after_rows": 0,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "wa.versions",
+      "before_rows": 2,
+      "after_rows": 2,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "public.ma_cadastros",
+      "before_rows": 253,
+      "after_rows": 253,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "auth.users",
+      "before_rows": 1,
+      "after_rows": 1,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "public.ma_auditoria",
+      "before_rows": 9,
+      "after_rows": 9,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "public.ma_configuracao",
+      "before_rows": 5,
+      "after_rows": 6,
+      "preserved": false,
+      "expected_change": "Catálogo de relações fase 2 e contrato de colaboradores E1"
+    },
+    {
+      "table": "public.ma_municipios_ibge",
+      "before_rows": 5571,
+      "after_rows": 5571,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "public.ma_painel",
+      "before_rows": 0,
+      "after_rows": 0,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "public.ma_prefeituras",
+      "before_rows": 1,
+      "after_rows": 1,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "public.ma_ufs",
+      "before_rows": 27,
+      "after_rows": 27,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "public.ma_vinculos",
+      "before_rows": 1,
+      "after_rows": 1,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "territorio.categorias",
+      "before_rows": 12,
+      "after_rows": 12,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "territorio.entidades",
+      "before_rows": 253,
+      "after_rows": 253,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "territorio.tipos",
+      "before_rows": 70,
+      "after_rows": 70,
+      "preserved": true,
+      "expected_change": null
+    },
+    {
+      "table": "territorio.vinculos_operacionais",
+      "before_rows": 0,
+      "after_rows": 0,
+      "preserved": true,
+      "expected_change": null
+    }
+  ],
+  "postgres_superuser": false,
+  "configuration_change_exact": true,
+  "canonical_records_unchanged": true,
+  "auth_users_password_hashes_unchanged": true
+}

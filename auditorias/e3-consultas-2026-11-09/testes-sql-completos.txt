@@ -1,0 +1,2030 @@
+CREATE ROLE
+CREATE ROLE
+CREATE ROLE
+CREATE SCHEMA
+CREATE TABLE
+CREATE FUNCTION
+GRANT
+GRANT
+BEGIN
+CREATE SCHEMA
+REVOKE
+GRANT
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+REVOKE
+GRANT
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+REVOKE
+GRANT
+GRANT
+GRANT
+CREATE FUNCTION
+REVOKE
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE FUNCTION
+REVOKE
+CREATE TRIGGER
+CREATE FUNCTION
+REVOKE
+GRANT
+CREATE FUNCTION
+REVOKE
+GRANT
+INSERT 0 1
+COMMIT
+BEGIN
+CREATE TABLE
+ALTER TABLE
+REVOKE
+CREATE FUNCTION
+REVOKE
+CREATE TRIGGER
+COMMIT
+BEGIN
+REVOKE
+CREATE INDEX
+DO
+COMMIT
+BEGIN
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+REVOKE
+GRANT
+CREATE POLICY
+CREATE POLICY
+INSERT 0 27
+INSERT 0 5571
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE FUNCTION
+REVOKE
+CREATE TRIGGER
+CREATE FUNCTION
+COMMIT
+BEGIN
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+REVOKE
+REVOKE
+GRANT
+CREATE POLICY
+CREATE FUNCTION
+REVOKE
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+COMMIT
+BEGIN
+CREATE FUNCTION
+REVOKE
+CREATE FUNCTION
+REVOKE
+GRANT
+CREATE FUNCTION
+REVOKE
+GRANT
+CREATE FUNCTION
+REVOKE
+GRANT
+CREATE FUNCTION
+REVOKE
+GRANT
+COMMIT
+BEGIN
+CREATE ROLE
+GRANT
+GRANT
+GRANT
+GRANT
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+ALTER FUNCTION
+ALTER FUNCTION
+GRANT
+ALTER FUNCTION
+REVOKE
+REVOKE
+GRANT
+CREATE FUNCTION
+REVOKE
+GRANT
+REVOKE
+COMMIT
+BEGIN
+CREATE TABLE
+ALTER TABLE
+REVOKE
+GRANT
+CREATE POLICY
+INSERT 0 2
+CREATE TABLE
+ALTER TABLE
+REVOKE
+INSERT 0 24
+INSERT 0 14
+COMMIT
+BEGIN
+CREATE FUNCTION
+REVOKE
+GRANT
+ALTER POLICY
+ALTER POLICY
+ALTER POLICY
+ALTER POLICY
+ALTER POLICY
+CREATE FUNCTION
+REVOKE
+CREATE TRIGGER
+CREATE TRIGGER
+COMMIT
+BEGIN
+CREATE TABLE
+ALTER TABLE
+REVOKE
+REVOKE
+CREATE INDEX
+CREATE FUNCTION
+REVOKE
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TABLE
+CREATE INDEX
+ALTER TABLE
+REVOKE
+INSERT 0 1
+CREATE FUNCTION
+REVOKE
+CREATE TRIGGER
+DO
+COMMIT
+BEGIN
+CREATE FUNCTION
+REVOKE
+CREATE FUNCTION
+REVOKE
+GRANT
+GRANT
+CREATE POLICY
+CREATE POLICY
+CREATE FUNCTION
+COMMIT
+BEGIN
+INSERT 0 1
+UPDATE 1
+UPDATE 1
+UPDATE 1
+CREATE FUNCTION
+REVOKE
+GRANT
+CREATE FUNCTION
+REVOKE
+GRANT
+ALTER FUNCTION
+CREATE FUNCTION
+REVOKE
+GRANT
+ALTER FUNCTION
+REVOKE
+ALTER FUNCTION
+REVOKE
+GRANT
+DROP FUNCTION
+CREATE FUNCTION
+REVOKE
+GRANT
+CREATE FUNCTION
+REVOKE
+CREATE FUNCTION
+REVOKE
+CREATE TRIGGER
+COMMIT
+BEGIN
+CREATE INDEX
+COMMIT
+BEGIN
+CREATE TABLE
+ALTER TABLE
+REVOKE
+GRANT
+GRANT
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE FUNCTION
+GRANT
+ALTER FUNCTION
+REVOKE
+REVOKE
+GRANT
+CREATE FUNCTION
+REVOKE
+GRANT
+CREATE FUNCTION
+CREATE TRIGGER
+COMMIT
+BEGIN
+ALTER TABLE
+ALTER TABLE
+UPDATE 1
+UPDATE 1
+UPDATE 1
+INSERT 0 1
+UPDATE 1
+UPDATE 1
+CREATE FUNCTION
+REVOKE
+CREATE TRIGGER
+CREATE FUNCTION
+REVOKE
+CREATE TRIGGER
+COMMIT
+BEGIN
+CREATE FUNCTION
+REVOKE
+GRANT
+GRANT ROLE
+DO
+REVOKE ROLE
+ALTER POLICY
+ALTER POLICY
+ALTER POLICY
+COMMIT
+BEGIN
+CREATE SCHEMA
+REVOKE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+REVOKE
+REVOKE
+COMMIT
+BEGIN
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+REVOKE
+REVOKE
+COMMIT
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+COMMIT
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+COMMIT
+BEGIN
+CREATE FUNCTION
+REVOKE
+COMMIT
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+REVOKE
+GRANT
+GRANT
+REVOKE
+GRANT
+GRANT
+REVOKE
+GRANT
+COMMIT
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+GRANT
+GRANT
+REVOKE
+GRANT
+GRANT
+REVOKE
+GRANT
+GRANT
+REVOKE
+GRANT
+GRANT
+REVOKE
+GRANT
+GRANT
+REVOKE
+GRANT
+COMMIT
+BEGIN
+DO
+COMMIT
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+GRANT
+DO
+CREATE FUNCTION
+REVOKE
+GRANT
+DO
+DO
+CREATE FUNCTION
+REVOKE
+DO
+GRANT
+REVOKE
+GRANT
+COMMIT
+BEGIN
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+ALTER TABLE
+REVOKE
+REVOKE
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+GRANT
+CREATE FUNCTION
+ALTER FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+REVOKE
+GRANT
+COMMIT
+BEGIN
+DO
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+CREATE FUNCTION
+CREATE FUNCTION
+DO
+CREATE FUNCTION
+COMMIT
+BEGIN
+ALTER TABLE
+UPDATE 0
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE POLICY
+CREATE TABLE
+CREATE INDEX
+ALTER TABLE
+REVOKE
+REVOKE
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+REVOKE
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+CREATE TRIGGER
+COMMIT
+BEGIN
+INSERT 0 1
+UPDATE 1
+COMMIT
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+REVOKE
+GRANT
+COMMIT
+BEGIN
+ALTER TABLE
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+GRANT
+UPDATE 0
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+REVOKE
+GRANT
+COMMIT
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+GRANT
+CREATE FUNCTION
+COMMIT
+BEGIN
+CREATE FUNCTION
+REVOKE
+INSERT 0 1
+UPDATE 1
+COMMIT
+BEGIN
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+ALTER TABLE
+REVOKE
+INSERT 0 0
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE TABLE
+ALTER TABLE
+REVOKE
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+REVOKE
+CREATE FUNCTION
+COMMIT
+BEGIN
+CREATE TABLE
+ALTER TABLE
+REVOKE
+CREATE INDEX
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+REVOKE
+GRANT
+CREATE FUNCTION
+CREATE FUNCTION
+COMMIT
+BEGIN
+CREATE FUNCTION
+REVOKE
+CREATE FUNCTION
+UPDATE 1
+UPDATE 1
+COMMIT
+BEGIN
+CREATE SCHEMA
+CREATE EXTENSION
+CREATE SCHEMA
+REVOKE
+GRANT
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+INSERT 0 12
+INSERT 0 70
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+REVOKE
+GRANT
+GRANT
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+ALTER TABLE
+ALTER TABLE
+UPDATE 1
+INSERT 0 9
+CREATE FUNCTION
+REVOKE
+CREATE FUNCTION
+REVOKE
+CREATE FUNCTION
+REVOKE
+CREATE TRIGGER
+DO
+CREATE FUNCTION
+GRANT ROLE
+GRANT
+ALTER FUNCTION
+REVOKE
+REVOKE ROLE
+REVOKE
+GRANT
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+GRANT
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+GRANT
+CREATE FUNCTION
+REVOKE
+GRANT
+NOTIFY
+COMMIT
+BEGIN
+CREATE TABLE
+CREATE INDEX
+ALTER TABLE
+REVOKE
+CREATE TRIGGER
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+REVOKE
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+GRANT
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+GRANT
+CREATE FUNCTION
+REVOKE
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+DO
+GRANT
+UPDATE 1
+ALTER FUNCTION
+REVOKE
+CREATE FUNCTION
+REVOKE
+GRANT
+NOTIFY
+COMMIT
+BEGIN
+ALTER TABLE
+CREATE INDEX
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+REVOKE
+GRANT
+REVOKE
+COMMIT
+BEGIN
+LOCK TABLE
+DO
+CREATE INDEX
+INSERT 0 1
+CREATE FUNCTION
+REVOKE
+CREATE FUNCTION
+DROP TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE FUNCTION
+NOTIFY
+COMMIT
+BEGIN
+GRANT ROLE
+SET
+REVOKE
+GRANT
+RESET
+REVOKE ROLE
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+REVOKE
+DO
+CREATE ROLE
+GRANT ROLE
+GRANT
+GRANT
+GRANT
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE VIEW
+REVOKE
+GRANT
+GRANT
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+DO
+ALTER DEFAULT PRIVILEGES
+REVOKE
+REVOKE ROLE
+DO
+NOTIFY
+COMMIT
+BEGIN
+CREATE ROLE
+GRANT ROLE
+GRANT
+GRANT
+CREATE POLICY
+CREATE POLICY
+GRANT
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+DO
+ALTER DEFAULT PRIVILEGES
+REVOKE
+REVOKE ROLE
+NOTIFY
+COMMIT
+REVOKE
+BEGIN
+INSERT 0 1
+INSERT 0 4
+DO
+UPDATE 1
+INSERT 0 1
+INSERT 0 2
+SET
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000002
+(1 row)
+
+DO
+                                                                                        ma_aplicar_alteracoes                                                                                         
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "local-1", "dados": {"id": "local-1", "nome": "Fixture exclusivamente local", "municipioId": "maringa"}, "versao": 1, "colecao": "bases", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+DO
+                                                                                 ma_aplicar_alteracoes                                                                                  
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "local-1", "dados": {"id": "local-1", "nome": "Edição local", "municipioId": "maringa"}, "versao": 2, "colecao": "bases", "operacao": "atualizar", "municipio_id": "maringa"}]
+(1 row)
+
+DO
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000003
+(1 row)
+
+DO
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000004
+(1 row)
+
+DO
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000001
+(1 row)
+
+                                                                                                                ma_aplicar_alteracoes                                                                                                                
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "nova", "dados": {"id": "nova", "uf": "PR", "nome": "Londrina", "paisId": "BR", "status": "implantacao", "codigo_uf": "41", "codigo_ibge": "4113700"}, "versao": 1, "colecao": "prefeituras", "operacao": "inserir", "municipio_id": null}]
+(1 row)
+
+DO
+                                                                                                                                                                               ma_aplicar_alteracoes                                                                                                                                                                               
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "maringa", "dados": {"id": "maringa", "uf": "PR", "lat": -23.4205, "lng": -51.9333, "nome": "Maringá", "pais": "Brasil", "zoom": 12, "estado": "Paraná", "paisId": "BR", "status": "suspensa", "codigo_uf": "41", "codigo_ibge": "4115200", "origem_provisionamento": "Supabase"}, "versao": 2, "colecao": "prefeituras", "operacao": "atualizar", "municipio_id": null}]
+(1 row)
+
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000002
+(1 row)
+
+DO
+SET
+DO
+ROLLBACK
+PASS SQL: permissoes
+BEGIN
+INSERT 0 2
+INSERT 0 2
+SET
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000011
+(1 row)
+
+DO
+                                                                                                                                                                                                      ma_aplicar_alteracoes                                                                                                                                                                                                       
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "e1", "dados": {"id": "e1", "nome": "Evento local", "tipo": "Verificação", "municipioId": "maringa"}, "versao": 1, "colecao": "eventos", "operacao": "inserir", "municipio_id": "maringa"}, {"id": "e2", "dados": {"id": "e2", "nome": "Evento local 2", "tipo": "Verificação", "municipioId": "maringa", "mapa_evento_id": "e1"}, "versao": 1, "colecao": "eventos", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+DO
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000012
+(1 row)
+
+DO
+RESET
+DO
+ROLLBACK
+PASS SQL: seguranca-servidor
+BEGIN
+INSERT 0 2
+INSERT 0 2
+CREATE FUNCTION
+GRANT
+CREATE FUNCTION
+GRANT
+SET
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000021
+(1 row)
+
+DO
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+                                                                                             gravar                                                                                              
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "saldo", "dados": {"id": "saldo", "nome": "Local", "quantidade": 2.5, "municipioId": "maringa"}, "versao": 1, "colecao": "estoques", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+                                                                                                                                                                                              gravar                                                                                                                                                                                               
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "v1", "dados": {"id": "v1", "nome": "Fixture local", "zona": "Zona local", "ajudas": ["FORNECER ALIMENTAÇÃO"], "bairro": "Bairro local", "endereco": "Endereço de teste local", "telefone": "44999990001", "municipioId": "maringa", "tipo_pessoa": "FÍSICA", "disponibilidade": "Disponível"}, "versao": 1, "colecao": "voluntarios", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+                                                                                                                                                 gravar                                                                                                                                                 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "p1", "dados": {"id": "p1", "nome": "Local", "status": "Encaminhada", "endereco": "Local", "telefone": "44999990002", "atribuido_a": "v1", "municipioId": "maringa", "necessidade": "Alimentação"}, "versao": 1, "colecao": "solicitacoes", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+                                                                                                                                                gravar                                                                                                                                                
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "p1", "dados": {"id": "p1", "nome": "Local", "status": "Cheguei", "endereco": "Local", "telefone": "44999990002", "atribuido_a": "v1", "municipioId": "maringa", "necessidade": "Alimentação"}, "versao": 2, "colecao": "solicitacoes", "operacao": "atualizar", "municipio_id": "maringa"}]
+(1 row)
+
+                                                                                                                                                gravar                                                                                                                                                 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "p1", "dados": {"id": "p1", "nome": "Local", "status": "Atendida", "endereco": "Local", "telefone": "44999990002", "atribuido_a": "v1", "municipioId": "maringa", "necessidade": "Alimentação"}, "versao": 3, "colecao": "solicitacoes", "operacao": "atualizar", "municipio_id": "maringa"}]
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+                                                                                                                                                         gravar                                                                                                                                                         
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "bairro-local", "dados": {"id": "bairro-local", "nome": "Bairro local", "geojson": {"type": "Polygon", "coordinates": [[[0, 0], [0, 2], [2, 2], [2, 0], [0, 0]]]}, "municipioId": "maringa", "verificacao": "Validado"}, "versao": 1, "colecao": "bairros", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+                                                                                                                                                                                                                                                                                                                                                    gravar                                                                                                                                                                                                                                                                                                                                                    
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "v1", "dados": {"id": "v1", "nome": "Fixture local", "zona": "Zona local", "ajudas": ["FORNECER ALIMENTAÇÃO"], "bairro": "Bairro local", "endereco": "Endereço de teste local", "telefone": "44999990001", "checkin_em": "2026-11-09T13:36:52.431854+00:00", "checkin_lat": 1, "checkin_lng": 1, "checkout_em": null, "municipioId": "maringa", "tipo_pessoa": "FÍSICA", "checkin_tipo": "autodeclarado_validado_servidor", "checkin_fonte": "Cadastro territorial municipal", "checkin_bairro": "Bairro local", "checkin_status": "presente", "disponibilidade": "Disponível", "checkin_precisao": 10}, "versao": 2, "colecao": "voluntarios", "operacao": "atualizar", "municipio_id": "maringa"}]
+(1 row)
+
+DO
+                                                                                                                                                                                                                                                                                                                                                                    gravar                                                                                                                                                                                                                                                                                                                                                                    
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "v1", "dados": {"id": "v1", "nome": "Fixture local", "zona": "Zona local", "ajudas": ["FORNECER ALIMENTAÇÃO"], "bairro": "Bairro local", "endereco": "Endereço de teste local", "telefone": "44999990001", "checkin_em": "2026-11-09T13:36:52.431854+00:00", "checkin_lat": 1, "checkin_lng": 1, "checkout_em": "2026-11-09T13:36:50.460397+00:00", "municipioId": "maringa", "tipo_pessoa": "FÍSICA", "checkin_tipo": "autodeclarado_validado_servidor", "checkin_fonte": "Cadastro territorial municipal", "checkin_bairro": "Bairro local", "checkin_status": "finalizado", "disponibilidade": "Disponível", "checkin_precisao": 10}, "versao": 3, "colecao": "voluntarios", "operacao": "atualizar", "municipio_id": "maringa"}]
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+                                                                                          gravar                                                                                          
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "zona-local", "dados": {"id": "zona-local", "nome": "Zona local", "municipioId": "maringa"}, "versao": 1, "colecao": "zonas", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+                                                                                                                                                                                 gravar                                                                                                                                                                                  
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "mobilizacao", "dados": {"id": "mobilizacao", "nome": "Local", "zona": "Zona local", "status": "Preparada", "municipioId": "maringa", "destinatarios": "[{\"id\": \"v1\", \"nome\": \"Fixture local\", \"tipo\": \"colaborador\", \"telefone\": \"44999990001\"}]"}, "versao": 1, "colecao": "mobilizacoes", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+DO
+ rejeita 
+---------
+ 
+(1 row)
+
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000022
+(1 row)
+
+DO
+ rejeita 
+---------
+ 
+(1 row)
+
+RESET
+DELETE 1
+SET
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000021
+(1 row)
+
+DO
+ rejeita 
+---------
+ 
+(1 row)
+
+ROLLBACK
+PASS SQL: operacoes
+BEGIN
+INSERT 0 2
+INSERT 0 2
+SET
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000041
+(1 row)
+
+                                                                                                                         ma_salvar_painel                                                                                                                          
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {"chave": "tasks", "versao": 1, "user_id": "00000000-0000-4000-8000-000000000041", "documento": [{"id": "t1", "title": "Fixture local", "status": "open", "priority": "Normal"}], "municipio_id": "maringa", "atualizado_em": "2026-11-09T13:36:50.550738+00:00"}
+(1 row)
+
+DO
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000042
+(1 row)
+
+DO
+                                                                                        ma_salvar_painel                                                                                        
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {"chave": "alerts", "versao": 1, "user_id": "00000000-0000-4000-8000-000000000042", "documento": ["pedido:1"], "municipio_id": "maringa", "atualizado_em": "2026-11-09T13:36:50.550738+00:00"}
+(1 row)
+
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000041
+(1 row)
+
+DO
+RESET
+DO
+ROLLBACK
+PASS SQL: painel
+BEGIN
+INSERT 0 4
+INSERT 0 1
+SET
+              set_config              
+--------------------------------------
+ 10000000-0000-4000-8000-000000000001
+(1 row)
+
+DO
+DO
+ ma_admin_definir_vinculo 
+--------------------------
+ 
+(1 row)
+
+ ma_admin_definir_vinculo 
+--------------------------
+ 
+(1 row)
+
+DO
+              set_config              
+--------------------------------------
+ 10000000-0000-4000-8000-000000000002
+(1 row)
+
+DO
+                                                                                    ma_aplicar_alteracoes                                                                                    
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "isolamento", "dados": {"id": "isolamento", "nome": "Fixture local", "municipioId": "maringa"}, "versao": 1, "colecao": "bases", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+DO
+DO
+              set_config              
+--------------------------------------
+ 10000000-0000-4000-8000-000000000003
+(1 row)
+
+DO
+              set_config              
+--------------------------------------
+ 10000000-0000-4000-8000-000000000001
+(1 row)
+
+ ma_admin_definir_vinculo 
+--------------------------
+ 
+(1 row)
+
+              set_config              
+--------------------------------------
+ 10000000-0000-4000-8000-000000000002
+(1 row)
+
+DO
+SET
+DO
+RESET
+DO
+ROLLBACK
+PASS SQL: admin-geral
+BEGIN
+DO
+INSERT 0 1
+INSERT 0 1
+SET
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000051
+(1 row)
+
+DO
+                                                                                                       ma_aplicar_alteracoes                                                                                                       
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "base-integracao", "dados": {"id": "base-integracao", "nome": "Fixture somente local", "municipioId": "cidade-integracao"}, "versao": 1, "colecao": "bases", "operacao": "inserir", "municipio_id": "cidade-integracao"}]
+(1 row)
+
+DO
+RESET
+DO
+ROLLBACK
+PASS SQL: integracao
+BEGIN
+INSERT 0 2
+INSERT 0 2
+CREATE FUNCTION
+GRANT
+CREATE FUNCTION
+GRANT
+DO
+SET
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000071
+(1 row)
+
+                                                                                                                      gravar                                                                                                                       
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "evento-local", "dados": {"id": "evento-local", "nome": "Evento de teste", "tipo": "Vendaval", "status": "Em andamento", "municipioId": "maringa"}, "versao": 1, "colecao": "eventos", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+                                                                                                            gravar                                                                                                             
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "tipo-local", "dados": {"id": "tipo-local", "nome": "Queda de árvore", "prioridade": "Alta", "municipioId": "maringa"}, "versao": 1, "colecao": "ocorrenciaTipos", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+                                                                                                                                                       gravar                                                                                                                                                       
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "bairro-local", "dados": {"id": "bairro-local", "nome": "Bairro de teste", "geojson": {"type": "Polygon", "coordinates": [[[-52, -24], [-51, -24], [-51, -23], [-52, -23], [-52, -24]]]}, "municipioId": "maringa"}, "versao": 1, "colecao": "bairros", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+                                                                                                           gravar                                                                                                            
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "equipe-local", "dados": {"id": "equipe-local", "nome": "Equipe de teste", "status": "Disponível", "municipioId": "maringa"}, "versao": 1, "colecao": "equipes", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+CREATE FUNCTION
+GRANT
+                                                                                                                                                                                                                                                                                                                                                                    gravar                                                                                                                                                                                                                                                                                                                                                                     
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "i-local", "dados": {"id": "i-local", "lat": "-23.4", "lng": "-51.9", "nome": "Queda de árvore", "fotos": [], "bairro": "Bairro de teste", "quando": "2026-11-01T12:00:00Z", "status": "Em triagem", "relatos": [], "tipo_id": "tipo-local", "endereco": "Local do teste", "bairro_id": "bairro-local", "criado_em": "2026-11-09T13:37:01.122076+00:00", "evento_id": "evento-local", "gravidade": "3", "protocolo": "OC-i-local", "municipioId": "maringa", "organizacoes": [{"id": "equipe-local", "nome": "Equipe de teste", "colecao": "equipes"}], "atualizado_em": "2026-11-09T13:37:01.122075+00:00", "responsabilidade": "publica"}, "versao": 1, "colecao": "incidentes", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+DO
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+                                                                                                                                                                                                                                                                                                                                                                     gravar                                                                                                                                                                                                                                                                                                                                                                      
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "i-local", "dados": {"id": "i-local", "lat": "-23.4", "lng": "-51.9", "nome": "Queda de árvore", "fotos": [], "bairro": "Bairro de teste", "quando": "2026-11-01T12:00:00Z", "status": "Confirmada", "relatos": [], "tipo_id": "tipo-local", "endereco": "Local do teste", "bairro_id": "bairro-local", "criado_em": "2026-11-09T13:37:01.122076+00:00", "evento_id": "evento-local", "gravidade": "3", "protocolo": "OC-i-local", "municipioId": "maringa", "organizacoes": [{"id": "equipe-local", "nome": "Equipe de teste", "colecao": "equipes"}], "atualizado_em": "2026-11-09T13:37:01.162126+00:00", "responsabilidade": "publica"}, "versao": 2, "colecao": "incidentes", "operacao": "atualizar", "municipio_id": "maringa"}]
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000072
+(1 row)
+
+ rejeita 
+---------
+ 
+(1 row)
+
+DO
+RESET
+DO
+ROLLBACK
+PASS SQL: incidentes
+BEGIN
+           set_config            
+---------------------------------
+ {"amr":[{"method":"password"}]}
+(1 row)
+
+INSERT 0 3
+INSERT 0 1
+SET
+              set_config              
+--------------------------------------
+ f2000000-0000-4000-8000-000000000001
+(1 row)
+
+                                                                                                                                                                               ma_colaborador_salvar                                                                                                                                                                               
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {"dados": {"id": "teste-fase2", "nome": "Pessoa de teste", "cargo": "Atendimento", "email": "fase2-pessoa@example.invalid", "bairro": "Bairro", "funcao": "operador", "status": "Ativo", "endereco": "Endereço de teste", "horarios": [{"dia": 1, "fim": "12:00", "inicio": "08:00"}], "telefone": "44999999999", "municipioId": "maringa"}, "versao": 1, "situacao": "pendente"}
+(1 row)
+
+DO
+DO
+SET
+                                                                                     ma_acesso_preparar                                                                                     
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {"id": "f2000000-0000-4000-8000-000000000010", "nome": "Pessoa de teste", "email": "fase2-pessoa@example.invalid", "estado": "preparado", "expira_em": "2026-11-11T13:37:01.287779+00:00"}
+(1 row)
+
+DO
+SET
+DO
+SET
+                                                                                    ma_acesso_preparar                                                                                    
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {"id": "f2000000-0000-4000-8000-000000000010", "nome": "Pessoa de teste", "email": "fase2-pessoa@example.invalid", "estado": "enviado", "expira_em": "2026-11-11T13:37:01.287779+00:00"}
+(1 row)
+
+SET
+DO
+RESET
+UPDATE 1
+SET
+              set_config              
+--------------------------------------
+ f2000000-0000-4000-8000-000000000002
+(1 row)
+
+DO
+RESET
+UPDATE 1
+SET
+              set_config              
+--------------------------------------
+ f2000000-0000-4000-8000-000000000003
+(1 row)
+
+DO
+              set_config              
+--------------------------------------
+ f2000000-0000-4000-8000-000000000002
+(1 row)
+
+RESET
+UPDATE 1
+SET
+DO
+RESET
+UPDATE 1
+SET
+              ma_acesso_ativar               
+---------------------------------------------
+ {"repetido": false, "municipio": "maringa"}
+(1 row)
+
+              ma_acesso_ativar              
+--------------------------------------------
+ {"repetido": true, "municipio": "maringa"}
+(1 row)
+
+DO
+              set_config              
+--------------------------------------
+ f2000000-0000-4000-8000-000000000001
+(1 row)
+
+                                                                                                                                                                                ma_colaborador_salvar                                                                                                                                                                                
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {"dados": {"id": "teste-fase2", "nome": "Pessoa de teste", "cargo": "Atendimento", "email": "fase2-pessoa@example.invalid", "bairro": "Bairro", "funcao": "operador", "status": "Inativo", "endereco": "Endereço de teste", "horarios": [{"dia": 1, "fim": "12:00", "inicio": "08:00"}], "telefone": "44999999999", "municipioId": "maringa"}, "versao": 2, "situacao": "suspenso"}
+(1 row)
+
+              set_config              
+--------------------------------------
+ f2000000-0000-4000-8000-000000000002
+(1 row)
+
+DO
+RESET
+DO
+ROLLBACK
+PASS SQL: colaboradores
+BEGIN
+CREATE FUNCTION
+GRANT
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+SET
+              set_config              
+--------------------------------------
+ e1000000-0000-4000-8000-000000000001
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+                                                                                                                                                                                                       ma_colaborador_salvar                                                                                                                                                                                                        
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {"dados": {"id": "e1-legado", "cep": "87000000", "nome": "Legado", "cargo": "Apoio", "email": "e1-legado@example.invalid", "bairro": "Centro", "funcao": "operador", "status": "Ativo", "endereco": "Rua local", "horarios": [], "telefone": "5544999999999", "documento": "Documento informado", "nascimento": "2000-02-29", "municipioId": "maringa", "campo_legado": {"preservar": true}}, "versao": 2, "situacao": "pendente"}
+(1 row)
+
+DO
+DO
+ rejeitar 
+----------
+ 
+(1 row)
+
+RESET
+ rejeitar 
+----------
+ 
+(1 row)
+
+DO
+ROLLBACK
+PASS SQL: e1-cadastros
+BEGIN
+INSERT 0 2
+INSERT 0 1
+INSERT 0 135
+SET
+              set_config              
+--------------------------------------
+ e3000000-0000-4000-8000-000000000001
+(1 row)
+
+DO
+              set_config              
+--------------------------------------
+ e3000000-0000-4000-8000-000000000002
+(1 row)
+
+DO
+SET
+DO
+RESET
+INSERT 0 1
+SET
+              set_config              
+--------------------------------------
+ e3000000-0000-4000-8000-000000000002
+(1 row)
+
+DO
+RESET
+ROLLBACK
+PASS SQL: e3-consultas
+BEGIN
+DO
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE TABLE
+DO
+ROLLBACK
+PASS SQL: autoridade
+BEGIN
+CREATE FUNCTION
+GRANT
+CREATE FUNCTION
+GRANT
+CREATE FUNCTION
+GRANT
+INSERT 0 4
+INSERT 0 1
+INSERT 0 3
+INSERT 0 1
+INSERT 0 1
+SET
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000081
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+                                                       ma_salvar_catalogo_territorial                                                       
+--------------------------------------------------------------------------------------------------------------------------------------------
+ {"id": "nova_categoria", "nome": "Categoria configurada", "ativo": true, "versao": 1, "atualizado_em": "2026-11-09T13:37:02.021681+00:00"}
+(1 row)
+
+                                                                                                 ma_salvar_catalogo_territorial                                                                                                 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {"id": "novo_servico", "nome": "Serviço sem alteração de JavaScript", "ativo": true, "pai_id": null, "versao": 1, "dominio": "servico", "categoria_id": "nova_categoria", "atualizado_em": "2026-11-09T13:37:02.024001+00:00"}
+(1 row)
+
+                                                                                              ma_salvar_catalogo_territorial                                                                                              
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {"id": "novo_subtipo", "nome": "Subtipo configurado", "ativo": true, "pai_id": "novo_servico", "versao": 1, "dominio": "servico", "categoria_id": "nova_categoria", "atualizado_em": "2026-11-09T13:37:02.026756+00:00"}
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+                                                                                                                                                    ma_colaborador_salvar                                                                                                                                                     
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {"dados": {"id": "pessoa-territorio", "nome": "Pessoa existente", "cargo": "Apoio", "email": "territorio-pessoa@example.invalid", "bairro": "Centro", "funcao": "operador", "status": "Ativo", "endereco": "Rua", "horarios": [], "telefone": "44999990000", "municipioId": "maringa"}, "versao": 1, "situacao": "pendente"}
+(1 row)
+
+                                                                                                                                                                                                               gravar                                                                                                                                                                                                               
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "local-territorio", "dados": {"id": "local-territorio", "lat": -23.42, "lng": -51.93, "nome": "Igreja com múltiplos serviços", "tipo_id": "igreja", "geo_fonte": "GPS informado", "municipioId": "maringa", "geo_confirmada": true, "geo_precisao_m": 8, "responsavel_id": "pessoa-territorio", "responsavel_colecao": "usuarios"}, "versao": 1, "colecao": "unidades", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+                                                                                                                                                                                  gravar                                                                                                                                                                                   
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "cozinha-territorio", "dados": {"id": "cozinha-territorio", "nome": "Cozinha", "periodo": "dia", "tipo_id": "cozinha", "unidade_id": "local-territorio", "municipioId": "maringa", "unidade_medida": "refeicoes", "unidade_colecao": "unidades", "capacidade_valor": 250}, "versao": 1, "colecao": "servicos", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+                                                                                                                                                   gravar                                                                                                                                                   
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "servico-territorio", "dados": {"id": "servico-territorio", "nome": "Outro serviço", "tipo_id": "novo_subtipo", "unidade_id": "local-territorio", "municipioId": "maringa", "unidade_colecao": "unidades"}, "versao": 1, "colecao": "servicos", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+                                                                                                                                                                          gravar                                                                                                                                                                           
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "freezer-territorio", "dados": {"id": "freezer-territorio", "nome": "Freezers", "tipo_id": "freezer", "unidade_id": "local-territorio", "municipioId": "maringa", "unidade_medida": "unidade", "unidade_colecao": "unidades", "quantidade_disponivel": 2}, "versao": 1, "colecao": "recursos", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+                                                                                                                                                                                 gravar                                                                                                                                                                                 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "operacao-territorio", "dados": {"id": "operacao-territorio", "nome": "Operação local", "tipo": "Apoio", "municipioId": "maringa", "vinculos_territoriais": [{"id": "cozinha-territorio", "colecao": "servicos"}, {"id": "freezer-territorio", "colecao": "recursos"}]}, "versao": 1, "colecao": "eventos", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+SET CONSTRAINTS
+ exigir 
+--------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+RESET
+ rejeitar 
+----------
+ 
+(1 row)
+
+SET
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+                                                                                                                                                         gravar                                                                                                                                                         
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "area-territorio", "dados": {"id": "area-territorio", "nome": "Área com limite", "geojson": {"type": "Polygon", "coordinates": [[[-52, -24], [-51, -24], [-51, -23], [-52, -23], [-52, -24]]]}, "municipioId": "maringa"}, "versao": 1, "colecao": "zonas", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+psql:tests/backend/territorio.sql:85: NOTICE:  Self-intersection at or near point 0.5 0.5
+ rejeitar 
+----------
+ 
+(1 row)
+
+                                                                                                                                                           gravar                                                                                                                                                            
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "legado-territorio", "dados": {"id": "legado-territorio", "lat": -23.42, "lng": -51.93, "nome": "Base legada", "tipo": "Ponto de água potável", "geo_status": "Validado", "municipioId": "maringa", "verificacao": "Validado"}, "versao": 1, "colecao": "bases", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+                                                                                                                                  gravar                                                                                                                                  
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "legado-territorio", "dados": {"id": "legado-territorio", "lat": -23.52, "lng": -51.93, "nome": "Base legada", "tipo": "Ponto de água potável", "municipioId": "maringa"}, "versao": 2, "colecao": "bases", "operacao": "atualizar", "municipio_id": "maringa"}]
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+                                                               gravar                                                               
+------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "legado-territorio", "dados": null, "versao": null, "colecao": "bases", "operacao": "excluir", "municipio_id": "maringa"}]
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+                                                                                              ma_salvar_catalogo_territorial                                                                                               
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {"id": "novo_subtipo", "nome": "Subtipo configurado", "ativo": false, "pai_id": "novo_servico", "versao": 2, "dominio": "servico", "categoria_id": "nova_categoria", "atualizado_em": "2026-11-09T13:37:02.296058+00:00"}
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+                                                                                                                                                    gravar                                                                                                                                                     
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "servico-territorio", "dados": {"id": "servico-territorio", "nome": "Nome corrigido", "tipo_id": "novo_subtipo", "unidade_id": "local-territorio", "municipioId": "maringa", "unidade_colecao": "unidades"}, "versao": 2, "colecao": "servicos", "operacao": "atualizar", "municipio_id": "maringa"}]
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000082
+(1 row)
+
+                                                                                                                 gravar                                                                                                                 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ [{"id": "recurso-operador", "dados": {"id": "recurso-operador", "nome": "Operador pode criar", "tipo_id": "freezer", "municipioId": "maringa"}, "versao": 1, "colecao": "recursos", "operacao": "inserir", "municipio_id": "maringa"}]
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000083
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000084
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+RESET
+ exigir 
+--------
+ 
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+UPDATE 1
+SET
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000082
+(1 row)
+
+ exigir 
+--------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+SET
+ rejeitar 
+----------
+ 
+(1 row)
+
+ rejeitar 
+----------
+ 
+(1 row)
+
+RESET
+ exigir 
+--------
+ 
+(1 row)
+
+ROLLBACK
+PASS SQL: territorio
+BEGIN
+UPDATE 1
+CREATE FUNCTION
+GRANT
+CREATE FUNCTION
+GRANT
+CREATE FUNCTION
+GRANT
+DO
+INSERT 0 1
+INSERT 0 1
+              set_config              
+--------------------------------------
+ 00000000-0000-0000-0000-000000000991
+(1 row)
+
+SET
+DO
+RESET
+DO
+ROLLBACK
+PASS SQL: fluxos
+BEGIN
+CREATE FUNCTION
+GRANT
+INSERT 0 1
+INSERT 0 1
+              set_config              
+--------------------------------------
+ 00000000-0000-0000-0000-000000000992
+(1 row)
+
+DO
+SET
+DO
+RESET
+ROLLBACK
+PASS SQL: catalogo
+BEGIN
+CREATE FUNCTION
+GRANT
+CREATE FUNCTION
+GRANT
+CREATE FUNCTION
+GRANT
+UPDATE 1
+DO
+ROLLBACK
+PASS SQL: canonico
+BEGIN
+CREATE FUNCTION
+GRANT
+CREATE FUNCTION
+GRANT
+CREATE FUNCTION
+GRANT
+INSERT 0 3
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000091
+(1 row)
+
+UPDATE 1
+DO
+ assert 
+--------
+ 
+(1 row)
+
+ assert 
+--------
+ 
+(1 row)
+
+ assert 
+--------
+ 
+(1 row)
+
+ROLLBACK
+PASS SQL: contatos
+BEGIN
+UPDATE 1
+CREATE FUNCTION
+GRANT
+CREATE FUNCTION
+GRANT
+CREATE FUNCTION
+GRANT
+INSERT 0 1
+INSERT 0 1
+              set_config              
+--------------------------------------
+ 00000000-0000-4000-8000-000000000095
+(1 row)
+
+DO
+ assert 
+--------
+ 
+(1 row)
+
+ROLLBACK
+PASS SQL: exclusao-definitiva
+BEGIN
+CREATE FUNCTION
+GRANT
+CREATE SCHEMA
+CREATE TABLE
+DO
+ROLLBACK
+PASS SQL: fotos-historicas
+Concorrência de relações: ciclo entre duas sessões rejeitado.
+Concorrência: uma gravação confirmada, conflito rejeitado, versão final 2.
+PASS: edição concorrente recusada; uma reserva de envio; mesmo e-mail concorrente cria uma única ficha e um único acesso.
+PASS: ciclos concorrentes, exclusão contra novo vínculo e versão do recurso; nenhuma referência órfã.
+PASS: RPC sob RLS, 3.000 pontos, 1 resultado correto e GiST executado; fixtures revertidas.
+Exclusão concorrente: envio em andamento preservado; nenhuma reserva depois da cascata.
+36 canonical cases: copy, buttons, image and production adaptations OK

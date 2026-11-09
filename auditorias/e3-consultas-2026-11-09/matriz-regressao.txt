@@ -1,0 +1,5 @@
+PASS: gate recusou escrita direta; matriz restaurada.
+PASS: gate recusou execução anônima; matriz restaurada.
+PASS: gate recusou associação ao executor; matriz restaurada.
+PASS: gate recusou associação ao consultor; matriz restaurada.
+PASS: gate recusou escrita pelo consultor; matriz restaurada.

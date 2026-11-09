@@ -2,10 +2,13 @@
 begin;
 update wa.channels set version_id=(select id from wa.versions where name='municipal-v2-canonico');
 create function pg_temp.assert(ok boolean, message text) returns void language plpgsql as $$begin if ok is distinct from true then raise exception '%',message;end if;end$$;
+grant execute on function pg_temp.assert(boolean,text) to authenticated,anon,service_role;
 create function pg_temp.send(s uuid,t text) returns jsonb language sql as $$select wa.step(s,jsonb_build_object('text',t))$$;
+grant execute on function pg_temp.send(uuid,text) to authenticated,anon,service_role;
 create function pg_temp.button(s uuid,action text) returns jsonb language plpgsql as $$declare id text;begin
  select b->>'id' into strict id from wa.sessions x,jsonb_array_elements(wa.render(x)->'buttons') b where x.id=s and b->>'id' like '%:'||action;
  return wa.step(s,jsonb_build_object('button',id));end$$;
+grant execute on function pg_temp.button(uuid,text) to authenticated,anon,service_role;
 do $test$
 declare c wa.channels;s uuid;r jsonb;old_button text;n integer;rev bigint;inbox bigint;delivery jsonb;other uuid;
 begin

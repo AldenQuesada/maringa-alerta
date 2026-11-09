@@ -1,0 +1,1 @@
+PASS: edição concorrente recusada; uma reserva de envio; mesmo e-mail concorrente cria uma única ficha e um único acesso.

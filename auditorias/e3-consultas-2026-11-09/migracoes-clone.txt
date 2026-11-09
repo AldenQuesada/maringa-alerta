@@ -1,0 +1,5 @@
+Aplicada em clone: 20261108184654_fase2_colaboradores_acesso.sql
+Aplicada em clone: 20261108204736_fase2_envio_supabase_auth.sql
+Aplicada em clone: 20261108223323_e1_integridade_cadastro.sql
+Aplicada em clone: 20261109021506_e2_autoridade_e_privilegios.sql
+PASS: conteúdo integral preservado antes/depois da E3; autoridade aprovada.

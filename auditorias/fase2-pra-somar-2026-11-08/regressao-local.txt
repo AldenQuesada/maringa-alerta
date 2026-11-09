@@ -1,0 +1,23 @@
+PASS: 37 migrações em banco vazio.
+PASS: tests/backend/permissoes.sql
+PASS: tests/backend/seguranca-servidor.sql
+PASS: tests/backend/operacoes.sql
+PASS: tests/backend/painel.sql
+PASS: tests/backend/admin-geral.sql
+PASS: tests/backend/integracao.sql
+PASS: tests/backend/incidentes.sql
+PASS: tests/backend/territorio.sql
+PASS: tests/backend/colaboradores.sql
+PASS: tests/whatsapp/fluxos.sql
+PASS: tests/whatsapp/catalogo.sql
+PASS: tests/whatsapp/canonico.sql
+PASS: tests/whatsapp/contatos.sql
+PASS: tests/whatsapp/exclusao-definitiva.sql
+PASS: tests/whatsapp/fotos-historicas.sql
+Concorrência de relações: ciclo entre duas sessões rejeitado.
+Concorrência: uma gravação confirmada, conflito rejeitado, versão final 2.
+PASS: ciclos concorrentes, exclusão contra novo vínculo e versão do recurso; nenhuma referência órfã.
+PASS: RPC sob RLS, 3.000 pontos, 1 resultado correto e GiST executado; fixtures revertidas.
+PASS: edição concorrente recusada; dois envios simultâneos do mesmo comando geram um único registro.
+Exclusão concorrente: envio em andamento preservado; nenhuma reserva depois da cascata.
+36 canonical cases: copy, buttons, image and production adaptations OK

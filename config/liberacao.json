@@ -1,0 +1,8 @@
+{
+  "versao": 1,
+  "fase_publicacao": "E6",
+  "checks": ["verificar", "permissoes-banco", "autoridade-banco", "transporte-whatsapp", "mapas-mobile", "primeiro-acesso"],
+  "check_agregado": "liberacao",
+  "github_app_id": 15368,
+  "revisoes_independentes": 0
+}

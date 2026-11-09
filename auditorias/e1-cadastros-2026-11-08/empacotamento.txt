@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: publicação não inclui canários privados, mesmo dentro de diretório público
+ok 1 - publicação não inclui canários privados, mesmo dentro de diretório público
+  ---
+  duration_ms: 20.585183
+  ...
+# Subtest: manifesto recusa diretórios privados, travessia e tipos de arquivo não públicos
+ok 2 - manifesto recusa diretórios privados, travessia e tipos de arquivo não públicos
+  ---
+  duration_ms: 18.045552
+  ...
+# Subtest: arquivos e diretórios simbólicos são recusados antes de produzir artefato
+ok 3 - arquivos e diretórios simbólicos são recusados antes de produzir artefato
+  ---
+  duration_ms: 8.31076
+  ...
+# Subtest: manifesto real inclui os assets referidos por todas as páginas publicadas
+ok 4 - manifesto real inclui os assets referidos por todas as páginas publicadas
+  ---
+  duration_ms: 1.685114
+  ...
+# Subtest: política nativa e arquivo público gerado não divergem
+ok 5 - política nativa e arquivo público gerado não divergem
+  ---
+  duration_ms: 6.689772
+  ...
+# Subtest: pacote real é completo, inclui a página inicial do cache e contém somente o manifesto
+ok 6 - pacote real é completo, inclui a página inicial do cache e contém somente o manifesto
+  ---
+  duration_ms: 117.596031
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 269.187802

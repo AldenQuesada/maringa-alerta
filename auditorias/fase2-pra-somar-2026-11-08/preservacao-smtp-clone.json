@@ -1,0 +1,270 @@
+{
+  "status": "passed",
+  "scope": "Novo clone sem rede do backup; fase 2 com envio nativo, 38 migrações; nenhuma alteração de produção",
+  "tables": [
+    {
+      "schema": "private",
+      "table": "ma_admins",
+      "rows_before": 1,
+      "rows_after": 1,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "private",
+      "table": "ma_convites_iniciais",
+      "rows_before": 1,
+      "rows_after": 1,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "private",
+      "table": "ma_historico",
+      "rows_before": 9,
+      "rows_after": 9,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "private",
+      "table": "ma_permissoes",
+      "rows_before": 48,
+      "rows_after": 48,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "private",
+      "table": "ma_referencias",
+      "rows_before": 0,
+      "rows_after": 0,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "public",
+      "table": "ma_auditoria",
+      "rows_before": 9,
+      "rows_after": 9,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "public",
+      "table": "ma_cadastros",
+      "rows_before": 253,
+      "rows_after": 253,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "public",
+      "table": "ma_configuracao",
+      "rows_before": 5,
+      "rows_after": 5,
+      "content_preserved": false,
+      "expected_change": "Relações de equipe e responsável no catálogo"
+    },
+    {
+      "schema": "public",
+      "table": "ma_municipios_ibge",
+      "rows_before": 5571,
+      "rows_after": 5571,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "public",
+      "table": "ma_painel",
+      "rows_before": 0,
+      "rows_after": 0,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "public",
+      "table": "ma_prefeituras",
+      "rows_before": 1,
+      "rows_after": 1,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "public",
+      "table": "ma_ufs",
+      "rows_before": 27,
+      "rows_after": 27,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "public",
+      "table": "ma_vinculos",
+      "rows_before": 1,
+      "rows_after": 1,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "territorio",
+      "table": "categorias",
+      "rows_before": 12,
+      "rows_after": 12,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "territorio",
+      "table": "entidades",
+      "rows_before": 253,
+      "rows_after": 253,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "territorio",
+      "table": "tipos",
+      "rows_before": 70,
+      "rows_after": 70,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "territorio",
+      "table": "vinculos_operacionais",
+      "rows_before": 0,
+      "rows_after": 0,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "channels",
+      "rows_before": 1,
+      "rows_after": 1,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "completions",
+      "rows_before": 0,
+      "rows_after": 0,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "contact_history",
+      "rows_before": 0,
+      "rows_after": 0,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "contact_owned_records",
+      "rows_before": 0,
+      "rows_after": 0,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "contact_records",
+      "rows_before": 0,
+      "rows_after": 0,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "deleted_receipts",
+      "rows_before": 0,
+      "rows_after": 0,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "delivery_events",
+      "rows_before": 12,
+      "rows_after": 12,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "flows",
+      "rows_before": 6,
+      "rows_after": 6,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "inbox",
+      "rows_before": 4,
+      "rows_after": 4,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "media_deletions",
+      "rows_before": 0,
+      "rows_after": 0,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "nodes",
+      "rows_before": 58,
+      "rows_after": 58,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "operations",
+      "rows_before": 4,
+      "rows_after": 4,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "outbox",
+      "rows_before": 4,
+      "rows_after": 4,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "sessions",
+      "rows_before": 1,
+      "rows_after": 1,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "simulation_requests",
+      "rows_before": 0,
+      "rows_after": 0,
+      "content_preserved": true,
+      "expected_change": null
+    },
+    {
+      "schema": "wa",
+      "table": "versions",
+      "rows_before": 2,
+      "rows_after": 2,
+      "content_preserved": true,
+      "expected_change": null
+    }
+  ]
+}

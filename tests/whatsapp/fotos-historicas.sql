@@ -1,6 +1,7 @@
 -- Somente no PostgreSQL de CI/descartável, onde Storage não é instalado.
 begin;
 create function pg_temp.assert(ok boolean,msg text) returns void language plpgsql as $$begin if ok is distinct from true then raise exception '%',msg;end if;end$$;
+grant execute on function pg_temp.assert(boolean,text) to authenticated,anon,service_role;
 create schema storage;
 create table storage.objects(id uuid default gen_random_uuid(),bucket_id text,name text,metadata jsonb);
 do $test$

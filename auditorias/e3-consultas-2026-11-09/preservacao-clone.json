@@ -1,0 +1,156 @@
+{
+  "status": "passed",
+  "network": "none",
+  "executor_superuser": false,
+  "tabelas_antes_e3": 36,
+  "tabelas_inalteradas_e3": 36,
+  "tabelas_anteriores_preservadas": 33,
+  "excecao_pre_e3": "Configuração da fase 2/E1; nenhuma exceção de conteúdo na E3",
+  "linhas_antes_e3": 6355,
+  "tabelas": {
+    "auth.users": {
+      "linhas": 1,
+      "hash": "d165e6eeebcb06e202f2ede9ec22f6ddfe90f2fa89dec645aad1b622af3cfb93"
+    },
+    "private.ma_acessos_envios": {
+      "linhas": 0,
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "private.ma_admins": {
+      "linhas": 1,
+      "hash": "17fc438ee0656ef23301e3f02ed72ce90250265ebd7fe28130ba97cb3aee2274"
+    },
+    "private.ma_colaboradores_acesso": {
+      "linhas": 0,
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "private.ma_convites_iniciais": {
+      "linhas": 1,
+      "hash": "e16077ae9d8b5085c25b77851adb2cfe871cacf689c123e610a37789b0393595"
+    },
+    "private.ma_historico": {
+      "linhas": 9,
+      "hash": "d19662877cbee4a4927b474843ad4f18bd7d9f4e34d2a113fa00215c2c4ec513"
+    },
+    "private.ma_permissoes": {
+      "linhas": 48,
+      "hash": "273d6182908ffd76ab551379c5c24be2f1eb5075881f5c2005cb62e395c94563"
+    },
+    "private.ma_referencias": {
+      "linhas": 0,
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "public.ma_auditoria": {
+      "linhas": 9,
+      "hash": "9f4ddd4a94148777ed3a14900e606609044d4bb73f183cd4d473483f2e1576b8"
+    },
+    "public.ma_cadastros": {
+      "linhas": 253,
+      "hash": "146725079c13d73db86af876b1d5995cadd43eb62c431bd613cc01704301d650"
+    },
+    "public.ma_configuracao": {
+      "linhas": 6,
+      "hash": "c37f829d34bea475381cd4e0c34ac5e3d826e99b7943e853d459ea2d4b829428"
+    },
+    "public.ma_municipios_ibge": {
+      "linhas": 5571,
+      "hash": "48a3c1b2585d05870c2598aaee4b8cb1672ac0772bc726d6f940c913bf78c82a"
+    },
+    "public.ma_painel": {
+      "linhas": 0,
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "public.ma_prefeituras": {
+      "linhas": 1,
+      "hash": "5131f79f263922636f31abe8c4901c8fc8755f5591da70df13da829de75a6dbc"
+    },
+    "public.ma_ufs": {
+      "linhas": 27,
+      "hash": "9d4ae6a59604384bb913e63712caad8ad8d34e68465df5c8843d1969494c2dc8"
+    },
+    "public.ma_vinculos": {
+      "linhas": 1,
+      "hash": "d4910026bea154ed2e153fdc9d11194aa4cf870465cdd74df1c03443b9f4db98"
+    },
+    "territorio.categorias": {
+      "linhas": 12,
+      "hash": "86baa743e9611283cb251cced7b8ddcf8b7571e0a2b8509c1bb0e62ab529988e"
+    },
+    "territorio.entidades": {
+      "linhas": 253,
+      "hash": "15d861a25dc6e6d0d1f90a073ec1d201b020396229b108b423320b85754d26eb"
+    },
+    "territorio.tipos": {
+      "linhas": 70,
+      "hash": "94bf360631c7db8090ea59b5ca03d23dddeefa38d4f9be253b96980c6beb8d8c"
+    },
+    "territorio.vinculos_operacionais": {
+      "linhas": 0,
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "wa.channels": {
+      "linhas": 1,
+      "hash": "4d1c80692e5913f51b811edd184d722695ab509de7d15e1e5442e5888ecb7d5b"
+    },
+    "wa.completions": {
+      "linhas": 0,
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "wa.contact_history": {
+      "linhas": 0,
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "wa.contact_owned_records": {
+      "linhas": 0,
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "wa.contact_records": {
+      "linhas": 0,
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "wa.deleted_receipts": {
+      "linhas": 0,
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "wa.delivery_events": {
+      "linhas": 12,
+      "hash": "b4ce7ce7e164ac264fef0c653120542a3755f8adefd143a18f617490cf12d80a"
+    },
+    "wa.flows": {
+      "linhas": 6,
+      "hash": "48489f14fc023146ce0bfd235edeb571bf0138813833caf146025e37db58bad8"
+    },
+    "wa.inbox": {
+      "linhas": 4,
+      "hash": "e99ce98bafc5b503feb743e041d23adb9121ca360881afd2f47e9f4a21382fc8"
+    },
+    "wa.media_deletions": {
+      "linhas": 0,
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "wa.nodes": {
+      "linhas": 58,
+      "hash": "d0fa56058901ecdef7a471217eadf335e093f5b2475790bd46f5c0c5306792a8"
+    },
+    "wa.operations": {
+      "linhas": 4,
+      "hash": "368b315c458f2f771062fa44c2cac855b5280c197b7b1f13013e154d63b4833f"
+    },
+    "wa.outbox": {
+      "linhas": 4,
+      "hash": "ff7920f2f305fc2ba2d377a53a3d81518d95b0aa9edf713be5acdbbb9467a016"
+    },
+    "wa.sessions": {
+      "linhas": 1,
+      "hash": "87fe423a790155d4ee9549fee467584cf7d7f8fff5bd9e15ecb3bc321ac7df4d"
+    },
+    "wa.simulation_requests": {
+      "linhas": 0,
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "wa.versions": {
+      "linhas": 2,
+      "hash": "96f253de842ba768fe9fe4e42701235485e92eb3956d0e6f9e967ce26f47511c"
+    }
+  }
+}

@@ -3,12 +3,14 @@ begin;
 insert into auth.users(id,email,email_confirmed_at) values('00000000-0000-4000-8000-000000000021','operacoes@invalid.example',now()),('00000000-0000-4000-8000-000000000022','leitura@invalid.example',now());
 insert into public.ma_vinculos values('maringa','00000000-0000-4000-8000-000000000021','admin'),('maringa','00000000-0000-4000-8000-000000000022','leitor');
 create function pg_temp.gravar(c text,i text,d jsonb,v bigint default null) returns jsonb language sql as $$ select public.ma_aplicar_alteracoes(jsonb_build_array(jsonb_build_object('colecao',c,'id',i,'municipio_id','maringa','operacao',case when v is null then 'inserir' else 'atualizar' end,'versao',v,'dados',d||jsonb_build_object('id',i,'municipioId','maringa')))) $$;
+grant execute on function pg_temp.gravar(text,text,jsonb,bigint) to authenticated,anon,service_role;
 create function pg_temp.rejeita(comando text,codigo text default '23514') returns void language plpgsql as $$
 declare rejeitado boolean:=false;
 begin
  begin execute comando;exception when others then if sqlstate<>codigo then raise;end if;rejeitado:=true;end;
  if not rejeitado then raise exception 'Operação proibida foi aceita: %',comando;end if;
 end$$;
+grant execute on function pg_temp.rejeita(text,text) to authenticated,anon,service_role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000021',true);
 do $$begin

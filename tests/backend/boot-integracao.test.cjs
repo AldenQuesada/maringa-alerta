@@ -2,19 +2,22 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
-async function boot({missingRules=false,hash="",invalidUser=false,aguardarOperacao=false}={}){
+async function boot({missingRules=false,hash="",invalidUser=false,aguardarOperacao=false,area='gestao',session=true,cadastroAdministrativo=true}={}){
  let liberarInterface;const operacaoIniciada=new Promise(resolve=>{liberarInterface=resolve;});
  const calls=[],fields=new Map(),storage=new Map([['alerta_contexto_municipal_demo_v1','cidade-antiga']]);
  const node=()=>({remove(){},querySelector(key){if(!fields.has(key))fields.set(key,{focus(){}});return fields.get(key);}});
  const db={municipioAtivo:()=>({id:'cidade-pedida'}),pode:()=>false};
- const ctx={URL,URLSearchParams,Event,location:{href:'http://localhost/gestao/?municipio=cidade-pedida'+hash,search:'?municipio=cidade-pedida',hash:''},
- document:{currentScript:{src:'http://localhost/backend/boot.js',dataset:{area:'gestao'}},createElement:node,head:{appendChild(script){script.onload();}},body:{appendChild(){}},querySelectorAll:()=>[],getElementById:()=>null,documentElement:{classList:{add(){},remove(){}}}},
+ const ctx={URL,URLSearchParams,Event,location:{href:'http://localhost/gestao/?municipio=cidade-pedida'+hash,search:'?municipio=cidade-pedida',hash:'',replace(url){calls.push(['redirect',url]);},reload(){calls.push(['reload']);}},
+ document:{currentScript:{src:'http://localhost/backend/boot.js',dataset:{area}},createElement:node,head:{appendChild(script){script.onload();}},body:{appendChild(el){ctx.gate=el;}},querySelectorAll:()=>[],getElementById:()=>null,documentElement:{classList:{add(){},remove(){}}}},
  sessionStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)},MutationObserver:class{},addEventListener(){},
- MARINGA_SUPABASE:{url:'https://fixture.invalid',publishableKey:'sb_publishable_fixture'},
+ MARINGA_SUPABASE:{cadastroAdministrativo,url:'https://fixture.invalid',publishableKey:'sb_publishable_fixture'},
  supabase:{createClient:(_url,_key,options)=>{ctx.clientOptions=options;return ({
-  auth:{getSession:async()=>({data:{session:{}}}),getUser:async()=>invalidUser?({data:{user:null},error:Error('Sessão inválida')}):({data:{user:{email:'fixture@example.invalid'}}}),onAuthStateChange(){}},
+  auth:{getSession:async()=>({data:{session:session?{}:null}}),signInWithOtp:async(args)=>{calls.push(['otp',args]);return {};},signInWithPassword:async(args)=>{calls.push(['password',args]);return {};},getUser:async()=>invalidUser?({data:{user:null},error:Error('Sessão inválida')}):({data:{user:{email:'fixture@example.invalid'}}}),onAuthStateChange(){}},
+  async rpc(name,args){calls.push(['rpc',name,args]);return {data:name==='ma_meu_perfil'?{admin_plataforma:true}:{municipio:args.municipio,colecoes:[],papeis:[]}};},
   from(table){return {
-   select(){return this;},
+   select(fields){if(table==='ma_prefeituras')calls.push(['projection',fields]);return this;},
+   order(){return this;},
+   async limit(n){calls.push(['limit',n]);return {data:[{id:'cidade-pedida',nome:'Município de teste'}]};},
    eq(field,id){calls.push(['config',table,id]);this.id=id;return this;},
    async single(){if(this.id==='operacao')liberarInterface();if(aguardarOperacao&&this.id==='interface')await operacaoIniciada;return missingRules&&this.id==='operacao'?{error:{message:'ausente'}}:{data:{documento:{origem:this.id}}};}
   };}
@@ -49,4 +52,39 @@ test('login normal preserva PKCE e retorno administrativo usa validação do SDK
  const invalid=await boot({hash:'#access_token=fixture&refresh_token=fixture&token_type=bearer',invalidUser:true});
  assert.equal(invalid.calls.length,0);assert.equal(invalid.ctx.AlertaNuvem,undefined);
  assert.match(invalid.fields.get('[role=alert]').textContent,/Sessão inválida/);
+});
+
+test('abertura dos colaboradores consulta só identificação do município escolhido',async()=>{
+ const result=await boot({area:'colaboradores'});
+ assert.equal(result.ctx.AlertaNuvem.ativo,true);
+ assert.deepEqual(result.calls.find(x=>x[0]==='projection'),['projection','id,nome:dados->>nome']);
+ assert.deepEqual(result.calls.find(x=>x[0]==='limit'),['limit',1]);
+ assert.ok(result.calls.some(x=>x[0]==='config'&&x[1]==='ma_prefeituras'&&x[2]==='cidade-pedida'));
+ assert.equal(result.calls.some(x=>x[0]==='repository'),false);
+ assert.equal(result.ctx.AlertaNuvem.municipios[0].dados.nome,'Município de teste');
+});
+test('publicação compatível mantém o login por link e não chama cadastro novo',async()=>{
+ const f=await boot({session:false,cadastroAdministrativo:false});
+ assert.match(f.ctx.gate.innerHTML,/Receber link de acesso/);
+ assert.doesNotMatch(f.ctx.gate.innerHTML,/backend-senha|backend-recuperar/);
+ f.fields.get('input').value='existente@example.invalid';
+ await f.fields.get('form').onsubmit({preventDefault(){},currentTarget:{querySelector:()=>({})}});
+ assert.deepEqual(JSON.parse(JSON.stringify(f.calls)),[['otp',{email:'existente@example.invalid',options:{emailRedirectTo:'http://localhost/gestao/'}}]]);
+ assert.match(f.fields.get('[role=alert]').textContent,/Link enviado/);
+});
+test('cadastro ainda não habilitado volta à gestão antes de consultar as novas RPCs',async()=>{
+ const f=await boot({area:'colaboradores',cadastroAdministrativo:false});
+ assert.deepEqual(f.calls,[['redirect','http://localhost/gestao/#integrantes']]);
+ assert.equal(f.ctx.AlertaNuvem,undefined);
+});
+test('sessão existente mantém o repositório e as permissões com o cadastro novo desligado',async()=>{
+ const f=await boot({cadastroAdministrativo:false});
+ assert.equal(f.ctx.AlertaNuvem.ativo,true);
+ assert.ok(f.calls.some(x=>x[0]==='controls'));
+ assert.equal(f.calls.some(x=>x[0]==='rpc'),false);
+});
+test('página de ativação desligada não inicia Auth nem chama o serviço de acesso',async()=>{
+ const calls=[];const ctx={URL,document:{querySelector:()=>({})},MARINGA_SUPABASE:{cadastroAdministrativo:false},location:{href:'https://fixture.invalid/acesso/#token=indisponivel',replace:url=>calls.push(url)}};ctx.window=ctx;
+ await vm.runInNewContext(fs.readFileSync(require.resolve('../../acesso/app.js'),'utf8'),ctx);
+ assert.deepEqual(calls,['https://fixture.invalid/gestao/']);
 });

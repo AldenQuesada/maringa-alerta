@@ -1,0 +1,32 @@
+{
+  "commit": "ab2ad83c2b300816607a21a6884f4dd98e69e006",
+  "run_id": 42515107795,
+  "url": "https://github.com/AldenQuesada/maringa-alerta/actions/runs/42515107795",
+  "jobs": [
+    {
+      "name": "primeiro-acesso",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "verificar",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "transporte-whatsapp",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "mapas-mobile",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "permissoes-banco",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ]
+}

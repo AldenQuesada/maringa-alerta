@@ -1,0 +1,39 @@
+
+> test:mapas:mobile
+> node --test tests/cameras-mapas-canonicas.test.cjs && playwright test --config=playwright.mapas.config.cjs
+
+✔ contrato aprovado em 07/11/2026: centro e zoom canônicos de ajuda (6.428708ms)
+✔ referência de ajuda não pode ser alterada, substituída ou removida durante a execução (7.52864ms)
+✔ referências municipais e consumidores não sobrescrevem a câmera de ajuda (2.520449ms)
+✔ contrato aprovado em 07/11/2026: centro e zoom canônicos de colaboradores (2.280447ms)
+✔ referência de colaboradores não pode ser alterada, substituída ou removida durante a execução (2.959789ms)
+✔ referências municipais e consumidores não sobrescrevem a câmera de colaboradores (1.807127ms)
+✔ contrato aprovado em 07/11/2026: centro e zoom canônicos de evento (2.320663ms)
+✔ referência de evento não pode ser alterada, substituída ou removida durante a execução (2.381056ms)
+✔ referências municipais e consumidores não sobrescrevem a câmera de evento (3.165881ms)
+✔ bundle publicado inclui a única fonte canônica antes do resolvedor municipal (1.165013ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 203.073676
+
+Running 12 tests using 2 workers
+
+  ✓   1 [chromium-390] › tests/browser/mapas-mobile.spec.cjs:64:56 › colaboradores: câmera, retorno, arraste e pinça móveis (16.8s)
+  ✓   2 [chromium-390] › tests/browser/mapas-mobile.spec.cjs:64:56 › ajuda: câmera, retorno, arraste e pinça móveis (17.6s)
+  ✓   3 [chromium-390] › tests/browser/mapas-mobile.spec.cjs:64:56 › evento: câmera, retorno, arraste e pinça móveis (17.0s)
+  ✓   4 [chromium-320] › tests/browser/mapas-mobile.spec.cjs:64:56 › ajuda: câmera, retorno, arraste e pinça móveis (15.3s)
+  ✓   5 [chromium-320] › tests/browser/mapas-mobile.spec.cjs:64:56 › evento: câmera, retorno, arraste e pinça móveis (15.8s)
+  ✓   6 [chromium-320] › tests/browser/mapas-mobile.spec.cjs:64:56 › colaboradores: câmera, retorno, arraste e pinça móveis (14.9s)
+  ✓   8 [webkit-390] › tests/browser/mapas-mobile.spec.cjs:64:56 › colaboradores: câmera, retorno, arraste e pinça móveis (24.3s)
+  ✓   7 [webkit-390] › tests/browser/mapas-mobile.spec.cjs:64:56 › ajuda: câmera, retorno, arraste e pinça móveis (24.7s)
+  ✓   9 [webkit-390] › tests/browser/mapas-mobile.spec.cjs:64:56 › evento: câmera, retorno, arraste e pinça móveis (16.1s)
+  ✓  10 [webkit-320] › tests/browser/mapas-mobile.spec.cjs:64:56 › ajuda: câmera, retorno, arraste e pinça móveis (14.6s)
+  ✓  12 [webkit-320] › tests/browser/mapas-mobile.spec.cjs:64:56 › colaboradores: câmera, retorno, arraste e pinça móveis (11.9s)
+  ✓  11 [webkit-320] › tests/browser/mapas-mobile.spec.cjs:64:56 › evento: câmera, retorno, arraste e pinça móveis (12.4s)
+
+  12 passed (1.8m)

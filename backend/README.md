@@ -22,9 +22,11 @@ Pessoas fictícias, cozinha/caminhão de demonstração e ocorrências simuladas
 
 Configuração pública em `backend/config.js`: URL e chave **publishable**. Nunca incluir senha do banco, `service_role` ou chave secreta. SDK 2.119.0 distribuído localmente com licença MIT, versão fixada em package.json e lockfile; Node 22+ para desenvolvimento.
 
-O login envia um link por e-mail e usa PKCE. O primeiro administrador é autorizado por um convite no schema privado, consumido somente após confirmação do e-mail pelo Auth. O endereço do proprietário foi configurado diretamente no banco, não no repositório público. Outros usuários autenticados não têm acesso até receberem vínculo de um administrador pelo backend. Não há autoatribuição de cargos pela interface.
+Nesta versão, o login habitual usa e-mail e senha. O administrador cadastra a ficha completa em `/colaboradores/`; somente após o salvamento confirmado o serviço envia o acesso. O destinatário define sua senha ou usa a conta existente. Papéis e suspensão são conferidos no servidor. O primeiro administrador já provisionado e os vínculos legados são preservados. Consulte o [contrato de cadastro e acesso](ACESSO.md).
 
-As URLs de retorno devem incluir os caminhos exatos `/maringa-alerta/gestao/`, `/maringa-alerta/plataforma/`, `/maringa-alerta/mapas/`, `/maringa-alerta/index.html` e `/maringa-alerta/` em `https://aldenquesada.github.io`. A sessão do painel Supabase não substitui a sessão da aplicação. O serviço padrão de e-mail Supabase tem restrições de destinatários e envio; configurar SMTP institucional antes de convidar usuários externos.
+A publicação da fase 2 depende de configurar e homologar `ma-colaboradores-acesso` e o remetente de e-mail. Até isso acontecer, o ambiente publicado continua na versão anterior; a documentação da implementação não comprova publicação ou entrega real.
+
+As URLs de retorno devem incluir os caminhos exatos `/maringa-alerta/gestao/`, `/maringa-alerta/plataforma/`, `/maringa-alerta/mapas/`, `/maringa-alerta/index.html` e `/maringa-alerta/` em `https://aldenquesada.github.io`. A sessão do painel Supabase não substitui a sessão da aplicação. Incluir também `/maringa-alerta/acesso/?recuperar=1` nos retornos autorizados de recuperação. O envio inicial é realizado pelo serviço próprio; a recuperação habitual usa o canal de e-mail configurado na autenticação. Ambos precisam ser homologados antes da publicação.
 
 ## Validação
 
