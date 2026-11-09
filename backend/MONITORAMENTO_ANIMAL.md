@@ -1,4 +1,4 @@
-# Monitoramento animal: banco (etapa A)
+# Monitoramento animal: banco (etapa A) e WhatsApp (etapa B)
 
 Migração `20261108194500_monitoramento_animal.sql`. Somente acréscimos: nenhuma tabela, política, função ou regra existente é alterada. A ocorrência continua sendo `incidentes` e o relato continua sendo `relatos`; não existe uma segunda fonte de ocorrências.
 
@@ -27,7 +27,7 @@ Exige administrador municipal. Cria, pelo caminho canônico e sem duplicar, os t
 
 ## Guards no servidor
 
-- **Visibilidade derivada do tipo.** Relatos de animal (`categoria='animal'`) e ocorrências de tipos da categoria `animais` recebem `visibilidade` do tipo; o valor enviado pelo cliente é ignorado. Uma vez restrito, o registro não volta a ser público por edição.
+- **Visibilidade derivada do tipo.** Relatos de animal (`categoria='animal'`) e ocorrências de tipos da categoria `animais` recebem `visibilidade` do tipo; o valor enviado pelo cliente é ignorado. Uma vez restrito, o registro não volta a ser público por edição. Se a prefeitura ainda não instalou os tipos, o relato de animal fica restrito.
 - **Leitura e gravação restritas.** A política restritiva `protecao_animal_restrito` soma-se às existentes: registros restritos das coleções em `colecoesRestritas` só são lidos ou gravados com `ver_restritos`. A projeção territorial acompanha a mesma visibilidade. A definição do tipo continua legível.
 - **Tornar público um tipo restrito** exige `ver_restritos`.
 - **Triagem.** Mudar a situação de uma ocorrência de animal exige `triar_animais`.
@@ -68,4 +68,15 @@ O job SQL do CI executa essa suíte depois de `territorio.sql`.
 ## Limites conhecidos
 
 - **Contatos do WhatsApp.** O detalhe de contatos da Central de Conversas (`ma_contato_detalhe`) é uma função `security definer` anterior a este módulo. Ela pode mostrar a conversa de um denunciante a quem acessa as conversas. Ajustar essa função altera código existente; por isso, fica para decisão explícita.
-- **Fluxo `animal` do WhatsApp** (etapa B). Até ele existir, os relatos de animal só chegam por gravação autorizada.
+
+## Fluxo `animal` do WhatsApp (etapa B)
+
+Migração `20261108201500_whatsapp_fluxo_animal.sql`. Cria a versão `municipal-v3-animal`, cópia exata da versão publicada mais recente com um fluxo a mais, **Proteção animal**. Os fluxos existentes não mudam.
+
+- **O canal não troca sozinho.** A migração só prepara e publica a versão (operação `animal_flow_prepared`). A troca é um ato operacional, feito por administrador com `ma_wa_usar_versao(canal, versao)`, depois de conferir no simulador.
+- **Perguntas:** situação, espécie, local, descrição, foto (opcional) e identificação. O nome só é perguntado se a pessoa quiser se identificar.
+- **Situações = tipos do banco.** As quatro opções são os valores de `situacao_whatsapp` do modelo `protecao-animal`; o teste confere a igualdade. Mudar um lado exige mudar o outro.
+- **Saída:** um relato "Em triagem", `categoria='animal'`, telefone do próprio contato do WhatsApp. Na opção de sigilo, o nome gravado é "Anônimo" e `anonimo=true`. A visibilidade vem do tipo: maus-tratos nasce restrito.
+- **Motor sem mudança.** Usa só os operadores já existentes (`eq`) e o contexto `contact`.
+
+Teste: `tests/whatsapp/animal.sql`, no job do CI depois de `canonico.sql`.

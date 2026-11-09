@@ -145,7 +145,7 @@ begin
   select dados into tipo from public.ma_cadastros
    where municipio_id=new.municipio_id and colecao='ocorrenciaTipos' and dados->>'categoria'=cfg->>'categoriaTipos' and dados->>'situacao_whatsapp'=new.dados->>'situacao'
    order by id limit 1;
-  vis:=case when antes->>'visibilidade'='restrita' then 'restrita' else coalesce(tipo->>'visibilidade','publica') end;
+  vis:=case when antes->>'visibilidade'='restrita' then 'restrita' else coalesce(tipo->>'visibilidade','restrita') end;
   new.dados:=new.dados||jsonb_build_object('categoria','animal','visibilidade',vis);
   return new;
  end if;
@@ -153,7 +153,7 @@ begin
  if new.colecao='incidentes' then
   select dados into tipo from public.ma_cadastros where municipio_id=new.municipio_id and colecao='ocorrenciaTipos' and id=new.dados->>'tipo_id';
   if coalesce(tipo->>'categoria','')<>cfg->>'categoriaTipos' then return new;end if;
-  vis:=case when antes->>'visibilidade'='restrita' then 'restrita' else coalesce(tipo->>'visibilidade','publica') end;
+  vis:=case when antes->>'visibilidade'='restrita' then 'restrita' else coalesce(tipo->>'visibilidade','restrita') end;
   new.dados:=new.dados||jsonb_build_object('categoria',cfg->>'categoriaTipos','visibilidade',vis);
   status_novo:=new.dados->>'status';status_antes:=antes->>'status';
   if auth.uid() is not null and status_novo is distinct from status_antes and not private.ma_capaz(new.municipio_id,cfg#>>'{capacidades,triagem}') then
