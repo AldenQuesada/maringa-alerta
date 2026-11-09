@@ -1,0 +1,1 @@
+Exclusão concorrente: envio em andamento preservado; nenhuma reserva depois da cascata.

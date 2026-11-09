@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 /** Bundles canônicos; --check impede publicar código gerado divergente do fonte. */
+import {gerarPoliticaAuth} from "./politica-auth.mjs";
 import {Script} from "node:vm";
 import {readFileSync,writeFileSync,mkdirSync} from "node:fs";
 import {dirname,resolve} from "node:path";
@@ -11,6 +12,7 @@ const safe=p=>{if(typeof p!=="string"||!/^[-A-Za-z0-9_/\\.]+$/.test(p)||p.includ
 const manifest=JSON.parse(readFileSync(safe("src/modulos.json"),"utf8"));
 const checking=process.argv.includes("--check");
 let errors=0;
+gerarPoliticaAuth(root,checking);
 for(const bundle of manifest.bundles){
  const content=bundle.sources.map(src=>{const source=readFileSync(safe(src),"utf8");new Script(source,{filename:src});return source;}).join("");
  const hash=createHash("sha256").update(content).digest("hex");

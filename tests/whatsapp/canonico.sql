@@ -1,10 +1,13 @@
 -- Executar apenas no PostgreSQL descartável. Inclui fila real, sem chamar a Meta.
 begin;
 create function pg_temp.assert(ok boolean,msg text) returns void language plpgsql as $$begin if ok is distinct from true then raise exception '%',msg;end if;end$$;
+grant execute on function pg_temp.assert(boolean,text) to authenticated,anon,service_role;
 create function pg_temp.send(s uuid,t text) returns jsonb language sql as $$select wa.step(s,jsonb_build_object('text',t))$$;
+grant execute on function pg_temp.send(uuid,text) to authenticated,anon,service_role;
 create function pg_temp.button(s uuid,action text) returns jsonb language plpgsql as $$declare b text;begin
  select x->>'id' into strict b from wa.sessions q,jsonb_array_elements(wa.render(q)->'buttons') x where q.id=s and x->>'id' like '%:'||action;
  return wa.step(s,jsonb_build_object('button',b));end$$;
+grant execute on function pg_temp.button(uuid,text) to authenticated,anon,service_role;
 update wa.channels set version_id=(select id from wa.versions where name='municipal-v2-canonico'),enabled=true,outbound_enabled=true;
 do $test$
 declare c wa.channels;s uuid;r jsonb;rid bigint;first_id uuid;delivery jsonb;photo jsonb:='{"path":"test/photo.jpg","mime":"image/jpeg"}';before_count integer;

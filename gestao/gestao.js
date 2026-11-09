@@ -451,7 +451,11 @@ const {renderPrefTabs,structures,responsible,gabinete,renderTerritorioMunicipal,
 const {render}=AlertaGestaoRoteador.criar({D,PAGE,PREF_SECTIONS,abrirDrawer:(...args)=>abrirDrawer(...args),db,renderEstruturas:(...args)=>renderEstruturas(...args),renderGeoterritorialidade:(...args)=>renderGeoterritorialidade(...args),renderInicio:(...args)=>renderInicio(...args),renderModulo:(...args)=>renderModulo(...args),renderNav:(...args)=>renderNav(...args),renderPrefTabs:(...args)=>renderPrefTabs(...args),renderTerritorioMunicipal:(...args)=>renderTerritorioMunicipal(...args),state,topo:(...args)=>topo(...args)});
 const {geocodificarPrefeitura,toast,excluir}=AlertaGestaoOperacoes.criar({$,db,render:(...args)=>render(...args),renderModulo:(...args)=>renderModulo(...args),renderMunicipios:(...args)=>renderMunicipios(...args),state,toastTimer});
 const drawer=AlertaGestaoFormulario.criar({db,D,document,esc,structures,getCurrentPage:()=>state.atual,onDenied:toast});
-const {abrirDrawer,fecharDrawer}=drawer;
+const {fecharDrawer}=drawer;
+function abrirDrawer(id=null,module=state.atual,...args){
+ if(window.MARINGA_SUPABASE?.cadastroAdministrativo===true&&db.tipo==='supabase'&&D.ESQUEMAS[module]?.collection==='usuarios'){location.href='../colaboradores/?municipio='+encodeURIComponent(db.municipioAtivo().id)+(id?'&pessoa='+encodeURIComponent(id):'&novo=1');return;}
+ return drawer.abrirDrawer(id,module,...args);
+}
 FORM.addEventListener("submit",async e=>{
  e.preventDefault();const modulo=drawer.modulo||state.atual;
  const submit=$("drawer-save");if(submit.disabled)return;

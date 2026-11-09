@@ -1,5 +1,6 @@
 begin;
 create function pg_temp.assert(ok boolean,message text) returns void language plpgsql as $$begin if ok is distinct from true then raise exception '%',message;end if;end$$;
+grant execute on function pg_temp.assert(boolean,text) to authenticated,anon,service_role;
 insert into auth.users(id,email,email_confirmed_at) values('00000000-0000-0000-0000-000000000992','wa-editor@example.invalid',now());
 insert into private.ma_admins values('00000000-0000-0000-0000-000000000992');
 select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000992',true);

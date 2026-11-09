@@ -1,0 +1,70 @@
+{
+  "status": "passed",
+  "node": {
+    "version": "22.23.2",
+    "tests": 286,
+    "failed": 0,
+    "skipped": 0
+  },
+  "auth": {
+    "engine": "GoTrue v2.197.0",
+    "scenarios": 26,
+    "browsers": [
+      "Chromium",
+      "WebKit"
+    ],
+    "smtp": "capturado em rede interna, sem destinatários externos"
+  },
+  "mapas": {
+    "cases": 12,
+    "widths": [
+      320,
+      390
+    ],
+    "browsers": [
+      "Chromium",
+      "WebKit"
+    ],
+    "real_leaflet": true,
+    "cameras": {
+      "config/cameras-mapas.js": {
+        "sha256": "eed243578d873edfb108f33b4092d231109a7c39f044d8ea0336d1ed765c4760",
+        "unchanged": true
+      },
+      "tests/cameras-mapas-canonicas.test.cjs": {
+        "sha256": "d184ed6bd39ec171b8d57a247fa7fbebd97f6750aef29d49e5c5377bb0f046c1",
+        "unchanged": true
+      },
+      "playwright.mapas.config.cjs": {
+        "sha256": "7ae4885885e9ea08cb79495e14f5aaa1adbf205b07c22753789deb33fde2fb38",
+        "unchanged": true
+      }
+    }
+  },
+  "database": {
+    "migrations": 39,
+    "sql_suites": 16,
+    "python_programs": 6,
+    "concurrent_duplicate_email_rejected": true
+  },
+  "deno": {
+    "tests": 9
+  },
+  "build": {
+    "bundles": 17
+  },
+  "publication": {
+    "manifest_files": 85,
+    "artifact_files": 86,
+    "matches_manifest_plus_placeholder": true,
+    "canaries_excluded": true
+  },
+  "advisors": {
+    "errors": 0,
+    "warnings": 1,
+    "preexisting": "auth_rls_initplan public.ma_configuracao"
+  },
+  "remote_mutations": false,
+  "email_delivery_production_verified": false,
+  "phase2_published": false
+}
