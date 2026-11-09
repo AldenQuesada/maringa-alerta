@@ -60,6 +60,8 @@ jobs:
         run: npm run check
       - name: Câmeras canônicas, celular e pinça nos três mapas
         run: npm run test:mapas:mobile
+      - name: Mapa Monitoramento animal no celular
+        run: npm run test:monitoramento-animal
       - name: Guardar relatório, capturas e rastros dos testes
         if: always()
         uses: actions/upload-artifact@v4
@@ -68,6 +70,8 @@ jobs:
           path: |
             .test-results/mapas
             .playwright-report/mapas
+            .test-results/monitoramento-animal
+            .playwright-report/monitoramento-animal
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 14

@@ -80,3 +80,17 @@ Migração `20261108201500_whatsapp_fluxo_animal.sql`. Cria a versão `municipal
 - **Motor sem mudança.** Usa só os operadores já existentes (`eq`) e o contexto `contact`.
 
 Teste: `tests/whatsapp/animal.sql`, no job do CI depois de `canonico.sql`.
+
+## Mapa Monitoramento animal (etapa C)
+
+Página nova `mapas/monitoramento-animal.html`, duplicada do mapa de Ajuda. Os mapas Evento, Colaboradores e Ajuda não foram alterados; eles ainda não têm link para a página nova.
+
+- **Mesma base do mapa de Ajuda:** cabeçalho, ações rápidas, painel lateral recolhível (abre recolhido, com o botão +), painel "Filtros" de unidades municipais, malha de bairros e zonas numeradas, controles e retorno à posição original.
+- **Câmera:** a da Ajuda, lida de `config/cameras-mapas.js` pelo nome indicado no perfil (`"camera":"ajuda"`). O arquivo de câmeras não muda.
+- **Tudo vem do banco:** título, camadas, filtros e estados encerrados vêm de `ma_configuracao` 'mapas'. Tipos, cores, ícones e legenda vêm de `ocorrenciaTipos` da categoria `animais`. As unidades de atendimento vêm do catálogo territorial (`ma_catalogo_territorial` e `ma_territorio_listar`). Sem perfil no banco, a página mostra o erro e não monta o mapa.
+- **Posição:** ocorrências usam as coordenadas registradas. Relatos do WhatsApp não têm GPS: aparecem no centro do bairro citado no endereço, com contorno tracejado e a indicação "localização aproximada". Sem bairro reconhecido, entram só na lista ("sem posição").
+- **Somente leitura nesta etapa.** A ficha mostra os dados; as ações de triagem são a etapa D.
+- **Módulos** (`src/monitoramento-animal/`, bundle `mapas/monitoramento-animal.js`): `perfil`, `geometria`, `consultas`, `territorio`, `camadas`, `filtros`, `ficha`, `resultados`, `app`.
+- **CSS próprio:** `mapas/monitoramento-animal.css`, cópia de `mapas/style.css` com os acréscimos do módulo. Mudar um não afeta o outro.
+
+Testes: `tests/monitoramento-animal.test.cjs` (perfil, geometria, consultas e paridade com o fluxo do WhatsApp) e `tests/browser/monitoramento-animal.spec.cjs` (câmera da Ajuda, 390 e 320 px, filtros, marcadores, ficha e perfil ausente), no job `mapas-mobile` do CI.
