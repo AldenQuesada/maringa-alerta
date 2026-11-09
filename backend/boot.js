@@ -37,6 +37,7 @@ let client;
 try{
 
  const config=window.MARINGA_SUPABASE;
+ if(entry==='colaboradores'&&config?.cadastroAdministrativo!==true){location.replace(new URL('../gestao/#integrantes',permissionsUrl).href);return;}
  if(!config?.publishableKey?.startsWith('sb_publishable_'))throw Error('O acesso está indisponível. Tente novamente mais tarde.');
  // Convites e links administrativos retornam sessão no fragmento; o login normal usa PKCE.
  // O SDK valida a sessão e remove o fragmento. Nenhum token é copiado pela aplicação.
@@ -86,6 +87,7 @@ try{
  showLogin();
 }catch(error){showLogin(error.message||'Não foi possível conectar. Tente novamente.');}
 function showLogin(error=''){
+ if(window.MARINGA_SUPABASE?.cadastroAdministrativo!==true)return showLoginLink(error);
  encerrarCarregamento();
  document.documentElement.classList.add('backend-pendente');
  gate.innerHTML='<section><small>GESTÃO MUNICIPAL</small><h1>Acesso à gestão municipal</h1><p>Entre com o e-mail e a senha da sua conta. Seu cadastro é feito pelo administrador.</p><form><label for="backend-email">E-mail</label><input id="backend-email" type="email" autocomplete="username" required><label for="backend-senha">Senha</label><input id="backend-senha" type="password" autocomplete="current-password" required><button type="submit">Entrar</button></form><button type="button" id="backend-recuperar">Esqueci minha senha</button><p role="alert"></p><button type="button" id="backend-reset" hidden>Sair da sessão atual</button></section>';
@@ -107,6 +109,21 @@ function showLogin(error=''){
    const {error}=await recovery.auth.resetPasswordForEmail(email.value.trim(),{redirectTo:redirect.href});if(error)throw Error('Não foi possível enviar a recuperação agora. Tente novamente mais tarde.');
    feedback.textContent='Se o e-mail estiver cadastrado, você receberá as instruções para recuperar a senha.';
   }catch(err){feedback.textContent=err.message;}finally{button.disabled=false;}
+ };
+ document.body.appendChild(gate);gate.querySelector('input').focus();
+}
+function showLoginLink(error=''){
+ encerrarCarregamento();
+ document.documentElement.classList.add('backend-pendente');
+ gate.innerHTML='<section><small>GESTÃO MUNICIPAL</small><h1>Acesso à gestão municipal</h1><p>Entre com seu e-mail autorizado. Você receberá um link de acesso, sem precisar criar uma senha.</p><form><label for="backend-email">E-mail</label><input id="backend-email" type="email" autocomplete="email" required><button type="submit">Receber link de acesso</button></form><p role="alert"></p><button type="button" id="backend-reset" hidden>Sair da sessão atual</button></section>';
+ gate.querySelector('[role=alert]').textContent=error;
+ if(entry==='plataforma'){gate.querySelector('small').textContent='ADMINISTRAÇÃO GERAL';gate.querySelector('h1').textContent='Acesso à administração do sistema';}
+
+ gate.querySelector('#backend-reset').hidden=!error;
+ gate.querySelector('#backend-reset').onclick=async()=>{if(client)await client.auth.signOut({scope:'local'});location.reload();};
+ gate.querySelector('form').onsubmit=async e=>{e.preventDefault();const button=e.currentTarget.querySelector('button'),feedback=gate.querySelector('[role=alert]');button.disabled=true;
+  try{if(!client)throw Error('Conexão indisponível. Atualize a página.');const redirect=new URL(location.href);redirect.hash='';redirect.search='';const {error}=await client.auth.signInWithOtp({email:gate.querySelector('input').value.trim(),options:{emailRedirectTo:redirect.href}});if(error)throw error;feedback.textContent='Link enviado. Abra seu e-mail neste navegador para entrar.';}
+  catch(err){feedback.textContent=err.code==='over_email_send_rate_limit'||/email rate limit exceeded/i.test(err.message)?'O limite de envio de e-mails foi atingido. Seu cadastro continua ativo. Use o último link recebido ou tente novamente mais tarde.':err.message;}finally{button.disabled=false;}
  };
  document.body.appendChild(gate);gate.querySelector('input').focus();
 }

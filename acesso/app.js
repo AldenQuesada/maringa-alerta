@@ -2,6 +2,7 @@
 (async function(){
 'use strict';
 const section=document.querySelector('section'),config=window.MARINGA_SUPABASE;
+if(config?.cadastroAdministrativo!==true){location.replace(new URL('../gestao/',location.href).href);return;}
 const url=new URL(location.href),fragment=new URLSearchParams(url.hash.slice(1)),token=fragment.get('token');
 const authHash=fragment.get('auth_hash'),authType=fragment.get('tipo');
 const recovery=url.searchParams.get('recuperar')==='1';

@@ -29,7 +29,7 @@ http.createServer(async(req,res)=>{
   const response=await fetch(endpoint,{method:req.method,headers,...(body.length?{body}:{}),redirect:'manual'});
   res.writeHead(response.status,Object.fromEntries([...response.headers].filter(([k])=>!['content-length','content-encoding','transfer-encoding'].includes(k))));res.end(Buffer.from(await response.arrayBuffer()));return;
  }
- if(url.pathname==='/backend/config.js'){res.setHeader('Content-Type','text/javascript');res.end(`window.MARINGA_SUPABASE={url:'${base}',publishableKey:'sb_publishable_test'};`);return;}
+ if(url.pathname==='/backend/config.js'){res.setHeader('Content-Type','text/javascript');res.end(`window.MARINGA_SUPABASE={cadastroAdministrativo:true,url:'${base}',publishableKey:'sb_publishable_test'};`);return;}
  let path=resolve(root,'.'+decodeURIComponent(url.pathname));if(!path.startsWith(root+'/'))throw Error('path');if(url.pathname.endsWith('/'))path+='/index.html';
  res.setHeader('Content-Type',({'.js':'text/javascript','.html':'text/html','.css':'text/css','.svg':'image/svg+xml','.json':'application/json'}[extname(path)]||'application/octet-stream'));res.end(await readFile(path));
  }catch(error){res.statusCode=500;res.end('Erro no servidor descartável: '+error.message);}

@@ -22,6 +22,14 @@ Nove comandos de cadastro/acesso usam `ma_gestor_acessos`, sem login, herança, 
 
 ## Publicação E6
 
+### Publicação compatível autorizada em 09/11/2026
+
+Para liberar a lixeira e a largura das tabelas sem substituir o acesso já usado em produção, `backend/config.js` mantém `cadastroAdministrativo:false`. Nesse modo, o login por link, as sessões existentes, o formulário municipal e os vínculos atuais permanecem operacionais. As páginas novas de cadastro e ativação retornam à gestão antes de inicializar Auth ou chamar suas RPCs. Nenhuma migração, política Auth, template, função de acesso ou SMTP novo é necessário para esse pacote; não aplicar essas mudanças nesta publicação.
+
+Os sete checks continuam executando integralmente. O ambiente descartável de primeiro acesso habilita explicitamente o recurso novo e mantém os testes com Auth/PostgREST reais. Testes adicionais cobrem o modo compatível, sessões existentes e a ausência de chamadas às dependências ainda não implantadas. O flag serve para implantação gradual da interface, não como fronteira de autorização: a segurança continua nos guards e permissões do servidor.
+
+O gate de Pages e a autorização para o SHA exato permanecem obrigatórios. A ativação futura de `cadastroAdministrativo:true` exige concluir as dependências e a homologação descritas abaixo. Esta publicação compatível não declara concluída a implantação do novo cadastro, nem a E3/E4 ou a prontidão enterprise.
+
 Mesmo com testes aprovados e PR integrado, Pages exige a variável `PRA_SOMAR_E6_RELEASE_SHA` igual ao SHA completo do commit autorizado. Ausente, antigo ou diferente significa bloqueio antes de preparar/publicar o artefato. Não definir essa variável durante E2–E5. A autorização é específica para um commit e não se transfere ao seguinte.
 
 Antes de autorizar na E6: revalidar backup recente; aplicar as migrações com o papel real e comparar dados/matriz; configurar Auth/SMTP/retornos; publicar a função compatível; conferir as proteções remotas; revisar o commit. O guia `SMTP_SUPABASE.md` contém os requisitos de senha e signup a conferir no Auth hospedado. As mudanças locais não configuram esse serviço automaticamente.

@@ -54,7 +54,7 @@ const {geocodificarPrefeitura,toast,excluir}=AlertaGestaoOperacoes.criar({$,db,r
 const drawer=AlertaGestaoFormulario.criar({db,D,document,esc,structures,getCurrentPage:()=>state.atual,onDenied:toast});
 const {fecharDrawer}=drawer;
 function abrirDrawer(id=null,module=state.atual,...args){
- if(db.tipo==='supabase'&&D.ESQUEMAS[module]?.collection==='usuarios'){location.href='../colaboradores/?municipio='+encodeURIComponent(db.municipioAtivo().id)+(id?'&pessoa='+encodeURIComponent(id):'&novo=1');return;}
+ if(window.MARINGA_SUPABASE?.cadastroAdministrativo===true&&db.tipo==='supabase'&&D.ESQUEMAS[module]?.collection==='usuarios'){location.href='../colaboradores/?municipio='+encodeURIComponent(db.municipioAtivo().id)+(id?'&pessoa='+encodeURIComponent(id):'&novo=1');return;}
  return drawer.abrirDrawer(id,module,...args);
 }
 FORM.addEventListener("submit",async e=>{
