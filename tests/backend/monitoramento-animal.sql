@@ -23,6 +23,10 @@ create function pg_temp.capacidade(papel_alvo text,cap text,ligar boolean) retur
  if ligar then insert into private.ma_capacidades_papel values(papel_alvo,cap) on conflict do nothing;
  else delete from private.ma_capacidades_papel where papel=papel_alvo and capacidade=cap;end if;end$$;
 
+-- Desde a e2, funções novas nascem sem execute para public: libera as auxiliares temporárias do teste.
+do $$declare f regprocedure;begin for f in select p.oid::regprocedure from pg_proc p where p.pronamespace=pg_my_temp_schema() loop
+ execute format('grant execute on function %s to authenticated,anon,service_role',f);end loop;end$$;
+
 set local role authenticated;
 
 -- Instalação: somente administrador municipal, idempotente, a partir do modelo do banco.
