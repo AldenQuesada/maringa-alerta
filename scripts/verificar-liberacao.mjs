@@ -11,7 +11,7 @@ export function verificarProtecao(protecao){
  }
  if(required.strict!==true||protecao.enforce_admins?.enabled!==true||protecao.allow_force_pushes?.enabled!==false||protecao.allow_deletions?.enabled!==false)throw Error('Proteção da main insuficiente.');
  const review=protecao.required_pull_request_reviews;
- if(!review||review.required_approving_review_count<contrato.revisoes_independentes||!review.dismiss_stale_reviews||!review.require_last_push_approval)throw Error('Revisão independente e atualizada obrigatória.');
+ if(!review||review.required_approving_review_count<contrato.revisoes_independentes||!review.dismiss_stale_reviews||(contrato.revisoes_independentes>0&&!review.require_last_push_approval))throw Error('Política de revisão divergente do contrato.');
 }
 export function verificarPublicacao(commit,autorizado){
  if(!/^[a-f0-9]{40}$/.test(commit||'')||commit!==autorizado)throw Error('Publicação reservada à E6 e ao commit explicitamente autorizado.');

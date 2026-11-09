@@ -4,9 +4,9 @@ A implementação fica no PR 110; a publicação continua reservada à E6. A pol
 
 ## Integração
 
-A main deve exigir os checks `verificar`, `permissoes-banco`, `autoridade-banco`, `transporte-whatsapp`, `mapas-mobile`, `primeiro-acesso` e `liberacao`, todos da aplicação GitHub Actions. Manter branch atualizada, proteção também para administradores, proibição de force push/exclusão e uma aprovação independente. Aprovações antigas são descartadas quando muda o código; a última atualização precisa de aprovação de outra pessoa.
+A main deve exigir os checks `verificar`, `permissoes-banco`, `autoridade-banco`, `transporte-whatsapp`, `mapas-mobile`, `primeiro-acesso` e `liberacao`, todos da aplicação GitHub Actions. Manter branch atualizada, proteção também para administradores e proibição de force push/exclusão. Em 09/11/2026, o responsável autorizou explicitamente retirar somente a exigência de aprovação por outra pessoa: `required_approving_review_count=0` e `require_last_push_approval=false`. As demais proteções e os sete checks permanecem obrigatórios. Revisões recebidas continuam sendo invalidadas quando o código muda.
 
-A pessoa responsável pelo repositório é AldenQuesada. Alterações de migração, autorização, workflows ou liberação exigem revisão que confira o contrato de privilégios, evidências de preservação e testes negativos. Só existe um colaborador cadastrado no inventário da E2: será necessário adicionar um revisor autorizado antes de integrar o PR. Não desabilitar os requisitos para contornar essa pendência e não aprovar o próprio PR.
+A pessoa responsável pelo repositório é AldenQuesada. Alterações de migração, autorização, workflows ou liberação continuam exigindo a conferência do contrato de privilégios, evidências de preservação e testes negativos. A revisão por uma segunda conta deixou de ser requisito obrigatório por decisão explícita do responsável; não registrar aprovação em nome de outra pessoa nem alterar os requisitos de teste.
 
 O job `liberacao` executa mesmo quando uma dependência falha ou é ignorada e só aceita sucesso em todos os seis testes. Os testes do gate injetam falha, cancelamento, skip, ausência e resultado pendente em cada dependência. A proteção remota é conferida por `node scripts/verificar-liberacao.mjs protecao ARQUIVO_JSON`, usando o resultado atual da API de branch protection.
 

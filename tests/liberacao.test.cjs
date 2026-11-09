@@ -10,12 +10,17 @@ test('publicação exige autorização E6 para o SHA exato',async()=>{
  for(const authorization of ['',undefined,'true','b'.repeat(40)])assert.throws(()=>verificarPublicacao(sha,authorization));
  assert.throws(()=>verificarPublicacao('main','main'));
 });
-test('proteção exige todos os checks da aplicação confiável e revisão independente',async()=>{
+test('proteção preserva os sete checks e bloqueios com a política de revisão autorizada',async()=>{
  const {contrato,verificarProtecao}=await source;
- const base={required_status_checks:{strict:true,checks:[...contrato.checks,contrato.check_agregado].map(context=>({context,app_id:contrato.github_app_id}))},enforce_admins:{enabled:true},allow_force_pushes:{enabled:false},allow_deletions:{enabled:false},required_pull_request_reviews:{required_approving_review_count:1,dismiss_stale_reviews:true,require_last_push_approval:true}};
+ const base={required_status_checks:{strict:true,checks:[...contrato.checks,contrato.check_agregado].map(context=>({context,app_id:contrato.github_app_id}))},enforce_admins:{enabled:true},allow_force_pushes:{enabled:false},allow_deletions:{enabled:false},required_pull_request_reviews:{required_approving_review_count:0,dismiss_stale_reviews:true,require_last_push_approval:false}};
+ assert.equal(contrato.revisoes_independentes,0);
  assert.doesNotThrow(()=>verificarProtecao(base));
  for(const name of [...contrato.checks,contrato.check_agregado])assert.throws(()=>verificarProtecao({...base,required_status_checks:{...base.required_status_checks,checks:base.required_status_checks.checks.filter(x=>x.context!==name)}}));
  assert.throws(()=>verificarProtecao({...base,required_pull_request_reviews:null}));
+ assert.throws(()=>verificarProtecao({...base,required_status_checks:{...base.required_status_checks,strict:false}}));
+ assert.throws(()=>verificarProtecao({...base,enforce_admins:{enabled:false}}));
+ assert.throws(()=>verificarProtecao({...base,allow_force_pushes:{enabled:true}}));
+ assert.throws(()=>verificarProtecao({...base,allow_deletions:{enabled:true}}));
  assert.throws(()=>verificarProtecao({...base,required_status_checks:{strict:true,checks:base.required_status_checks.checks.map(x=>({...x,app_id:-1}))}}));
 });
 test('workflow agregado depende de todos os gates, e Pages exige o agregado e autorização E6',async()=>{
