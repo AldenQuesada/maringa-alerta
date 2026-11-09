@@ -8,8 +8,9 @@ export function politicaAuth(root=process.cwd()){
  const minimo=Number(auth.match(/^minimum_password_length\s*=\s*(\d+)/m)?.[1]);
  const exigirSenhaAtual=/^require_current_password\s*=\s*true\s*$/m.test(email);
  const reautenticar=/^secure_password_change\s*=\s*true\s*$/m.test(email);
- if(!Number.isInteger(minimo)||minimo<12||!exigirSenhaAtual||!reautenticar)throw Error('Política de autenticação incompleta.');
- return {minimo,exigirSenhaAtual,reautenticar};
+ const cadastroPublicoBloqueado=/^enable_signup\s*=\s*false\s*$/m.test(auth)&&/^enable_signup\s*=\s*false\s*$/m.test(email);
+ if(!Number.isInteger(minimo)||minimo<12||!exigirSenhaAtual||!reautenticar||!cadastroPublicoBloqueado)throw Error('Política de autenticação incompleta.');
+ return {minimo,exigirSenhaAtual,reautenticar,cadastroPublicoBloqueado};
 }
 export function gerarPoliticaAuth(root,checking=false){
  const policy=politicaAuth(root),path=resolve(root,'config/politica-auth.js');

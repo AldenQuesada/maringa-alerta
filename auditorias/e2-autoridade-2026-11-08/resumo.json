@@ -1,0 +1,25 @@
+{
+  "status_local": "passed",
+  "node_tests": 290,
+  "auth_scenarios": 28,
+  "mapas_mobile": 12,
+  "sql_suites": 17,
+  "python_regression_programs": 7,
+  "transport_tests": 9,
+  "bundles": 17,
+  "migrations_total": 40,
+  "candidate_migrations_without_superuser": 4,
+  "functions_in_matrix": 130,
+  "relations_in_matrix": 36,
+  "clone_matrix_identical": true,
+  "application_rows_preserved": true,
+  "cameras_unchanged": {
+    "config/cameras-mapas.js": "eed243578d873edfb108f33b4092d231109a7c39f044d8ea0336d1ed765c4760",
+    "tests/cameras-mapas-canonicas.test.cjs": "d184ed6bd39ec171b8d57a247fa7fbebd97f6750aef29d49e5c5377bb0f046c1",
+    "playwright.mapas.config.cjs": "7ae4885885e9ea08cb79495e14f5aaa1adbf205b07c22753789deb33fde2fb38"
+  },
+  "remote_database_auth_modified": false,
+  "published": false,
+  "advisors_errors": 0,
+  "advisors_preexisting_warnings": 1
+}

@@ -120,3 +120,9 @@ O usuário escolheu configurar o serviço remetente dentro do Supabase e informo
 Implementação e homologação local concluídas no mesmo candidato da fase 2. A porta genérica não grava pessoas; o banco valida a ficha completa e garante unicidade municipal do e-mail. Recuperação exige prova nativa, e o Auth de homologação recusa troca direta sem senha atual. Política de senha centralizada e pacote de publicação limitado a manifesto explícito. Passaram 286 testes Node, 26 cenários de acesso em navegador, 12 testes móveis, 39 migrações, 16 suítes SQL, seis verificações Python e nove testes de transporte. O backup real foi novamente restaurado; cadastros e contas preservados após as migrações. [Relatório e evidências da E1](auditorias/E1_CADASTRO_SENHA_EMPACOTAMENTO_2026-11-08.md).
 
 E1 não é certificação de escala nem publicação da fase 2. A conferência/aplicação das configurações do Auth hospedado, SMTP e entrega externa permanece na liberação E6. E2 não foi iniciada; as câmeras e as exigências do job móvel permanecem inalteradas.
+
+### E2 — autoridade do banco e liberação
+
+Implementada no mesmo PR, com correção efetiva da ACL territorial, padrões restritos para objetos futuros e papel limitado para nove comandos de cadastro/acesso. O novo job ensaia as quatro migrações candidatas sem superuser e compara a matriz de 130 funções e 36 relações; essa matriz também conferiu no clone do backup real. Passaram 290 testes Node, 28 cenários de acesso, 12 testes móveis, regressão SQL/concorrência e verificadores do banco. [Relatório E2](auditorias/E2_AUTORIDADE_LIBERACAO_2026-11-08.md).
+
+Sete checks e revisão independente compõem a proteção de integração. Pages exige autorização E6 para o SHA específico; não foi autorizada publicação. Autocadastro público desabilitado e testado na configuração candidata, com alteração hospedada reservada à E6. Dados e câmeras preservados; E3 não iniciada. [Procedimento e responsabilidades](backend/LIBERACAO.md).

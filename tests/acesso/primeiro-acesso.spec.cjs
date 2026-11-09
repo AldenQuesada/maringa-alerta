@@ -21,6 +21,14 @@ test.beforeAll(async({request})=>{
  const created=await request.post('/auth/v1/admin/users',{headers:{Authorization:'Bearer '+service},data:{email:'administrador@example.invalid',password,email_confirm:true}});expect([200,422],await created.text()).toContain(created.status());
  const auth=await requestJson(request,'/auth/v1/token?grant_type=password',{email:'administrador@example.invalid',password});adminToken=auth.access_token;
 });
+test('cadastro público direto é recusado, sem criar conta nem enviar e-mail',async({request},info)=>{
+ const email='signup-bloqueado-'+info.project.name+'-'+randomUUID()+'@example.invalid';
+ const keys=await(await request.get('/test/keys')).json();
+ const response=await request.post('/auth/v1/signup',{headers:{Authorization:'Bearer '+keys.anon,apikey:keys.anon},data:{email,password}});
+ expect(response.ok()).toBe(false);expect((await response.json()).error_code).toBe('signup_disabled');
+ const mails=await(await request.get('/test/mails')).json();expect(mails.filter(x=>x.to.includes(email))).toHaveLength(0);
+ const login=await request.post('/auth/v1/token?grant_type=password',{headers:{Authorization:'Bearer '+keys.anon},data:{email,password}});expect(login.ok()).toBe(false);
+});
 async function adminSession(page){
  await page.goto('/acesso/');
  await page.evaluate(async({token,service,password})=>{

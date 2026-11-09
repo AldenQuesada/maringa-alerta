@@ -1,0 +1,1303 @@
+{
+ "funcoes": [
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_acesso_ativar(text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_acesso_consultar(text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "ma_acesso_entrega(uuid,text,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_acesso_finalizar_envio(uuid,uuid,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_acesso_preparar(text,text,bigint,uuid,text,uuid)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_acesso_reservar_envio(uuid)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_admin_definir_vinculo(text,text,text,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_admin_listar_acessos(text,integer,integer)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_aplicar_alteracoes(jsonb)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_catalogo_territorial()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_colaboradores_contexto(text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_colaborador_salvar(text,text,jsonb,jsonb,bigint)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_contato_detalhe(text,text,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_contato_excluir(text,text,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_contatos_listar(text,text,text,text,integer)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_meu_perfil()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_minhas_capacidades()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_salvar_catalogo_territorial(text,jsonb,bigint)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_salvar_painel(text,text,jsonb,bigint)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_territorio_areas(text,double precision,double precision)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_territorio_listar(text,text,text,integer,integer)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_territorio_proximos(text,double precision,double precision,double precision,text,text,integer)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_wa_canais()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_wa_entradas()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_wa_falha_entrada(bigint)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_wa_midia_excluir_reservar()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_wa_midia_excluir_resultado(uuid,uuid,boolean)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_wa_operacao(uuid)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_wa_processar(bigint,jsonb)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_wa_publicar(text,jsonb,jsonb)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_wa_receber(text,jsonb)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_wa_reservar()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_wa_resultado(uuid,uuid,text,text,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_wa_simular(uuid,uuid,jsonb,uuid)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_wa_usar_versao(uuid,uuid)"
+  },
+  {
+   "definer": true,
+   "dono": "ma_gestor_acessos",
+   "executar": [
+    "authenticated",
+    "ma_gestor_acessos"
+   ],
+   "nome": "private.ma_acesso_ativar(text)"
+  },
+  {
+   "definer": true,
+   "dono": "ma_gestor_acessos",
+   "executar": [
+    "ma_gestor_acessos",
+    "service_role"
+   ],
+   "nome": "private.ma_acesso_consultar(text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_acesso_entrega(uuid,text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "ma_gestor_acessos",
+   "executar": [
+    "ma_gestor_acessos",
+    "service_role"
+   ],
+   "nome": "private.ma_acesso_finalizar_envio(uuid,uuid,text)"
+  },
+  {
+   "definer": true,
+   "dono": "ma_gestor_acessos",
+   "executar": [
+    "ma_gestor_acessos",
+    "service_role"
+   ],
+   "nome": "private.ma_acesso_preparar(text,text,bigint,uuid,text,uuid)"
+  },
+  {
+   "definer": true,
+   "dono": "ma_gestor_acessos",
+   "executar": [
+    "ma_gestor_acessos",
+    "service_role"
+   ],
+   "nome": "private.ma_acesso_reservar_envio(uuid)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated",
+    "ma_escritor",
+    "ma_gestor_acessos"
+   ],
+   "nome": "private.ma_acesso(text,boolean)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated",
+    "ma_escritor",
+    "ma_gestor_acessos"
+   ],
+   "nome": "private.ma_admin()"
+  },
+  {
+   "definer": true,
+   "dono": "ma_escritor",
+   "executar": [
+    "authenticated",
+    "ma_escritor"
+   ],
+   "nome": "private.ma_aplicar_alteracoes(jsonb)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_auditar()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "private.ma_capacidades()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_carimbar()"
+  },
+  {
+   "definer": true,
+   "dono": "ma_gestor_acessos",
+   "executar": [
+    "authenticated",
+    "ma_gestor_acessos"
+   ],
+   "nome": "private.ma_colaboradores_contexto(text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "ma_escritor"
+   ],
+   "nome": "private.ma_colaborador_gerenciado(text,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_colaborador_proteger_ficha()"
+  },
+  {
+   "definer": true,
+   "dono": "ma_gestor_acessos",
+   "executar": [
+    "authenticated",
+    "ma_gestor_acessos"
+   ],
+   "nome": "private.ma_colaborador_salvar(text,text,jsonb,jsonb,bigint)"
+  },
+  {
+   "definer": true,
+   "dono": "ma_gestor_acessos",
+   "executar": [
+    "ma_gestor_acessos"
+   ],
+   "nome": "private.ma_colaborador_validar_ficha(jsonb,jsonb)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "private.ma_contato_detalhe(text,text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "private.ma_contato_excluir(text,text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "private.ma_contatos_listar(text,text,text,text,integer)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "ma_gestor_acessos"
+   ],
+   "nome": "private.ma_definir_vinculo_legado(text,text,text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "ma_gestor_acessos",
+   "executar": [
+    "authenticated",
+    "ma_gestor_acessos"
+   ],
+   "nome": "private.ma_definir_vinculo(text,text,text,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_dentro_poligono(jsonb,numeric,numeric)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "ma_escritor",
+    "ma_gestor_acessos"
+   ],
+   "nome": "private.ma_exigir_admin()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated",
+    "ma_gestor_acessos"
+   ],
+   "nome": "private.ma_gerencia_colaboradores(text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "ma_escritor"
+   ],
+   "nome": "private.ma_gravar_cadastro(jsonb)"
+  },
+  {
+   "definer": true,
+   "dono": "ma_escritor",
+   "executar": [
+    "ma_escritor"
+   ],
+   "nome": "private.ma_gravar_lote(jsonb)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "ma_escritor"
+   ],
+   "nome": "private.ma_gravar_prefeitura(jsonb)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated",
+    "ma_escritor",
+    "ma_gestor_acessos"
+   ],
+   "nome": "private.ma_identidade()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_integridade_relacoes()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "private.ma_listar_acessos(text,integer,integer)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated",
+    "ma_escritor"
+   ],
+   "nome": "private.ma_permitido(text,text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "private.ma_pontos_no_raio(text,double precision,double precision,double precision)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_primeiro_admin()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_projetar_territorio(ma_cadastros)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_referencia_ativa()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_referencias_incidente()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_registrar_historico()"
+  },
+  {
+   "definer": true,
+   "dono": "ma_escritor",
+   "executar": [
+    "authenticated",
+    "ma_escritor"
+   ],
+   "nome": "private.ma_salvar_catalogo_territorial(text,jsonb,bigint)"
+  },
+  {
+   "definer": true,
+   "dono": "ma_escritor",
+   "executar": [
+    "authenticated",
+    "ma_escritor"
+   ],
+   "nome": "private.ma_salvar_painel(text,text,jsonb,bigint)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_sincronizar_territorio()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "private.ma_territorio_areas(text,double precision,double precision)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_territorio_dominio(text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_validar_contrato()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_validar_incidente()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_validar_operacao()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_validar_prefeitura()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_vincular_criador()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "private.ma_wa_ler_foto(text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.advance(wa.sessions)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.check_rule(jsonb,uuid,text,integer)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_audit()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_collection(text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_config()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_delete_delivery()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_delete_media()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_delete_receipt()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_delete_record()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_erase_snapshots(text,jsonb)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_field(jsonb,jsonb)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_history_allowed(text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_link_records()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_messages(wa.sessions,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_progress(wa.sessions)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_received()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_records_for(uuid)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_replay_guard()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_restore_media()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_rows(text,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.contact_summary(jsonb,jsonb)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.immutable_catalog()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.kick_worker()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.matches(jsonb,jsonb)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "wa.ma_wa_canais()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "wa.ma_wa_entradas()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "wa.ma_wa_falha_entrada(bigint)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "wa.ma_wa_midia_excluir_reservar()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "wa.ma_wa_midia_excluir_resultado(uuid,uuid,boolean)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "wa.ma_wa_operacao(uuid)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "wa.ma_wa_processar(bigint,jsonb)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "wa.ma_wa_publicar(text,jsonb,jsonb)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "wa.ma_wa_receber(text,jsonb)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "wa.ma_wa_reservar()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "wa.ma_wa_resultado(uuid,uuid,text,text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "wa.ma_wa_simular(uuid,uuid,jsonb,uuid)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "wa.ma_wa_usar_versao(uuid,uuid)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "wa.process_contact(bigint,jsonb)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.project(wa.sessions)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.publish_structure(uuid)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.publish(uuid)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.render(wa.sessions,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.step(uuid,jsonb)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.template(text,jsonb)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.validate(jsonb,jsonb)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.variables(wa.sessions,jsonb)"
+  }
+ ],
+ "relacoes": [
+  {
+   "dono": "postgres",
+   "nome": "ma_auditoria",
+   "privilegios": {
+    "authenticated": [
+     "SELECT"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "ma_cadastros",
+   "privilegios": {
+    "authenticated": [
+     "SELECT"
+    ],
+    "ma_escritor": [
+     "DELETE",
+     "INSERT",
+     "SELECT",
+     "UPDATE"
+    ],
+    "ma_gestor_acessos": [
+     "INSERT",
+     "SELECT",
+     "UPDATE"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "ma_configuracao",
+   "privilegios": {
+    "authenticated": [
+     "SELECT"
+    ],
+    "ma_escritor": [
+     "SELECT"
+    ],
+    "ma_gestor_acessos": [
+     "SELECT"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "ma_municipios_ibge",
+   "privilegios": {
+    "authenticated": [
+     "SELECT"
+    ],
+    "ma_escritor": [
+     "SELECT"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "ma_painel",
+   "privilegios": {
+    "authenticated": [
+     "SELECT"
+    ],
+    "ma_escritor": [
+     "INSERT",
+     "SELECT",
+     "UPDATE"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "ma_prefeituras",
+   "privilegios": {
+    "authenticated": [
+     "SELECT"
+    ],
+    "ma_escritor": [
+     "INSERT",
+     "SELECT",
+     "UPDATE"
+    ],
+    "ma_gestor_acessos": [
+     "SELECT"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "ma_ufs",
+   "privilegios": {
+    "authenticated": [
+     "SELECT"
+    ],
+    "ma_escritor": [
+     "SELECT"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "ma_vinculos",
+   "privilegios": {
+    "authenticated": [
+     "SELECT"
+    ],
+    "ma_gestor_acessos": [
+     "INSERT",
+     "SELECT",
+     "UPDATE"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "private.ma_acessos_envios",
+   "privilegios": {
+    "ma_gestor_acessos": [
+     "INSERT",
+     "SELECT",
+     "UPDATE"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "private.ma_admins",
+   "privilegios": {
+    "ma_gestor_acessos": [
+     "SELECT"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "private.ma_colaboradores_acesso",
+   "privilegios": {
+    "ma_gestor_acessos": [
+     "INSERT",
+     "SELECT",
+     "UPDATE"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "private.ma_contas_acesso",
+   "privilegios": {
+    "ma_gestor_acessos": [
+     "SELECT"
+    ]
+   },
+   "rls": false
+  },
+  {
+   "dono": "postgres",
+   "nome": "private.ma_convites_iniciais",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "private.ma_historico",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "private.ma_permissoes",
+   "privilegios": {
+    "ma_gestor_acessos": [
+     "SELECT"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "private.ma_referencias",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "territorio.categorias",
+   "privilegios": {
+    "authenticated": [
+     "SELECT"
+    ],
+    "ma_escritor": [
+     "INSERT",
+     "SELECT",
+     "UPDATE"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "territorio.entidades",
+   "privilegios": {
+    "authenticated": [
+     "SELECT"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "territorio.tipos",
+   "privilegios": {
+    "authenticated": [
+     "SELECT"
+    ],
+    "ma_escritor": [
+     "INSERT",
+     "SELECT",
+     "UPDATE"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "territorio.vinculos_operacionais",
+   "privilegios": {
+    "authenticated": [
+     "SELECT"
+    ]
+   },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.channels",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.completions",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.contact_history",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.contact_owned_records",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.contact_records",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.deleted_receipts",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.delivery_events",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.flows",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.inbox",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.media_deletions",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.nodes",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.operations",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.outbox",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.sessions",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.simulation_requests",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.versions",
+   "privilegios": {},
+   "rls": true
+  }
+ ]
+}

@@ -31,6 +31,10 @@ jobs:
     steps:
       - name: Obter arquivos
         uses: actions/checkout@v4
+      - name: Exigir autorização da E6 para este commit
+        env:
+          PRA_SOMAR_E6_RELEASE_SHA: ${{ vars.PRA_SOMAR_E6_RELEASE_SHA }}
+        run: node scripts/verificar-liberacao.mjs publicacao
       - name: Configurar Pages
         uses: actions/configure-pages@v5
       - name: Preparar artefato sem simulador

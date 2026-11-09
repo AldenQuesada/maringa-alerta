@@ -2,17 +2,20 @@
 begin;
 create function pg_temp.exigir(ok boolean,mensagem text) returns void language plpgsql as $$
 begin if ok is distinct from true then raise exception '%',mensagem;end if;end$$;
+grant execute on function pg_temp.exigir(boolean,text) to authenticated,anon,service_role;
 create function pg_temp.rejeitar(comando text,codigo text) returns void language plpgsql as $$
 declare obtido text;
 begin
  begin execute comando;exception when others then get stacked diagnostics obtido=returned_sqlstate;end;
  if obtido is distinct from codigo then raise exception 'Esperado %, recebido %: %',codigo,obtido,comando;end if;
 end$$;
+grant execute on function pg_temp.rejeitar(text,text) to authenticated,anon,service_role;
 create function pg_temp.gravar(colecao text,id text,dados jsonb,municipio text default 'maringa',operacao text default 'inserir',versao bigint default 1)
 returns jsonb language sql as $$
  select public.ma_aplicar_alteracoes(jsonb_build_array(jsonb_build_object('operacao',operacao,'colecao',colecao,'id',id,'municipio_id',municipio,'versao',versao,
  'dados',dados||jsonb_build_object('id',id,'municipioId',municipio))));
 $$;
+grant execute on function pg_temp.gravar(text,text,jsonb,text,text,bigint) to authenticated,anon,service_role;
 insert into auth.users(id,email,email_confirmed_at) values
  ('00000000-0000-4000-8000-000000000081','territorio-admin@invalid.example',now()),
  ('00000000-0000-4000-8000-000000000082','territorio-operador@invalid.example',now()),

@@ -1,10 +1,13 @@
 -- Exclusivamente no banco descartável: filas reais, sem chamadas à Meta.
 begin;
 create function pg_temp.assert(ok boolean,msg text) returns void language plpgsql as $$begin if ok is distinct from true then raise exception '%',msg;end if;end$$;
+grant execute on function pg_temp.assert(boolean,text) to authenticated,anon,service_role;
 create function pg_temp.send(s uuid,t text) returns jsonb language sql as $$select wa.step(s,jsonb_build_object('text',t))$$;
+grant execute on function pg_temp.send(uuid,text) to authenticated,anon,service_role;
 create function pg_temp.button(s uuid,action text) returns jsonb language plpgsql as $$declare b text;begin
  select x->>'id' into strict b from wa.sessions q,jsonb_array_elements(wa.render(q)->'buttons') x where q.id=s and x->>'id' like '%:'||action;
  return wa.step(s,jsonb_build_object('button',b));end$$;
+grant execute on function pg_temp.button(uuid,text) to authenticated,anon,service_role;
 insert into private.ma_permissoes(papel,colecao,ler,gravar,excluir) values ('leitor','voluntarios',true,false,false),('leitor','solicitacoes',true,false,false),('leitor','relatos',true,false,false);
 insert into auth.users(id,email) values('00000000-0000-4000-8000-000000000091','pipeline-admin@example.invalid'),('00000000-0000-4000-8000-000000000092','pipeline-reader@example.invalid');
 insert into public.ma_vinculos(municipio_id,user_id,papel) select id,'00000000-0000-4000-8000-000000000091','admin' from public.ma_prefeituras;

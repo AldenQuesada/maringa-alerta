@@ -5,6 +5,7 @@ declare obtido text;begin
  begin execute comando;exception when others then get stacked diagnostics obtido=returned_sqlstate;end;
  if obtido is distinct from codigo then raise exception 'Esperado %, recebido %: %',codigo,obtido,comando;end if;
 end$$;
+grant execute on function pg_temp.rejeitar(text,text) to authenticated,anon,service_role;
 insert into auth.users(id,email,email_confirmed_at) values('e1000000-0000-4000-8000-000000000001','e1-admin@example.invalid',now());
 insert into public.ma_vinculos values('maringa','e1000000-0000-4000-8000-000000000001','admin');
 -- Simula uma ficha anterior à E1, sem alterar ou apagar sua extensão legada.
