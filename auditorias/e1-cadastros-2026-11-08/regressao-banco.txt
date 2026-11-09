@@ -1,0 +1,23 @@
+PASS SQL backend/permissoes
+PASS SQL backend/seguranca-servidor
+PASS SQL backend/operacoes
+PASS SQL backend/painel
+PASS SQL backend/admin-geral
+PASS SQL backend/integracao
+PASS SQL backend/incidentes
+PASS SQL backend/colaboradores
+PASS SQL backend/e1-cadastros
+PASS SQL backend/territorio
+PASS SQL whatsapp/fluxos
+PASS SQL whatsapp/catalogo
+PASS SQL whatsapp/canonico
+PASS SQL whatsapp/contatos
+PASS SQL whatsapp/exclusao-definitiva
+PASS SQL whatsapp/fotos-historicas
+PASS PY backend/concorrencia.py
+PASS PY backend/colaboradores-concorrencia.py
+PASS PY backend/territorio-concorrencia.py
+PASS PY backend/territorio-espacial.py
+PASS PY whatsapp/exclusao-concorrente.py
+PASS PY whatsapp/comparar-copia.py
+PASS: 39 migrações, 16 suites SQL e 6 verificações Python.

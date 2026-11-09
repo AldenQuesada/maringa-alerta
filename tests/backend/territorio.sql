@@ -2,17 +2,20 @@
 begin;
 create function pg_temp.exigir(ok boolean,mensagem text) returns void language plpgsql as $$
 begin if ok is distinct from true then raise exception '%',mensagem;end if;end$$;
+grant execute on function pg_temp.exigir(boolean,text) to authenticated,anon,service_role;
 create function pg_temp.rejeitar(comando text,codigo text) returns void language plpgsql as $$
 declare obtido text;
 begin
  begin execute comando;exception when others then get stacked diagnostics obtido=returned_sqlstate;end;
  if obtido is distinct from codigo then raise exception 'Esperado %, recebido %: %',codigo,obtido,comando;end if;
 end$$;
+grant execute on function pg_temp.rejeitar(text,text) to authenticated,anon,service_role;
 create function pg_temp.gravar(colecao text,id text,dados jsonb,municipio text default 'maringa',operacao text default 'inserir',versao bigint default 1)
 returns jsonb language sql as $$
  select public.ma_aplicar_alteracoes(jsonb_build_array(jsonb_build_object('operacao',operacao,'colecao',colecao,'id',id,'municipio_id',municipio,'versao',versao,
  'dados',dados||jsonb_build_object('id',id,'municipioId',municipio))));
 $$;
+grant execute on function pg_temp.gravar(text,text,jsonb,text,text,bigint) to authenticated,anon,service_role;
 insert into auth.users(id,email,email_confirmed_at) values
  ('00000000-0000-4000-8000-000000000081','territorio-admin@invalid.example',now()),
  ('00000000-0000-4000-8000-000000000082','territorio-operador@invalid.example',now()),
@@ -37,7 +40,7 @@ select public.ma_salvar_catalogo_territorial('tipo','{"id":"novo_subtipo","categ
 select pg_temp.rejeitar($q$select public.ma_salvar_catalogo_territorial('tipo','{"id":"novo_servico","categoria_id":"nova_categoria","dominio":"servico","pai_id":"novo_subtipo","nome":"Ciclo"}',1)$q$,'23514');
 select pg_temp.rejeitar($q$select public.ma_salvar_catalogo_territorial('tipo','{"id":"novo_servico","categoria_id":"nova_categoria","dominio":"servico","nome":"Versão antiga"}',0)$q$,'40001');
 select pg_temp.rejeitar($q$select public.ma_salvar_catalogo_territorial('tipo','{"id":"novo_servico","categoria_id":"nova_categoria","dominio":"recurso","nome":"Outro domínio"}',1)$q$,'23514');
-select pg_temp.gravar('usuarios','pessoa-territorio','{"nome":"Pessoa existente","funcao":"operador","telefone":"44999990000"}');
+select public.ma_colaborador_salvar('maringa','pessoa-territorio','{"nome":"Pessoa existente","funcao":"operador","telefone":"44999990000","email":"territorio-pessoa@example.invalid","endereco":"Rua","bairro":"Centro","cargo":"Apoio","horarios":[]}','{"papel":"leitor","colecoes":[],"situacao":"pendente"}',null);
 select pg_temp.gravar('unidades','local-territorio','{"nome":"Igreja com múltiplos serviços","tipo_id":"igreja","lat":-23.42,"lng":-51.93,"geo_fonte":"GPS informado","geo_precisao_m":8,"geo_confirmada":true,"responsavel_colecao":"usuarios","responsavel_id":"pessoa-territorio"}');
 select pg_temp.gravar('servicos','cozinha-territorio','{"nome":"Cozinha","tipo_id":"cozinha","unidade_colecao":"unidades","unidade_id":"local-territorio","capacidade_valor":250,"unidade_medida":"refeicoes","periodo":"dia"}');
 select pg_temp.gravar('servicos','servico-territorio','{"nome":"Outro serviço","tipo_id":"novo_subtipo","unidade_colecao":"unidades","unidade_id":"local-territorio"}');
@@ -58,7 +61,10 @@ select pg_temp.rejeitar($q$select pg_temp.gravar('servicos','local-errado','{"no
 select pg_temp.rejeitar($q$select pg_temp.gravar('servicos','local-cruzado','{"nome":"Outro município","tipo_id":"cozinha","unidade_colecao":"unidades","unidade_id":"somente-externa"}')$q$,'23503');
 select pg_temp.rejeitar($q$select pg_temp.gravar('recursos','tipo-errado','{"nome":"Não é serviço","tipo_id":"cozinha"}')$q$,'23514');
 select pg_temp.rejeitar($q$select pg_temp.gravar('unidades','local-territorio','{}','maringa','excluir',1)$q$,'23503');
-select pg_temp.rejeitar($q$select pg_temp.gravar('usuarios','pessoa-territorio','{}','maringa','excluir',1)$q$,'23503');
+select pg_temp.rejeitar($q$select pg_temp.gravar('usuarios','pessoa-territorio','{}','maringa','excluir',1)$q$,'42501');
+reset role;
+select pg_temp.rejeitar($q$delete from public.ma_cadastros where municipio_id='maringa' and colecao='usuarios' and id='pessoa-territorio'$q$,'23503');
+set local role authenticated;
 select pg_temp.rejeitar($q$select pg_temp.gravar('servicos','cozinha-territorio','{}','maringa','excluir',1)$q$,'23503');
 select pg_temp.rejeitar($q$select pg_temp.gravar('recursos','freezer-territorio','{"nome":"Concorrência","tipo_id":"freezer"}','maringa','atualizar',999)$q$,'40001');
 select pg_temp.rejeitar($q$insert into territorio.entidades(municipio_id,colecao,id,dominio,ativo,versao) values('maringa','unidades','direto','local',true,1)$q$,'42501');

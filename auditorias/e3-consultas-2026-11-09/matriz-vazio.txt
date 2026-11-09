@@ -1,0 +1,1 @@
+PASS: matriz efetiva exata; 139 funções e 36 relações.

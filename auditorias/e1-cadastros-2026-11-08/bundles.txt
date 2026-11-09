@@ -1,0 +1,21 @@
+
+> check
+> node scripts/build-modulos.mjs --check
+
+OK evento/app.js (37 módulos)
+OK gestao/gestao.js (9 módulos)
+OK gestao/dados.js (11 módulos)
+OK gestao/implantacao-ui.js (7 módulos)
+OK plataforma/app.js (8 módulos)
+OK mapas/app.js (8 módulos)
+OK atendimento/chat.js (4 módulos)
+OK cadastro-ocorrencia.js (4 módulos)
+OK crise/core.js (9 módulos)
+OK gestao/acoes-cabecalho.js (5 módulos)
+OK backend/repositorio.js (3 módulos)
+OK gestao/implantacao-core.js (5 módulos)
+OK gestao/catalogo-bairros.js (2 módulos)
+OK gestao/central-conversas.js (9 módulos)
+OK gestao/demo-colaboradores.js (2 módulos)
+OK evento-tornado-2026.js (3 módulos)
+OK gestao/contatos.js (4 módulos)

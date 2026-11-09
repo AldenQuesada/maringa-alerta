@@ -1,0 +1,13 @@
+Check tests/whatsapp/edge.test.ts
+running 9 tests from ./tests/whatsapp/edge.test.ts
+HMAC authenticates the exact raw bytes and rejects changes ... ok (2ms)
+Webhook rejects unsigned requests before database access; persistence failure returns 503 ... ok (20ms)
+Parser preserves sender identity and rejects unsupported transport shapes ... ok (0ms)
+Transport uses database copy and never retries an unknown network outcome ... ok (1ms)
+Photos reject redirects to untrusted hosts, oversized bodies and wrong magic bytes ... ok (0ms)
+Institutional image URL and caption come exclusively from the catalog payload ... ok (0ms)
+Long canonical labels survive Meta limits in list descriptions, including review actions ... ok (0ms)
+Contact profile is bounded and belongs only to the verified sender ... ok (0ms)
+Private cleanup uses Storage API, exact keys, retries and fenced receipts ... ok (2ms)
+
+ok | 9 passed | 0 failed (36ms)

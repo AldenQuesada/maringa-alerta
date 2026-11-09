@@ -1,0 +1,1465 @@
+TAP version 13
+# Subtest: três mapas conceituais: Maringá possui zonas e o mapa original permanece em index.html
+ok 1 - três mapas conceituais: Maringá possui zonas e o mapa original permanece em index.html
+  ---
+  duration_ms: 6.583234
+  ...
+# Subtest: cadastro PF exige quatro campos básicos
+ok 2 - cadastro PF exige quatro campos básicos
+  ---
+  duration_ms: 1.032567
+  ...
+# Subtest: cadastro PF com múltiplas ajudas e maquinário
+ok 3 - cadastro PF com múltiplas ajudas e maquinário
+  ---
+  duration_ms: 1.082634
+  ...
+# Subtest: novas capacidades e logística preservam o cadastro de colaborador único
+ok 4 - novas capacidades e logística preservam o cadastro de colaborador único
+  ---
+  duration_ms: 0.49152
+  ...
+# Subtest: cadastro PJ com apoio a empreendedores
+ok 5 - cadastro PJ com apoio a empreendedores
+  ---
+  duration_ms: 1.223266
+  ...
+# Subtest: cadastro no mesmo telefone atualiza sem duplicar a identidade de colaborador
+ok 6 - cadastro no mesmo telefone atualiza sem duplicar a identidade de colaborador
+  ---
+  duration_ms: 0.922731
+  ...
+# Subtest: a mesma pessoa pode pedir ajuda sem ser designada para atender a si própria
+ok 7 - a mesma pessoa pode pedir ajuda sem ser designada para atender a si própria
+  ---
+  duration_ms: 1.80477
+  ...
+# Subtest: pedido cidadão aceita necessidade livre sem perguntar pessoa física/jurídica
+ok 8 - pedido cidadão aceita necessidade livre sem perguntar pessoa física/jurídica
+  ---
+  duration_ms: 0.8128
+  ...
+# Subtest: pedido financeiro fica aguardando e não cria transferência
+ok 9 - pedido financeiro fica aguardando e não cria transferência
+  ---
+  duration_ms: 0.878842
+  ...
+# Subtest: pedido de telhas encontra material de construção
+ok 10 - pedido de telhas encontra material de construção
+  ---
+  duration_ms: 0.969382
+  ...
+# Subtest: pessoa que pediu ajuda também pode se tornar colaboradora
+ok 11 - pessoa que pediu ajuda também pode se tornar colaboradora
+  ---
+  duration_ms: 0.494914
+  ...
+# Subtest: após encaminhamento, colaborador só confirma Cheguei e Terminei
+ok 12 - após encaminhamento, colaborador só confirma Cheguei e Terminei
+  ---
+  duration_ms: 0.870009
+  ...
+# Subtest: brigada reúne colaboradores e equipes da zona em um clique, mas não envia automaticamente
+ok 13 - brigada reúne colaboradores e equipes da zona em um clique, mas não envia automaticamente
+  ---
+  duration_ms: 1.703381
+  ...
+# Subtest: pedido a outra prefeitura depende de prefeitura cadastrada
+ok 14 - pedido a outra prefeitura depende de prefeitura cadastrada
+  ---
+  duration_ms: 13.478504
+  ...
+# Subtest: dados municipais não vazam para a prefeitura de outro tenant local
+ok 15 - dados municipais não vazam para a prefeitura de outro tenant local
+  ---
+  duration_ms: 0.680038
+  ...
+# Subtest: nenhum canal WhatsApp real é usado no core
+ok 16 - nenhum canal WhatsApp real é usado no core
+  ---
+  duration_ms: 0.531861
+  ...
+# Subtest: uma pessoa que precisa de ajuda encontra outro colaborador, mas não a si mesma
+ok 17 - uma pessoa que precisa de ajuda encontra outro colaborador, mas não a si mesma
+  ---
+  duration_ms: 0.641424
+  ...
+# Subtest: urgência crítica não é automaticamente encaminhada ao colaborador comum
+ok 18 - urgência crítica não é automaticamente encaminhada ao colaborador comum
+  ---
+  duration_ms: 0.722907
+  ...
+# Subtest: ponto público só nasce com autorização e reutiliza a mesma base ao atualizar
+ok 19 - ponto público só nasce com autorização e reutiliza a mesma base ao atualizar
+  ---
+  duration_ms: 0.975093
+  ...
+# Subtest: três mapas têm nomes completos e abrem telas independentes
+ok 20 - três mapas têm nomes completos e abrem telas independentes
+  ---
+  duration_ms: 1.908394
+  ...
+# Subtest: o cabeçalho preserva sessão, três mapas e acesso canônico sem menus redundantes
+ok 21 - o cabeçalho preserva sessão, três mapas e acesso canônico sem menus redundantes
+  ---
+  duration_ms: 0.485823
+  ...
+# Subtest: não inclui Vigilância Sanitária nem chamada de colaboradores internos
+ok 22 - não inclui Vigilância Sanitária nem chamada de colaboradores internos
+  ---
+  duration_ms: 0.422005
+  ...
+# Subtest: no mobile ficam visíveis os três mapas e todos os quatro ícones
+ok 23 - no mobile ficam visíveis os três mapas e todos os quatro ícones
+  ---
+  duration_ms: 0.223991
+  ...
+# Subtest: ícones iniciais mostram tarefa pendente e alerta de ajuda
+ok 24 - ícones iniciais mostram tarefa pendente e alerta de ajuda
+  ---
+  duration_ms: 7.037175
+  ...
+# Subtest: Tarefas abre painel e permite criar atividade local
+ok 25 - Tarefas abre painel e permite criar atividade local
+  ---
+  duration_ms: 15.704658
+  ...
+# Subtest: Alertas abre painel de avisos locais, sem confundir com meteorologia oficial
+ok 26 - Alertas abre painel de avisos locais, sem confundir com meteorologia oficial
+  ---
+  duration_ms: 1.560348
+  ...
+# Subtest: SAMU e Bombeiros exibem números corretos sem disparo automático
+ok 27 - SAMU e Bombeiros exibem números corretos sem disparo automático
+  ---
+  duration_ms: 2.055756
+  ...
+# Subtest: cabeçalho conectado salva tarefas e leituras no servidor sem modificar dados locais
+ok 28 - cabeçalho conectado salva tarefas e leituras no servidor sem modificar dados locais
+  ---
+  duration_ms: 2.033627
+  ...
+# Subtest: tarefas e alertas aguardam confirmação antes de atualizar o painel conectado
+ok 29 - tarefas e alertas aguardam confirmação antes de atualizar o painel conectado
+  ---
+  duration_ms: 1.49042
+  ...
+# Subtest: zona é a do cadastro ou vínculo territorial exato, sem adivinhação
+ok 30 - zona é a do cadastro ou vínculo territorial exato, sem adivinhação
+  ---
+  duration_ms: 1.888184
+  ...
+# Subtest: filtro multizona, combinação com busca e ausência de categoria fictícia
+ok 31 - filtro multizona, combinação com busca e ausência de categoria fictícia
+  ---
+  duration_ms: 1.282904
+  ...
+# Subtest: reconstitui o roteiro oficial sem inventar resposta para campo ausente
+ok 32 - reconstitui o roteiro oficial sem inventar resposta para campo ausente
+  ---
+  duration_ms: 0.792848
+  ...
+# Subtest: fluxo inclui pergunta condicional apenas quando aplicável
+ok 33 - fluxo inclui pergunta condicional apenas quando aplicável
+  ---
+  duration_ms: 0.40156
+  ...
+# Subtest: a Central usa a coleção municipal canônica e não tem cadastro paralelo
+ok 34 - a Central usa a coleção municipal canônica e não tem cadastro paralelo
+  ---
+  duration_ms: 1.691174
+  ...
+# Subtest: nenhuma conversa é selecionada automaticamente ao abrir a Central
+ok 35 - nenhuma conversa é selecionada automaticamente ao abrir a Central
+  ---
+  duration_ms: 1.624317
+  ...
+# Subtest: desmarcar ou perder a conversa no filtro devolve à visão geral, sem selecionar outra
+ok 36 - desmarcar ou perder a conversa no filtro devolve à visão geral, sem selecionar outra
+  ---
+  duration_ms: 0.203289
+  ...
+# Subtest: botão Todas fica à direita de Conversas e contagem, com ícone de casa
+ok 37 - botão Todas fica à direita de Conversas e contagem, com ícone de casa
+  ---
+  duration_ms: 0.671858
+  ...
+# Subtest: Todas desmarca a conversa e restaura a visão geral sem filtros
+ok 38 - Todas desmarca a conversa e restaura a visão geral sem filtros
+  ---
+  duration_ms: 0.512194
+  ...
+# Subtest: em telas pequenas, o cabeçalho Conversas + Todas continua acessível durante o chat
+ok 39 - em telas pequenas, o cabeçalho Conversas + Todas continua acessível durante o chat
+  ---
+  duration_ms: 0.332227
+  ...
+# Subtest: o modo de demonstração importa explicitamente os ajudantes-modelo do mapa e cria seus cadastros no mesmo armazenamento municipal
+ok 40 - o modo de demonstração importa explicitamente os ajudantes-modelo do mapa e cria seus cadastros no mesmo armazenamento municipal
+  ---
+  duration_ms: 41.835668
+  ...
+# Subtest: se a operação antiga tiver ajudantes salvos, usa os mesmos identificadores, nomes, bairros e ofertas sem substituição por outros
+ok 41 - se a operação antiga tiver ajudantes salvos, usa os mesmos identificadores, nomes, bairros e ofertas sem substituição por outros
+  ---
+  duration_ms: 1.707989
+  ...
+# Subtest: não altera cadastros existentes e respeita exclusões posteriores de demonstrações
+ok 42 - não altera cadastros existentes e respeita exclusões posteriores de demonstrações
+  ---
+  duration_ms: 17.604228
+  ...
+# Subtest: não importa ajudantes para outra prefeitura e não mistura municípios
+ok 43 - não importa ajudantes para outra prefeitura e não mistura municípios
+  ---
+  duration_ms: 0.310234
+  ...
+# Subtest: cadastros simulados nunca podem virar destinos de brigada nem de pedidos reais, mesmo com disponibilidade alterada
+ok 44 - cadastros simulados nunca podem virar destinos de brigada nem de pedidos reais, mesmo com disponibilidade alterada
+  ---
+  duration_ms: 20.971941
+  ...
+# Subtest: Dashboard carrega o importador antes da Central e mantém a UI de três colunas
+ok 45 - Dashboard carrega o importador antes da Central e mantém a UI de três colunas
+  ---
+  duration_ms: 0.812361
+  ...
+# Subtest: abrir a Central sem legado não inventa colaboradores fora do modo de demonstração
+ok 46 - abrir a Central sem legado não inventa colaboradores fora do modo de demonstração
+  ---
+  duration_ms: 0.289451
+  ...
+# Subtest: prefeitura padrão é Maringá
+ok 47 - prefeitura padrão é Maringá
+  ---
+  duration_ms: 3.104128
+  ...
+# Subtest: todos os módulos visíveis e os módulos das abas reutilizam cadastros canônicos
+ok 48 - todos os módulos visíveis e os módulos das abas reutilizam cadastros canônicos
+  ---
+  duration_ms: 0.425361
+  ...
+# Subtest: cadastro de prefeitura usa IBGE e não duplica o município
+ok 49 - cadastro de prefeitura usa IBGE e não duplica o município
+  ---
+  duration_ms: 16.614612
+  ...
+# Subtest: responsáveis, substitutos, coordenadores e administradores compartilham coleção com filtro de papel
+ok 50 - responsáveis, substitutos, coordenadores e administradores compartilham coleção com filtro de papel
+  ---
+  duration_ms: 1.035578
+  ...
+# Subtest: instituições são separadas por tipo sem duplicar a entidade
+ok 51 - instituições são separadas por tipo sem duplicar a entidade
+  ---
+  duration_ms: 0.893247
+  ...
+# Subtest: cadastros de equipes isolados por prefeitura
+ok 52 - cadastros de equipes isolados por prefeitura
+  ---
+  duration_ms: 3.394128
+  ...
+# Subtest: criar, editar e excluir recursos reutiliza o mesmo registro
+ok 53 - criar, editar e excluir recursos reutiliza o mesmo registro
+  ---
+  duration_ms: 0.688206
+  ...
+# Subtest: recarregar mantém os cadastros no armazenamento local
+ok 54 - recarregar mantém os cadastros no armazenamento local
+  ---
+  duration_ms: 0.437609
+  ...
+# Subtest: excluir prefeitura apaga apenas seus registros e preserva a última prefeitura
+ok 55 - excluir prefeitura apaga apenas seus registros e preserva a última prefeitura
+  ---
+  duration_ms: 0.876749
+  ...
+# Subtest: nova gestão chama o mapa original sem copiar seu HTML para dentro dela
+ok 56 - nova gestão chama o mapa original sem copiar seu HTML para dentro dela
+  ---
+  duration_ms: 1.881747
+  ...
+# Subtest: hierarquia única Brasil / Paraná / Maringá valida município
+ok 57 - hierarquia única Brasil / Paraná / Maringá valida município
+  ---
+  duration_ms: 2.718536
+  ...
+# Subtest: malha IBGE exige polígono e recusa dados alheios
+ok 58 - malha IBGE exige polígono e recusa dados alheios
+  ---
+  duration_ms: 0.354191
+  ...
+# Subtest: CNES transforma tipos UBS, UPA, hospitais e rejeita outra cidade
+ok 59 - CNES transforma tipos UBS, UPA, hospitais e rejeita outra cidade
+  ---
+  duration_ms: 3.172073
+  ...
+# Subtest: CSV CNES com separador, aspas e cidade de Maringá
+ok 60 - CSV CNES com separador, aspas e cidade de Maringá
+  ---
+  duration_ms: 1.031
+  ...
+# Subtest: GeoJSON cadastra bairros e pontos somente com geometria
+ok 61 - GeoJSON cadastra bairros e pontos somente com geometria
+  ---
+  duration_ms: 0.547026
+  ...
+# Subtest: estado antigo em localStorage é compatível e preservado
+ok 62 - estado antigo em localStorage é compatível e preservado
+  ---
+  duration_ms: 3.43521
+  ...
+# Subtest: importação unificada salva bairros, CNES e limite sem mexer em doações e equipes
+ok 63 - importação unificada salva bairros, CNES e limite sem mexer em doações e equipes
+  ---
+  duration_ms: 3.731208
+  ...
+# Subtest: reimportação é idempotente e preserva cadastro validado
+ok 64 - reimportação é idempotente e preserva cadastro validado
+  ---
+  duration_ms: 1.855702
+  ...
+# Subtest: erro de lote impede gravação parcial em múltiplas coleções
+ok 65 - erro de lote impede gravação parcial em múltiplas coleções
+  ---
+  duration_ms: 0.557128
+  ...
+# Subtest: fontes de outras cidades não entram e ponto distante é recusado
+ok 66 - fontes de outras cidades não entram e ponto distante é recusado
+  ---
+  duration_ms: 0.290464
+  ...
+# Subtest: pessoas e hierarquia convivem com telas legadas sem duplicação
+ok 67 - pessoas e hierarquia convivem com telas legadas sem duplicação
+  ---
+  duration_ms: 0.434415
+  ...
+# Subtest: Prefeitura usa abas canônicas sem duplicar cadastros no sidebar
+ok 68 - Prefeitura usa abas canônicas sem duplicar cadastros no sidebar
+  ---
+  duration_ms: 0.936894
+  ...
+# Subtest: prefeitura usa abas diretas com tabelas e botão no topo
+ok 69 - prefeitura usa abas diretas com tabelas e botão no topo
+  ---
+  duration_ms: 2.04625
+  ...
+# Subtest: a geoterritorialidade prioriza zonas numeradas oficiais, sem criar outro cadastro
+ok 70 - a geoterritorialidade prioriza zonas numeradas oficiais, sem criar outro cadastro
+  ---
+  duration_ms: 0.263916
+  ...
+# Subtest: referência CNES contém 69 unidades distintas verificáveis
+ok 71 - referência CNES contém 69 unidades distintas verificáveis
+  ---
+  duration_ms: 0.35148
+  ...
+# Subtest: as 69 unidades utilizam coleções existentes e não duplicam ao importar
+ok 72 - as 69 unidades utilizam coleções existentes e não duplicam ao importar
+  ---
+  duration_ms: 22.294259
+  ...
+# Subtest: Bases e Riscos públicos têm origem rastreável, não simulam coordenadas nem homologação
+ok 73 - Bases e Riscos públicos têm origem rastreável, não simulam coordenadas nem homologação
+  ---
+  duration_ms: 0.622751
+  ...
+# Subtest: Importação de fontes públicas reutiliza cadastro existente e respeita verificação manual
+ok 74 - Importação de fontes públicas reutiliza cadastro existente e respeita verificação manual
+  ---
+  duration_ms: 4.160111
+  ...
+# Subtest: Importador central reutiliza registros antigos, preenche georreferenciamento e preserva validação municipal
+ok 75 - Importador central reutiliza registros antigos, preenche georreferenciamento e preserva validação municipal
+  ---
+  duration_ms: 6.054612
+  ...
+# Subtest: Admin Geral mantém sessão demonstrativa sem bloquear a consulta do protótipo
+ok 76 - Admin Geral mantém sessão demonstrativa sem bloquear a consulta do protótipo
+  ---
+  duration_ms: 3.32783
+  ...
+# Subtest: Admin Geral provisiona Londrina e preserva Maringá
+ok 77 - Admin Geral provisiona Londrina e preserva Maringá
+  ---
+  duration_ms: 17.046013
+  ...
+# Subtest: não duplica prefeitura nem aceita município de UF inválida
+ok 78 - não duplica prefeitura nem aceita município de UF inválida
+  ---
+  duration_ms: 0.875531
+  ...
+# Subtest: Admin Geral pode ativar e suspender uma Prefeitura sem apagar dados
+ok 79 - Admin Geral pode ativar e suspender uma Prefeitura sem apagar dados
+  ---
+  duration_ms: 1.47278
+  ...
+# Subtest: cada Prefeitura acessa só seu escopo, independente do município global
+ok 80 - cada Prefeitura acessa só seu escopo, independente do município global
+  ---
+  duration_ms: 3.438303
+  ...
+# Subtest: georreferenciamento fica no Admin Geral, com geometria verificada
+ok 81 - georreferenciamento fica no Admin Geral, com geometria verificada
+  ---
+  duration_ms: 1.664555
+  ...
+# Subtest: contexto municipal escolhe Prefeitura na sessão, não altera banco global
+ok 82 - contexto municipal escolhe Prefeitura na sessão, não altera banco global
+  ---
+  duration_ms: 0.592775
+  ...
+# Subtest: Admin Geral é dono das prefeituras e Gestão mantém abas e fluxos canônicos
+ok 83 - Admin Geral é dono das prefeituras e Gestão mantém abas e fluxos canônicos
+  ---
+  duration_ms: 0.719744
+  ...
+# Subtest: abrigo emergencial da Vila Olímpica tem capacidade divulgada sem atribuir vagas livres
+ok 84 - abrigo emergencial da Vila Olímpica tem capacidade divulgada sem atribuir vagas livres
+  ---
+  duration_ms: 2.300535
+  ...
+# Subtest: abrigos são importados no cadastro municipal único sem cópias ou sobrescrever homologações
+ok 85 - abrigos são importados no cadastro municipal único sem cópias ou sobrescrever homologações
+  ---
+  duration_ms: 22.193164
+  ...
+# Subtest: Gestão e Mapa de Evento consultam a mesma coleção de abrigos
+ok 86 - Gestão e Mapa de Evento consultam a mesma coleção de abrigos
+  ---
+  duration_ms: 2.631296
+  ...
+# Subtest: registro aguarda persistência assíncrona e só confirma a identidade salva
+ok 87 - registro aguarda persistência assíncrona e só confirma a identidade salva
+  ---
+  duration_ms: 3.871165
+  ...
+# Subtest: falha de gravação não retorna sucesso; relato preserva o fluxo de triagem
+ok 88 - falha de gravação não retorna sucesso; relato preserva o fluxo de triagem
+  ---
+  duration_ms: 3.338912
+  ...
+# Subtest: DOM do atendimento impede confirmação dupla e preserva respostas após erro
+ok 89 - DOM do atendimento impede confirmação dupla e preserva respostas após erro
+  ---
+  duration_ms: 50.081698
+  ...
+# Subtest: alterações da Gestão atualizam eventos, opções, recorte e pontos do mapa
+ok 90 - alterações da Gestão atualizam eventos, opções, recorte e pontos do mapa
+  ---
+  duration_ms: 6.82544
+  ...
+# Subtest: colaboradores cadastrados no WhatsApp são lidos da mesma coleção pelo Mapa de Eventos
+ok 91 - colaboradores cadastrados no WhatsApp são lidos da mesma coleção pelo Mapa de Eventos
+  ---
+  duration_ms: 7.760389
+  ...
+# Subtest: menu de colaboradores sinaliza registros ocultos por filtro e sem bairro vinculado
+ok 92 - menu de colaboradores sinaliza registros ocultos por filtro e sem bairro vinculado
+  ---
+  duration_ms: 0.548239
+  ...
+# Subtest: equipes previamente persistidas continuam visíveis sem ?demo=1
+ok 93 - equipes previamente persistidas continuam visíveis sem ?demo=1
+  ---
+  duration_ms: 6.61841
+  ...
+# Subtest: Mapa de Eventos consulta os colaboradores operacionais já salvos e a equipe da região
+ok 94 - Mapa de Eventos consulta os colaboradores operacionais já salvos e a equipe da região
+  ---
+  duration_ms: 1.094542
+  ...
+# Subtest: listagem global é paginada e não busca JSON completo nem cadastros operacionais
+ok 95 - listagem global é paginada e não busca JSON completo nem cadastros operacionais
+  ---
+  duration_ms: 2.814618
+  ...
+# Subtest: busca escapa curingas para não ampliar o conjunto solicitado
+ok 96 - busca escapa curingas para não ampliar o conjunto solicitado
+  ---
+  duration_ms: 0.355821
+  ...
+# Subtest: edição mantém geometria e usa versão original no RPC canônico
+ok 97 - edição mantém geometria e usa versão original no RPC canônico
+  ---
+  duration_ms: 0.564807
+  ...
+# Subtest: falhas de escrita e conflito são propagados sem confirmação falsa
+ok 98 - falhas de escrita e conflito são propagados sem confirmação falsa
+  ---
+  duration_ms: 0.814632
+  ...
+# Subtest: catálogo estadual percorre páginas sem depender do limite de retorno da API
+ok 99 - catálogo estadual percorre páginas sem depender do limite de retorno da API
+  ---
+  duration_ms: 0.57666
+  ...
+# Subtest: revogação envia papel esperado e mantém o escopo municipal explícito
+ok 100 - revogação envia papel esperado e mantém o escopo municipal explícito
+  ---
+  duration_ms: 0.259141
+  ...
+# Subtest: guard da rota nega não-admin antes de carregar serviços ou dados
+ok 101 - guard da rota nega não-admin antes de carregar serviços ou dados
+  ---
+  duration_ms: 3.476586
+  ...
+# Subtest: administrador global inicia mesmo sem prefeitura ou vínculo municipal
+ok 102 - administrador global inicia mesmo sem prefeitura ou vínculo municipal
+  ---
+  duration_ms: 1.37739
+  ...
+# Subtest: Admin Geral exige confirmação canônica da versão integrada
+ok 103 - Admin Geral exige confirmação canônica da versão integrada
+  ---
+  duration_ms: 0.452737
+  ...
+# Subtest: boot integrado aplica regras, escolhe município da URL e instala controles do servidor
+ok 104 - boot integrado aplica regras, escolhe município da URL e instala controles do servidor
+  ---
+  duration_ms: 7.715666
+  ...
+# Subtest: as duas regras independentes são consultadas em paralelo antes dos cadastros
+ok 105 - as duas regras independentes são consultadas em paralelo antes dos cadastros
+  ---
+  duration_ms: 2.165425
+  ...
+# Subtest: boot integrado não carrega cadastros nem controladores quando faltam regras
+ok 106 - boot integrado não carrega cadastros nem controladores quando faltam regras
+  ---
+  duration_ms: 2.869299
+  ...
+# Subtest: login normal preserva PKCE e retorno administrativo usa validação do SDK
+ok 107 - login normal preserva PKCE e retorno administrativo usa validação do SDK
+  ---
+  duration_ms: 4.902768
+  ...
+# Subtest: abertura dos colaboradores consulta só identificação do município escolhido
+ok 108 - abertura dos colaboradores consulta só identificação do município escolhido
+  ---
+  duration_ms: 1.598491
+  ...
+# Subtest: configuração recebida substitui catálogos e esquemas locais
+ok 109 - configuração recebida substitui catálogos e esquemas locais
+  ---
+  duration_ms: 6.245942
+  ...
+# Subtest: mapa conectado usa apenas polígonos do município consultado e não baixa arquivos locais
+ok 110 - mapa conectado usa apenas polígonos do município consultado e não baixa arquivos locais
+  ---
+  duration_ms: 2.095262
+  ...
+# Subtest: ações de estruturas, território, exclusão e presença resolvem a coleção correta
+ok 111 - ações de estruturas, território, exclusão e presença resolvem a coleção correta
+  ---
+  duration_ms: 2.330966
+  ...
+# Subtest: rotas agrupadas respeitam capacidades sem converter leitura em escrita
+ok 112 - rotas agrupadas respeitam capacidades sem converter leitura em escrita
+  ---
+  duration_ms: 0.292614
+  ...
+# Subtest: formulário reflete transições e números do banco sem alterar configuração original
+ok 113 - formulário reflete transições e números do banco sem alterar configuração original
+  ---
+  duration_ms: 0.323034
+  ...
+# Subtest: controles são ocultados na revogação e não reativam botão ocupado
+ok 114 - controles são ocultados na revogação e não reativam botão ocupado
+  ---
+  duration_ms: 0.559612
+  ...
+# Subtest: escrita só aparece na memória depois de confirmada pelo servidor
+ok 115 - escrita só aparece na memória depois de confirmada pelo servidor
+  ---
+  duration_ms: 15.215057
+  ...
+# Subtest: falha de rede mantém o cadastro anterior e propaga erro
+ok 116 - falha de rede mantém o cadastro anterior e propaga erro
+  ---
+  duration_ms: 1.714414
+  ...
+# Subtest: resposta perdida bloqueia novas gravações em todos os escopos até recarregar
+ok 117 - resposta perdida bloqueia novas gravações em todos os escopos até recarregar
+  ---
+  duration_ms: 2.357953
+  ...
+# Subtest: duas gravações simultâneas são serializadas sem perda
+ok 118 - duas gravações simultâneas são serializadas sem perda
+  ---
+  duration_ms: 16.16711
+  ...
+# Subtest: cache das leituras preserva isolamento e invalida após gravação confirmada
+ok 119 - cache das leituras preserva isolamento e invalida após gravação confirmada
+  ---
+  duration_ms: 1.196868
+  ...
+# Subtest: transação conserva validações e envia um lote único
+ok 120 - transação conserva validações e envia um lote único
+  ---
+  duration_ms: 1.894897
+  ...
+# Subtest: escopo autorizado não recria município demonstrativo
+ok 121 - escopo autorizado não recria município demonstrativo
+  ---
+  duration_ms: 1.183538
+  ...
+# Subtest: fontes públicas e colaboradores demonstrativos não são importados no modo conectado
+ok 122 - fontes públicas e colaboradores demonstrativos não são importados no modo conectado
+  ---
+  duration_ms: 1.028365
+  ...
+# Subtest: permissões ausentes falham fechadas e não enviam mutação
+ok 123 - permissões ausentes falham fechadas e não enviam mutação
+  ---
+  duration_ms: 0.917702
+  ...
+# Subtest: valores confirmados pelo servidor prevalecem sobre o rascunho
+ok 124 - valores confirmados pelo servidor prevalecem sobre o rascunho
+  ---
+  duration_ms: 0.96762
+  ...
+# Subtest: revogação atualiza capacidades e bloqueia novos controles e gravações
+ok 125 - revogação atualiza capacidades e bloqueia novos controles e gravações
+  ---
+  duration_ms: 1.185664
+  ...
+# Subtest: confirmação incompleta bloqueia novas gravações até recarregar
+ok 126 - confirmação incompleta bloqueia novas gravações até recarregar
+  ---
+  duration_ms: 0.860254
+  ...
+# Subtest: carrega registros apenas da prefeitura selecionada e recusa mudança sem recarga
+ok 127 - carrega registros apenas da prefeitura selecionada e recusa mudança sem recarga
+  ---
+  duration_ms: 0.91647
+  ...
+# Subtest: evento e relato vinculado pertencem à prefeitura em que foram criados
+ok 128 - evento e relato vinculado pertencem à prefeitura em que foram criados
+  ---
+  duration_ms: 6.831967
+  ...
+# Subtest: sugestão de bairro usa polígono e respeita buracos e sobreposições
+ok 129 - sugestão de bairro usa polígono e respeita buracos e sobreposições
+  ---
+  duration_ms: 2.270489
+  ...
+# Subtest: contrato aprovado em 07/11/2026: centro e zoom canônicos de ajuda
+ok 130 - contrato aprovado em 07/11/2026: centro e zoom canônicos de ajuda
+  ---
+  duration_ms: 4.143849
+  ...
+# Subtest: referência de ajuda não pode ser alterada, substituída ou removida durante a execução
+ok 131 - referência de ajuda não pode ser alterada, substituída ou removida durante a execução
+  ---
+  duration_ms: 2.516876
+  ...
+# Subtest: referências municipais e consumidores não sobrescrevem a câmera de ajuda
+ok 132 - referências municipais e consumidores não sobrescrevem a câmera de ajuda
+  ---
+  duration_ms: 1.064205
+  ...
+# Subtest: contrato aprovado em 07/11/2026: centro e zoom canônicos de colaboradores
+ok 133 - contrato aprovado em 07/11/2026: centro e zoom canônicos de colaboradores
+  ---
+  duration_ms: 1.968279
+  ...
+# Subtest: referência de colaboradores não pode ser alterada, substituída ou removida durante a execução
+ok 134 - referência de colaboradores não pode ser alterada, substituída ou removida durante a execução
+  ---
+  duration_ms: 1.733084
+  ...
+# Subtest: referências municipais e consumidores não sobrescrevem a câmera de colaboradores
+ok 135 - referências municipais e consumidores não sobrescrevem a câmera de colaboradores
+  ---
+  duration_ms: 0.998945
+  ...
+# Subtest: contrato aprovado em 07/11/2026: centro e zoom canônicos de evento
+ok 136 - contrato aprovado em 07/11/2026: centro e zoom canônicos de evento
+  ---
+  duration_ms: 1.178446
+  ...
+# Subtest: referência de evento não pode ser alterada, substituída ou removida durante a execução
+ok 137 - referência de evento não pode ser alterada, substituída ou removida durante a execução
+  ---
+  duration_ms: 1.628218
+  ...
+# Subtest: referências municipais e consumidores não sobrescrevem a câmera de evento
+ok 138 - referências municipais e consumidores não sobrescrevem a câmera de evento
+  ---
+  duration_ms: 2.037675
+  ...
+# Subtest: bundle publicado inclui a única fonte canônica antes do resolvedor municipal
+ok 139 - bundle publicado inclui a única fonte canônica antes do resolvedor municipal
+  ---
+  duration_ms: 0.621567
+  ...
+# Subtest: carga real mostra 71 estruturas e mantém sete apoios pesquisáveis sem fabricar pontos
+ok 140 - carga real mostra 71 estruturas e mantém sete apoios pesquisáveis sem fabricar pontos
+  ---
+  duration_ms: 5.415376
+  ...
+# Subtest: verificação do estabelecimento não confirma a oferta temporária de água ou banho
+ok 141 - verificação do estabelecimento não confirma a oferta temporária de água ou banho
+  ---
+  duration_ms: 1.218291
+  ...
+# Subtest: templates use canonical database labels and escape untrusted profile/answers
+ok 142 - templates use canonical database labels and escape untrusted profile/answers
+  ---
+  duration_ms: 31.68494
+  ...
+# Subtest: one popup has peer tabs and deletes only after explicit confirmation with revision
+ok 143 - one popup has peer tabs and deletes only after explicit confirmation with revision
+  ---
+  duration_ms: 22.301074
+  ...
+# Subtest: directory mounts real RPC rows, triage filters and disposes polling on route exit
+ok 144 - directory mounts real RPC rows, triage filters and disposes polling on route exit
+  ---
+  duration_ms: 7.56803
+  ...
+# Subtest: service signs private citizen photos and cannot accept arbitrary buckets
+ok 145 - service signs private citizen photos and cannot accept arbitrary buckets
+  ---
+  duration_ms: 1.952496
+  ...
+# Subtest: Mapa de Evento inicializa todos os controladores com estado municipal e sem fixtures alheias
+ok 146 - Mapa de Evento inicializa todos os controladores com estado municipal e sem fixtures alheias
+  ---
+  duration_ms: 174.732438
+  ...
+# Subtest: Mapa de Colaboradores inicializa os controladores e mantém o contexto da prefeitura
+ok 147 - Mapa de Colaboradores inicializa os controladores e mantém o contexto da prefeitura
+  ---
+  duration_ms: 60.606744
+  ...
+# Subtest: Central de Conversas abre cadastro, mostra a prefeitura certa e retorna às regiões
+ok 148 - Central de Conversas abre cadastro, mostra a prefeitura certa e retorna às regiões
+  ---
+  duration_ms: 49.748446
+  ...
+# Subtest: composição do Evento mantém referências vivas e não registra eventos duas vezes
+ok 149 - composição do Evento mantém referências vivas e não registra eventos duas vezes
+  ---
+  duration_ms: 50.129585
+  ...
+# Subtest: Gestão percorre os cadastros pelas rotas existentes
+ok 150 - Gestão percorre os cadastros pelas rotas existentes
+  ---
+  duration_ms: 58.719849
+  ...
+# Subtest: implantação renderiza inventário, prepara prévia e limpa lote ao trocar de prefeitura
+ok 151 - implantação renderiza inventário, prepara prévia e limpa lote ao trocar de prefeitura
+  ---
+  duration_ms: 31.461136
+  ...
+# Subtest: Pra Somar inicializa no município escolhido sem ativar demonstração
+ok 152 - Pra Somar inicializa no município escolhido sem ativar demonstração
+  ---
+  duration_ms: 33.808699
+  ...
+# Subtest: página real de evento liga abertura, limite e retorno à câmera canônica
+ok 153 - página real de evento liga abertura, limite e retorno à câmera canônica
+  ---
+  duration_ms: 50.350665
+  ...
+# Subtest: página real de colaboradores liga abertura, limite e retorno à câmera canônica
+ok 154 - página real de colaboradores liga abertura, limite e retorno à câmera canônica
+  ---
+  duration_ms: 30.955087
+  ...
+# Subtest: página real de ajuda liga abertura, limite e retorno à câmera canônica
+ok 155 - página real de ajuda liga abertura, limite e retorno à câmera canônica
+  ---
+  duration_ms: 45.055148
+  ...
+# Subtest: mapa de evento usa azul e verde sem reutilizar cores do menu
+ok 156 - mapa de evento usa azul e verde sem reutilizar cores do menu
+  ---
+  duration_ms: 8.993967
+  ...
+# Subtest: a localização aproximada usa área cadastrada e nunca inventa ponto sem geometria
+ok 157 - a localização aproximada usa área cadastrada e nunca inventa ponto sem geometria
+  ---
+  duration_ms: 1.259841
+  ...
+# Subtest: equipes anteriores são lidas sem duplicar telefones já cadastrados
+ok 158 - equipes anteriores são lidas sem duplicar telefones já cadastrados
+  ---
+  duration_ms: 2.708261
+  ...
+# Subtest: cadastro importado preserva posição do registro anterior para exibição
+ok 159 - cadastro importado preserva posição do registro anterior para exibição
+  ---
+  duration_ms: 0.384968
+  ...
+# Subtest: auditoria local serializa ações simultâneas e detecta adulteração
+ok 160 - auditoria local serializa ações simultâneas e detecta adulteração
+  ---
+  duration_ms: 19.346031
+  ...
+# Subtest: modo conectado não lê nem grava trilha ou fila demonstrativas
+ok 161 - modo conectado não lê nem grava trilha ou fila demonstrativas
+  ---
+  duration_ms: 2.575666
+  ...
+# Subtest: fila preserva operações não consumidas e isola municípios pela chave
+ok 162 - fila preserva operações não consumidas e isola municípios pela chave
+  ---
+  duration_ms: 1.378533
+  ...
+# Subtest: mapa conjunto preserva os eventos individuais e admite filtro individual
+ok 163 - mapa conjunto preserva os eventos individuais e admite filtro individual
+  ---
+  duration_ms: 2.568709
+  ...
+# Subtest: vínculo entre mapas recusa ciclos e eventos de outro município
+ok 164 - vínculo entre mapas recusa ciclos e eventos de outro município
+  ---
+  duration_ms: 18.081961
+  ...
+# Subtest: importação do evento real é idempotente e respeita cadastro existente
+ok 165 - importação do evento real é idempotente e respeita cadastro existente
+  ---
+  duration_ms: 4.62337
+  ...
+# Subtest: o filtro compartilhado controla vários tipos sem alterar os cadastros
+ok 166 - o filtro compartilhado controla vários tipos sem alterar os cadastros
+  ---
+  duration_ms: 25.305256
+  ...
+# Subtest: campos selecionados combinam dentro de cada filtro e são cruzados entre filtros
+ok 167 - campos selecionados combinam dentro de cada filtro e são cruzados entre filtros
+  ---
+  duration_ms: 1.988002
+  ...
+# Subtest: triagem, histórico, tempo e atribuição não confundem ocorrências
+ok 168 - triagem, histórico, tempo e atribuição não confundem ocorrências
+  ---
+  duration_ms: 0.252833
+  ...
+# Subtest: padrão municipal oculta saúde e mantém a opção para reativar
+ok 169 - padrão municipal oculta saúde e mantém a opção para reativar
+  ---
+  duration_ms: 31.020277
+  ...
+# Subtest: município sem padrão preserva todos e lista vazia oculta estruturas
+ok 170 - município sem padrão preserva todos e lista vazia oculta estruturas
+  ---
+  duration_ms: 8.736782
+  ...
+# Subtest: tipos registrados aparecem automaticamente e cada seleção controla apenas o tipo escolhido
+ok 171 - tipos registrados aparecem automaticamente e cada seleção controla apenas o tipo escolhido
+  ---
+  duration_ms: 16.228996
+  ...
+# Subtest: só uma ocorrência confirmada pode gerar convites
+ok 172 - só uma ocorrência confirmada pode gerar convites
+  ---
+  duration_ms: 3.512256
+  ...
+# Subtest: filtra município, disponibilidade, preferência, zona e habilidade antes da proximidade
+ok 173 - filtra município, disponibilidade, preferência, zona e habilidade antes da proximidade
+  ---
+  duration_ms: 0.825266
+  ...
+# Subtest: duas ocorrências concorrentes não reservam a mesma pessoa e repetir acionamento não duplica
+ok 174 - duas ocorrências concorrentes não reservam a mesma pessoa e repetir acionamento não duplica
+  ---
+  duration_ms: 13.331239
+  ...
+# Subtest: chegada e término são individuais e repetíveis sem mudar horários nem encerrar outra participação
+ok 175 - chegada e término são individuais e repetíveis sem mudar horários nem encerrar outra participação
+  ---
+  duration_ms: 0.660457
+  ...
+# Subtest: uma pessoa pode receber novo convite após terminar, mesmo com a ocorrência anterior aberta
+ok 176 - uma pessoa pode receber novo convite após terminar, mesmo com a ocorrência anterior aberta
+  ---
+  duration_ms: 0.556641
+  ...
+# Subtest: falta de recurso e recusa não são confundidas com necessidade atendida
+ok 177 - falta de recurso e recusa não são confundidas com necessidade atendida
+  ---
+  duration_ms: 1.583449
+  ...
+# Subtest: pendência técnica mantém a ocorrência aberta e libera a pessoa que terminou
+ok 178 - pendência técnica mantém a ocorrência aberta e libera a pessoa que terminou
+  ---
+  duration_ms: 0.366502
+  ...
+# Subtest: equipe conclui a ajuda restante primeiro e a última confirmação do voluntário encerra a ocorrência
+ok 179 - equipe conclui a ajuda restante primeiro e a última confirmação do voluntário encerra a ocorrência
+  ---
+  duration_ms: 0.426549
+  ...
+# Subtest: voluntários terminam primeiro e ficam livres enquanto a equipe ainda atende
+ok 180 - voluntários terminam primeiro e ficam livres enquanto a equipe ainda atende
+  ---
+  duration_ms: 0.631524
+  ...
+# Subtest: conclusão da equipe não encerra outro participante convidado ou já no local
+ok 181 - conclusão da equipe não encerra outro participante convidado ou já no local
+  ---
+  duration_ms: 0.434005
+  ...
+# Subtest: equipe concluída não ignora pendência técnica ou encaminhamento especializado pendente
+ok 182 - equipe concluída não ignora pendência técnica ou encaminhamento especializado pendente
+  ---
+  duration_ms: 0.392815
+  ...
+# Subtest: rede elétrica, área inundada e deslizamento recebem encaminhamento especializado sem mobilização comum
+ok 183 - rede elétrica, área inundada e deslizamento recebem encaminhamento especializado sem mobilização comum
+  ---
+  duration_ms: 0.54248
+  ...
+# Subtest: IDs iguais de cidades distintas não compartilham reservas nem disponibilidade
+ok 184 - IDs iguais de cidades distintas não compartilham reservas nem disponibilidade
+  ---
+  duration_ms: 0.334433
+  ...
+# Subtest: classe de risco domina a espera e não depende de propriedade ou presença
+ok 185 - classe de risco domina a espera e não depende de propriedade ou presença
+  ---
+  duration_ms: 0.411817
+  ...
+# Subtest: Gestão inicia com contexto não paranaense e abre edição pelo módulo extraído
+ok 186 - Gestão inicia com contexto não paranaense e abre edição pelo módulo extraído
+  ---
+  duration_ms: 37.170719
+  ...
+# Subtest: formulário preserva ID de edição, conteúdo escapado e foco sem depender do controlador principal
+ok 187 - formulário preserva ID de edição, conteúdo escapado e foco sem depender do controlador principal
+  ---
+  duration_ms: 13.893502
+  ...
+# Subtest: formulário extraído bloqueia abertura sem permissão concedida pelo banco
+ok 188 - formulário extraído bloqueia abertura sem permissão concedida pelo banco
+  ---
+  duration_ms: 5.169904
+  ...
+# Subtest: implantação bloqueia gravação simultânea, preserva prévia após falha e permite repetir
+ok 189 - implantação bloqueia gravação simultânea, preserva prévia após falha e permite repetir
+  ---
+  duration_ms: 6.750792
+  ...
+# Subtest: inventário central cobre todos os 24 cadastros operacionais por fonte única
+ok 190 - inventário central cobre todos os 24 cadastros operacionais por fonte única
+  ---
+  duration_ms: 33.899347
+  ...
+# Subtest: filtros por zona, categoria e texto funcionam sem copiar registros
+ok 191 - filtros por zona, categoria e texto funcionam sem copiar registros
+  ---
+  duration_ms: 6.539933
+  ...
+# Subtest: equipe e veículo vinculados a uma base geográfica compartilham somente a localização da base
+ok 192 - equipe e veículo vinculados a uma base geográfica compartilham somente a localização da base
+  ---
+  duration_ms: 9.414544
+  ...
+# Subtest: dados privados não criam marcadores nem divulgam endereço no inventário dos mapas
+ok 193 - dados privados não criam marcadores nem divulgam endereço no inventário dos mapas
+  ---
+  duration_ms: 0.284571
+  ...
+# Subtest: três mapas têm seleção canônica, visibilidade e cartografia não simulada por padrão
+ok 194 - três mapas têm seleção canônica, visibilidade e cartografia não simulada por padrão
+  ---
+  duration_ms: 1.993464
+  ...
+# Subtest: capacidade parcial aciona a equipe para completar o atendimento, uma única vez
+ok 195 - capacidade parcial aciona a equipe para completar o atendimento, uma única vez
+  ---
+  duration_ms: 4.43113
+  ...
+# Subtest: capacidade completa mantém os dois convites sem acionamento municipal redundante
+ok 196 - capacidade completa mantém os dois convites sem acionamento municipal redundante
+  ---
+  duration_ms: 13.230631
+  ...
+# Subtest: cadastro de colaboradores segue um único fluxo canônico nos três mapas
+ok 197 - cadastro de colaboradores segue um único fluxo canônico nos três mapas
+  ---
+  duration_ms: 2.021886
+  ...
+# Subtest: roteador extraído impede consulta sem permissão antes de renderizar cadastro
+ok 198 - roteador extraído impede consulta sem permissão antes de renderizar cadastro
+  ---
+  duration_ms: 3.516366
+  ...
+# Subtest: controlador de exclusão impede acesso ao registro sem permissão
+ok 199 - controlador de exclusão impede acesso ao registro sem permissão
+  ---
+  duration_ms: 1.214952
+  ...
+# Subtest: cada gate crítico bloqueia falha, cancelamento, skip, ausência e resultado pendente
+ok 200 - cada gate crítico bloqueia falha, cancelamento, skip, ausência e resultado pendente
+  ---
+  duration_ms: 9.540573
+  ...
+# Subtest: publicação exige autorização E6 para o SHA exato
+ok 201 - publicação exige autorização E6 para o SHA exato
+  ---
+  duration_ms: 0.461082
+  ...
+# Subtest: proteção exige todos os checks da aplicação confiável e revisão independente
+ok 202 - proteção exige todos os checks da aplicação confiável e revisão independente
+  ---
+  duration_ms: 0.585772
+  ...
+# Subtest: workflow agregado depende de todos os gates, e Pages exige o agregado e autorização E6
+ok 203 - workflow agregado depende de todos os gates, e Pages exige o agregado e autorização E6
+  ---
+  duration_ms: 0.585897
+  ...
+# Subtest: seleciona 20 referências disponíveis sem duplicação
+ok 204 - seleciona 20 referências disponíveis sem duplicação
+  ---
+  duration_ms: 4.121715
+  ...
+# Subtest: trajeto simulado respeita origem, destino e os limites de tempo
+ok 205 - trajeto simulado respeita origem, destino e os limites de tempo
+  ---
+  duration_ms: 0.7975
+  ...
+# Subtest: mapa cadastra 5 pontos de coleta sem duplicar o cadastro da Prefeitura
+ok 206 - mapa cadastra 5 pontos de coleta sem duplicar o cadastro da Prefeitura
+  ---
+  duration_ms: 32.090309
+  ...
+# Subtest: bases sem coordenadas continuam consultáveis, sem pin fictício
+ok 207 - bases sem coordenadas continuam consultáveis, sem pin fictício
+  ---
+  duration_ms: 4.268913
+  ...
+# Subtest: a vista inicial inclui Vila Esperança e todas as seis zonas com margem
+ok 208 - a vista inicial inclui Vila Esperança e todas as seis zonas com margem
+  ---
+  duration_ms: 3.391123
+  ...
+# Subtest: telas desktop, compacta e celular não cortam Vila Esperança
+ok 209 - telas desktop, compacta e celular não cortam Vila Esperança
+  ---
+  duration_ms: 2.090987
+  ...
+# Subtest: botão de voltar restaura a visão geral e limpa o filtro
+ok 210 - botão de voltar restaura a visão geral e limpa o filtro
+  ---
+  duration_ms: 0.462565
+  ...
+# Subtest: ao reduzir a tela no zoom geral a vista se adapta sem cortar a zona norte
+ok 211 - ao reduzir a tela no zoom geral a vista se adapta sem cortar a zona norte
+  ---
+  duration_ms: 0.593749
+  ...
+# Subtest: redimensionar durante zoom de ocorrência mantém o zoom detalhado
+ok 212 - redimensionar durante zoom de ocorrência mantém o zoom detalhado
+  ---
+  duration_ms: 0.413902
+  ...
+# Subtest: acionamento por espaço retorna para a vista completa
+ok 213 - acionamento por espaço retorna para a vista completa
+  ---
+  duration_ms: 1.213559
+  ...
+# Subtest: limites permitem navegar por busca e filtros sem arraste manual
+ok 214 - limites permitem navegar por busca e filtros sem arraste manual
+  ---
+  duration_ms: 0.317644
+  ...
+# Subtest: zoom preciso reduz o espaço vazio superior sem cortar Vila Esperança no desktop
+ok 215 - zoom preciso reduz o espaço vazio superior sem cortar Vila Esperança no desktop
+  ---
+  duration_ms: 0.522006
+  ...
+# Subtest: o botão de centralizar retorna à mesma escala precisa em vez do zoom 13 fixo
+ok 216 - o botão de centralizar retorna à mesma escala precisa em vez do zoom 13 fixo
+  ---
+  duration_ms: 0.32929
+  ...
+# Subtest: Fallback sem câmera aprovada recupera zoom e retorno sem preferências incorretas
+ok 217 - Fallback sem câmera aprovada recupera zoom e retorno sem preferências incorretas
+  ---
+  duration_ms: 0.372866
+  ...
+# Subtest: Pra Somar e Colaboradores recebem a mesma navegação sem reutilizar posição errada
+ok 218 - Pra Somar e Colaboradores recebem a mesma navegação sem reutilizar posição errada
+  ---
+  duration_ms: 1.26392
+  ...
+# Subtest: CSS mantém o botão menos; módulo não impõe maxBounds da própria câmera
+ok 219 - CSS mantém o botão menos; módulo não impõe maxBounds da própria câmera
+  ---
+  duration_ms: 0.514841
+  ...
+# Subtest: modo calibração permite arrastar para escolher a referência nos três mapas
+ok 220 - modo calibração permite arrastar para escolher a referência nos três mapas
+  ---
+  duration_ms: 0.743236
+  ...
+# Subtest: Pra Somar abre na câmera aprovada; consumidores sem câmera preservam a vista recebida
+ok 221 - Pra Somar abre na câmera aprovada; consumidores sem câmera preservam a vista recebida
+  ---
+  duration_ms: 0.475969
+  ...
+# Subtest: câmera institucional do Pra Somar vem da fonte, não do navegador ou de outra prefeitura
+ok 222 - câmera institucional do Pra Somar vem da fonte, não do navegador ou de outra prefeitura
+  ---
+  duration_ms: 2.825165
+  ...
+# Subtest: modo calibração do Pra Somar não é substituído pelo preset
+ok 223 - modo calibração do Pra Somar não é substituído pelo preset
+  ---
+  duration_ms: 0.352954
+  ...
+# Subtest: ajuda: câmera aprovada prevalece sobre polígonos, permite arraste e limita afastamento
+ok 224 - ajuda: câmera aprovada prevalece sobre polígonos, permite arraste e limita afastamento
+  ---
+  duration_ms: 0.737324
+  ...
+# Subtest: colaboradores: câmera aprovada prevalece sobre polígonos, permite arraste e limita afastamento
+ok 225 - colaboradores: câmera aprovada prevalece sobre polígonos, permite arraste e limita afastamento
+  ---
+  duration_ms: 0.606692
+  ...
+# Subtest: evento: câmera aprovada prevalece sobre polígonos, permite arraste e limita afastamento
+ok 226 - evento: câmera aprovada prevalece sobre polígonos, permite arraste e limita afastamento
+  ---
+  duration_ms: 0.501341
+  ...
+# Subtest: Pra Somar usa MARINGÁ Pra Somar no cabeçalho e remove o card flutuante, sem mudar Colaboradores
+ok 227 - Pra Somar usa MARINGÁ Pra Somar no cabeçalho e remove o card flutuante, sem mudar Colaboradores
+  ---
+  duration_ms: 0.879702
+  ...
+# Subtest: Pra Somar oculta card e usa título neutro antes de carregar a prefeitura
+ok 228 - Pra Somar oculta card e usa título neutro antes de carregar a prefeitura
+  ---
+  duration_ms: 0.318297
+  ...
+# Subtest: prefeitura sem polígonos conserva sua vista e não herda limites da demonstração
+ok 229 - prefeitura sem polígonos conserva sua vista e não herda limites da demonstração
+  ---
+  duration_ms: 0.314728
+  ...
+# Subtest: câmera de Ajuda sobrevive ao modo conectado e à exclusão das fontes demonstrativas
+ok 230 - câmera de Ajuda sobrevive ao modo conectado e à exclusão das fontes demonstrativas
+  ---
+  duration_ms: 1.987085
+  ...
+# Subtest: Pra Somar permite arraste no mínimo, limita zoom negativo e preserva navegação ao redimensionar
+ok 231 - Pra Somar permite arraste no mínimo, limita zoom negativo e preserva navegação ao redimensionar
+  ---
+  duration_ms: 0.340634
+  ...
+# Subtest: check móvel exige aprovação de todos os mapas, motores e tamanhos, inclusive sem skips
+ok 232 - check móvel exige aprovação de todos os mapas, motores e tamanhos, inclusive sem skips
+  ---
+  duration_ms: 2.37405
+  ...
+# Subtest: todos os bundles publicados correspondem byte a byte aos módulos de origem
+ok 233 - todos os bundles publicados correspondem byte a byte aos módulos de origem
+  ---
+  duration_ms: 12.69276
+  ...
+# Subtest: Mapa de Evento carrega CSS e JS externos versionados e com cache correspondente
+ok 234 - Mapa de Evento carrega CSS e JS externos versionados e com cache correspondente
+  ---
+  duration_ms: 4.569141
+  ...
+# Subtest: a modularização não cria armazenamento nem páginas canônicas alternativas
+ok 235 - a modularização não cria armazenamento nem páginas canônicas alternativas
+  ---
+  duration_ms: 1.128756
+  ...
+# Subtest: abrir cadastro local existente não recria uma prefeitura de demonstração
+ok 236 - abrir cadastro local existente não recria uma prefeitura de demonstração
+  ---
+  duration_ms: 6.403379
+  ...
+# Subtest: importação nacional valida IBGE, UF e coordenadas do município recebido
+ok 237 - importação nacional valida IBGE, UF e coordenadas do município recebido
+  ---
+  duration_ms: 2.893297
+  ...
+# Subtest: pacote de outra cidade ou sem identidade não altera o cadastro
+ok 238 - pacote de outra cidade ou sem identidade não altera o cadastro
+  ---
+  duration_ms: 1.905252
+  ...
+# Subtest: contexto da sessão é validado e não recorre a uma cidade fixa
+ok 239 - contexto da sessão é validado e não recorre a uma cidade fixa
+  ---
+  duration_ms: 0.716377
+  ...
+# Subtest: importador configurável não consulta referências de outra prefeitura
+ok 240 - importador configurável não consulta referências de outra prefeitura
+  ---
+  duration_ms: 2.963545
+  ...
+# Subtest: núcleo dos cadastros e importação não contém identidade municipal fixa
+ok 241 - núcleo dos cadastros e importação não contém identidade municipal fixa
+  ---
+  duration_ms: 6.750297
+  ...
+# Subtest: modo conectado preserva dados recebidos e usa território do banco em qualquer município
+ok 242 - modo conectado preserva dados recebidos e usa território do banco em qualquer município
+  ---
+  duration_ms: 3.692371
+  ...
+# Subtest: um bairro fora da lista de simulação não impede recuperar dados
+ok 243 - um bairro fora da lista de simulação não impede recuperar dados
+  ---
+  duration_ms: 1.936147
+  ...
+# Subtest: dados corrompidos ou de outra versão são bloqueados sem apagar o original
+ok 244 - dados corrompidos ou de outra versão são bloqueados sem apagar o original
+  ---
+  duration_ms: 0.326885
+  ...
+# Subtest: armazenamento ausente é distinto de falha de acesso
+ok 245 - armazenamento ausente é distinto de falha de acesso
+  ---
+  duration_ms: 0.303641
+  ...
+# Subtest: minimizar e expandir preserva filtros; fechar e abrir continua funcionando
+ok 246 - minimizar e expandir preserva filtros; fechar e abrir continua funcionando
+  ---
+  duration_ms: 3.491207
+  ...
+# Subtest: pontos informados são importados sem duplicação no cadastro municipal e possuem localização identificada
+ok 247 - pontos informados são importados sem duplicação no cadastro municipal e possuem localização identificada
+  ---
+  duration_ms: 32.676039
+  ...
+# Subtest: dashboard e mapas carregam o mesmo conjunto e usam símbolo compartilhado
+ok 248 - dashboard e mapas carregam o mesmo conjunto e usam símbolo compartilhado
+  ---
+  duration_ms: 2.397886
+  ...
+# Subtest: publicação não inclui canários privados, mesmo dentro de diretório público
+ok 249 - publicação não inclui canários privados, mesmo dentro de diretório público
+  ---
+  duration_ms: 23.538721
+  ...
+# Subtest: manifesto recusa diretórios privados, travessia e tipos de arquivo não públicos
+ok 250 - manifesto recusa diretórios privados, travessia e tipos de arquivo não públicos
+  ---
+  duration_ms: 15.930193
+  ...
+# Subtest: arquivos e diretórios simbólicos são recusados antes de produzir artefato
+ok 251 - arquivos e diretórios simbólicos são recusados antes de produzir artefato
+  ---
+  duration_ms: 8.227827
+  ...
+# Subtest: manifesto real inclui os assets referidos por todas as páginas publicadas
+ok 252 - manifesto real inclui os assets referidos por todas as páginas publicadas
+  ---
+  duration_ms: 1.829165
+  ...
+# Subtest: política nativa e arquivo público gerado não divergem
+ok 253 - política nativa e arquivo público gerado não divergem
+  ---
+  duration_ms: 5.585077
+  ...
+# Subtest: pacote real é completo, inclui a página inicial do cache e contém somente o manifesto
+ok 254 - pacote real é completo, inclui a página inicial do cache e contém somente o manifesto
+  ---
+  duration_ms: 114.260044
+  ...
+# Subtest: entra como visitante sem abrir um bloqueio de perfil
+ok 255 - entra como visitante sem abrir um bloqueio de perfil
+  ---
+  duration_ms: 2.326256
+  ...
+# Subtest: cadastra conta local e restaura sua sessão na mesma aba
+ok 256 - cadastra conta local e restaura sua sessão na mesma aba
+  ---
+  duration_ms: 3.525262
+  ...
+# Subtest: troca de conta, logout e nova entrada não apagam contas
+ok 257 - troca de conta, logout e nova entrada não apagam contas
+  ---
+  duration_ms: 0.579939
+  ...
+# Subtest: contas e sessões são separadas por município
+ok 258 - contas e sessões são separadas por município
+  ---
+  duration_ms: 0.453727
+  ...
+# Subtest: não cadastra perfil inválido nem e-mail repetido
+ok 259 - não cadastra perfil inválido nem e-mail repetido
+  ---
+  duration_ms: 0.3756
+  ...
+# Subtest: o cabeçalho inicial é neutro e a identidade vem da configuração municipal
+ok 260 - o cabeçalho inicial é neutro e a identidade vem da configuração municipal
+  ---
+  duration_ms: 2.353524
+  ...
+# Subtest: interface de smartphone inclui reinício e apresentação do Pra Somar
+ok 261 - interface de smartphone inclui reinício e apresentação do Pra Somar
+  ---
+  duration_ms: 0.409169
+  ...
+# Subtest: apresentação do Pra Somar conserva o lema e une empresas, voluntários e entidades
+ok 262 - apresentação do Pra Somar conserva o lema e une empresas, voluntários e entidades
+  ---
+  duration_ms: 0.30691
+  ...
+# Subtest: a entrada cidadã oferece exatamente três fluxos canônicos
+ok 263 - a entrada cidadã oferece exatamente três fluxos canônicos
+  ---
+  duration_ms: 1.403893
+  ...
+# Subtest: Ser colaborador começa pelo nome na mensagem com a foto, sem outra introdução ou e-mail
+ok 264 - Ser colaborador começa pelo nome na mensagem com a foto, sem outra introdução ou e-mail
+  ---
+  duration_ms: 2.325186
+  ...
+# Subtest: depois do nome o colaborador recebe agradecimento personalizado e dois botões legíveis
+ok 265 - depois do nome o colaborador recebe agradecimento personalizado e dois botões legíveis
+  ---
+  duration_ms: 1.51216
+  ...
+# Subtest: colaborador informa endereço no padrão brasileiro com exemplo e sem nova etapa
+ok 266 - colaborador informa endereço no padrão brasileiro com exemplo e sem nova etapa
+  ---
+  duration_ms: 1.290353
+  ...
+# Subtest: o formulário não exige que o cidadão conheça a zona
+ok 267 - o formulário não exige que o cidadão conheça a zona
+  ---
+  duration_ms: 1.352786
+  ...
+# Subtest: escolha única apresenta botões e múltipla apresenta lista numerada para digitar
+ok 268 - escolha única apresenta botões e múltipla apresenta lista numerada para digitar
+  ---
+  duration_ms: 0.594439
+  ...
+# Subtest: números são validados e convertidos nas opções originais sem perder as duas categorias novas
+ok 269 - números são validados e convertidos nas opções originais sem perder as duas categorias novas
+  ---
+  duration_ms: 1.689021
+  ...
+# Subtest: ofertas, email e logística são armazenados sem duplicar colaborador
+ok 270 - ofertas, email e logística são armazenados sem duplicar colaborador
+  ---
+  duration_ms: 5.419935
+  ...
+# Subtest: pedido de ajuda preserva modo de recebimento
+ok 271 - pedido de ajuda preserva modo de recebimento
+  ---
+  duration_ms: 1.949839
+  ...
+# Subtest: relatos de cidadão entram na coleção de triagem, não criam ocorrência confirmada
+ok 272 - relatos de cidadão entram na coleção de triagem, não criam ocorrência confirmada
+  ---
+  duration_ms: 0.766992
+  ...
+# Subtest: link do simulador permanece único e recursos mudam versão quando o código muda
+ok 273 - link do simulador permanece único e recursos mudam versão quando o código muda
+  ---
+  duration_ms: 3.585637
+  ...
+# Subtest: cadastro de colaborador segue somente campos e ordem do formulário aprovado
+ok 274 - cadastro de colaborador segue somente campos e ordem do formulário aprovado
+  ---
+  duration_ms: 1.745498
+  ...
+# Subtest: resumo de colaborador permite confirmar ou corrigir sem terceira etapa
+ok 275 - resumo de colaborador permite confirmar ou corrigir sem terceira etapa
+  ---
+  duration_ms: 0.399365
+  ...
+# Subtest: Preciso de ajuda usa só nome, endereço, telefone e relato da necessidade
+ok 276 - Preciso de ajuda usa só nome, endereço, telefone e relato da necessidade
+  ---
+  duration_ms: 0.995814
+  ...
+# Subtest: reiniciar demonstração preserva colaboradores, pedidos e relatos na base municipal
+ok 277 - reiniciar demonstração preserva colaboradores, pedidos e relatos na base municipal
+  ---
+  duration_ms: 1.218918
+  ...
+# Subtest: dois mapas auxiliares mostram, ocultam e filtram georreferenciados usando a única fonte municipal
+ok 278 - dois mapas auxiliares mostram, ocultam e filtram georreferenciados usando a única fonte municipal
+  ---
+  duration_ms: 61.542631
+  ...
+# Subtest: arquivo versionado IBGE 2022 contém bairros de Maringá com nomes corretos
+ok 279 - arquivo versionado IBGE 2022 contém bairros de Maringá com nomes corretos
+  ---
+  duration_ms: 2.373619
+  ...
+# Subtest: cada bairro tem geometria georreferenciada para Maringá e identificador
+ok 280 - cada bairro tem geometria georreferenciada para Maringá e identificador
+  ---
+  duration_ms: 0.691736
+  ...
+# Subtest: bairros municipais não disponíveis não são apresentados como homologados
+ok 281 - bairros municipais não disponíveis não são apresentados como homologados
+  ---
+  duration_ms: 0.395886
+  ...
+# Subtest: os três mapas carregam a mesma camada de bairros
+ok 282 - os três mapas carregam a mesma camada de bairros
+  ---
+  duration_ms: 2.600996
+  ...
+# Subtest: Geoterritorialidade usa tabela única, zonas numeradas e cadastro existente
+ok 283 - Geoterritorialidade usa tabela única, zonas numeradas e cadastro existente
+  ---
+  duration_ms: 0.567008
+  ...
+# Subtest: o controlador seleciona o bairro por nome e aceita deep links
+ok 284 - o controlador seleciona o bairro por nome e aceita deep links
+  ---
+  duration_ms: 0.315376
+  ...
+# Subtest: carregador usa IBGE preferencialmente quando GeoMaringá não responde
+ok 285 - carregador usa IBGE preferencialmente quando GeoMaringá não responde
+  ---
+  duration_ms: 7.520901
+  ...
+# Subtest: catálogo consulta o IBGE selecionado, isola cache e tenta novamente após falha
+ok 286 - catálogo consulta o IBGE selecionado, isola cache e tenta novamente após falha
+  ---
+  duration_ms: 5.195347
+  ...
+# Subtest: território usa somente cadastro conectado e recorta bairros pela zona
+ok 287 - território usa somente cadastro conectado e recorta bairros pela zona
+  ---
+  duration_ms: 3.163778
+  ...
+# Subtest: referência pública completa geometria sem duplicar zona nem substituir cadastro
+ok 288 - referência pública completa geometria sem duplicar zona nem substituir cadastro
+  ---
+  duration_ms: 1.752227
+  ...
+# Subtest: fixtures demonstrativas são opt-in por cidade e não alteram configuração original
+ok 289 - fixtures demonstrativas são opt-in por cidade e não alteram configuração original
+  ---
+  duration_ms: 1.838062
+  ...
+# Subtest: admin local preserva chave legada autorizada, isola prefeitura e não acessa storage conectado
+ok 290 - admin local preserva chave legada autorizada, isola prefeitura e não acessa storage conectado
+  ---
+  duration_ms: 1.338258
+  ...
+# Subtest: zonas numeradas preferem a camada oficial municipal e preservam partes repetidas
+ok 291 - zonas numeradas preferem a camada oficial municipal e preservam partes repetidas
+  ---
+  duration_ms: 23.214645
+  ...
+1..291
+# tests 291
+# suites 0
+# pass 291
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2287.416041

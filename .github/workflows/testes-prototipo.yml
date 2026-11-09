@@ -110,6 +110,11 @@ jobs:
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/admin-geral.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/integracao.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/incidentes.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/colaboradores.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/e1-cadastros.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/e3-consultas.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/autoridade.sql
+          MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres python3 tests/backend/colaboradores-concorrencia.py
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/territorio.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/monitoramento-animal.sql
           MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres python3 tests/backend/territorio-concorrencia.py
@@ -134,3 +139,75 @@ jobs:
         with:
           deno-version: v2.7.14
       - run: deno test --allow-env tests/whatsapp/edge.test.ts
+
+  autoridade-banco:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5@sha256:01a6a70e41e6c4467c8f55f6063555ed72db2d6662cd0d571040d42eadaeb6f6
+        env:
+          POSTGRES_USER: supabase_admin
+          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: teste-local-descartavel
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U supabase_admin"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: teste-local-descartavel
+      PGHOST: localhost
+      PGDATABASE: teste_autoridade
+      MARINGA_TESTE_DESCARTAVEL: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Migrações candidatas sem superuser e matriz efetiva de privilégios
+        run: scripts/testar-autoridade-banco.sh
+      - name: Guards de cadastro e território no executor hospedado
+        run: |
+          psql -X -U postgres -v ON_ERROR_STOP=1 -f tests/backend/e1-cadastros.sql
+          psql -X -U postgres -v ON_ERROR_STOP=1 -f tests/backend/colaboradores.sql
+          psql -X -U postgres -v ON_ERROR_STOP=1 -f tests/backend/territorio.sql
+
+  primeiro-acesso:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Instalar ambiente vazio com autenticação real
+        run: tests/acesso/iniciar.sh
+      - name: Cadastro administrativo, envio e senha em Chromium e WebKit
+        run: docker exec pra-somar-fase2-web npx playwright test --config=tests/acesso/playwright.config.cjs
+      - name: Recolher evidências sem credenciais
+        if: always()
+        run: |
+          mkdir -p .test-results/acesso
+          docker cp pra-somar-fase2-web:/app/.test-results/acesso/. .test-results/acesso/ || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: primeiro-acesso-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .test-results/acesso
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14
+
+  liberacao:
+    if: always()
+    needs: [verificar, permissoes-banco, autoridade-banco, transporte-whatsapp, mapas-mobile, primeiro-acesso]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exigir sucesso de todas as verificações críticas
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: node scripts/verificar-liberacao.mjs jobs

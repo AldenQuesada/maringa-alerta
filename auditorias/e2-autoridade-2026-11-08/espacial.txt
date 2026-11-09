@@ -1,0 +1,1 @@
+PASS: RPC sob RLS, 3.000 pontos, 1 resultado correto e GiST executado; fixtures revertidas.

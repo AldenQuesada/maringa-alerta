@@ -1,0 +1,22 @@
+38 migrações reproduzidas em base vazia. 15 arquivos SQL e 6 programas Python aprovados.
+PASS backend/permissoes.sql
+PASS backend/seguranca-servidor.sql
+PASS backend/operacoes.sql
+PASS backend/concorrencia.py
+PASS backend/painel.sql
+PASS backend/admin-geral.sql
+PASS backend/integracao.sql
+PASS backend/incidentes.sql
+PASS backend/colaboradores.sql
+PASS backend/colaboradores-concorrencia.py
+PASS backend/territorio.sql
+PASS backend/territorio-concorrencia.py
+PASS backend/territorio-espacial.py
+PASS whatsapp/fluxos.sql
+PASS whatsapp/catalogo.sql
+PASS whatsapp/canonico.sql
+PASS whatsapp/contatos.sql
+PASS whatsapp/exclusao-definitiva.sql
+PASS whatsapp/exclusao-concorrente.py
+PASS whatsapp/fotos-historicas.sql
+PASS whatsapp/comparar-copia.py — 36 canonical cases: copy, buttons, image and production adaptations OK

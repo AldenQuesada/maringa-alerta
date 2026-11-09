@@ -85,7 +85,7 @@ function criar({service,config,onDeleted,onEdit}){
   if(a==='tab'){tab=b.dataset.tab;content();dialog.querySelector('#ct-tab-'+tab).focus();return;}
   if(a==='older'){await refresh(true);return;}
   if(a==='edit'){const id=current.contact.record_id;close();onEdit(id);return;}
-  if(a==='confirm-delete'){busy=true;b.disabled=true;try{await service.excluir(current.contact.id,(config.deletion?.revision_prefix||'')+current.contact.revision);close();onDeleted();}
+  if(a==='confirm-delete'){busy=true;b.disabled=true;try{const key=current.contact.id;await service.excluir(key,(config.deletion?.revision_prefix||'')+current.contact.revision);close();onDeleted(key);}
    catch(error){if(dialog)dialog.querySelector('[role=alert]').textContent=error.message||l.error;}finally{busy=false;b.disabled=false;}}
  }
  return {open,refresh,close,isOpen:()=>Boolean(dialog)};
@@ -96,9 +96,21 @@ root.AlertaContatosDialogo={criar};
 (function(root){'use strict';let mounted=null;
 function desmontar(){mounted?.();mounted=null;}
 function montar({target,db,onEdit}){desmontar();const U=root.AlertaContatosApresentacao,service=root.AlertaContatosServico.criar(root.AlertaSupabaseClient,db.municipioAtivo().id);
- let active=true,busy=false,seq=0,timer=null,debounce=null,config=null,dialog=null,items=[],snapshot='',filters={busca:'',categoria:'',etapa:'',pagina:1};
+ let active=true,busy=false,seq=0,timer=null,debounce=null,config=null,dialog=null,items=[],snapshot='',total=0,notice='',filters={busca:'',categoria:'',etapa:'',pagina:1};
  target.innerHTML='<p role="status">Carregando contatos…</p>';
- function skeleton(result){config=result.config;const l=config.labels;dialog=root.AlertaContatosDialogo.criar({service,config,onEdit,onDeleted:()=>{snapshot='';void update();}});
+ function deleted(key){if(!active)return;total=Math.max(0,total-items.filter(r=>r.id===key).length);items=items.filter(r=>r.id!==key);
+  notice=config.labels.deleted;render();target.querySelector('[role=status]').textContent=notice;
+  target.querySelector('[data-ct-action=refresh]').focus();void update();
+ }
+ function render(){const l=config.labels,next=JSON.stringify(items);
+  if(snapshot!==next){const focus=target.contains(document.activeElement)?document.activeElement:null,key=focus?.dataset.key,action=focus?.dataset.ctAction;
+   target.querySelector('tbody').innerHTML=U.linhas(items,config);snapshot=next;
+   if(key){[...target.querySelectorAll('[data-key]')].find(b=>b.dataset.key===key&&b.dataset.ctAction===action)?.focus();}
+  }
+  target.querySelector('.ct-pagination span').textContent=total+' '+(total===1?(l.total_singular||l.total):l.total)+' · '+l.page+' '+filters.pagina;
+  target.querySelector('[data-ct-action=previous]').disabled=filters.pagina===1;target.querySelector('[data-ct-action=next]').disabled=filters.pagina*config.page_size>=total;
+ }
+ function skeleton(result){config=result.config;const l=config.labels;dialog=root.AlertaContatosDialogo.criar({service,config,onEdit,onDeleted:deleted});
   const select=(id,label,options)=>'<label>'+U.esc(label)+'<select id="'+id+'"><option value="">'+U.esc(l.all)+'</option>'+options.map(o=>'<option value="'+U.esc(o.key)+'">'+U.esc(o.label)+'</option>').join('')+'</select></label>';
   target.innerHTML='<section class="ct-page"><div class="heading-row"><div><h1 class="page-title">'+U.esc(config.title)+'</h1><p class="page-subtitle">'+U.esc(config.description)+'</p></div>'+(db.pode('voluntarios','gravar')?'<button type="button" class="btn ct-new" data-new="voluntarios" aria-label="'+U.esc(l.new)+'"><span aria-hidden="true">+</span> '+U.esc(l.new)+'</button>':'')+'</div><p class="ct-note">'+U.esc(l.all_categories)+'</p><section class="table-shell"><div class="ct-toolbar"><label class="ct-search">'+U.esc(l.search)+'<input type="search" id="ct-search" autocomplete="off"></label>'+select('ct-category',l.category,[{key:'untriaged',label:l.not_chosen},...result.categories.sort((a,b)=>a.position-b.position)])+select('ct-stage',l.stage,config.stages)+U.button('refresh',l.refresh)+'</div><p class="ct-feedback" role="status"></p><div class="table-scroll"><table class="ct-table"><thead><tr>'+config.columns.map(c=>'<th scope="col">'+U.esc(c.label)+'</th>').join('')+'<th scope="col">'+U.esc(l.actions)+'</th></tr></thead><tbody></tbody></table></div><footer class="ct-pagination"><span></span><div>'+U.button('previous',l.previous)+U.button('next',l.next)+'</div></footer></section></section>';
   target.querySelector('#ct-search').oninput=e=>{filters.busca=e.target.value;filters.pagina=1;clearTimeout(debounce);debounce=setTimeout(()=>update(),300);};
@@ -108,16 +120,10 @@ function montar({target,db,onEdit}){desmontar();const U=root.AlertaContatosApres
  }
  async function update(){if(!active)return;if(busy){seq++;return;}busy=true;const request=++seq;
   try{const result=await service.listar({...filters});if(!active)return;if(request!==seq)return;
-   if(!config)skeleton(result);const l=config.labels;
+   if(!config)skeleton(result);
    if(filters.pagina>1&&!result.items.length){filters.pagina--;seq++;return;}
-   const next=JSON.stringify(result.items);items=result.items;
-   if(snapshot!==next){const focus=target.contains(document.activeElement)?document.activeElement:null,key=focus?.dataset.key,action=focus?.dataset.ctAction;
-    target.querySelector('tbody').innerHTML=U.linhas(items,config);snapshot=next;
-    if(key){[...target.querySelectorAll('[data-key]')].find(b=>b.dataset.key===key&&b.dataset.ctAction===action)?.focus();}
-   }
-   target.querySelector('[role=status]').textContent='';target.querySelector('.ct-pagination span').textContent=result.total+' '+(result.total===1?(l.total_singular||l.total):l.total)+' · '+l.page+' '+result.page;
-   target.querySelector('[data-ct-action=previous]').disabled=filters.pagina===1;target.querySelector('[data-ct-action=next]').disabled=filters.pagina*config.page_size>=result.total;
-  }catch(_){if(active){const el=target.querySelector('[role=status]');if(el)el.textContent=config?.labels.error||'Não foi possível carregar os contatos.';}}
+   items=result.items;total=result.total;render();target.querySelector('[role=status]').textContent=notice;
+  }catch(_){if(active){const el=target.querySelector('[role=status]');if(el)el.textContent=[notice,config?.labels.error||'Não foi possível carregar os contatos.'].filter(Boolean).join(' ');}}
   finally{busy=false;if(active){clearTimeout(timer);if(request!==seq)void update();else timer=setTimeout(poll,config?.poll_ms||8000);}}
  }
  async function poll(){if(!document.hidden){await update();await dialog?.refresh();}else timer=setTimeout(poll,config?.poll_ms||8000);}

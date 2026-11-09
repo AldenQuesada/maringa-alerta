@@ -7,12 +7,13 @@ async function acessos(ctx,id){
   if(!ctx.service.remoto){ctx.show(heading('Acessos','Disponível no ambiente conectado.')+panel('Autenticação necessária','<p>Entre com sua conta de Administração Geral para gerenciar vínculos reais.</p>'));return;}
   const page=ctx.state.acessosPagina||0;
   const [city,items]=await Promise.all([id?ctx.service.detalhe(id):null,ctx.service.acessos(id||null,page)]);
+  const novoCadastro=root.MARINGA_SUPABASE?.cadastroAdministrativo===true;
   const title=city?'Acessos · '+city.nome:'Administradores gerais';
-  if(!ctx.show(heading(title,city?'Vincule uma conta com e-mail confirmado. Os vínculos autorizam somente esta prefeitura.':'Contas autorizadas a gerenciar o cadastro e os acessos das prefeituras.',city?plus('Novo vínculo','data-new-access'):'')+
+  if(!ctx.show(heading(title,city?(novoCadastro?'Cadastre a pessoa e suas permissões antes de enviar o acesso.':'Vincule uma conta com e-mail confirmado. Os vínculos autorizam somente esta prefeitura.'):'Contas autorizadas a gerenciar o cadastro e os acessos das prefeituras.',city?(novoCadastro?'<a class="btn" href="../colaboradores/?municipio='+encodeURIComponent(city.id)+'"><span style="color:#f4ca44;font-size:24px" aria-hidden="true">+</span> Novo colaborador</a>':plus('Novo vínculo','data-new-access')):'')+
     (city&&city.status==='suspensa'?'<div class="notice">Prefeitura suspensa. Seus vínculos não permitem acesso municipal enquanto estiver suspensa.</div>':'')+
     '<div class="table-wrap"><table class="records"><thead><tr><th>E-mail confirmado</th><th>Permissão</th>'+(city?'<th>Ações</th>':'')+'</tr></thead><tbody>'+items.map((x,i)=>'<tr><td>'+esc(x.email)+'</td><td>'+esc(papeis[x.papel]||'Administrador geral')+'</td>'+(city?'<td><button class="btn" data-edit-access="'+i+'">Gerenciar</button></td>':'')+'</tr>').join('')+(items.length?'':'<tr><td colspan="3">Nenhum vínculo encontrado.</td></tr>')+'</tbody></table></div>'+
     '<div class="pagination"><button class="btn" data-prev '+(page?'':'disabled')+'>Anterior</button><span>Página '+(page+1)+'</span><button class="btn" data-next '+(items.length===25?'':'disabled')+'>Próxima</button></div><div id="access-editor"></div>'+
-    (!city?panel('Administração da plataforma','<p>Administradores gerais são provisionados pelo responsável técnico no banco. Esta página não permite promover contas a administrador geral.</p>'):'')))return;
+    (!city?panel('Administração da plataforma','<p>Administradores gerais são provisionados pelo responsável pelo sistema. Esta página não permite promover contas a administrador geral.</p>'):'')))return;
   ctx.el.querySelector('[data-prev]').onclick=()=>{ctx.state.acessosPagina=page-1;ctx.render();};
   ctx.el.querySelector('[data-next]').onclick=()=>{ctx.state.acessosPagina=page+1;ctx.render();};
   if(!city)return;
@@ -30,12 +31,13 @@ async function acessos(ctx,id){
       const data=new FormData(form);submit.disabled=true;feedback.textContent='Salvando vínculo…';
       try{
         await ctx.service.definirVinculo({municipio:city.id,email:String(data.get('email')).trim(),papel:data.get('papel')==='revogar'?null:data.get('papel'),anterior:original?.papel||null});
-        ctx.notice('Vínculo atualizado no banco.');ctx.render();
+        ctx.notice('Acesso atualizado.');ctx.render();
       }catch(error){feedback.textContent=error.message+' Atualize a lista antes de repetir a operação.';}
       finally{submit.disabled=false;}
     };
   }
-  ctx.el.querySelector('[data-new-access]').onclick=()=>edit(null);
+
+  if(!novoCadastro)ctx.el.querySelector('[data-new-access]').onclick=()=>edit(null);
   ctx.el.querySelectorAll('[data-edit-access]').forEach(button=>button.onclick=()=>edit(items[Number(button.dataset.editAccess)]));
 }
 root.AlertaPlataformaUI.acessos=acessos;
