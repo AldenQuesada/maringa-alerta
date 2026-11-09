@@ -5,7 +5,8 @@
     "test": "node --test tests/*.test.cjs gestao/tests/*.test.cjs crise/tests/*.test.cjs plataforma/tests/*.test.cjs tests/backend/*.test.cjs",
     "build": "node scripts/build-modulos.mjs",
     "check": "node scripts/build-modulos.mjs --check",
-    "test:mapas:mobile": "node --test tests/cameras-mapas-canonicas.test.cjs && playwright test --config=playwright.mapas.config.cjs"
+    "test:mapas:mobile": "node --test tests/cameras-mapas-canonicas.test.cjs && playwright test --config=playwright.mapas.config.cjs",
+    "test:monitoramento-animal": "playwright test --config=playwright.monitoramento-animal.config.cjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.119.0"

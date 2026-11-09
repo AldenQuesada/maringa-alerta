@@ -76,6 +76,14 @@
    "executar": [
     "authenticated"
    ],
+   "nome": "ma_area_alerta(text,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
    "nome": "ma_cadastro_detalhe(text,text,text)"
   },
   {
@@ -85,6 +93,14 @@
     "authenticated"
    ],
    "nome": "ma_cadastros_pagina(text,text,text,text,integer,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_capacidades_operacionais(text)"
   },
   {
    "definer": false,
@@ -149,6 +165,14 @@
     "authenticated"
    ],
    "nome": "ma_contatos_listar(text,text,text,text,integer)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_instalar_protecao_animal(text)"
   },
   {
    "definer": false,
@@ -393,6 +417,15 @@
   {
    "definer": true,
    "dono": "postgres",
+   "executar": [
+    "authenticated",
+    "ma_escritor"
+   ],
+   "nome": "private.ma_area_alerta(text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
    "executar": [],
    "nome": "private.ma_auditar()"
   },
@@ -423,6 +456,23 @@
     "authenticated"
    ],
    "nome": "private.ma_capacidades()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "private.ma_capacidades_operacionais(text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated",
+    "ma_escritor"
+   ],
+   "nome": "private.ma_capaz(text,text)"
   },
   {
    "definer": false,
@@ -636,6 +686,12 @@
    "definer": true,
    "dono": "postgres",
    "executar": [],
+   "nome": "private.ma_protecao_animal()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
    "nome": "private.ma_referencia_ativa()"
   },
   {
@@ -726,6 +782,15 @@
    "dono": "postgres",
    "executar": [],
    "nome": "private.ma_vincular_criador()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated",
+    "ma_escritor"
+   ],
+   "nome": "private.ma_visivel(text,text,jsonb)"
   },
   {
    "definer": true,
@@ -1188,6 +1253,12 @@
      "SELECT"
     ]
    },
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "private.ma_capacidades_papel",
+   "privilegios": {},
    "rls": true
   },
   {

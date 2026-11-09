@@ -60,6 +60,8 @@ jobs:
         run: npm run check
       - name: Câmeras canônicas, celular e pinça nos três mapas
         run: npm run test:mapas:mobile
+      - name: Mapa Monitoramento animal no celular
+        run: npm run test:monitoramento-animal
       - name: Guardar relatório, capturas e rastros dos testes
         if: always()
         uses: actions/upload-artifact@v4
@@ -68,6 +70,8 @@ jobs:
           path: |
             .test-results/mapas
             .playwright-report/mapas
+            .test-results/monitoramento-animal
+            .playwright-report/monitoramento-animal
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 14
@@ -112,6 +116,7 @@ jobs:
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/autoridade.sql
           MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres python3 tests/backend/colaboradores-concorrencia.py
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/territorio.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/backend/monitoramento-animal.sql
           MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres python3 tests/backend/territorio-concorrencia.py
           MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres python3 tests/backend/territorio-espacial.py
 
@@ -120,6 +125,7 @@ jobs:
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/fluxos.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/catalogo.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/canonico.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/animal.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/contatos.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/exclusao-definitiva.sql
           MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres PGDATABASE=teste_pra_somar python3 tests/whatsapp/exclusao-concorrente.py
