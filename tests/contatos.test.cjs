@@ -50,3 +50,56 @@ test('service signs private citizen photos and cannot accept arbitrary buckets',
  await service.imagem({bucket:'ma-whatsapp',path:'channel/1.png'});assert.deepEqual(calls,[['ma-whatsapp','channel/1.png',120]]);
  await assert.rejects(service.imagem({bucket:'public',path:'x'}));
 });
+function directory(t,handler){
+ const e=env();t.after(()=>e.scope.AlertaContatos.desmontar());
+ e.scope.AlertaSupabaseClient={rpc:handler};
+ e.scope.AlertaContatos.montar({target:e.document.getElementById('page'),db:{municipioAtivo:()=>({id:'city'}),pode:()=>true},onEdit:()=>{}});
+ return e;
+}
+const listing=(items=[contact],page=1,total=items.length)=>({data:{items,total,page,config,categories:[]}});
+test('confirmed deletion removes row and count even if the following reload fails',async(t)=>{
+ let erased=false;
+ const {document}=directory(t,async name=>{
+  if(name==='ma_contato_detalhe')return {data:detail()};
+  if(name==='ma_contato_excluir'){erased=true;return {data:null};}
+  return erased?{error:{message:'offline'}}:listing();
+ });
+ await tick();document.querySelector('[data-ct-action=delete]').click();await tick();
+ document.querySelector('[data-ct-action=confirm-delete]').click();await tick();
+ assert.equal(Boolean(document.querySelector('[data-ct-row]')),false);
+ assert.match(document.querySelector('.ct-pagination span').textContent,/^0 /);
+ assert.match(document.querySelector('[role=status]').textContent,new RegExp(config.labels.deleted));
+ assert.match(document.querySelector('[role=status]').textContent,new RegExp(config.labels.error));
+ assert.equal(document.activeElement,document.querySelector('[data-ct-action=refresh]'));
+});
+test('failed deletion keeps contact and exposes the server reason',async(t)=>{
+ const {document}=directory(t,async name=>name==='ma_contato_detalhe'?{data:detail()}:name==='ma_contato_excluir'?{error:{message:'Aguarde o envio em andamento.'}}:listing());
+ await tick();document.querySelector('[data-ct-action=delete]').click();await tick();
+ document.querySelector('[data-ct-action=confirm-delete]').click();await tick();
+ assert.equal(document.querySelectorAll('[data-ct-row]').length,1);
+ assert.match(document.querySelector('[role=alert]').textContent,/Aguarde o envio/);
+ assert.equal(document.querySelector('[data-ct-action=confirm-delete]').disabled,false);
+});
+test('an in-flight list cannot restore a deleted contact; last page returns to the preceding page',async(t)=>{
+ let erased=false,resolveOld,reloading=false;
+ const requests=[],c={...config,page_size:1};
+ const first={...contact,id:'s:other',name:'Outro contato'};
+ const {document}=directory(t,async(name,args)=>{
+  if(name==='ma_contato_detalhe')return {data:detail()};
+  if(name==='ma_contato_excluir'){erased=true;return {data:null};}
+  requests.push(args.pagina);
+  if(reloading&&!erased)return new Promise(r=>{resolveOld=r;});
+  const rows=args.pagina===1?[first]:erased?[]:[contact];
+  return {data:{...listing(rows,args.pagina,erased?1:2).data,config:c}};
+ });
+ await tick();document.querySelector('[data-ct-action=next]').click();await tick();
+ reloading=true;document.querySelector('[data-ct-action=refresh]').click();await tick();
+ document.querySelector('[data-ct-action=delete]').click();await tick();
+ document.querySelector('[data-ct-action=confirm-delete]').click();await tick();
+ assert.equal(Boolean(document.querySelector('[data-ct-row="s:one"]')),false);
+ resolveOld({data:{...listing([contact],2,2).data,config:c}});await tick();await tick();
+ assert.equal(Boolean(document.querySelector('[data-ct-row="s:one"]')),false);
+ assert.equal(document.querySelectorAll('[data-ct-row]').length,1);
+ assert.match(document.querySelector('.ct-pagination span').textContent,/Página 1/);
+ assert.deepEqual(requests,[1,2,2,2,1]);
+});

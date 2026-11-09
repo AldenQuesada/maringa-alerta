@@ -42,7 +42,7 @@ function criar({service,config,onDeleted,onEdit}){
   if(a==='tab'){tab=b.dataset.tab;content();dialog.querySelector('#ct-tab-'+tab).focus();return;}
   if(a==='older'){await refresh(true);return;}
   if(a==='edit'){const id=current.contact.record_id;close();onEdit(id);return;}
-  if(a==='confirm-delete'){busy=true;b.disabled=true;try{await service.excluir(current.contact.id,(config.deletion?.revision_prefix||'')+current.contact.revision);close();onDeleted();}
+  if(a==='confirm-delete'){busy=true;b.disabled=true;try{const key=current.contact.id;await service.excluir(key,(config.deletion?.revision_prefix||'')+current.contact.revision);close();onDeleted(key);}
    catch(error){if(dialog)dialog.querySelector('[role=alert]').textContent=error.message||l.error;}finally{busy=false;b.disabled=false;}}
  }
  return {open,refresh,close,isOpen:()=>Boolean(dialog)};
