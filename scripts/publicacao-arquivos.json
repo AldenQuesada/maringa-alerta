@@ -12,6 +12,7 @@
     "backend/config.js",
     "backend/permissoes-ui.js",
     "backend/repositorio.js",
+    "backend/seletores.js",
     "backend/vendor/SUPABASE-LICENSE",
     "backend/vendor/supabase-2.119.0.js",
     "cadastro-ocorrencia-mapa.js",

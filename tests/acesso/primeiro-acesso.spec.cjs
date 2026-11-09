@@ -9,6 +9,11 @@ async function requestJson(request,path,body,token=service){
  const result=await response.json();if(!response.ok())throw Error(path+': '+JSON.stringify(result));return result;
 }
 async function rpc(request,name,args,token=adminToken){return requestJson(request,'/rest/v1/rpc/'+name,args,token);}
+async function byEmail(request,email){
+ const page=await rpc(request,'ma_colaboradores_pagina',{municipio:'maringa',busca:email,tamanho:30});
+ expect(page.proxima).toBeNull();
+ return Promise.all(page.itens.filter(x=>x.dados.email===email).map(x=>rpc(request,'ma_colaborador_detalhe',{municipio:'maringa',identificador:x.dados.id})));
+}
 async function register(request,email){
  const id=randomUUID();const saved=await rpc(request,'ma_colaborador_salvar',{municipio:'maringa',identificador:id,versao_esperada:null,ficha:{nome:'Colaborador de teste',email,telefone:'44999999999',endereco:'Endereço de teste',bairro:'Bairro de teste',cargo:'Apoio',funcao:'operador',horarios:[]},acesso:{papel:'leitor',colecoes:['eventos','incidentes'],situacao:'pendente'}});return{id,saved};
 }
@@ -50,7 +55,7 @@ test('admin cadastra ficha inteira; e-mail só depois; primeiro acesso e login r
  await page.getByRole('button',{name:'Salvar e enviar acesso',exact:true}).click();
  await expect(page.getByRole('heading',{name:'Cadastro salvo',exact:true})).toBeVisible();
  await expect(page.getByRole('alert')).toContainText('aceitou o envio');
- const ctx=await rpc(request,'ma_colaboradores_contexto',{municipio:'maringa'});const saved=ctx.colaboradores.find(x=>x.dados.email===email);expect(saved.dados.horarios).toHaveLength(1);expect(saved.acesso.situacao).toBe('pendente');
+ const rows=await byEmail(request,email);expect(rows).toHaveLength(1);const saved=rows[0];expect(saved.dados.horarios).toHaveLength(1);expect(saved.acesso.situacao).toBe('pendente');
  const link=await mailLink(request,email);const fresh=await browser.newContext({viewport:info.project.use.viewport,isMobile:!!info.project.use.isMobile,hasTouch:!!info.project.use.hasTouch});await assets(fresh);const recipient=await fresh.newPage();
  await recipient.goto(link);await expect(recipient.getByRole('heading',{name:'Definir sua senha'})).toBeVisible();expect(recipient.url()).not.toContain('token=');
  await recipient.getByLabel('Senha',{exact:true}).fill(password);await recipient.getByLabel('Confirme a senha').fill('diferente');await recipient.getByRole('button',{name:'Salvar senha e entrar'}).click();await expect(recipient.getByRole('alert')).toHaveText('As senhas não conferem.');
@@ -58,7 +63,7 @@ test('admin cadastra ficha inteira; e-mail só depois; primeiro acesso e login r
  await expect(recipient).toHaveURL(/\/gestao\/\?municipio=maringa/);await expect(recipient.locator('#session-anchor')).toHaveText(email);await expect(recipient.locator('#backend-acesso')).toHaveCount(0);
  const logged=await requestJson(request,'/auth/v1/token?grant_type=password',{email,password});expect(logged.access_token).toBeTruthy();
  const caps=await rpc(request,'ma_minhas_capacidades',{},logged.access_token);expect(caps.maringa.eventos.ler).toBe(true);expect(caps.maringa.eventos.gravar).toBe(false);expect(caps.maringa.usuarios.ler).toBe(false);
- const again=await rpc(request,'ma_colaboradores_contexto',{municipio:'maringa'});expect(again.colaboradores.filter(x=>x.dados.email===email)).toHaveLength(1);expect(again.colaboradores.find(x=>x.dados.email===email).acesso.situacao).toBe('ativo');
+ const again=await byEmail(request,email);expect(again).toHaveLength(1);expect(again[0].acesso.situacao).toBe('ativo');
  await recipient.goto(link);await expect(recipient.getByRole('heading',{name:'Entrar e ativar acesso'})).toBeVisible();await recipient.getByLabel('Senha',{exact:true}).fill(password);await recipient.getByRole('button',{name:'Entrar e ativar',exact:true}).click();await expect(recipient).toHaveURL(/\/gestao\//);
  await expect(recipient.locator('#session-anchor')).toHaveText(email);
  await recipient.evaluate(()=>{void window.AlertaSupabaseClient.auth.signOut({scope:'local'});});
@@ -72,7 +77,7 @@ test('falha de entrega preserva a ficha; repetição usa um envio; conta existen
  const email='existente-'+info.project.name+'-'+randomUUID()+'@example.invalid';await requestJson(request,'/auth/v1/admin/users',{email,password,email_confirm:true});
  const person=await register(request,email),command=randomUUID();await request.get('/test/mail/fail?value=1');
  const failed=await send(request,person,command);expect(failed.status()).toBe(502);
- const ctx=await rpc(request,'ma_colaboradores_contexto',{municipio:'maringa'});expect(ctx.colaboradores.find(x=>x.dados.id===person.id).envio.estado).toBe('falhou');
+ const ctx=await rpc(request,'ma_colaborador_detalhe',{municipio:'maringa',identificador:person.id});expect(ctx.envio.estado).toBe('falhou');
  await request.get('/test/mail/fail?value=0');expect((await send(request,person,command)).ok()).toBe(true);expect((await send(request,person,command)).ok()).toBe(true);
  const mails=await(await request.get('/test/mails')).json();expect(mails.filter(x=>x.to.includes(email))).toHaveLength(1);
  await adminSession(page);await page.goto(await mailLink(request,email));await expect(page.getByRole('heading',{name:'Entrar e ativar acesso'})).toBeVisible();
@@ -143,7 +148,7 @@ test('confirmação nativa inválida não grava senha nem ativa a ficha',async({
  const link=new URL(await mailLink(request,email)),params=new URLSearchParams(link.hash.slice(1));params.set('auth_hash','0'.repeat(64));link.hash=params.toString();
  await page.goto(link.href);await page.getByLabel('Senha',{exact:true}).fill(password);await page.getByLabel('Confirme a senha').fill(password);await page.getByRole('button',{name:'Salvar senha e entrar'}).click();
  await expect(page.getByRole('alert')).toContainText('confirmação venceu ou já foi utilizado');
- const ctx=await rpc(request,'ma_colaboradores_contexto',{municipio:'maringa'});expect(ctx.colaboradores.find(x=>x.dados.id===person.id).acesso.situacao).toBe('pendente');
+ const ctx=await rpc(request,'ma_colaborador_detalhe',{municipio:'maringa',identificador:person.id});expect(ctx.acesso.situacao).toBe('pendente');
 });
 
 test('recuperação por SMTP nativo permite definir outra senha e entrar normalmente',async({request,page},info)=>{
@@ -202,6 +207,44 @@ test('cadastro via API rejeita formato inválido e e-mail duplicado sem perder a
  }
  const duplicate=await request.post('/rest/v1/rpc/ma_colaborador_salvar',{headers:{Authorization:'Bearer '+adminToken},data:{municipio:'maringa',identificador:randomUUID(),versao_esperada:null,ficha:{...person.saved.dados,email:' '+email.toUpperCase()+' '},acesso:access}});
  expect(duplicate.ok()).toBe(false);
- const context=await rpc(request,'ma_colaboradores_contexto',{municipio:'maringa'}),rows=context.colaboradores.filter(x=>x.dados.email===email);
+ const rows=await byEmail(request,email);
  expect(rows).toHaveLength(1);expect(rows[0].versao).toBe(1);expect(rows[0].dados.telefone).toBe('44999999999');
+});
+
+test('E3: páginas e busca remota abrem ficha fora da primeira página e preservam referências',async({request,page},info)=>{
+ test.setTimeout(120000);
+ const tag='E3'+info.project.name.replace(/\W/g,'')+randomUUID().slice(0,8),prefix='z-'+tag+'-';
+ const access={papel:'leitor',colecoes:['eventos'],situacao:'pendente'};
+ const people=[];
+ for(let n=0;n<35;n++){
+  const id=prefix+String(n).padStart(3,'0'),email=id.toLowerCase()+'@example.invalid';
+  const saved=await rpc(request,'ma_colaborador_salvar',{municipio:'maringa',identificador:id,versao_esperada:null,ficha:{nome:tag+' Pessoa '+String(n).padStart(3,'0'),email,telefone:'44999999999',endereco:'Rua E3',bairro:'Centro',cargo:'Apoio',funcao:'operador',horarios:[]},acesso:access});people.push({id,saved});
+ }
+ const last=people.at(-1),responsible=people.at(-2);
+ await rpc(request,'ma_colaborador_salvar',{municipio:'maringa',identificador:last.id,versao_esperada:1,ficha:{responsavel_id:responsible.id},acesso:access});
+ await adminSession(page);const reads=[];page.on('response',r=>{if(r.url().includes('/rpc/ma_'))reads.push(r.url());});
+ await page.goto('/colaboradores/?municipio=maringa');
+ await page.getByLabel('Buscar colaborador',{exact:true}).fill(tag);
+ await expect(page.locator('.card')).toHaveCount(30);
+ await page.getByRole('button',{name:'Próxima página',exact:true}).click();await expect(page.locator('.card')).toHaveCount(5);
+ await page.getByRole('button',{name:'Anterior',exact:true}).click();await expect(page.locator('.card')).toHaveCount(30);
+ await page.getByLabel('Buscar colaborador',{exact:true}).fill(tag+' Pessoa 034');await expect(page.locator('.card')).toHaveCount(1);
+ expect(reads.some(x=>x.includes('ma_colaborador_detalhe'))).toBe(false);
+ await page.getByRole('button',{name:'Editar cadastro e acesso',exact:true}).click();
+ await expect(page.getByLabel('Telefone',{exact:true})).toHaveValue('44999999999');
+ await page.getByRole('button',{name:'Continuar',exact:true}).click();
+ await expect(page.getByLabel('Responsável',{exact:true})).toHaveValue(responsible.id);
+ await page.getByLabel('Buscar responsável',{exact:true}).fill(tag+' Pessoa 001');
+ await expect(page.getByLabel('Responsável',{exact:true}).locator('option')).toContainText([/Não definido/,new RegExp(tag+' Pessoa 033'),new RegExp(tag+' Pessoa 001')]);
+ await page.getByLabel('Responsável',{exact:true}).selectOption(people[1].id);
+ await page.getByRole('button',{name:'Continuar',exact:true}).click();await page.locator('#editor').getByRole('button',{name:'Anterior',exact:true}).click();
+ await expect(page.getByLabel('Responsável',{exact:true})).toHaveValue(people[1].id);
+ await expect(page.getByLabel('Responsável',{exact:true}).locator('option:checked')).toHaveText(tag+' Pessoa 001');
+ await page.locator('#editor').screenshot({path:'.test-results/acesso/e3-seletores-'+info.project.name+'.png'});
+ await page.getByRole('button',{name:'Continuar',exact:true}).click();await page.getByRole('button',{name:'Continuar',exact:true}).click();
+ await page.getByLabel('Situação do acesso').check();await page.getByRole('button',{name:'Salvar suspensão',exact:true}).click();await expect(page.getByRole('heading',{name:'Cadastro salvo',exact:true})).toBeVisible();
+ const actual=await rpc(request,'ma_colaborador_detalhe',{municipio:'maringa',identificador:last.id});expect(actual.dados.responsavel_id).toBe(people[1].id);expect(actual.versao).toBe(3);expect(actual.acesso.situacao).toBe('suspenso');
+ expect((await(await request.get('/test/mails')).json()).filter(x=>x.to.includes(actual.dados.email))).toHaveLength(0);
+ const original=await rpc(request,'ma_colaborador_detalhe',{municipio:'maringa',identificador:responsible.id});expect(original.versao).toBe(1);
+ await page.goto('/colaboradores/?municipio=maringa&pessoa='+last.id);await expect(page.getByLabel('Nome completo')).toHaveValue(tag+' Pessoa 034');
 });

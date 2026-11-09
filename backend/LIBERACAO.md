@@ -12,11 +12,11 @@ O job `liberacao` executa mesmo quando uma dependência falha ou é ignorada e s
 
 ## Banco
 
-A CI mantém a regressão integral e acrescenta `autoridade-banco`: instala o histórico de produção no bootstrap da plataforma; passa as quatro migrações candidatas pelo executor `postgres` sem superuser, com CREATEROLE/CREATEDB/BYPASSRLS e concessões equivalentes ao inventário real. Auth não pode ser delegado livremente pelo dono da migração. O PostGIS histórico é instalado no bootstrap, sem fingir que seu instalador é parte do papel limitado.
+A CI mantém a regressão integral e acrescenta `autoridade-banco`: instala o histórico de produção no bootstrap da plataforma; passa as cinco migrações candidatas pelo executor `postgres` sem superuser, com CREATEROLE/CREATEDB/BYPASSRLS e concessões equivalentes ao inventário real. Auth não pode ser delegado livremente pelo dono da migração. O PostGIS histórico é instalado no bootstrap, sem fingir que seu instalador é parte do papel limitado.
 
 A prova histórica reproduz a troca de dono seguida da retirada de associação antes de REVOKE: a instrução gera WARNING e a permissão continua efetiva. A E2 revoga sob o dono correto, fecha padrões de objetos futuros e verifica o resultado, sem confiar apenas no sucesso do comando SQL.
 
-Após cada migração candidata, conferir executor, RLS e exposições anônimas; a única exceção histórica, A11, precisa desaparecer na E2. A matriz final versionada cobre 130 funções e 36 relações. Sua alteração exige revisar as diferenças; não recapturar a matriz só para tornar um teste verde. O programa de regressão injeta e remove grants indevidos em banco descartável para provar que o gate os detecta.
+Após cada migração candidata, conferir executor, RLS e exposições anônimas; a única exceção histórica, A11, precisa desaparecer na E2. A matriz final versionada cobre 139 funções e 36 relações após a primeira entrega da E3. Sua alteração exige revisar as diferenças; não recapturar a matriz só para tornar um teste verde. O programa de regressão injeta e remove grants indevidos em banco descartável para provar que o gate os detecta.
 
 Nove comandos de cadastro/acesso usam `ma_gestor_acessos`, sem login, herança, superuser, criação de objetos ou BYPASSRLS. O papel só escreve pessoas e os metadados de acesso necessários; não exclui cadastros nem cria administradores gerais. Uma projeção privada de Auth retorna identidade, confirmação e presença de senha, sem o hash. As funções de autoridade e os demais subsistemas mantêm os proprietários documentados na matriz; a E2 não elimina indiscriminadamente SECURITY DEFINER de guards ou triggers.
 
@@ -29,3 +29,11 @@ Antes de autorizar na E6: revalidar backup recente; aplicar as migrações com o
 MFA administrativo ainda precisa de política de exigência e recuperação aprovada e implementação correspondente antes de se declarar o sistema enterprise. A E2 não afirma que MFA já seja obrigatório. O gate de commit é uma autorização de publicação pelo responsável, não uma prova automática de configuração de Auth, entrega SMTP ou prontidão de escala.
 
 Depois da publicação, testar cadastro completo, envio a destinatário autorizado, primeiro acesso, login existente, recuperação, suspensão e acesso por município no endereço real. Registrar o SHA, evidências remotas e eventual reversão; só então concluir a E6.
+
+## Compatibilidade da primeira entrega E3
+
+A migração `20261109131212_e3_consultas_paginadas` altera `ma_colaboradores_contexto` para retornar apenas metadados. Publicar na E6 junto da interface de colaboradores que usa páginas, detalhe por ID e seletores; a interface anterior que esperava todas as fichas no contexto não é compatível. O serviço de envio mantém seu contrato. Não aplicar esta migração isoladamente antes da E6.
+
+O novo executor `ma_consultor` só lê cadastros/configuração e executa os guards necessários. Os wrappers públicos continuam como invoker, sem execução anônima. A exceção de Administração Geral fica limitada aos seletores de pessoas/equipes, sob o mesmo guard do cadastro administrativo; ela não abre leitura municipal genérica. O papel e seus privilégios entram na matriz e nos testes de autoridade.
+
+Esta entrega remove a carga integral da tela administrativa de colaboradores. O repositório compartilhado por gestão/mapas ainda acumula os cadastros municipais e copia o estado nas transações. A E3 permanece aberta até a substituição dessas leituras/comandos e a verificação dos mapas com dados paginados, sem omitir registros.

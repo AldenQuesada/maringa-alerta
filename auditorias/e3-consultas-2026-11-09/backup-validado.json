@@ -1,0 +1,92 @@
+{
+  "status": "passed",
+  "scope": "Banco PostgreSQL completo, papéis sem senhas de login, segredos Vault portáveis e objetos Storage inventariados",
+  "database_dump_sha256": "18d7234ae7df7858eeae79996b13e67c26a09196ff44278420af78ca65dff1e5",
+  "tables_verified": 77,
+  "rows_verified": 17545,
+  "catalog_entries": 1052,
+  "raw_acl_representation_differences": [
+    {
+      "kind": "relation_acl",
+      "key": "private.ma_historico_id_seq:postgres:SELECT",
+      "source": false,
+      "restored": null
+    },
+    {
+      "kind": "relation_acl",
+      "key": "private.ma_historico_id_seq:postgres:UPDATE",
+      "source": false,
+      "restored": null
+    },
+    {
+      "kind": "relation_acl",
+      "key": "public.ma_auditoria_id_seq:postgres:SELECT",
+      "source": false,
+      "restored": null
+    },
+    {
+      "kind": "relation_acl",
+      "key": "public.ma_auditoria_id_seq:postgres:UPDATE",
+      "source": false,
+      "restored": null
+    },
+    {
+      "kind": "relation_acl",
+      "key": "wa.contact_history_id_seq:postgres:SELECT",
+      "source": false,
+      "restored": null
+    },
+    {
+      "kind": "relation_acl",
+      "key": "wa.contact_history_id_seq:postgres:UPDATE",
+      "source": false,
+      "restored": null
+    },
+    {
+      "kind": "relation_acl",
+      "key": "wa.inbox_id_seq:postgres:SELECT",
+      "source": false,
+      "restored": null
+    },
+    {
+      "kind": "relation_acl",
+      "key": "wa.inbox_id_seq:postgres:UPDATE",
+      "source": false,
+      "restored": null
+    },
+    {
+      "kind": "relation_acl",
+      "key": "wa.operations_id_seq:postgres:SELECT",
+      "source": false,
+      "restored": null
+    },
+    {
+      "kind": "relation_acl",
+      "key": "wa.operations_id_seq:postgres:UPDATE",
+      "source": false,
+      "restored": null
+    }
+  ],
+  "effective_sequence_privileges_preserved": true,
+  "sequences_verified": [
+    "auth.refresh_tokens_id_seq",
+    "cron.jobid_seq",
+    "cron.runid_seq",
+    "private.ma_historico_id_seq",
+    "public.ma_auditoria_id_seq",
+    "realtime.subscription_id_seq",
+    "wa.contact_history_id_seq",
+    "wa.inbox_id_seq",
+    "wa.operations_id_seq"
+  ],
+  "vault_secrets_reencrypted_and_verified": 3,
+  "storage_objects_verified": 1,
+  "network_mode": "none",
+  "cron_launch_active_jobs": false,
+  "postgres_superuser": false,
+  "limits": [
+    "Senhas de login dos papéis não são exportadas. Auth.users e seus hashes estão no dump.",
+    "Chave raiz gerenciada do Vault não exportada; segredos recuperados por recriptografia com IDs e conteúdo preservados.",
+    "Não é um teste de envio Meta, hospedagem Edge, login HTTP Auth ou serviço HTTP Storage."
+  ]
+}

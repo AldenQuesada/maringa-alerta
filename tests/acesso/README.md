@@ -1,6 +1,6 @@
 # Homologação real do primeiro acesso
 
-Ambiente descartável com PostgreSQL/PostGIS, GoTrue real, PostgREST real e Chromium/WebKit. Usa as 38 migrações completas e o mesmo handler de produção. A confirmação de e-mail do Auth fica habilitada: o fluxo não depende de desligá-la. O próprio GoTrue envia por SMTP para um servidor de captura na rede interna, usando os templates versionados; o servidor pode rejeitar uma mensagem de propósito; nenhum e-mail externo é enviado. Isso valida o fluxo e o contrato de entrega, mas não comprova credenciais nem entrega do provedor em produção.
+Ambiente descartável com PostgreSQL/PostGIS, GoTrue real, PostgREST real e Chromium/WebKit. Usa as 41 migrações completas e o mesmo handler de produção. A confirmação de e-mail do Auth fica habilitada: o fluxo não depende de desligá-la. O próprio GoTrue envia por SMTP para um servidor de captura na rede interna, usando os templates versionados; o servidor pode rejeitar uma mensagem de propósito; nenhum e-mail externo é enviado. Isso valida o fluxo e o contrato de entrega, mas não comprova credenciais nem entrega do provedor em produção.
 
 As imagens têm versão e digest fixados. A rede Docker é interna e não publica portas. Os únicos dados são fixtures `example.invalid`. O servidor de teste disponibiliza chaves descartáveis e mensagens apenas nessa rede; nunca publicar `tests/` (o empacotador do site já exclui a pasta).
 
@@ -12,4 +12,6 @@ docker exec pra-somar-fase2-web npx playwright test --config=tests/acesso/playwr
 
 Use `PRA_SOMAR_TEST_PREFIX` diferente para uma nova instalação. O script recusa implicitamente nomes existentes em vez de destruir ambientes anteriores. Ao terminar, pare os quatro contêineres `<prefix>-web`, `-rest`, `-auth` e `-db`. Os resultados ficam em `/app/.test-results/acesso/resultado.json` dentro do contêiner web.
 
-São 20 casos em Chromium/WebKit, incluindo interrupção antes e depois de salvar a senha, bloqueio da ativação com sessão de convite, envio simultâneo, confirmação inválida e recuperação por e-mail nativo. A senha temporária gerada pelo Auth ao confirmar um convite não é tratada como uma senha escolhida pela pessoa.
+São 30 casos em Chromium/WebKit, incluindo interrupção antes e depois de salvar a senha, bloqueio da ativação com sessão de convite, envio simultâneo, confirmação inválida e recuperação por e-mail nativo. A senha temporária gerada pelo Auth ao confirmar um convite não é tratada como uma senha escolhida pela pessoa.
+
+A E3 acrescenta navegação por páginas, busca de uma pessoa fora da primeira página, detalhe sob demanda, preservação de referências nos seletores e ao voltar etapas, acesso direto por ID e salvamento sem modificar outra ficha. As provas usam o Auth e a API reais do ambiente isolado.

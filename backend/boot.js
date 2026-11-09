@@ -54,10 +54,12 @@ try{
    if(entry==='plataforma'&&!result.data?.admin_plataforma)throw Error('Esta área requer acesso de Administração Geral.');
    if(entry==='plataforma')remote={perfil:result.data,admin:AlertaAdminRemoto.criar(client)};
    else{
-    const cities=await client.from('ma_prefeituras').select('id,dados').order('id');if(cities.error)throw cities.error;
-    const municipio=new URLSearchParams(location.search).get('municipio')||sessionStorage.getItem(cityKey)||cities.data?.[0]?.id;
+    const solicitado=new URLSearchParams(location.search).get('municipio')||sessionStorage.getItem(cityKey);
+    let query=client.from('ma_prefeituras').select('id,nome:dados->>nome').order('id');if(solicitado)query=query.eq('id',solicitado);
+    const cities=await query.limit(1);if(cities.error)throw cities.error;
+    const municipio=cities.data?.[0]?.id;if(!municipio)throw Error('Prefeitura indisponível para este acesso.');
     const ctx=await client.rpc('ma_colaboradores_contexto',{municipio});if(ctx.error)throw ctx.error;
-    remote={perfil:result.data,colaboradores:ctx.data,municipios:cities.data};
+    remote={perfil:result.data,colaboradores:ctx.data,municipios:cities.data.map(x=>({id:x.id,dados:{nome:x.nome}}))};
    }
   }else{
    const [contrato,operacao]=await Promise.all([

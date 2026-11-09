@@ -12,7 +12,9 @@ assert verify().returncode==0,'Baseline deve estar aprovado antes de injetar fal
 cases=[
  ('escrita direta','grant insert on public.ma_cadastros to authenticated;','revoke insert on public.ma_cadastros from authenticated;'),
  ('execução anônima','grant execute on function public.ma_colaborador_salvar(text,text,jsonb,jsonb,bigint) to public;','revoke execute on function public.ma_colaborador_salvar(text,text,jsonb,jsonb,bigint) from public;'),
- ('associação ao executor','grant ma_gestor_acessos to authenticated;','revoke ma_gestor_acessos from authenticated;')]
+ ('associação ao executor','grant ma_gestor_acessos to authenticated;','revoke ma_gestor_acessos from authenticated;'),
+ ('associação ao consultor','grant ma_consultor to authenticated;','revoke ma_consultor from authenticated;'),
+ ('escrita pelo consultor','grant update on public.ma_cadastros to ma_consultor;','revoke update on public.ma_cadastros from ma_consultor;')]
 for name,apply,undo in cases:
  try:
   sql(apply);assert verify().returncode!=0,'Regressão não detectada: '+name

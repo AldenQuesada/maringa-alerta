@@ -76,6 +76,22 @@
    "executar": [
     "authenticated"
    ],
+   "nome": "ma_cadastro_detalhe(text,text,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_cadastros_pagina(text,text,text,text,integer,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
    "nome": "ma_catalogo_territorial()"
   },
   {
@@ -84,7 +100,23 @@
    "executar": [
     "authenticated"
    ],
+   "nome": "ma_colaborador_detalhe(text,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
    "nome": "ma_colaboradores_contexto(text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_colaboradores_pagina(text,text,text,integer)"
   },
   {
    "definer": false,
@@ -366,6 +398,26 @@
   },
   {
    "definer": true,
+   "dono": "ma_consultor",
+   "executar": [
+    "authenticated",
+    "ma_consultor",
+    "ma_gestor_acessos"
+   ],
+   "nome": "private.ma_cadastro_detalhe(text,text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "ma_consultor",
+   "executar": [
+    "authenticated",
+    "ma_consultor",
+    "ma_gestor_acessos"
+   ],
+   "nome": "private.ma_cadastros_pagina(text,text,text,text,integer,text)"
+  },
+  {
+   "definer": true,
    "dono": "postgres",
    "executar": [
     "authenticated"
@@ -385,7 +437,25 @@
     "authenticated",
     "ma_gestor_acessos"
    ],
+   "nome": "private.ma_colaborador_detalhe(text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "ma_gestor_acessos",
+   "executar": [
+    "authenticated",
+    "ma_gestor_acessos"
+   ],
    "nome": "private.ma_colaboradores_contexto(text)"
+  },
+  {
+   "definer": true,
+   "dono": "ma_gestor_acessos",
+   "executar": [
+    "authenticated",
+    "ma_gestor_acessos"
+   ],
+   "nome": "private.ma_colaboradores_pagina(text,text,text,integer)"
   },
   {
    "definer": true,
@@ -479,6 +549,7 @@
    "dono": "postgres",
    "executar": [
     "authenticated",
+    "ma_consultor",
     "ma_gestor_acessos"
    ],
    "nome": "private.ma_gerencia_colaboradores(text)"
@@ -536,6 +607,7 @@
    "dono": "postgres",
    "executar": [
     "authenticated",
+    "ma_consultor",
     "ma_escritor"
    ],
    "nome": "private.ma_permitido(text,text,text)"
@@ -577,6 +649,15 @@
    "dono": "postgres",
    "executar": [],
    "nome": "private.ma_registrar_historico()"
+  },
+  {
+   "definer": false,
+   "dono": "ma_consultor",
+   "executar": [
+    "ma_consultor",
+    "ma_gestor_acessos"
+   ],
+   "nome": "private.ma_resumo(jsonb,text[])"
   },
   {
    "definer": true,
@@ -977,6 +1058,9 @@
     "authenticated": [
      "SELECT"
     ],
+    "ma_consultor": [
+     "SELECT"
+    ],
     "ma_escritor": [
      "DELETE",
      "INSERT",
@@ -996,6 +1080,9 @@
    "nome": "ma_configuracao",
    "privilegios": {
     "authenticated": [
+     "SELECT"
+    ],
+    "ma_consultor": [
      "SELECT"
     ],
     "ma_escritor": [

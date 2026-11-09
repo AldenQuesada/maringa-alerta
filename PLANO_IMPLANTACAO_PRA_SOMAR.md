@@ -126,3 +126,9 @@ E1 não é certificação de escala nem publicação da fase 2. A conferência/a
 Implementada no mesmo PR, com correção efetiva da ACL territorial, padrões restritos para objetos futuros e papel limitado para nove comandos de cadastro/acesso. O novo job ensaia as quatro migrações candidatas sem superuser e compara a matriz de 130 funções e 36 relações; essa matriz também conferiu no clone do backup real. Passaram 290 testes Node, 28 cenários de acesso, 12 testes móveis, regressão SQL/concorrência e verificadores do banco. [Relatório E2](auditorias/E2_AUTORIDADE_LIBERACAO_2026-11-08.md).
 
 Sete checks e revisão independente compõem a proteção de integração. Pages exige autorização E6 para o SHA específico; não foi autorizada publicação. Autocadastro público desabilitado e testado na configuração candidata, com alteração hospedada reservada à E6. Dados e câmeras preservados; E3 não iniciada. [Procedimento e responsabilidades](backend/LIBERACAO.md).
+
+## E3 — primeira entrega homologada, fase em andamento
+
+A tela de colaboradores passou a usar páginas reais, busca no servidor, detalhe por ID e seletores pesquisáveis. O contexto não agrega fichas/equipes; o fluxo de salvar e enviar acesso permanece protegido. A primeira entrega foi testada com Auth real, banco vazio/clone sem superuser e os três mapas. [Relatório E3](auditorias/E3_CONSULTAS_CADASTRO_2026-11-09.md).
+
+O próximo bloco é o repositório compartilhado por gestão/mapas: retirar carga integral, snapshot/diff municipal e adaptar consultas/contagens/seletores sem omitir registros. E3 não está integralmente concluída; E4 não iniciada. Publicação permanece exclusivamente na E6, com a autorização por SHA ainda ausente.

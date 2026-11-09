@@ -1,7 +1,7 @@
 -- Executar após a E2; nenhuma fixture é persistida.
 begin;
 do $$declare r record;p text;begin
- for r in select * from pg_roles where rolname in ('ma_escritor','ma_gestor_acessos') loop
+ for r in select * from pg_roles where rolname in ('ma_escritor','ma_gestor_acessos','ma_consultor') loop
   if r.rolcanlogin or r.rolsuper or r.rolcreaterole or r.rolcreatedb or r.rolbypassrls or r.rolinherit then raise exception 'Papel interno excessivo: %',r.rolname;end if;
   if pg_has_role('anon',r.oid,'MEMBER') or pg_has_role('authenticated',r.oid,'MEMBER') or pg_has_role('service_role',r.oid,'MEMBER') or exists(select 1 from pg_auth_members where member='postgres'::regrole and roleid=r.oid and (set_option or inherit_option)) then raise exception 'Papel interno pode ser assumido: %',r.rolname;end if;
  end loop;
@@ -15,6 +15,7 @@ do $$declare r record;p text;begin
   if has_function_privilege('anon',r.oid,'EXECUTE') then raise exception 'Função anônima: %',r.oid::regprocedure;end if;
   if r.prosecdef and not coalesce(r.proconfig @> array['search_path=""'],false) then raise exception 'Definer sem search_path vazio: %',r.oid::regprocedure;end if;
  end loop;
+ if has_table_privilege('ma_consultor','public.ma_cadastros','INSERT,UPDATE,DELETE,TRUNCATE,TRIGGER,MAINTAIN') or has_schema_privilege('ma_consultor','auth','USAGE') then raise exception 'Consultor excede leitura autorizada';end if;
  if has_schema_privilege('ma_gestor_acessos','auth','USAGE') or has_table_privilege('ma_gestor_acessos','auth.users','SELECT') then raise exception 'Executor acessa Auth diretamente';end if;
  if has_table_privilege('ma_gestor_acessos','private.ma_admins','INSERT') or has_table_privilege('ma_gestor_acessos','public.ma_cadastros','DELETE') then raise exception 'Executor excede seu domínio';end if;
  if has_function_privilege('authenticated','private.ma_definir_vinculo_legado(text,text,text,text)','EXECUTE') or has_function_privilege('service_role','private.ma_acesso_entrega(uuid,text,text)','EXECUTE') then raise exception 'Caminho legado reaberto';end if;
