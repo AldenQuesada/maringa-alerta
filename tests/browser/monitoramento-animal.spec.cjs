@@ -5,9 +5,9 @@ const {ambiente}=require('./ambiente-monitoramento-animal.cjs');
 const AJUDA={lat:-23.4196153,lng:-51.9357534,zoom:13.5732};
 const url='http://127.0.0.1:8784/mapas/monitoramento-animal.html';
 
-async function abrir({browser},testInfo){
+async function abrir({browser},testInfo,extra={}){
  const o=testInfo.project.use;
- const a=await ambiente({browser,contextOptions:{viewport:o.viewport,isMobile:true,hasTouch:true,deviceScaleFactor:1}});
+ const a=await ambiente({browser,...extra,contextOptions:{viewport:o.viewport,isMobile:true,hasTouch:true,deviceScaleFactor:1}});
  await a.page.addInitScript(()=>{
   let leaflet;
   Object.defineProperty(window,'L',{configurable:true,get:()=>leaflet,set:value=>{
@@ -67,5 +67,38 @@ test('sem perfil no banco, mostra o erro e não monta o mapa',async({browser},te
   await a.page.goto(url);
   await expect(a.page.getByRole('alert')).toHaveText('Perfil do mapa Monitoramento animal não está configurado no banco.');
   expect(await a.page.evaluate(()=>!!document.querySelector('#map.leaflet-container'))).toBe(false);
+ }finally{await a.context.close();}
+});
+
+test('triagem: ações do banco, exigência do banco e gravação só pela função do servidor',async({browser},testInfo)=>{
+ const a=await abrir({browser},testInfo);const {page}=a;
+ try{
+  await page.getByRole('button',{name:'Abrir painel',exact:true}).click();
+  await page.locator('#filtro').selectOption('animal-perdido');
+  await page.locator('.ma-animal-result').click();
+  const triagem=page.locator('#ma-animal-ficha-triagem');
+  await expect(triagem.getByRole('button')).toHaveText(['Confirmar e abrir ocorrência','Arquivar relato']);
+  // Confirmar: o bairro aproximado já vem escolhido; o cliente não envia coordenadas.
+  await triagem.getByRole('button',{name:'Confirmar e abrir ocorrência'}).click();
+  await expect(triagem.locator('select[name=bairro_id]')).toHaveValue('bairro-teste');
+  await triagem.getByRole('button',{name:'Cancelar'}).click();
+  await triagem.getByRole('button',{name:'Arquivar relato'}).click();
+  await expect(triagem.locator('select[name=motivo] option')).toHaveText(['Escolha o motivo','Relato duplicado','Fora do município','Sem informação suficiente','Informação falsa ou trote']);
+  await triagem.locator('select[name=motivo]').selectOption('Relato duplicado');
+  await Promise.all([page.waitForEvent('load'),triagem.getByRole('button',{name:'Confirmar',exact:true}).click()]);
+  expect(a.calls.filter(c=>c.name==='ma_triar_animal').map(c=>c.args)).toEqual([{municipio:'maringa',colecao_alvo:'relatos',registro:'relato-perdido',acao:'arquivar',status_esperado:'Em triagem',detalhe:{motivo:'Relato duplicado'}}]);
+  await expect(page.locator('#toast')).toHaveText('Arquivar relato: registrado.');
+  expect(a.errors).toEqual([]);
+ }finally{await a.context.close();}
+});
+
+test('sem a capacidade de triagem, a ficha só consulta',async({browser},testInfo)=>{
+ const a=await abrir({browser},testInfo,{capacidades:[]});const {page}=a;
+ try{
+  await page.getByRole('button',{name:'Abrir painel',exact:true}).click();
+  await page.locator('.ma-animal-result').first().click();
+  await expect(page.locator('#ma-animal-ficha-triagem')).toContainText('Sua conta pode consultar, mas não fazer triagem.');
+  await expect(page.locator('#ma-animal-ficha-triagem button')).toHaveCount(0);
+  expect(a.calls.filter(c=>c.name==='ma_triar_animal')).toEqual([]);
  }finally{await a.context.close();}
 });

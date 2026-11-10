@@ -236,6 +236,14 @@
    "executar": [
     "authenticated"
    ],
+   "nome": "ma_triar_animal(text,text,text,text,text,jsonb)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
    "nome": "ma_wa_canais()"
   },
   {

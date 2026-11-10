@@ -1,15 +1,46 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-function carregar(){const ctx=vm.createContext({});for(const f of ['perfil','geometria','consultas'])vm.runInContext(fs.readFileSync('src/monitoramento-animal/'+f+'.js','utf8'),ctx);return ctx;}
+function carregar(){const ctx=vm.createContext({});for(const f of ['perfil','textos','geometria','consultas'])vm.runInContext(fs.readFileSync('src/monitoramento-animal/'+f+'.js','utf8'),ctx);return ctx;}
 const sql=fs.readFileSync('supabase/migrations/20261108194500_monitoramento_animal.sql','utf8');
 const bloco=i=>{const a=sql.indexOf('$j$',sql.indexOf(i))+3;return JSON.parse(sql.slice(a,sql.indexOf('$j$',a)));};
-const perfil=bloco("values('mapas'")['monitoramento-animal'],regras=bloco("'{protecaoAnimal}'"),modelo=bloco("values('modelos'")['protecao-animal'];
+const sqlD=fs.readFileSync('supabase/migrations/20261110120000_monitoramento_animal_triagem.sql','utf8');
+const blocoD=i=>{const a=sqlD.indexOf('$j$',sqlD.indexOf(i))+3;return JSON.parse(sqlD.slice(a,sqlD.indexOf('$j$',a)));};
+// Perfil e regras como ficam no banco depois das etapas A e D.
+const perfil={...bloco("values('mapas'")['monitoramento-animal'],...blocoD("'{monitoramento-animal}'")};
+const regras={...bloco("'{protecaoAnimal}'"),triagem:blocoD("'{protecaoAnimal,triagem}'")},modelo=bloco("values('modelos'")['protecao-animal'];
 test('perfil do banco é válido e perfil ausente ou incompleto é recusado',()=>{
  const c=carregar();
  assert.equal(c.AlertaAnimalPerfil.validar(perfil,regras).perfil.camera,'ajuda');
  assert.throws(()=>c.AlertaAnimalPerfil.validar(undefined,regras),/não está configurado/);
  assert.throws(()=>c.AlertaAnimalPerfil.validar({...perfil,camadas:[]},regras),/sem camadas/);
  assert.throws(()=>c.AlertaAnimalPerfil.validar(perfil,undefined),/protecaoAnimal/);
+ assert.throws(()=>c.AlertaAnimalPerfil.validar({...perfil,textos:undefined},regras),/falta textos/);
+ assert.throws(()=>c.AlertaAnimalPerfil.validar({...perfil,cores:{contornoZona:'amarelo',destaqueRestrito:'#fff'}},regras),/contornoZona/);
+});
+test('textos: interpolação, e texto ausente é erro e não reserva',()=>{
+ const {t}=carregar().AlertaAnimalTextos.criar(perfil.textos);
+ assert.equal(t('lista.semPosicao',{n:3}),'3 sem posição');
+ assert.throws(()=>t('lista.inexistente'),/Texto ausente no perfil do mapa: lista.inexistente/);
+ assert.throws(()=>carregar().AlertaAnimalTextos.criar(undefined),/falta textos/);
+});
+test('toda chave de texto usada na página e no código existe no perfil do banco',()=>{
+ const {t}=carregar().AlertaAnimalTextos.criar(perfil.textos);
+ const html=fs.readFileSync('mapas/monitoramento-animal.html','utf8');
+ const chaves=new Set([...html.matchAll(/data-texto(?:-[a-z-]+)?="([^"]+)"/g)].map(m=>m[1]));
+ for(const f of fs.readdirSync('src/monitoramento-animal'))
+  for(const m of fs.readFileSync('src/monitoramento-animal/'+f,'utf8').matchAll(/\bt\("([a-zA-Z.]*[a-zA-Z])"/g))chaves.add(m[1]);
+ // A ficha monta a chave como "ficha."+campo: confere cada campo usado em linha("campo",...).
+ for(const m of fs.readFileSync('src/monitoramento-animal/ficha.js','utf8').matchAll(/linha\("([a-zA-Z]+)"/g))chaves.add('ficha.'+m[1]);
+ assert.ok(chaves.size>40,'chaves encontradas: '+chaves.size);
+ for(const k of chaves)assert.doesNotThrow(()=>t(k),k);
+});
+test('ações de triagem: cada exigência é conhecida e todo destino é um estado do contrato',()=>{
+ const estados={relatos:['Em triagem','Vinculado','Confirmado','Arquivado'],incidentes:['Em triagem','Confirmada','Resolvida','Arquivada']};
+ for(const [colecao,acoes] of Object.entries(regras.triagem.acoes))for(const a of acoes){
+  assert.ok(estados[colecao].includes(a.para),a.id);
+  for(const d of a.de)assert.ok(estados[colecao].includes(d),a.id);
+  for(const e of a.exige||[])assert.ok(['bairro_id','motivo','desfecho'].includes(e),e);
+ }
 });
 test('ponto em polígono respeita buracos e multipolígonos',()=>{
  const {contem}=carregar().AlertaAnimalGeometria;

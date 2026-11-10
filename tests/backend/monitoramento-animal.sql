@@ -112,10 +112,39 @@ select pg_temp.capacidade('admin','triar_animais',true);
 select pg_temp.atualizar('incidentes','i-perdido','{"status":"Resolvida","desfecho":"Reunido com o tutor"}');
 select pg_temp.exige(pg_temp.dados('incidentes','i-perdido')->>'status'='Resolvida','resolvida com desfecho');
 
+-- Etapa D: triagem pelo servidor, configurada no banco.
+select pg_temp.como('81');
+select pg_temp.gravar('relatos','r-encontrado','{"categoria":"animal","situacao":"Encontrei um animal","nome":"Vizinha","telefone":"44999990002","endereco":"Rua achada, 3","especie":"Gato","status":"Em triagem"}');
+select pg_temp.rejeita($q$select public.ma_triar_animal('maringa','relatos','r-encontrado','inventada','Em triagem')$q$,'22023');
+select pg_temp.rejeita($q$select public.ma_triar_animal('maringa','animais','a-toddy','confirmar','Perdido')$q$,'22023');
+select pg_temp.rejeita($q$select public.ma_triar_animal('maringa','relatos','r-encontrado','confirmar','Arquivado','{"bairro_id":"b-centro"}')$q$,'40001');
+select pg_temp.rejeita($q$select public.ma_triar_animal('maringa','relatos','r-encontrado','confirmar','Em triagem')$q$,'23514');
+select pg_temp.rejeita($q$select public.ma_triar_animal('maringa','relatos','r-encontrado','confirmar','Em triagem','{"bairro_id":"b-inexistente"}')$q$,'23514');
+select pg_temp.rejeita($q$select public.ma_triar_animal('maringa','relatos','r-encontrado','arquivar','Em triagem','{"motivo":"Inventado"}')$q$,'23514');
+select pg_temp.exige(public.ma_triar_animal('maringa','relatos','r-encontrado','confirmar','Em triagem','{"bairro_id":"b-centro","lat":"0","lng":"0"}')->>'status'='Confirmado','relato confirmado');
+select pg_temp.exige(pg_temp.dados('relatos','r-encontrado')->>'triado_por'='00000000-0000-4000-8000-000000000081','triagem registrada pelo servidor');
+select pg_temp.exige(exists(select 1 from public.ma_cadastros where municipio_id='maringa' and colecao='incidentes' and id=pg_temp.dados('relatos','r-encontrado')->>'incidente_id'
+ and dados->>'tipo_id'='animal-encontrado' and dados->>'status'='Confirmada' and dados->>'bairro_id'='b-centro' and dados->>'origem_relato'='r-encontrado'
+ and (dados->>'lat')::numeric between -23.5 and -23.4 and (dados->>'lng')::numeric between -52 and -51.9),'ocorrência criada com tipo, bairro e posição oficiais');
+select pg_temp.rejeita($q$select public.ma_triar_animal('maringa','relatos','r-encontrado','confirmar','Em triagem','{"bairro_id":"b-centro"}')$q$,'40001');
+select pg_temp.rejeita($q$select public.ma_triar_animal('maringa','relatos','r-encontrado','arquivar','Confirmado','{"motivo":"Relato duplicado"}')$q$,'23514');
+select public.ma_triar_animal('maringa','relatos','r-denuncia','arquivar','Em triagem','{"motivo":"Relato duplicado"}');
+select pg_temp.exige(pg_temp.dados('relatos','r-denuncia')->>'status'='Arquivado' and pg_temp.dados('relatos','r-denuncia')->>'motivo_arquivamento'='Relato duplicado','relato arquivado com motivo');
+select pg_temp.rejeita(format($q$select public.ma_triar_animal('maringa','incidentes',%L,'resolver','Confirmada','{"desfecho":"Inventado"}')$q$,pg_temp.dados('relatos','r-encontrado')->>'incidente_id'),'23514');
+select public.ma_triar_animal('maringa','incidentes',pg_temp.dados('relatos','r-encontrado')->>'incidente_id','resolver','Confirmada','{"desfecho":"Reunido com o tutor"}');
+select pg_temp.exige((select dados->>'status'='Resolvida' and dados->>'desfecho'='Reunido com o tutor' from public.ma_cadastros where colecao='incidentes' and id=pg_temp.dados('relatos','r-encontrado')->>'incidente_id'),'desfecho registrado');
+-- O caminho genérico não contorna a triagem: sem a capacidade, nem a função nem a gravação direta mudam a situação.
+select pg_temp.gravar('relatos','r-generico','{"categoria":"animal","situacao":"Perdi meu animal","nome":"Tutor","telefone":"44999990003","endereco":"Rua quatro, 4","status":"Em triagem"}');
+select pg_temp.capacidade('admin','triar_animais',false);
+select pg_temp.rejeita($q$select pg_temp.atualizar('relatos','r-generico','{"status":"Arquivado"}')$q$,'42501');
+select pg_temp.rejeita($q$select public.ma_triar_animal('maringa','relatos','r-generico','arquivar','Em triagem','{"motivo":"Relato duplicado"}')$q$,'42501');
+select pg_temp.capacidade('admin','triar_animais',true);
+
 -- Operador e leitor: sem acesso a operações, como nas coleções existentes.
 select pg_temp.como('82');
 select pg_temp.rejeita($q$select pg_temp.gravar('animais','a-op','{"especie":"Gato","status":"Encontrado"}')$q$,'42501');
 select pg_temp.exige(pg_temp.dados('animais','a-toddy') is null and pg_temp.dados('incidentes','i-perdido') is null,'operador não lê operações');
+select pg_temp.rejeita($q$select public.ma_triar_animal('maringa','relatos','r-generico','arquivar','Em triagem','{"motivo":"Relato duplicado"}')$q$,'42501');
 select pg_temp.como('83');
 select pg_temp.rejeita($q$select pg_temp.gravar('alertas','al-leitor','{"incidente_id":"i-perdido","mensagem":"x"}')$q$,'42501');
 select pg_temp.exige(pg_temp.dados('alertas','al-1') is null,'leitor não lê alertas');

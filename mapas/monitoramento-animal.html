@@ -20,7 +20,7 @@ html.backend-pendente>body>*:not(#mapa-carregando):not(#backend-acesso):not(scri
 <link rel="stylesheet" href="./filtros-unidades.css?v=98df7e16d447" media="print" onload="this.media='all'" onerror="this.dataset.falhou='true'" data-mapa-estilo>
 <link rel="stylesheet" href="../filtros-cadastros.css?v=21520c023736" media="print" onload="this.media='all'" onerror="this.dataset.falhou='true'" data-mapa-estilo>
 <link rel="stylesheet" href="./ficha-ponto.css?v=e9bca272093f" media="print" onload="this.media='all'" onerror="this.dataset.falhou='true'" data-mapa-estilo>
-<link rel="stylesheet" href="./monitoramento-animal.css?v=b0c97d31b5a1" media="print" onload="this.media='all'" onerror="this.dataset.falhou='true'" data-mapa-estilo>
+<link rel="stylesheet" href="./monitoramento-animal.css?v=1721a13d9641" media="print" onload="this.media='all'" onerror="this.dataset.falhou='true'" data-mapa-estilo>
 <link rel="stylesheet" href="../dados-territoriais/camadas-mapas.css?v=0b4a9ef36d48" media="print" onload="this.media='all'" onerror="this.dataset.falhou='true'" data-mapa-estilo>
 <link rel="stylesheet" href="../mapa-navegacao.css?v=f3d14405ce2c" media="print" onload="this.media='all'" onerror="this.dataset.falhou='true'" data-mapa-estilo>
 <link rel="stylesheet" href="../backend/boot.css?v=6be83509e7ba" media="print" onload="this.media='all'" onerror="this.dataset.falhou='true'" data-mapa-estilo>
@@ -29,44 +29,45 @@ html.backend-pendente>body>*:not(#mapa-carregando):not(#backend-acesso):not(scri
 <div id="mapa-carregando" role="status" aria-live="polite" aria-label="Carregando mapa"><span class="marca" aria-hidden="true">M</span><strong>Maringá Alerta</strong><p>Carregando mapa…</p></div>
 <div class="layout">
  <header class="top">
-  <div class="brand"><a class="brand-link" href="../gestao/" title="Voltar à Gestão">M<span class="brand-dot">•</span></a><div class="brand-name"><strong id="map-brand-title">Monitoramento animal</strong><small>Sistema Integrado de Gestão de Crise</small></div></div>
+  <div class="brand"><a class="brand-link" href="../gestao/" data-texto-title="pagina.voltarGestao">M<span class="brand-dot">•</span></a><div class="brand-name"><strong id="map-brand-title"></strong><small data-texto="pagina.sistema"></small></div></div>
   <nav class="maps-nav" aria-label="Trocar de mapa">
    <a href="../index.html" target="_blank" rel="noopener noreferrer">Evento</a>
    <a href="./?tipo=colaboradores">Colaboradores</a>
    <a href="./?tipo=ajuda">Ajuda</a>
    <a class="active" href="./monitoramento-animal.html" aria-current="page">Monitoramento animal</a>
   </nav>
-  <div class="header-tools"><button type="button" id="eventos-open" class="filtros-open" aria-controls="eventos-painel" aria-expanded="false">Filtros</button><div class="actions"><a href="../atendimento/" target="_blank" rel="noopener noreferrer">Simular WhatsApp</a><a class="manage-link" href="../gestao/">Gestão</a></div><div id="header-actions" class="header-actions" data-mapas="./" data-escopo="pra-somar" role="group" aria-label="Ações rápidas"></div><div id="session-anchor" class="session-anchor"></div></div>
+  <div class="header-tools"><button type="button" id="eventos-open" class="filtros-open" aria-controls="eventos-painel" aria-expanded="false" data-texto="pagina.filtrosBotao"></button><div class="actions"><a href="../atendimento/" target="_blank" rel="noopener noreferrer" data-texto="pagina.simularWhatsapp"></a><a class="manage-link" href="../gestao/" data-texto="pagina.gestao"></a></div><div id="header-actions" class="header-actions" data-mapas="./" data-escopo="pra-somar" role="group" aria-label="Ações rápidas"></div><div id="session-anchor" class="session-anchor"></div></div>
  </header>
  <main class="workspace">
   <div class="map-area">
-   <div id="map" role="application" aria-label="Mapa de monitoramento animal"></div>
+   <div id="map" role="application" data-texto-aria-label="pagina.mapaRotulo"></div>
    <div id="ma-animal-erro" class="ma-animal-erro" role="alert" hidden></div>
-   <section id="eventos-painel" class="eventos-painel mapa-unidades-painel" aria-label="Filtros de unidades" hidden><header id="eventos-painel-head" class="eventos-painel-head"><strong>Filtros de unidades</strong><span class="eventos-painel-acoes"><button type="button" id="eventos-minimizar" aria-label="Minimizar filtros" aria-expanded="true">−</button><button type="button" id="eventos-close" aria-label="Fechar filtros">×</button></span></header><div id="eventos-painel-body" class="eventos-painel-body"><section id="filtros-cadastros-municipais" aria-label="Camadas do cadastro municipal"></section></div></section>
-   <button id="painel-ajuda-toggle" class="painel-ajuda-toggle" type="button" aria-controls="painel-ajuda" aria-expanded="true" aria-label="Abrir painel" title="Abrir painel" hidden>+</button>
+   <section id="eventos-painel" class="eventos-painel mapa-unidades-painel" data-texto-aria-label="pagina.filtrosUnidades" hidden><header id="eventos-painel-head" class="eventos-painel-head"><strong data-texto="pagina.filtrosUnidades"></strong><span class="eventos-painel-acoes"><button type="button" id="eventos-minimizar" data-texto-aria-label="pagina.minimizarFiltros" aria-expanded="true">−</button><button type="button" id="eventos-close" data-texto-aria-label="pagina.fecharFiltros">×</button></span></header><div id="eventos-painel-body" class="eventos-painel-body"><section id="filtros-cadastros-municipais" aria-label="Camadas do cadastro municipal"></section></div></section>
+   <button id="painel-ajuda-toggle" class="painel-ajuda-toggle" type="button" aria-controls="painel-ajuda" aria-expanded="true" data-texto-aria-label="pagina.abrirPainel" data-texto-title="pagina.abrirPainel" hidden>+</button>
    <div class="map-legend ma-animal-legenda" id="ma-animal-legenda"></div>
   </div>
   <aside id="painel-ajuda" class="sidebar">
-   <header class="panel-heading"><button id="painel-ajuda-recolher" class="painel-ajuda-recolher" type="button" aria-controls="painel-ajuda" aria-label="Recolher painel" title="Recolher painel" hidden>−</button><p class="eyebrow" id="eyebrow"></p><h1 id="title">Monitoramento animal</h1><p id="subtitle"></p></header>
+   <header class="panel-heading"><button id="painel-ajuda-recolher" class="painel-ajuda-recolher" type="button" aria-controls="painel-ajuda" data-texto-aria-label="pagina.recolherPainel" data-texto-title="pagina.recolherPainel" hidden>−</button><p class="eyebrow" id="eyebrow"></p><h1 id="title"></h1><p id="subtitle"></p></header>
    <section id="ma-animal-ficha" class="ma-animal-ficha" aria-labelledby="ma-animal-ficha-titulo" hidden>
-    <div class="ma-animal-ficha-head"><div><small id="ma-animal-ficha-tipo"></small><h2 id="ma-animal-ficha-titulo"></h2></div><button id="ma-animal-ficha-fechar" type="button" aria-label="Fechar ficha" title="Fechar">×</button></div>
+    <div class="ma-animal-ficha-head"><div><small id="ma-animal-ficha-tipo"></small><h2 id="ma-animal-ficha-titulo"></h2></div><button id="ma-animal-ficha-fechar" type="button" data-texto-aria-label="pagina.fecharFicha" data-texto-title="pagina.fecharFicha">×</button></div>
     <dl id="ma-animal-ficha-dados"></dl>
+    <div id="ma-animal-ficha-triagem"></div>
    </section>
-   <div class="municipio"><label for="municipio">Prefeitura</label><select id="municipio"></select></div>
+   <div class="municipio"><label for="municipio" data-texto="pagina.prefeitura"></label><select id="municipio"></select></div>
    <section class="stats" aria-label="Indicadores">
-    <div><span id="metric-one">0</span><small>Em triagem</small></div><div><span id="metric-two">0</span><small>Ocorrências abertas</small></div><div><span id="metric-three">0</span><small>Sigilosas</small></div>
+    <div><span id="metric-one">0</span><small data-texto="pagina.indicadorTriagem"></small></div><div><span id="metric-two">0</span><small data-texto="pagina.indicadorAbertas"></small></div><div><span id="metric-three">0</span><small data-texto="pagina.indicadorSigilosas"></small></div>
    </section>
    <section class="filters" aria-label="Filtros do monitoramento animal">
-    <div class="filter-source" id="filtro-camada"><label for="camada">Camada</label><select id="camada"></select></div>
+    <div class="filter-source" id="filtro-camada"><label for="camada" data-texto="pagina.filtroCamada"></label><select id="camada"></select></div>
     <div class="filter-cols">
-     <div id="filtro-zona"><label for="zona">Zona numerada</label><select id="zona"></select></div>
-     <div id="filtro-situacao"><label for="filtro">Situação</label><select id="filtro"></select></div>
+     <div id="filtro-zona"><label for="zona" data-texto="pagina.filtroZona"></label><select id="zona"></select></div>
+     <div id="filtro-situacao"><label for="filtro" data-texto="pagina.filtroSituacao"></label><select id="filtro"></select></div>
     </div>
-    <div class="filter-search" id="filtro-busca"><label for="busca">Buscar</label><input id="busca" type="search" placeholder="Protocolo, espécie, bairro..."></div>
-    <label class="filter-toggle" id="filtro-encerradas"><input type="checkbox" id="mostrar-encerradas"> <span>Mostrar resolvidas e arquivadas</span></label>
-    <label class="filter-toggle" id="filtro-unidades"><input type="checkbox" id="mostrar-unidades" checked> <span id="mostrar-unidades-texto">Mostrar unidades de atendimento</span></label>
+    <div class="filter-search" id="filtro-busca"><label for="busca" data-texto="pagina.filtroBusca"></label><input id="busca" type="search" data-texto-placeholder="pagina.buscaDica"></div>
+    <label class="filter-toggle" id="filtro-encerradas"><input type="checkbox" id="mostrar-encerradas"> <span data-texto="pagina.mostrarEncerradas"></span></label>
+    <label class="filter-toggle" id="filtro-unidades"><input type="checkbox" id="mostrar-unidades" checked> <span id="mostrar-unidades-texto"></span></label>
    </section>
-   <div class="list-heading"><strong id="list-title">Relatos e ocorrências</strong><span id="list-count">0</span></div>
+   <div class="list-heading"><strong id="list-title" data-texto="pagina.listaTitulo"></strong><span id="list-count">0</span></div>
    <div class="results" id="results" aria-live="polite"></div>
   </aside>
  </main>
@@ -82,7 +83,7 @@ html.backend-pendente>body>*:not(#mapa-carregando):not(#backend-acesso):not(scri
 <script type="application/x-maringa-modulo" src="../gestao/acoes-cabecalho.js?v=786c2da159f9"></script>
 <script type="application/x-maringa-modulo" src="../painel-eventos.js?v=8cf0d1639b15"></script>
 <script type="application/x-maringa-modulo" src="../filtros-cadastros.js?v=3937a61368c0"></script>
-<script type="application/x-maringa-modulo" src="./monitoramento-animal.js?v=2020d2dc1e82"></script>
+<script type="application/x-maringa-modulo" src="./monitoramento-animal.js?v=b6470526372b"></script>
 <script defer src="../backend/vendor/supabase-2.119.0.js?v=f7b5aa661799"></script>
 <script defer src="../backend/config.js?v=1376b6198002"></script>
 <script defer src="../backend/repositorio.js?v=bb6c4a9868c3"></script>
