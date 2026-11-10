@@ -138,6 +138,12 @@ select pg_temp.gravar('relatos','r-generico','{"categoria":"animal","situacao":"
 select pg_temp.capacidade('admin','triar_animais',false);
 select pg_temp.rejeita($q$select pg_temp.atualizar('relatos','r-generico','{"status":"Arquivado"}')$q$,'42501');
 select pg_temp.rejeita($q$select public.ma_triar_animal('maringa','relatos','r-generico','arquivar','Em triagem','{"motivo":"Relato duplicado"}')$q$,'42501');
+-- Trocar ou apagar a categoria não tira o relato da trava (achado da revisão pré-fase 5).
+select pg_temp.gravar('relatos','r-sigilo','{"categoria":"animal","situacao":"Maus-tratos ou abandono","nome":"X","telefone":"44999990009","endereco":"Rua sigilo","status":"Em triagem"}');
+select pg_temp.rejeita($q$select pg_temp.atualizar('relatos','r-sigilo','{"categoria":"","status":"Arquivado"}')$q$,'42501');
+select pg_temp.rejeita($q$select pg_temp.atualizar('relatos','r-sigilo','{"categoria":"outra","status":"Arquivado"}')$q$,'42501');
+select pg_temp.atualizar('relatos','r-sigilo','{"categoria":"","visibilidade":"publica"}');
+select pg_temp.exige(pg_temp.dados('relatos','r-sigilo')->>'categoria'='animal' and pg_temp.dados('relatos','r-sigilo')->>'visibilidade'='restrita','categoria e sigilo preservados');
 select pg_temp.capacidade('admin','triar_animais',true);
 
 -- Operador e leitor: sem acesso a operações, como nas coleções existentes.

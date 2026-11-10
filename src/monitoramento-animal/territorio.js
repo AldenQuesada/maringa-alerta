@@ -40,7 +40,9 @@ function criar({map,L,poligonos,normal,catalogoBairros,client,municipioId,perfil
   const cat=await client.rpc("ma_catalogo_territorial");if(cat.error)throw Error(cat.error.message);
   const tipos=(cat.data?.tipos||[]).filter(t=>(t.categoria_id||t.categoria)===c.catalogo.categoria).map(t=>t.id);
   const lotes=await Promise.all(tipos.map(tipo=>client.rpc("ma_territorio_listar",{municipio:municipioId,tipo_alvo:tipo,limite:500})));
-  return lotes.flatMap(r=>r.error?[]:r.data||[]).map(item=>({...item.cadastro?.dados,tipoTerritorial:item.territorio?.tipo_id})).filter(x=>x&&Number.isFinite(Number(x.lat))&&Number.isFinite(Number(x.lng)));
+  // Falha parcial não pode virar mapa incompleto em silêncio.
+  const falha=lotes.find(r=>r.error);if(falha)throw Error(falha.error.message);
+  return lotes.flatMap(r=>r.data||[]).map(item=>({...item.cadastro?.dados,tipoTerritorial:item.territorio?.tipo_id})).filter(x=>x&&Number.isFinite(Number(x.lat))&&Number.isFinite(Number(x.lng)));
  }
  return {carregar,posicao,zonaDe,zonas:()=>zonas.map(z=>z.nome),unidades};
 }
