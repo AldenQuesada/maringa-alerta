@@ -3,9 +3,10 @@
 const ID="monitoramento-animal";
 function validar(perfil,regras){
  if(!perfil||typeof perfil!=="object")throw Error("Perfil do mapa Monitoramento animal não está configurado no banco.");
- for(const campo of ["titulo","camera","camadas","filtros","situacao","estadosEncerrados"])
+ for(const campo of ["titulo","camera","camadas","filtros","situacao","estadosEncerrados","textos","cores"])
   if(perfil[campo]==null)throw Error("Perfil do mapa incompleto: falta "+campo+".");
  if(!Array.isArray(perfil.camadas)||!perfil.camadas.length)throw Error("Perfil do mapa sem camadas.");
+ for(const cor of ["contornoZona","destaqueRestrito"])if(!/^#[0-9a-f]{3,8}$/i.test(perfil.cores[cor]||""))throw Error("Perfil do mapa incompleto: cor "+cor+" ausente ou inválida.");
  if(!regras||!regras.categoriaTipos)throw Error("Regras da proteção animal ausentes em operacao.protecaoAnimal.");
  return {perfil,regras};
 }

@@ -5,12 +5,16 @@ const fs=require('node:fs');
 // Perfil, regras e modelo lidos da própria migração: o teste não inventa configuração.
 const sql=fs.readFileSync(require('node:path').join(__dirname,'../../supabase/migrations/20261108194500_monitoramento_animal.sql'),'utf8');
 const bloco=(inicio)=>{const i=sql.indexOf(inicio);const a=sql.indexOf('$j$',i)+3;return JSON.parse(sql.slice(a,sql.indexOf('$j$',a)));};
-const mapas=bloco("values('mapas'");
+const sqlD=fs.readFileSync(require('node:path').join(__dirname,'../../supabase/migrations/20261110120000_monitoramento_animal_triagem.sql'),'utf8');
+const blocoD=(inicio)=>{const i=sqlD.indexOf(inicio);const a=sqlD.indexOf('$j$',i)+3;return JSON.parse(sqlD.slice(a,sqlD.indexOf('$j$',a)));};
+// Perfil e regras como ficam no banco depois das etapas A e D.
+const mapasA=bloco("values('mapas'");
+const mapas={'monitoramento-animal':{...mapasA['monitoramento-animal'],...blocoD("'{monitoramento-animal}'")}};
 const modelo=bloco("values('modelos'")['protecao-animal'];
-const regras=bloco("'{protecaoAnimal}'");
+const regras={...bloco("'{protecaoAnimal}'"),triagem:blocoD("'{protecaoAnimal,triagem}'")};
 const operacao={protecaoAnimal:regras};
 const esquemas={...D.ESQUEMAS,incidentes:{label:'Ocorrências',singular:'Ocorrência',collection:'incidentes',columns:[],fields:[]}};
-async function ambiente({browser,contextOptions={},latenciaMs=0,segurarSessao=false}){
+async function ambiente({browser,contextOptions={},latenciaMs=0,segurarSessao=false,capacidades=['triar_animais']}){
  const esperar=()=>new Promise(resolve=>setTimeout(resolve,latenciaMs));
  let liberarSessao;
  const sessaoPronta=new Promise(resolve=>{liberarSessao=resolve;});
@@ -39,6 +43,8 @@ async function ambiente({browser,contextOptions={},latenciaMs=0,segurarSessao=fa
   }
   if(name==='ma_meu_perfil')return {data:{admin_plataforma:false}};
   if(name==='ma_minhas_capacidades')return {data:caps()};
+  if(name==='ma_capacidades_operacionais')return {data:capacidades};
+  if(name==='ma_triar_animal'){calls.push({name,args});return {data:{colecao:args.colecao_alvo,id:args.registro,status:'ok'}};}
   if(name==='ma_catalogo_territorial')return {data:{categorias:[{id:'animais'}],tipos:[{id:'clinica_veterinaria',categoria_id:'animais'}]}};
   if(name==='ma_territorio_listar')return {data:args.tipo_alvo==='clinica_veterinaria'?[{cadastro:{dados:{id:'vet-teste',nome:'Clínica veterinária fictícia',endereco:'Rua Vet, 1',lat:-23.418,lng:-51.93}},territorio:{tipo_id:'clinica_veterinaria'}}]:[]};
   calls.push({name,args});

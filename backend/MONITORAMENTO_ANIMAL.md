@@ -94,3 +94,35 @@ Página nova `mapas/monitoramento-animal.html`, duplicada do mapa de Ajuda. Os m
 - **CSS próprio:** `mapas/monitoramento-animal.css`, cópia de `mapas/style.css` com os acréscimos do módulo. Mudar um não afeta o outro.
 
 Testes: `tests/monitoramento-animal.test.cjs` (perfil, geometria, consultas e paridade com o fluxo do WhatsApp) e `tests/browser/monitoramento-animal.spec.cjs` (câmera da Ajuda, 390 e 320 px, filtros, marcadores, ficha e perfil ausente), no job `mapas-mobile` do CI.
+
+## Etapa D: triagem e configuração completa no banco
+
+Migração `20261110120000_monitoramento_animal_triagem.sql`. Somente acréscimos ao módulo; nenhum mapa, CSS ou fluxo existente muda.
+
+### Textos e cores
+- Toda a copy do mapa fica em `ma_configuracao` `mapas` → `monitoramento-animal.textos` (página, filtros, lista, legenda, mapa, ficha e triagem).
+- O HTML declara só a chave (`data-texto`, `data-texto-aria-label`, `data-texto-title`, `data-texto-placeholder`). O módulo `textos.js` preenche a partir do banco.
+- Texto ausente é erro visível com o nome da chave. Não existe texto de reserva no código.
+- As cores ficam em `monitoramento-animal.cores` (`contornoZona` e `destaqueRestrito`) e são validadas na abertura. A cor de cada tipo continua no próprio tipo de ocorrência.
+- Ficam fora do banco, de propósito:
+  - a tela de carregamento, que aparece antes do login;
+  - as abas de navegação, compartilhadas com os mapas existentes;
+  - as mensagens de erro de configuração ausente.
+
+### Triagem
+- As regras ficam em `operacao.protecaoAnimal.triagem`: ações por coleção, situação de origem e de destino, exigências (`bairro_id`, `motivo`, `desfecho`), motivos de arquivamento, evento padrão e responsabilidade padrão.
+- Única porta de gravação: `public.ma_triar_animal(municipio, colecao_alvo, registro, acao, status_esperado, detalhe)`. Ela roda com a permissão de quem chama (security invoker) e:
+  - exige a capacidade `triar_animais`;
+  - recusa um registro que mudou desde que foi aberto (`status_esperado`, código 40001);
+  - valida a ação, a situação de origem, o motivo e o desfecho contra o banco;
+  - ao confirmar um relato, cria a ocorrência com:
+    - o tipo derivado da situação do WhatsApp;
+    - a posição oficial, um ponto interno da geometria do bairro escolhido (a tela não envia coordenadas);
+    - o vínculo `origem_relato`;
+  - grava tudo em um lote, por `ma_aplicar_alteracoes`, com contratos, transições e histórico.
+- Fotos e dados do denunciante ficam no relato de origem, que mantém a própria visibilidade.
+- A trava `ma_protecao_animal` também passou a exigir a capacidade para mudar a situação de um relato de animal, mesmo pelo caminho genérico. Ela registra `triado_por` e `triado_em` pelo servidor.
+- A tela mostra as ações só para quem tem a capacidade (`ma_capacidades_operacionais`). Sem ela, a ficha mostra que a conta só consulta.
+
+### Limite conhecido
+Depois de uma ação, a página recarrega para ler os dados confirmados, porque a camada de dados da gestão não oferece recarga parcial. A confirmação aparece depois da recarga.

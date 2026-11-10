@@ -12,7 +12,7 @@ function criar({map,L,poligonos,normal,catalogoBairros,client,municipioId,perfil
   }
   for(const f of dados.zonasNumeradas?.features||[]){
    const nome=String(f.properties?.nome||"").trim();if(!/^Zona\s*\d+$/i.test(nome))continue;
-   const layer=L.geoJSON(f,{style:{color:"#e7b94c",weight:1.6,fillColor:"#e7b94c",fillOpacity:.035,dashArray:"5 5"},
+   const layer=L.geoJSON(f,{style:{color:perfil.cores.contornoZona,weight:1.6,fillColor:perfil.cores.contornoZona,fillOpacity:.035,dashArray:"5 5"},
     onEachFeature:(_f,shape)=>shape.bindTooltip(nome,{sticky:true})});
    zonas.push({nome,geometry:f.geometry});poligonos.addLayer(layer);
   }

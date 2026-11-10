@@ -221,11 +221,13 @@
       "target": "mapas/monitoramento-animal.js",
       "sources": [
         "src/monitoramento-animal/perfil.js",
+        "src/monitoramento-animal/textos.js",
         "src/monitoramento-animal/geometria.js",
         "src/monitoramento-animal/consultas.js",
         "src/monitoramento-animal/territorio.js",
         "src/monitoramento-animal/camadas.js",
         "src/monitoramento-animal/filtros.js",
+        "src/monitoramento-animal/triagem.js",
         "src/monitoramento-animal/ficha.js",
         "src/monitoramento-animal/resultados.js",
         "src/monitoramento-animal/app.js"

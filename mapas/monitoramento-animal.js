@@ -3,9 +3,10 @@
 const ID="monitoramento-animal";
 function validar(perfil,regras){
  if(!perfil||typeof perfil!=="object")throw Error("Perfil do mapa Monitoramento animal não está configurado no banco.");
- for(const campo of ["titulo","camera","camadas","filtros","situacao","estadosEncerrados"])
+ for(const campo of ["titulo","camera","camadas","filtros","situacao","estadosEncerrados","textos","cores"])
   if(perfil[campo]==null)throw Error("Perfil do mapa incompleto: falta "+campo+".");
  if(!Array.isArray(perfil.camadas)||!perfil.camadas.length)throw Error("Perfil do mapa sem camadas.");
+ for(const cor of ["contornoZona","destaqueRestrito"])if(!/^#[0-9a-f]{3,8}$/i.test(perfil.cores[cor]||""))throw Error("Perfil do mapa incompleto: cor "+cor+" ausente ou inválida.");
  if(!regras||!regras.categoriaTipos)throw Error("Regras da proteção animal ausentes em operacao.protecaoAnimal.");
  return {perfil,regras};
 }
@@ -16,6 +17,25 @@ async function carregar({client=root.AlertaSupabaseClient,regrasOperacionais=roo
  return validar(data.documento?.[ID],regrasOperacionais?.protecaoAnimal);
 }
 root.AlertaAnimalPerfil={ID,carregar,validar};
+})(globalThis);
+/* textos: toda a copy do mapa vem de perfil.textos no banco. Texto ausente é erro visível, nunca um valor de reserva. */
+(function(root){'use strict';
+function criar(textos){
+ if(!textos||typeof textos!=="object")throw Error("Perfil do mapa incompleto: falta textos.");
+ function t(caminho,vars){
+  const v=String(caminho).split(".").reduce((o,k)=>o&&typeof o==="object"?o[k]:undefined,textos);
+  if(typeof v!=="string")throw Error("Texto ausente no perfil do mapa: "+caminho+".");
+  return vars?v.replace(/\{(\w+)\}/g,(_,k)=>String(vars[k]??"")):v;
+ }
+ // HTML declara só a chave: data-texto (conteúdo) e data-texto-<atributo> (aria-label, title, placeholder).
+ function aplicar(doc){
+  doc.querySelectorAll("[data-texto]").forEach(el=>{el.textContent=t(el.dataset.texto);});
+  for(const attr of ["aria-label","title","placeholder"])
+   doc.querySelectorAll("[data-texto-"+attr+"]").forEach(el=>el.setAttribute(attr,t(el.getAttribute("data-texto-"+attr))));
+ }
+ return {t,aplicar};
+}
+root.AlertaAnimalTextos={criar};
 })(globalThis);
 /* geometria: ponto em polígono e centro de feições GeoJSON, sem dependências. */
 (function(root){'use strict';
@@ -83,7 +103,7 @@ function criar({map,L,poligonos,normal,catalogoBairros,client,municipioId,perfil
   }
   for(const f of dados.zonasNumeradas?.features||[]){
    const nome=String(f.properties?.nome||"").trim();if(!/^Zona\s*\d+$/i.test(nome))continue;
-   const layer=L.geoJSON(f,{style:{color:"#e7b94c",weight:1.6,fillColor:"#e7b94c",fillOpacity:.035,dashArray:"5 5"},
+   const layer=L.geoJSON(f,{style:{color:perfil.cores.contornoZona,weight:1.6,fillColor:perfil.cores.contornoZona,fillOpacity:.035,dashArray:"5 5"},
     onEachFeature:(_f,shape)=>shape.bindTooltip(nome,{sticky:true})});
    zonas.push({nome,geometry:f.geometry});poligonos.addLayer(layer);
   }
@@ -119,7 +139,7 @@ root.AlertaAnimalTerritorio={criar};
 })(globalThis);
 /* camadas: marcadores do mapa. Cor e ícone vêm do tipo de ocorrência no banco. */
 (function(root){'use strict';
-function criar({L,esc,grupos,territorio,aoAbrir}){
+function criar({L,esc,t,grupos,territorio,aoAbrir}){
  function icone(x){
   const cor=/^#[0-9a-f]{3,8}$/i.test(x.tipo?.cor||"")?x.tipo.cor:"";
   const classe="ma-animal-pin"+(x.origemCamada==="triagem"?" triagem":"")+(x.visibilidade==="restrita"?" restrito":"");
@@ -132,9 +152,9 @@ function criar({L,esc,grupos,territorio,aoAbrir}){
    const p=territorio.posicao(x);if(!p){semPosicao++;continue;}
    const chave=p.lat.toFixed(5)+":"+p.lng.toFixed(5),n=ocupacao.get(chave)||0;ocupacao.set(chave,n+1);
    const desloc=p.aproximada?n*0.0009:0;
-   const titulo=(x.tipo?.nome||x.situacao||"Relato")+(x.protocolo?" · "+x.protocolo:"");
+   const titulo=(x.tipo?.nome||x.situacao||t("lista.relato"))+(x.protocolo?" · "+x.protocolo:"");
    L.marker([p.lat+desloc,p.lng+desloc],{icon:icone(x),title:titulo})
-    .bindTooltip("<strong>"+esc(titulo)+"</strong><br>"+esc(x.status||"")+(p.aproximada?" · localização aproximada do bairro "+esc(p.bairro):""),{direction:"top"})
+    .bindTooltip("<strong>"+esc(titulo)+"</strong><br>"+esc(x.status||"")+(p.aproximada?" · "+esc(t("mapa.aproximada",{bairro:p.bairro})):""),{direction:"top"})
     .on("click",()=>aoAbrir(x)).addTo(grupos[x.origemCamada]);
   }
   return semPosicao;
@@ -143,7 +163,7 @@ function criar({L,esc,grupos,territorio,aoAbrir}){
   grupos.unidades.clearLayers();if(!visivel)return;
   for(const u of xs){
    L.marker([Number(u.lat),Number(u.lng)],{icon:L.divIcon({className:"pin canonical-map-pin",html:'<span class="canonical-pin">🏥</span>',iconSize:[32,32],iconAnchor:[16,32]}),title:u.nome})
-    .bindTooltip("<strong>"+esc(u.nome)+"</strong><br>"+esc(u.endereco||"Endereço não informado"),{direction:"top"}).addTo(grupos.unidades);
+    .bindTooltip("<strong>"+esc(u.nome)+"</strong><br>"+esc(u.endereco||t("mapa.enderecoNaoInformado")),{direction:"top"}).addTo(grupos.unidades);
   }
  }
  return {desenhar,desenharUnidades};
@@ -152,40 +172,100 @@ root.AlertaAnimalCamadas={criar};
 })(globalThis);
 /* filtros: opções montadas a partir do perfil e dos tipos do banco. */
 (function(root){'use strict';
-function criar({$,esc,perfil,consultas}){
+function criar({$,esc,t,perfil,consultas}){
  const opt=(v,n,sel)=>'<option value="'+esc(v)+'"'+(String(v)===String(sel)?" selected":"")+">"+esc(n)+"</option>";
  const tem=f=>perfil.filtros.includes(f);
  function montar(state,zonas){
-  $("camada").innerHTML=opt("","Todas as camadas",state.camada)+perfil.camadas.filter(c=>c.colecao).map(c=>opt(c.id,c.rotulo,state.camada)).join("");
-  $("zona").innerHTML=opt("","Todas as zonas",state.zona)+zonas.map(z=>opt(z,z,state.zona)).join("");
-  $("filtro").innerHTML=opt("","Todas as situações",state.situacao)+consultas.tipos().map(t=>opt(t.id,t.nome,state.situacao)).join("");
+  $("camada").innerHTML=opt("",t("filtros.todasCamadas"),state.camada)+perfil.camadas.filter(c=>c.colecao).map(c=>opt(c.id,c.rotulo,state.camada)).join("");
+  $("zona").innerHTML=opt("",t("filtros.todasZonas"),state.zona)+zonas.map(z=>opt(z,z,state.zona)).join("");
+  $("filtro").innerHTML=opt("",t("filtros.todasSituacoes"),state.situacao)+consultas.tipos().map(t=>opt(t.id,t.nome,state.situacao)).join("");
   for(const [id,f] of [["filtro-camada","camada"],["filtro-zona","zona"],["filtro-situacao","situacao"],["filtro-busca","busca"],["filtro-encerradas","mostrar_resolvidas"]])$(id).hidden=!tem(f);
   const unidades=perfil.camadas.find(c=>c.catalogo);
-  $("filtro-unidades").hidden=!unidades;if(unidades)$("mostrar-unidades-texto").textContent="Mostrar "+unidades.rotulo.toLocaleLowerCase("pt-BR");
+  $("filtro-unidades").hidden=!unidades;if(unidades)$("mostrar-unidades-texto").textContent=t("filtros.mostrarUnidades",{rotulo:unidades.rotulo.toLocaleLowerCase("pt-BR")});
   legenda();
  }
  function legenda(){
-  $("ma-animal-legenda").innerHTML=consultas.tipos().map(t=>'<span><i style="--ma-animal-cor:'+esc(/^#[0-9a-f]{3,8}$/i.test(t.cor||"")?t.cor:"#93a6b8")+'">'+esc(t.icone||"")+"</i>"+esc(t.nome)+(t.visibilidade==="restrita"?" · sigiloso":"")+"</span>").join("")+
-   '<span>Contorno tracejado: relato em triagem, posição aproximada pelo bairro</span>';
+  $("ma-animal-legenda").innerHTML=consultas.tipos().map(tp=>'<span><i'+(/^#[0-9a-f]{3,8}$/i.test(tp.cor||"")?' style="--ma-animal-cor:'+esc(tp.cor)+'"':"")+'>'+esc(tp.icone||"")+"</i>"+esc(tp.nome)+(tp.visibilidade==="restrita"?" · "+esc(t("legenda.sigiloso")):"")+"</span>").join("")+
+   '<span>'+esc(t("legenda.triagem"))+"</span>";
  }
  return {montar,legenda};
 }
 root.AlertaAnimalFiltros={criar};
 })(globalThis);
-/* ficha: detalhe do registro no painel lateral. Somente leitura nesta etapa; ações de triagem vêm na etapa D. */
+/* triagem: ações na ficha. Quais ações existem, de que situação partem e o que exigem vem de
+   operacao.protecaoAnimal.triagem; quem pode agir vem de ma_capacidades_operacionais. A gravação é sempre
+   public.ma_triar_animal: a tela não monta o registro, não envia coordenadas e não decide a situação final. */
 (function(root){'use strict';
-function criar({$,esc,territorio,aoFechar}){
- const linha=(r,v)=>v==null||v===""?"":"<dt>"+esc(r)+"</dt><dd>"+esc(Array.isArray(v)?v.join(", "):v)+"</dd>";
+function criar({$,esc,t,regras,client,municipioId,bairros,territorio,normal,aoConcluir}){
+ const cfg=regras.triagem;
+ if(!cfg||!cfg.acoes)throw Error("Triagem não configurada em operacao.protecaoAnimal.triagem.");
+ let capaz=null;
+ async function capacidades(){
+  if(capaz!==null)return capaz;
+  const r=await client.rpc("ma_capacidades_operacionais",{municipio:municipioId});
+  if(r.error)throw Error(r.error.message);
+  capaz=Array.isArray(r.data)&&r.data.includes(regras.capacidades?.triagem);
+  return capaz;
+ }
+ const opt=(v,n,sel)=>'<option value="'+esc(v)+'"'+(v===sel?" selected":"")+">"+esc(n)+"</option>";
+ function campo(exige,x){
+  if(exige==="bairro_id"){
+   const sugerido=territorio.posicao(x)?.bairro,escolhido=bairros().find(b=>sugerido&&normal(b.nome)===normal(sugerido))?.id||"";
+   return '<label>'+esc(t("triagem.bairro"))+'<select name="bairro_id" required>'+opt("",t("triagem.escolherBairro"),escolhido)+
+    bairros().map(b=>opt(b.id,b.nome,escolhido)).join("")+"</select></label>";
+  }
+  if(exige==="motivo")return '<label>'+esc(t("triagem.motivo"))+'<select name="motivo" required>'+opt("",t("triagem.escolherMotivo"),"")+
+   (cfg.motivosArquivamento||[]).map(m=>opt(m,m,"")).join("")+"</select></label>";
+  if(exige==="desfecho")return '<label>'+esc(t("triagem.desfecho"))+'<select name="desfecho" required>'+opt("",t("triagem.escolherDesfecho"),"")+
+   (regras.desfechos||[]).map(m=>opt(m,m,"")).join("")+"</select></label>";
+  throw Error("Exigência de triagem desconhecida: "+exige+".");
+ }
+ async function montar(alvo,x){
+  alvo.innerHTML="";
+  const colecao=x.origemCamada==="triagem"?"relatos":"incidentes";
+  const acoes=(cfg.acoes[colecao]||[]).filter(a=>(a.de||[]).includes(x.status));
+  let pode;
+  try{pode=await capacidades();}catch(err){alvo.innerHTML='<p role="alert">'+esc(t("triagem.erro",{erro:err.message}))+"</p>";return;}
+  const corpo=!pode?"<p>"+esc(t("triagem.semCapacidade"))+"</p>":!acoes.length?"<p>"+esc(t("triagem.semAcoes"))+"</p>":
+   '<div class="ma-animal-triagem-acoes">'+acoes.map(a=>'<button type="button" data-acao="'+esc(a.id)+'">'+esc(a.rotulo)+"</button>").join("")+'</div><div data-formulario></div>';
+  alvo.innerHTML='<section class="ma-animal-triagem"><h3>'+esc(t("triagem.titulo"))+"</h3>"+corpo+"</section>";
+  alvo.querySelectorAll("[data-acao]").forEach(b=>b.onclick=()=>formulario(alvo,x,colecao,acoes.find(a=>a.id===b.dataset.acao)));
+ }
+ function formulario(alvo,x,colecao,acao){
+  const area=alvo.querySelector("[data-formulario]");
+  area.innerHTML='<form>'+(acao.exige||[]).map(e=>campo(e,x)).join("")+
+   '<div class="ma-animal-triagem-acoes"><button type="submit" data-primaria>'+esc(t("triagem.confirmar"))+'</button><button type="button" data-cancelar>'+esc(t("triagem.cancelar"))+'</button></div><p role="status"></p></form>';
+  const form=area.querySelector("form"),estado=form.querySelector("[role=status]");
+  form.querySelector("[data-cancelar]").onclick=()=>{area.innerHTML="";};
+  form.onsubmit=async e=>{
+   e.preventDefault();
+   const detalhe=Object.fromEntries([...new FormData(form)].filter(([,v])=>v!==""));
+   form.querySelectorAll("button,select").forEach(el=>el.disabled=true);estado.textContent=t("triagem.gravando");
+   const r=await client.rpc("ma_triar_animal",{municipio:municipioId,colecao_alvo:colecao,registro:x.id,acao:acao.id,status_esperado:x.status,detalhe});
+   if(r.error){estado.textContent=t("triagem.erro",{erro:r.error.message});form.querySelectorAll("button,select").forEach(el=>el.disabled=false);return;}
+   aoConcluir(t("triagem.feito",{acao:acao.rotulo}),r.data);
+  };
+ }
+ return {montar};
+}
+root.AlertaAnimalTriagem={criar};
+})(globalThis);
+/* ficha: detalhe do registro no painel lateral. Rótulos vêm de perfil.textos.ficha; as ações vêm do módulo de triagem. */
+(function(root){'use strict';
+function criar({$,esc,t,territorio,triagem,aoFechar}){
+ const linha=(r,v)=>v==null||v===""?"":"<dt>"+esc(t("ficha."+r))+"</dt><dd>"+esc(Array.isArray(v)?v.join(", "):v)+"</dd>";
  function abrir(x){
   const p=territorio.posicao(x);
-  $("ma-animal-ficha-tipo").textContent=(x.origemCamada==="triagem"?"RELATO · ":"OCORRÊNCIA · ")+(x.status||"");
-  $("ma-animal-ficha-titulo").textContent=x.tipo?.nome||x.situacao||"Registro";
+  $("ma-animal-ficha-tipo").textContent=t(x.origemCamada==="triagem"?"ficha.relato":"ficha.ocorrencia")+" · "+(x.status||"");
+  $("ma-animal-ficha-titulo").textContent=x.tipo?.nome||x.situacao||t("lista.registroGenerico");
   $("ma-animal-ficha-dados").innerHTML=
-   linha("Protocolo",x.protocolo)+linha("Espécie",x.especie)+linha("Endereço",x.endereco)+linha("Bairro",x.bairro||p?.bairro)+
-   linha("Localização",p?(p.aproximada?"Aproximada pelo bairro":"Coordenadas registradas"):"Sem posição no mapa")+
-   linha("Descrição",x.descricao)+linha("Origem",x.origem)+linha("Registrado em",x.criado_em||x.quando)+
-   linha("Sigilo",x.visibilidade==="restrita"?"Denúncia restrita":"")+linha("Denunciante",x.anonimo===true?"Anônimo":x.nome)+linha("Desfecho",x.desfecho);
+   linha("protocolo",x.protocolo)+linha("especie",x.especie)+linha("endereco",x.endereco)+linha("bairro",x.bairro||p?.bairro)+
+   linha("localizacao",t(p?(p.aproximada?"ficha.aproximada":"ficha.coordenadas"):"ficha.semPosicao"))+
+   linha("descricao",x.descricao)+linha("origem",x.origem)+linha("registradoEm",x.criado_em||x.quando)+
+   linha("sigilo",x.visibilidade==="restrita"?t("ficha.sigiloRestrito"):"")+linha("denunciante",x.anonimo===true?t("ficha.anonimo"):x.nome)+
+   linha("desfecho",x.desfecho)+linha("motivo",x.motivo_arquivamento)+linha("triadoEm",x.triado_em)+linha("ocorrenciaGerada",x.incidente_id);
   $("ma-animal-ficha").hidden=false;$("ma-animal-ficha").scrollIntoView({block:"nearest"});
+  triagem.montar($("ma-animal-ficha-triagem"),x);
  }
  $("ma-animal-ficha-fechar").addEventListener("click",()=>{$("ma-animal-ficha").hidden=true;aoFechar?.();});
  return {abrir};
@@ -194,19 +274,19 @@ root.AlertaAnimalFicha={criar};
 })(globalThis);
 /* resultados: lista lateral e indicadores. */
 (function(root){'use strict';
-function criar({$,esc,perfil,aoAbrir,aoLocalizar}){
+function criar({$,esc,t,perfil,aoAbrir,aoLocalizar}){
  function indicadores(todos){
   $("metric-one").textContent=todos.filter(x=>x.origemCamada==="triagem").length;
   $("metric-two").textContent=todos.filter(x=>x.origemCamada==="ocorrencias"&&!perfil.estadosEncerrados.includes(x.status)).length;
   $("metric-three").textContent=todos.filter(x=>x.visibilidade==="restrita").length;
  }
  function lista(xs,semPosicao){
-  $("list-count").textContent=xs.length+" registro"+(xs.length===1?"":"s")+(semPosicao?" · "+semPosicao+" sem posição":"");
+  $("list-count").textContent=xs.length+" "+t(xs.length===1?"lista.registro":"lista.registros")+(semPosicao?" · "+t("lista.semPosicao",{n:semPosicao}):"");
   const el=$("results");
-  if(!xs.length){el.innerHTML='<div class="empty">Nenhum registro neste filtro.<p>Os relatos chegam pelo WhatsApp e entram em triagem.</p></div>';return;}
-  el.innerHTML=xs.map((x,i)=>'<button type="button" class="result ma-animal-result" data-i="'+i+'"><div class="result-top"><span>'+esc(x.origemCamada==="triagem"?"Relato":"Ocorrência")+(x.protocolo?" · "+esc(x.protocolo):"")+'</span>'+
+  if(!xs.length){el.innerHTML='<div class="empty">'+esc(t("lista.vazioTitulo"))+"<p>"+esc(t("lista.vazioDetalhe"))+"</p></div>";return;}
+  el.innerHTML=xs.map((x,i)=>'<button type="button" class="result ma-animal-result" data-i="'+i+'"><div class="result-top"><span>'+esc(t(x.origemCamada==="triagem"?"lista.relato":"lista.ocorrencia"))+(x.protocolo?" · "+esc(x.protocolo):"")+'</span>'+
    '<span class="result-tag'+(x.visibilidade==="restrita"?" urgente":"")+'">'+esc(x.status||"")+'</span></div>'+
-   '<strong>'+esc(x.tipo?.nome||x.situacao||"Registro")+(x.especie?" · "+esc(x.especie):"")+'</strong><small>'+esc(x.bairro||x.endereco||"Local não informado")+'</small></button>').join("");
+   '<strong>'+esc(x.tipo?.nome||x.situacao||t("lista.registroGenerico"))+(x.especie?" · "+esc(x.especie):"")+'</strong><small>'+esc(x.bairro||x.endereco||t("lista.localNaoInformado"))+'</small></button>').join("");
   el.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{const x=xs[Number(b.dataset.i)];aoLocalizar(x);aoAbrir(x);});
  }
  return {indicadores,lista};
@@ -216,27 +296,36 @@ root.AlertaAnimalResultados={criar};
 /* Monitoramento animal: mapa próprio, duplicado do mapa de Ajuda. Não altera os mapas existentes. */
 (async function(){
 "use strict";
+const CHAVE_AVISO="ma-animal-aviso";
 const $=id=>document.getElementById(id);
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const INVENTARIO=globalThis.AlertaInventarioMapas;
 const normal=x=>INVENTARIO?INVENTARIO.normal(x):String(x??"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLocaleLowerCase("pt-BR").trim();
 function alertar(msg){const t=$("toast");t.textContent=msg;t.hidden=false;clearTimeout(alertar.t);alertar.t=setTimeout(()=>{t.hidden=true;},4500);}
 
-let configuracao;
-try{configuracao=await AlertaAnimalPerfil.carregar();}
-catch(err){$("ma-animal-erro").textContent=err.message;$("ma-animal-erro").hidden=false;return;}
+const falhar=err=>{$("ma-animal-erro").textContent=err.message;$("ma-animal-erro").hidden=false;};
+let configuracao,textos;
+try{
+ configuracao=await AlertaAnimalPerfil.carregar();
+ textos=AlertaAnimalTextos.criar(configuracao.perfil.textos);
+ textos.aplicar(document);
+}catch(err){falhar(err);return;}
 const {perfil,regras}=configuracao;
+const t=textos.t;
+// Cores do perfil viram variáveis CSS; o CSS não guarda cor de dado.
+document.documentElement.style.setProperty("--ma-animal-destaque-restrito",perfil.cores.destaqueRestrito);
 
 const municipioId=AlertaGestaoDados.config.selecionar(AlertaGestaoDados,sessionStorage);
 const db=AlertaGestaoDados.criar(undefined,{municipioId});
 const prefeitura=db.municipioAtivo();
-const nomeCidade=prefeitura?.nome||"Município";
+if(!prefeitura?.nome){falhar(Error("Prefeitura indisponível para este acesso."));return;}
+const nomeCidade=prefeitura.nome;
 
 $("eyebrow").textContent=perfil.eyebrow||"";
 $("title").textContent=perfil.titulo;
 $("subtitle").textContent=perfil.subtitulo||"";
 $("map-brand-title").textContent=nomeCidade.toLocaleUpperCase("pt-BR")+" "+perfil.titulo.toLocaleUpperCase("pt-BR");
-document.title=perfil.titulo+" | "+nomeCidade+" · Sistema Integrado de Crise";
+document.title=t("pagina.tituloDocumento",{titulo:perfil.titulo,cidade:nomeCidade});
 $("municipio").innerHTML='<option>'+esc(nomeCidade+" / "+(prefeitura?.uf||""))+'</option>';$("municipio").disabled=true;
 
 const centro=AlertaGestaoDados.config.centro(prefeitura);
@@ -252,11 +341,15 @@ const state={camada:"",zona:"",situacao:"",busca:"",mostrarEncerradas:false,most
 
 const consultas=AlertaAnimalConsultas.criar({db,perfil,regras,normal});
 const territorio=AlertaAnimalTerritorio.criar({map,L,poligonos,normal,catalogoBairros,client:globalThis.AlertaSupabaseClient,municipioId,perfil,aoMudar:()=>{filtros.montar(state,territorio.zonas());render();}});
-const ficha=AlertaAnimalFicha.criar({$,esc,territorio,aoFechar:()=>{}});
+const triagem=AlertaAnimalTriagem.criar({$,esc,t,regras,client:globalThis.AlertaSupabaseClient,municipioId,territorio,normal,
+ bairros:()=>db.lista("bairros").filter(b=>b.nome).map(b=>({id:b.id,nome:b.nome})).sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR")),
+ // A camada de dados da gestão não expõe recarga parcial: recarrega a página e mostra a confirmação depois.
+ aoConcluir:msg=>{try{sessionStorage.setItem(CHAVE_AVISO,msg);}catch{}location.reload();}});
+const ficha=AlertaAnimalFicha.criar({$,esc,t,territorio,triagem,aoFechar:()=>{}});
 const abrirFicha=x=>{if($("painel-ajuda").hidden)$("painel-ajuda-toggle").click();ficha.abrir(x);};
-const camadas=AlertaAnimalCamadas.criar({L,esc,grupos,territorio,aoAbrir:abrirFicha});
-const filtros=AlertaAnimalFiltros.criar({$,esc,perfil,consultas});
-const resultados=AlertaAnimalResultados.criar({$,esc,perfil,aoAbrir:abrirFicha,aoLocalizar:x=>{const p=territorio.posicao(x);if(p)map.flyTo([p.lat,p.lng],Math.max(map.getZoom(),15));}});
+const camadas=AlertaAnimalCamadas.criar({L,esc,t,grupos,territorio,aoAbrir:abrirFicha});
+const filtros=AlertaAnimalFiltros.criar({$,esc,t,perfil,consultas});
+const resultados=AlertaAnimalResultados.criar({$,esc,t,perfil,aoAbrir:abrirFicha,aoLocalizar:x=>{const p=territorio.posicao(x);if(p)map.flyTo([p.lat,p.lng],Math.max(map.getZoom(),15));}});
 
 // Mesmo painel de unidades municipais do mapa de Ajuda (módulos compartilhados, sem alteração).
 const fichaPonto=FichaPonto.criar({painel:$("painel-ajuda"),abrirPainel:()=>{if($("painel-ajuda").hidden)$("painel-ajuda-toggle").click();},obterRegistro:(modulo,id)=>db.registro(modulo,id),waLink:globalThis.MaringaCrise?.waLink});
@@ -266,7 +359,7 @@ function renderUnidadesMunicipais(){
  if(!filtrosCadastros.mostrar())return;
  for(const x of filtrosCadastros.rows().filter(x=>x.georreferenciado&&!x.privado)){
   L.marker([x.lat,x.lng],{icon:L.divIcon({className:"pin canonical-map-pin",html:'<span class="canonical-pin">'+INVENTARIO.simbolo(x)+"</span>",iconSize:[32,32],iconAnchor:[16,32]}),title:x.nome})
-   .bindTooltip("<strong>"+esc(x.nome)+"</strong><br>"+esc(x.endereco||"Endereço não informado"),{direction:"top"}).on("click",()=>fichaPonto.abrir(x)).addTo(unidadesMunicipais);
+   .bindTooltip("<strong>"+esc(x.nome)+"</strong><br>"+esc(x.endereco||t("mapa.enderecoNaoInformado")),{direction:"top"}).on("click",()=>fichaPonto.abrir(x)).addTo(unidadesMunicipais);
  }
 }
 
@@ -295,7 +388,7 @@ toggle.addEventListener("click",()=>{
  const fechado=!painel.hidden;painel.hidden=fechado;toggle.hidden=!fechado;
  document.querySelector(".workspace").classList.toggle("painel-recolhido",fechado);
  toggle.textContent=fechado?"+":"−";toggle.setAttribute("aria-expanded",String(!fechado));
- toggle.setAttribute("aria-label",fechado?"Abrir painel":"Recolher painel");toggle.title=fechado?"Abrir painel":"Recolher painel";
+ const rotulo=t(fechado?"pagina.abrirPainel":"pagina.recolherPainel");toggle.setAttribute("aria-label",rotulo);toggle.title=rotulo;
  requestAnimationFrame(()=>map.invalidateSize());
 });
 toggle.click();
@@ -308,6 +401,7 @@ window.AlertaMapaNavegacao.instalarVistaSalva({limites:AlertaGestaoDados.config.
  identificador:AlertaAnimalPerfil.ID,vistaInicial:AlertaGestaoDados.config.vistaMapa(prefeitura,perfil.camera),arrasteNoMinimo:true});
 if(catalogoBairros)catalogoBairros.iniciar({map,L,recolherInicial:true});
 territorio.carregar().catch(err=>console.warn("Bairros e zonas indisponíveis",err));
-territorio.unidades().then(xs=>{state.unidades=xs;render();}).catch(err=>alertar("Unidades de atendimento indisponíveis: "+err.message));
+territorio.unidades().then(xs=>{state.unidades=xs;render();}).catch(err=>alertar(t("mapa.unidadesIndisponiveis",{erro:err.message})));
 window.addEventListener("focus",render);
+try{const aviso=sessionStorage.getItem(CHAVE_AVISO);if(aviso){sessionStorage.removeItem(CHAVE_AVISO);alertar(aviso);}}catch{}
 })();
