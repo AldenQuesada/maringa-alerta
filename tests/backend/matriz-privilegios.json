@@ -650,6 +650,12 @@
    "definer": true,
    "dono": "postgres",
    "executar": [],
+   "nome": "private.ma_inscritos()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
    "nome": "private.ma_integridade_relacoes()"
   },
   {
@@ -659,6 +665,12 @@
     "authenticated"
    ],
    "nome": "private.ma_listar_acessos(text,integer,integer)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_nome_bairro(text)"
   },
   {
    "definer": true,

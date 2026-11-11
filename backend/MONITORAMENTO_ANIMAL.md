@@ -65,6 +65,19 @@ Exige administrador municipal. Cria, pelo caminho canônico e sem duplicar, os t
 
 O job SQL do CI executa essa suíte depois de `territorio.sql`.
 
+## Cadastro para receber alertas
+
+Migration `20261111120000_alertas_inscricoes.sql`. Somente acréscimos.
+
+- **Pelo WhatsApp, uma vez só.** O item "Alertas do meu bairro" do menu pergunta o que a pessoa quer fazer. Em "Receber alertas", pede nome e bairro. Em "Parar de receber", vai direto para a confirmação.
+- **Um cadastro por contato.** Entrada e saída gravam o mesmo registro da coleção `inscritos`. Sair marca `ativo=false` e mantém nome e bairro; voltar reativa o mesmo registro.
+- **Bairro ligado pelo servidor.** O gatilho `private.ma_inscritos` compara o bairro digitado com os bairros cadastrados, sem acento nem pontuação e com "jd", "vl", "pq" e "conj" por extenso. Com uma correspondência única, grava `bairro_id`. Sem ela, `bairro_id` fica vazio para a Gestão ligar; a pessoa não é questionada de novo.
+- **Entrada e saída datadas pelo servidor:** `entrou_em` e `saiu_em`.
+- **Telefones protegidos.** `inscritos` tem as mesmas permissões de `voluntarios`.
+- **Motor do WhatsApp.** As listas de coleções de `wa.project` e `wa.publish_structure` ganharam só `inscritos`; o resto das funções é reescrito idêntico a partir da definição vigente.
+- **Versão `municipal-v4-alertas`.** É a cópia da versão publicada mais recente mais o fluxo novo. O canal só muda por `ma_wa_usar_versao`.
+- **Teste:** `tests/whatsapp/alertas.sql`.
+
 ## Limites conhecidos
 
 - **Contatos do WhatsApp.** O detalhe de contatos da Central de Conversas (`ma_contato_detalhe`) é uma função `security definer` anterior a este módulo. Ela pode mostrar a conversa de um denunciante a quem acessa as conversas. Ajustar essa função altera código existente; por isso, fica para decisão explícita.
