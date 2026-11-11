@@ -28,7 +28,8 @@ function criar({$,esc,t,client,municipioId,pagina}){
   let corpo="";
   if(colecao==="incidentes"&&!p.alerta){
    corpo=!p.enviavel?"<p>"+esc(t("envio.foraSituacao"))+"</p>":
-    '<form data-aprovar><label>'+esc(t("envio.mensagem"))+'<textarea name="mensagem" required maxlength="700" placeholder="'+esc(t("envio.mensagemDica"))+'"></textarea></label>'+
+    '<form data-aprovar><label>'+esc(t("envio.mensagem"))+'<textarea name="mensagem" required maxlength="700" placeholder="'+esc(t("envio.mensagemDica"))+'">'+esc(p.sugestao||"")+'</textarea></label>'+
+    (p.sugestao?"<p data-sugestao>"+esc(t("envio.sugestaoIA"))+"</p>":"")+
     (p.tem_foto?'<label class="ma-animal-envio-opcao"><input type="checkbox" name="mostrar_foto"> '+esc(t("envio.mostrarFoto"))+"</label>":"")+
     '<div class="ma-animal-triagem-acoes"><button type="submit" data-primaria>'+esc(t(p.ativo?"envio.aprovarEnviar":"envio.aprovar"))+"</button></div></form>"+desligado;
   }else{

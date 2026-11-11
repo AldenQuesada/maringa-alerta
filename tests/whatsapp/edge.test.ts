@@ -131,3 +131,23 @@ Deno.test('Worker drains conversation replies first, then subscriber alerts, and
   finally { globalThis.fetch = original; }
   assert(log.indexOf('ma_wa_reservar') < log.indexOf('ma_wa_reservar_envio') && log.includes('ma_wa_resultado_envio'));
 });
+Deno.test('AI review queue records each result, turns failures into codes and never stops on one bad report', async () => {
+  const { processarFila } = await import('../../supabase/functions/_shared/revisao/fila.ts');
+  const reserva = { municipio: 'maringa', relato: 'r-1', lease: crypto.randomUUID(), modelo: 'claude-opus-5-5', esforco: 'medium', instrucoes: 'Instruções do banco', entrada: { descricao: 'Cão caramelo' } };
+  const queue = [{ ...reserva }, { ...reserva, relato: 'r-2' }, { ...reserva, relato: 'r-3' }]; const results: any[] = [];
+  const db = { rpc: async (name: string, params: any) => {
+    if (name === 'ma_wa_revisao_reservar') return queue.shift() ?? null;
+    if (name === 'ma_wa_revisao_resultado') { results.push(params); return null; }
+    throw Error('unexpected ' + name); } };
+  const revisao = { resumo: 'Cão perdido', urgencia: 'Média' as const, situacao_confere: true, observacoes: [], sugestao_alerta: 'Cão caramelo' };
+  const result = await processarFila(db as any, async (r) => {
+    assert(r.instrucoes === 'Instruções do banco' && !('telefone' in r.entrada));
+    if (r.relato === 'r-2') throw Error('provider detail');
+    if (r.relato === 'r-3') return { revisao: null, codigo: 'refusal' };
+    return { revisao, codigo: null };
+  });
+  assert(result.feitas === 1 && results.length === 3);
+  assert(results[0].resultado === revisao && results[0].codigo === null && results[0].reserva === reserva.lease);
+  assert(results[1].resultado === null && results[1].codigo === 'erro' && !JSON.stringify(results[1]).includes('provider detail'));
+  assert(results[2].codigo === 'refusal');
+});

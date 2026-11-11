@@ -206,3 +206,30 @@ test('ações nos bairros: aviso aos inscritos pela mesma função do servidor',
   expect(a.calls.filter(c=>c.name==='ma_enviar_inscritos').map(c=>c.args)).toEqual([{municipio:'maringa',colecao_alvo:'acoes',registro:'acao-feira'}]);
  }finally{await a.context.close();}
 });
+
+// Revisão por IA: o relatório gravado pelo servidor aparece na ficha do relato; a sugestão vem no formulário do alerta, editável.
+test('revisão por IA: relatório na ficha do relato e sugestão editável no alerta',async({browser},testInfo)=>{
+ const a=await abrir({browser},testInfo,{capacidades:['triar_animais','aprovar_alerta'],sugestao:'Cão ferido, coleira vermelha, Av. Teste.'});const {page}=a;
+ try{
+  await page.getByRole('button',{name:'Abrir painel',exact:true}).click();
+  await page.locator('#filtro').selectOption('animal-perdido');
+  await page.locator('.ma-animal-result').click();
+  const revisao=page.locator('#ma-animal-ficha-revisao');
+  await expect(revisao.getByRole('heading')).toHaveText('Relatório da IA');
+  await expect(revisao).toContainText('Cão caramelo perdido na Rua Teste.');
+  await expect(revisao).toContainText('Urgência: Média');
+  await expect(revisao.locator('li')).toHaveText(['Sem ponto de referência']);
+  await expect(revisao).toContainText('Gerado por IA a partir do relato. Confira antes de decidir.');
+  await page.locator('#filtro').selectOption('animal-ferido');
+  await page.locator('.ma-animal-result').click();
+  await expect(revisao).toBeEmpty();
+  const envio=page.locator('#ma-animal-ficha-envio');
+  await expect(envio.locator('textarea[name=mensagem]')).toHaveValue('Cão ferido, coleira vermelha, Av. Teste.');
+  await expect(envio.locator('[data-sugestao]')).toHaveText('Texto sugerido pela IA a partir do relato. Confira e edite antes de aprovar.');
+  await envio.locator('textarea[name=mensagem]').fill('Cão ferido, coleira vermelha.');
+  await envio.getByRole('button',{name:'Aprovar alerta'}).click();
+  await expect(envio.getByRole('status')).toHaveText('Alerta aprovado.');
+  expect(a.calls.find(c=>c.name==='ma_alerta_aprovar').args.mensagem).toBe('Cão ferido, coleira vermelha.');
+  expect(a.errors).toEqual([]);
+ }finally{await a.context.close();}
+});

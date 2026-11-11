@@ -292,7 +292,8 @@ function criar({$,esc,t,client,municipioId,pagina}){
   let corpo="";
   if(colecao==="incidentes"&&!p.alerta){
    corpo=!p.enviavel?"<p>"+esc(t("envio.foraSituacao"))+"</p>":
-    '<form data-aprovar><label>'+esc(t("envio.mensagem"))+'<textarea name="mensagem" required maxlength="700" placeholder="'+esc(t("envio.mensagemDica"))+'"></textarea></label>'+
+    '<form data-aprovar><label>'+esc(t("envio.mensagem"))+'<textarea name="mensagem" required maxlength="700" placeholder="'+esc(t("envio.mensagemDica"))+'">'+esc(p.sugestao||"")+'</textarea></label>'+
+    (p.sugestao?"<p data-sugestao>"+esc(t("envio.sugestaoIA"))+"</p>":"")+
     (p.tem_foto?'<label class="ma-animal-envio-opcao"><input type="checkbox" name="mostrar_foto"> '+esc(t("envio.mostrarFoto"))+"</label>":"")+
     '<div class="ma-animal-triagem-acoes"><button type="submit" data-primaria>'+esc(t(p.ativo?"envio.aprovarEnviar":"envio.aprovar"))+"</button></div></form>"+desligado;
   }else{
@@ -328,9 +329,29 @@ function criar({$,esc,t,client,municipioId,pagina}){
 }
 root.AlertaAnimalEnvio={criar};
 })(globalThis);
+/* revisao: relatório da IA na ficha do relato. O relatório é gravado pelo servidor (wa.ma_wa_revisao_resultado),
+   já conferido e limitado; aqui só é mostrado. A decisão da triagem continua com a gestão. */
+(function(root){'use strict';
+function criar({esc,t}){
+ function html(x){
+  const r=x&&x.revisao_ia;
+  if(!r||typeof r!=="object"||!r.resumo)return "";
+  const linha=(rotulo,v)=>"<p><strong>"+esc(t(rotulo))+":</strong> "+esc(v)+"</p>";
+  const obs=Array.isArray(r.observacoes)&&r.observacoes.length?
+   "<p><strong>"+esc(t("revisao.observacoes"))+":</strong></p><ul>"+r.observacoes.map(o=>"<li>"+esc(o)+"</li>").join("")+"</ul>":"";
+  return '<section class="ma-animal-triagem ma-animal-revisao"><h3>'+esc(t("revisao.titulo"))+"</h3><p>"+esc(r.resumo)+"</p>"+
+   (r.urgencia?linha("revisao.urgencia",r.urgencia):"")+
+   (r.situacao_confere===false?"<p data-nao-confere>"+esc(t("revisao.naoConfere"))+"</p>":r.situacao_confere===true?"<p>"+esc(t("revisao.confere"))+"</p>":"")+
+   obs+(r.sugestao_alerta?linha("revisao.sugestao",r.sugestao_alerta):"")+
+   "<p><small>"+esc(t("revisao.aviso"))+"</small></p></section>";
+ }
+ return {html};
+}
+root.AlertaAnimalRevisao={criar};
+})(globalThis);
 /* ficha: detalhe do registro no painel lateral. Rótulos vêm de perfil.textos.ficha; as ações vêm do módulo de triagem. */
 (function(root){'use strict';
-function criar({$,esc,t,territorio,triagem,envio,aoFechar}){
+function criar({$,esc,t,territorio,triagem,envio,revisao,aoFechar}){
  const linha=(r,v)=>v==null||v===""?"":"<dt>"+esc(t("ficha."+r))+"</dt><dd>"+esc(Array.isArray(v)?v.join(", "):v)+"</dd>";
  function abrir(x){
   const p=territorio.posicao(x);
@@ -343,6 +364,7 @@ function criar({$,esc,t,territorio,triagem,envio,aoFechar}){
    linha("descricao",x.descricao)+linha("origem",x.origem)+linha("registradoEm",x.criado_em||x.quando)+
    linha("sigilo",x.visibilidade==="restrita"?t("ficha.sigiloRestrito"):"")+linha("denunciante",x.anonimo===true?t("ficha.anonimo"):x.nome)+
    linha("desfecho",x.desfecho)+linha("motivo",x.motivo_arquivamento)+linha("triadoEm",x.triado_em)+linha("ocorrenciaGerada",x.incidente_id);
+  $("ma-animal-ficha-revisao").innerHTML=x.origemCamada==="triagem"&&revisao?revisao.html(x):"";
   $("ma-animal-ficha").hidden=false;$("ma-animal-ficha").scrollIntoView({block:"nearest"});
   triagem.montar($("ma-animal-ficha-triagem"),x);
   envio?.montar($("ma-animal-ficha-envio"),x);
@@ -354,6 +376,7 @@ function criar({$,esc,t,territorio,triagem,envio,aoFechar}){
   $("ma-animal-ficha-titulo").textContent=x.nome||t("lista.registroGenerico");
   $("ma-animal-ficha-dados").innerHTML=l("acao.tipo",x.tipoAcao)+l("acao.data",x.data)+l("acao.horario",x.horario)+l("ficha.endereco",x.endereco)+
    l("ficha.bairro",x.bairro||p?.bairro)+l("ficha.localizacao",t(p?(p.aproximada?"ficha.aproximada":"ficha.coordenadas"):"ficha.semPosicao"))+l("ficha.descricao",x.descricao);
+  $("ma-animal-ficha-revisao").innerHTML="";
   $("ma-animal-ficha-triagem").innerHTML="";
   envio?.montar($("ma-animal-ficha-envio"),x);
   $("ma-animal-ficha").hidden=false;$("ma-animal-ficha").scrollIntoView({block:"nearest"});
@@ -438,7 +461,7 @@ const triagem=AlertaAnimalTriagem.criar({$,esc,t,regras,client:globalThis.Alerta
  // A camada de dados da gestão não expõe recarga parcial: recarrega a página e mostra a confirmação depois.
  aoConcluir:msg=>{try{sessionStorage.setItem(CHAVE_AVISO,msg);}catch{}location.reload();}});
 const envio=AlertaAnimalEnvio.criar({$,esc,t,client:globalThis.AlertaSupabaseClient,municipioId,pagina:"../alerta/"});
-const ficha=AlertaAnimalFicha.criar({$,esc,t,territorio,triagem,envio,aoFechar:()=>{}});
+const ficha=AlertaAnimalFicha.criar({$,esc,t,territorio,triagem,envio,revisao:AlertaAnimalRevisao.criar({esc,t}),aoFechar:()=>{}});
 const abrirFicha=x=>{if($("painel-ajuda").hidden)$("painel-ajuda-toggle").click();ficha.abrir(x);};
 const camadas=AlertaAnimalCamadas.criar({L,esc,t,grupos,territorio,aoAbrir:abrirFicha});
 const filtros=AlertaAnimalFiltros.criar({$,esc,t,perfil,consultas});

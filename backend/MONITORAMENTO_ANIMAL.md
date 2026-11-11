@@ -240,6 +240,36 @@ A ordem dos botões precisa ser essa: o servidor envia o link no botão 0 e a sa
 - `tests/whatsapp/edge.test.ts` cobre o envio de modelo, o botão de resposta rápida, a fila de alertas do trabalhador e a função da página pública.
 - `tests/browser/monitoramento-animal.spec.cjs` cobre o bloco da ficha. `tests/browser/alerta-publico.spec.cjs` cobre a página pública.
 
+## Revisão por IA dos relatos
+
+Migração `20261111230000_revisao_ia.sql`. É o passo do fluxo em que, quando o relato entra pelo WhatsApp, a IA revisa e entrega um relatório antes de a gestão decidir.
+
+- **Fila.** Todo relato de animal novo entra em `wa.revisoes`. O agendador do banco chama a função `ma-animal-revisao` a cada minuto, mas só quando a revisão está ligada e há algo na fila.
+- **O que vai para a IA:** situação, espécie, endereço, bairro, descrição e se há foto (sim ou não). Não vão nome, telefone, anonimato nem a foto.
+- **O que volta,** conferido e limitado pelo servidor antes de gravar no relato (`revisao_ia`):
+  - resumo;
+  - urgência (Alta, Média ou Baixa);
+  - se a situação escolhida combina com a descrição;
+  - o que falta para agir;
+  - uma sugestão de texto de alerta, só para animal perdido ou encontrado.
+- **Na ficha do relato:** bloco "Relatório da IA", com o aviso de que foi gerado por IA. A triagem continua igual e a decisão é da gestão.
+- **No alerta:** a sugestão vem escrita no formulário do alerta da ocorrência gerada pelo relato. A gestão confere, edita e aprova.
+- **Falhas:** resposta fora do formato, recusa do modelo ou erro da API voltam para a fila, até 3 tentativas. Só o código do erro é guardado, nunca o texto. Um relato que saiu da triagem antes da vez dele não é revisado. A fila expira em 48 h.
+- **Configuração** (`operacao.protecaoAnimal.revisaoIA`): `ativo`, `modelo` (`claude-opus-5-5`), `esforco` (`medium`), `instrucoes` (o texto que orienta a IA), `tentativas` e `validadeHoras`. Ajustar o texto da IA é editar `instrucoes` no banco.
+- **Para ligar:**
+  1. Cadastrar a chave da API da Anthropic como segredo `ANTHROPIC_API_KEY` nas funções do Supabase (Project Settings, Edge Functions, Secrets).
+  2. Ligar a revisão:
+
+     ```sql
+     update public.ma_configuracao set documento=jsonb_set(documento,'{protecaoAnimal,revisaoIA,ativo}','true'),versao=versao+1 where id='operacao';
+     ```
+
+  Cada relato revisado é uma chamada paga à API da Anthropic. As denúncias de maus-tratos também passam pela revisão, sem dados de quem denunciou.
+- **Testes:**
+  - `tests/whatsapp/revisao.sql`: fila só de animais, desligada, sem dados pessoais, formato recusado, gravação limpa, reserva vencida, tentativas, fora da triagem e sugestão no painel.
+  - `tests/whatsapp/edge.test.ts`: a fila da função.
+  - `tests/browser/monitoramento-animal.spec.cjs`: o relatório na ficha e a sugestão editável.
+
 ## Limites conhecidos
 
 - **Contatos do WhatsApp.** O detalhe de contatos da Central de Conversas (`ma_contato_detalhe`) é uma função `security definer` anterior a este módulo. Ela pode mostrar a conversa de um denunciante a quem acessa as conversas. Ajustar essa função altera código existente; por isso, fica para decisão explícita.

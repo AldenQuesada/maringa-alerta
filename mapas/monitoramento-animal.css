@@ -104,3 +104,6 @@ select,input,textarea{background:#0d1724;border:1px solid #3c5065;color:var(--fg
 .ma-animal-envio p+p{margin-top:6px}
 .ma-animal-envio a{color:#8cc4ff}
 .ma-animal-envio .ma-animal-triagem-acoes{margin:10px 0}
+.ma-animal-revisao ul{margin:4px 0 0;padding-left:18px;color:var(--fg);font-size:13px}
+.ma-animal-revisao p{color:var(--fg)}.ma-animal-revisao small{color:var(--muted)}
+.ma-animal-revisao [data-nao-confere]{color:var(--accent)}

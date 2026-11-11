@@ -1,6 +1,6 @@
 /* ficha: detalhe do registro no painel lateral. Rótulos vêm de perfil.textos.ficha; as ações vêm do módulo de triagem. */
 (function(root){'use strict';
-function criar({$,esc,t,territorio,triagem,envio,aoFechar}){
+function criar({$,esc,t,territorio,triagem,envio,revisao,aoFechar}){
  const linha=(r,v)=>v==null||v===""?"":"<dt>"+esc(t("ficha."+r))+"</dt><dd>"+esc(Array.isArray(v)?v.join(", "):v)+"</dd>";
  function abrir(x){
   const p=territorio.posicao(x);
@@ -13,6 +13,7 @@ function criar({$,esc,t,territorio,triagem,envio,aoFechar}){
    linha("descricao",x.descricao)+linha("origem",x.origem)+linha("registradoEm",x.criado_em||x.quando)+
    linha("sigilo",x.visibilidade==="restrita"?t("ficha.sigiloRestrito"):"")+linha("denunciante",x.anonimo===true?t("ficha.anonimo"):x.nome)+
    linha("desfecho",x.desfecho)+linha("motivo",x.motivo_arquivamento)+linha("triadoEm",x.triado_em)+linha("ocorrenciaGerada",x.incidente_id);
+  $("ma-animal-ficha-revisao").innerHTML=x.origemCamada==="triagem"&&revisao?revisao.html(x):"";
   $("ma-animal-ficha").hidden=false;$("ma-animal-ficha").scrollIntoView({block:"nearest"});
   triagem.montar($("ma-animal-ficha-triagem"),x);
   envio?.montar($("ma-animal-ficha-envio"),x);
@@ -24,6 +25,7 @@ function criar({$,esc,t,territorio,triagem,envio,aoFechar}){
   $("ma-animal-ficha-titulo").textContent=x.nome||t("lista.registroGenerico");
   $("ma-animal-ficha-dados").innerHTML=l("acao.tipo",x.tipoAcao)+l("acao.data",x.data)+l("acao.horario",x.horario)+l("ficha.endereco",x.endereco)+
    l("ficha.bairro",x.bairro||p?.bairro)+l("ficha.localizacao",t(p?(p.aproximada?"ficha.aproximada":"ficha.coordenadas"):"ficha.semPosicao"))+l("ficha.descricao",x.descricao);
+  $("ma-animal-ficha-revisao").innerHTML="";
   $("ma-animal-ficha-triagem").innerHTML="";
   envio?.montar($("ma-animal-ficha-envio"),x);
   $("ma-animal-ficha").hidden=false;$("ma-animal-ficha").scrollIntoView({block:"nearest"});

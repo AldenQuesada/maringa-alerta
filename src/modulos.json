@@ -229,6 +229,7 @@
         "src/monitoramento-animal/filtros.js",
         "src/monitoramento-animal/triagem.js",
         "src/monitoramento-animal/envio.js",
+        "src/monitoramento-animal/revisao.js",
         "src/monitoramento-animal/ficha.js",
         "src/monitoramento-animal/resultados.js",
         "src/monitoramento-animal/app.js"

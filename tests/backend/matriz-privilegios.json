@@ -386,6 +386,22 @@
    "definer": false,
    "dono": "postgres",
    "executar": [
+    "service_role"
+   ],
+   "nome": "ma_wa_revisao_reservar()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_wa_revisao_resultado(text,text,uuid,jsonb,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
     "authenticated"
    ],
    "nome": "ma_wa_simular(uuid,uuid,jsonb,uuid)"
@@ -823,6 +839,12 @@
   },
   {
    "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_revisao_enfileirar()"
+  },
+  {
+   "definer": true,
    "dono": "ma_escritor",
    "executar": [
     "authenticated",
@@ -1042,6 +1064,12 @@
    "definer": true,
    "dono": "postgres",
    "executar": [],
+   "nome": "wa.kick_revisao()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
    "nome": "wa.kick_worker()"
   },
   {
@@ -1197,6 +1225,22 @@
     "service_role"
    ],
    "nome": "wa.ma_wa_resultado(uuid,uuid,text,text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "wa.ma_wa_revisao_reservar()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "wa.ma_wa_revisao_resultado(text,text,uuid,jsonb,text)"
   },
   {
    "definer": true,
@@ -1614,6 +1658,12 @@
   {
    "dono": "postgres",
    "nome": "wa.outbox",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.revisoes",
    "privilegios": {},
    "rls": true
   },
