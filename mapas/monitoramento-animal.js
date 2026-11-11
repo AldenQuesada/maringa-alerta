@@ -78,6 +78,12 @@ function criar({db,perfil,regras,normal}){
   const ids=new Set(tipos().map(t=>t.id));
   return db.lista(c.colecao).filter(x=>ids.has(x.tipo_id)).map(x=>({...x,origemCamada:"ocorrencias",tipo:tipoPorId(x.tipo_id)}));
  }
+ // Ações agendadas de hoje em diante, nas situações listadas no perfil. O tipo vem do catálogo pelo nome gravado.
+ function acoes(hoje){
+  const c=camada("acoes");if(!c)return [];
+  return db.lista(c.colecao).filter(x=>(c.estados||[]).includes(x.status)&&String(x.data||"")>=hoje)
+   .map(x=>({...x,origemCamada:"acoes",tipoAcao:x.tipo,tipo:{nome:x.nome,icone:c.icone}}));
+ }
  function situacaoDe(x){return x.tipo?.id||"";}
  function filtrar(xs,{zona,situacao,busca,mostrarEncerradas,zonaDe}){
   const termo=normal(busca);
@@ -89,7 +95,7 @@ function criar({db,perfil,regras,normal}){
    return true;
   });
  }
- return {camada,tipos,tipoPorId,relatos,incidentes,filtrar};
+ return {camada,tipos,tipoPorId,relatos,incidentes,acoes,filtrar};
 }
 root.AlertaAnimalConsultas={criar};
 })(globalThis);
@@ -152,13 +158,13 @@ function criar({L,esc,t,grupos,territorio,aoAbrir}){
   return L.divIcon({className:"pin "+classe,html:'<span class="ma-animal-pin-corpo"'+(cor?' style="--ma-animal-cor:'+cor+'"':"")+'>'+esc(x.tipo?.icone||"•")+'</span>',iconSize:[32,32],iconAnchor:[16,32]});
  }
  function desenhar(xs){
-  grupos.triagem.clearLayers();grupos.ocorrencias.clearLayers();
+  grupos.triagem.clearLayers();grupos.ocorrencias.clearLayers();grupos.acoes.clearLayers();
   const ocupacao=new Map();let semPosicao=0;
   for(const x of xs){
    const p=territorio.posicao(x);if(!p){semPosicao++;continue;}
    const chave=p.lat.toFixed(5)+":"+p.lng.toFixed(5),n=ocupacao.get(chave)||0;ocupacao.set(chave,n+1);
    const desloc=p.aproximada?n*0.0009:0;
-   const titulo=(x.tipo?.nome||x.situacao||t("lista.relato"))+(x.protocolo?" · "+x.protocolo:"");
+   const titulo=(x.tipo?.nome||x.situacao||t("lista.relato"))+(x.protocolo?" · "+x.protocolo:"")+(x.data?" · "+x.data:"");
    L.marker([p.lat+desloc,p.lng+desloc],{icon:icone(x),title:titulo})
     .bindTooltip("<strong>"+esc(titulo)+"</strong><br>"+esc(x.status||"")+(p.aproximada?" · "+esc(t("mapa.aproximada",{bairro:p.bairro})):""),{direction:"top"})
     .on("click",()=>aoAbrir(x)).addTo(grupos[x.origemCamada]);
@@ -262,6 +268,7 @@ function criar({$,esc,t,territorio,triagem,aoFechar}){
  const linha=(r,v)=>v==null||v===""?"":"<dt>"+esc(t("ficha."+r))+"</dt><dd>"+esc(Array.isArray(v)?v.join(", "):v)+"</dd>";
  function abrir(x){
   const p=territorio.posicao(x);
+  if(x.origemCamada==="acoes")return abrirAcao(x,p);
   $("ma-animal-ficha-tipo").textContent=t(x.origemCamada==="triagem"?"ficha.relato":"ficha.ocorrencia")+" · "+(x.status||"");
   $("ma-animal-ficha-titulo").textContent=x.tipo?.nome||x.situacao||t("lista.registroGenerico");
   $("ma-animal-ficha-dados").innerHTML=
@@ -272,6 +279,16 @@ function criar({$,esc,t,territorio,triagem,aoFechar}){
    linha("desfecho",x.desfecho)+linha("motivo",x.motivo_arquivamento)+linha("triadoEm",x.triado_em)+linha("ocorrenciaGerada",x.incidente_id);
   $("ma-animal-ficha").hidden=false;$("ma-animal-ficha").scrollIntoView({block:"nearest"});
   triagem.montar($("ma-animal-ficha-triagem"),x);
+ }
+ // Ação nos bairros: só consulta; o cadastro e a situação são editados na Gestão.
+ function abrirAcao(x,p){
+  const l=(r,v)=>v==null||v===""?"":"<dt>"+esc(t(r))+"</dt><dd>"+esc(v)+"</dd>";
+  $("ma-animal-ficha-tipo").textContent=t("acao.ficha")+" · "+(x.status||"");
+  $("ma-animal-ficha-titulo").textContent=x.nome||t("lista.registroGenerico");
+  $("ma-animal-ficha-dados").innerHTML=l("acao.tipo",x.tipoAcao)+l("acao.data",x.data)+l("acao.horario",x.horario)+l("ficha.endereco",x.endereco)+
+   l("ficha.bairro",x.bairro||p?.bairro)+l("ficha.localizacao",t(p?(p.aproximada?"ficha.aproximada":"ficha.coordenadas"):"ficha.semPosicao"))+l("ficha.descricao",x.descricao);
+  $("ma-animal-ficha-triagem").innerHTML="";
+  $("ma-animal-ficha").hidden=false;$("ma-animal-ficha").scrollIntoView({block:"nearest"});
  }
  $("ma-animal-ficha-fechar").addEventListener("click",()=>{$("ma-animal-ficha").hidden=true;aoFechar?.();});
  return {abrir};
@@ -290,7 +307,7 @@ function criar({$,esc,t,perfil,aoAbrir,aoLocalizar}){
   $("list-count").textContent=xs.length+" "+t(xs.length===1?"lista.registro":"lista.registros")+(semPosicao?" · "+t("lista.semPosicao",{n:semPosicao}):"");
   const el=$("results");
   if(!xs.length){el.innerHTML='<div class="empty">'+esc(t("lista.vazioTitulo"))+"<p>"+esc(t("lista.vazioDetalhe"))+"</p></div>";return;}
-  el.innerHTML=xs.map((x,i)=>'<button type="button" class="result ma-animal-result" data-i="'+i+'"><div class="result-top"><span>'+esc(t(x.origemCamada==="triagem"?"lista.relato":"lista.ocorrencia"))+(x.protocolo?" · "+esc(x.protocolo):"")+'</span>'+
+  el.innerHTML=xs.map((x,i)=>'<button type="button" class="result ma-animal-result" data-i="'+i+'"><div class="result-top"><span>'+esc(t(x.origemCamada==="triagem"?"lista.relato":x.origemCamada==="acoes"?"acao.lista":"lista.ocorrencia"))+(x.protocolo?" · "+esc(x.protocolo):"")+'</span>'+
    '<span class="result-tag'+(x.visibilidade==="restrita"?" urgente":"")+'">'+esc(x.status||"")+'</span></div>'+
    '<strong>'+esc(x.tipo?.nome||x.situacao||t("lista.registroGenerico"))+(x.especie?" · "+esc(x.especie):"")+'</strong><small>'+esc(x.bairro||x.endereco||t("lista.localNaoInformado"))+'</small></button>').join("");
   el.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{const x=xs[Number(b.dataset.i)];aoLocalizar(x);aoAbrir(x);});
@@ -338,7 +355,9 @@ const centro=AlertaGestaoDados.config.centro(prefeitura);
 const map=L.map("map",{zoomControl:true,zoomSnap:0,zoomDelta:.5}).setView(centro||[0,0],centro?12:2);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,subdomains:"abc",attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
 const poligonos=L.layerGroup().addTo(map);
-const grupos={triagem:L.layerGroup().addTo(map),ocorrencias:L.layerGroup().addTo(map),unidades:L.layerGroup().addTo(map)};
+const grupos={triagem:L.layerGroup().addTo(map),ocorrencias:L.layerGroup().addTo(map),acoes:L.layerGroup().addTo(map),unidades:L.layerGroup().addTo(map)};
+// Data local de hoje (AAAA-MM-DD), para mostrar só ações que ainda vão acontecer.
+const hoje=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
 
 const catalogoNome=AlertaGestaoDados.config.referencias(prefeitura).catalogoBairros;
 const catalogoBairros=catalogoNome?globalThis[catalogoNome]:null;
@@ -357,7 +376,7 @@ const filtros=AlertaAnimalFiltros.criar({$,esc,t,perfil,consultas});
 const resultados=AlertaAnimalResultados.criar({$,esc,t,perfil,aoAbrir:abrirFicha,aoLocalizar:x=>{const p=territorio.posicao(x);if(p)map.flyTo([p.lat,p.lng],Math.max(map.getZoom(),15));}});
 
 function render(){
- const todos=[...consultas.relatos(),...consultas.incidentes()];
+ const todos=[...consultas.relatos(),...consultas.incidentes(),...consultas.acoes(hoje())];
  const porCamada=state.camada?todos.filter(x=>x.origemCamada===state.camada):todos;
  const xs=consultas.filtrar(porCamada,{...state,zonaDe:territorio.zonaDe});
  const semPosicao=camadas.desenhar(xs);

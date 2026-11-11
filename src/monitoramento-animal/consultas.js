@@ -15,6 +15,12 @@ function criar({db,perfil,regras,normal}){
   const ids=new Set(tipos().map(t=>t.id));
   return db.lista(c.colecao).filter(x=>ids.has(x.tipo_id)).map(x=>({...x,origemCamada:"ocorrencias",tipo:tipoPorId(x.tipo_id)}));
  }
+ // Ações agendadas de hoje em diante, nas situações listadas no perfil. O tipo vem do catálogo pelo nome gravado.
+ function acoes(hoje){
+  const c=camada("acoes");if(!c)return [];
+  return db.lista(c.colecao).filter(x=>(c.estados||[]).includes(x.status)&&String(x.data||"")>=hoje)
+   .map(x=>({...x,origemCamada:"acoes",tipoAcao:x.tipo,tipo:{nome:x.nome,icone:c.icone}}));
+ }
  function situacaoDe(x){return x.tipo?.id||"";}
  function filtrar(xs,{zona,situacao,busca,mostrarEncerradas,zonaDe}){
   const termo=normal(busca);
@@ -26,7 +32,7 @@ function criar({db,perfil,regras,normal}){
    return true;
   });
  }
- return {camada,tipos,tipoPorId,relatos,incidentes,filtrar};
+ return {camada,tipos,tipoPorId,relatos,incidentes,acoes,filtrar};
 }
 root.AlertaAnimalConsultas={criar};
 })(globalThis);

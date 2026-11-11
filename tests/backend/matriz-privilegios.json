@@ -712,6 +712,12 @@
    "definer": true,
    "dono": "postgres",
    "executar": [],
+   "nome": "private.ma_protecao_animal_catalogo()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
    "nome": "private.ma_referencia_ativa()"
   },
   {

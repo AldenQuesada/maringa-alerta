@@ -6,7 +6,12 @@ const bloco=i=>{const a=sql.indexOf('$j$',sql.indexOf(i))+3;return JSON.parse(sq
 const sqlD=fs.readFileSync('supabase/migrations/20261110120000_monitoramento_animal_triagem.sql','utf8');
 const blocoD=i=>{const a=sqlD.indexOf('$j$',sqlD.indexOf(i))+3;return JSON.parse(sqlD.slice(a,sqlD.indexOf('$j$',a)));};
 // Perfil e regras como ficam no banco depois das etapas A e D.
-const perfil={...bloco("values('mapas'")['monitoramento-animal'],...blocoD("'{monitoramento-animal}'")};
+const sqlA=fs.readFileSync('supabase/migrations/20261111190000_protecao_animal_lugares_acoes.sql','utf8');
+const blocoA=i=>{const a=sqlA.indexOf('$j$',sqlA.indexOf(i))+3;return JSON.parse(sqlA.slice(a,sqlA.indexOf('$j$',a)));};
+// Perfil como fica no banco depois das etapas A, D e da camada de ações.
+const perfilAD={...bloco("values('mapas'")['monitoramento-animal'],...blocoD("'{monitoramento-animal}'")};
+const perfil={...perfilAD,camadas:[...perfilAD.camadas,...blocoA("'{monitoramento-animal,camadas}'")],
+ textos:{...perfilAD.textos,acao:blocoA("'{monitoramento-animal,textos,acao}'")}};
 const regras={...bloco("'{protecaoAnimal}'"),triagem:blocoD("'{protecaoAnimal,triagem}'")},modelo=bloco("values('modelos'")['protecao-animal'];
 test('perfil do banco é válido e perfil ausente ou incompleto é recusado',()=>{
  const c=carregar();
@@ -65,6 +70,11 @@ test('consultas: só relatos e ocorrências da categoria animal; encerradas ocul
  assert.deepEqual(q.relatos().map(x=>x.id),['r1']);
  assert.equal(q.relatos()[0].tipo.id,'animal-perdido');
  assert.deepEqual(q.incidentes().map(x=>x.id),['i1','i2']);
+ // Ações: só as agendadas, de hoje em diante; realizadas, canceladas e passadas ficam fora.
+ dados.acoes=[{id:'a1',nome:'Feira',tipo:'Feira de adoção',status:'Agendada',data:'2026-11-15'},{id:'a2',status:'Agendada',data:'2026-11-10'},
+  {id:'a3',status:'Cancelada',data:'2026-11-20'},{id:'a4',status:'Agendada',data:'2026-11-11'}];
+ assert.deepEqual(q.acoes('2026-11-11').map(x=>x.id),['a1','a4']);
+ assert.equal(q.acoes('2026-11-11')[0].tipoAcao,'Feira de adoção');assert.equal(q.acoes('2026-11-11')[0].origemCamada,'acoes');
  const base={zona:'',situacao:'',busca:'',zonaDe:()=>''};
  assert.deepEqual(q.filtrar(q.incidentes(),{...base,mostrarEncerradas:false}).map(x=>x.id),['i1']);
  assert.deepEqual(q.filtrar(q.incidentes(),{...base,mostrarEncerradas:true}).map(x=>x.id),['i1','i2']);
