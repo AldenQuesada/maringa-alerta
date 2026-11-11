@@ -133,3 +133,76 @@ test('sem a capacidade de triagem, a ficha só consulta',async({browser},testInf
   expect(a.calls.filter(c=>c.name==='ma_triar_animal')).toEqual([]);
  }finally{await a.context.close();}
 });
+
+// Alerta do bairro: aprovar e enviar só pelas funções do servidor; público, área e situação vêm do painel do banco.
+test('alerta do bairro: aprova e envia pela função do servidor, com público e entrega do banco',async({browser},testInfo)=>{
+ const a=await abrir({browser},testInfo,{capacidades:['triar_animais','aprovar_alerta'],envioAtivo:true});const {page}=a;
+ try{
+  await page.getByRole('button',{name:'Abrir painel',exact:true}).click();
+  await page.locator('#filtro').selectOption('animal-ferido');
+  await page.locator('.ma-animal-result').click();
+  const envio=page.locator('#ma-animal-ficha-envio');
+  await expect(envio.getByRole('heading')).toHaveText('Alerta do bairro');
+  await expect(envio).toContainText('4 inscritos na área: Bairro Teste');
+  await envio.locator('textarea[name=mensagem]').fill('Cão ferido, porte médio, coleira vermelha.');
+  await envio.getByRole('button',{name:'Aprovar e enviar'}).click();
+  await expect(envio.getByRole('status')).toHaveText('4 mensagens na fila.');
+  await expect(envio.locator('blockquote')).toHaveText('Cão ferido, porte médio, coleira vermelha.');
+  await expect(envio.locator('[data-entregas]')).toHaveText('Na fila 4 · enviados 0 · entregues 0 · lidos 0 · falhas 0');
+  await expect(envio.getByRole('link',{name:'Ver página do alerta'})).toHaveAttribute('href','../alerta/?m=maringa&c=alertas&id=alerta-teste');
+  expect(a.calls.filter(c=>c.name.startsWith('ma_alerta')||c.name==='ma_enviar_inscritos').map(c=>[c.name,c.args])).toEqual([
+   ['ma_alerta_aprovar',{municipio:'maringa',incidente:'oc-ferido',mensagem:'Cão ferido, porte médio, coleira vermelha.',mostrar_foto:false}],
+   ['ma_enviar_inscritos',{municipio:'maringa',colecao_alvo:'alertas',registro:'alerta-teste'}]]);
+  // Repetir o envio só alcança inscritos novos; o servidor decide.
+  await envio.getByRole('button',{name:'Enviar aos novos inscritos'}).click();
+  await expect(envio.getByRole('status')).toHaveText('0 mensagens na fila.');
+  const largura=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+  expect(largura).toBeLessThanOrEqual(0);
+  expect(a.errors).toEqual([]);
+ }finally{await a.context.close();}
+});
+
+test('alerta do bairro: com o envio desligado, só aprova e avisa',async({browser},testInfo)=>{
+ const a=await abrir({browser},testInfo,{capacidades:['triar_animais','aprovar_alerta']});const {page}=a;
+ try{
+  await page.getByRole('button',{name:'Abrir painel',exact:true}).click();
+  await page.locator('#filtro').selectOption('animal-ferido');
+  await page.locator('.ma-animal-result').click();
+  const envio=page.locator('#ma-animal-ficha-envio');
+  await expect(envio).toContainText('O envio pelo WhatsApp ainda não está ligado.');
+  await envio.locator('textarea[name=mensagem]').fill('Gato perdido.');
+  await envio.getByRole('button',{name:'Aprovar alerta'}).click();
+  await expect(envio.getByRole('status')).toHaveText('Alerta aprovado.');
+  await expect(envio.getByRole('button')).toHaveCount(0);
+  expect(a.calls.filter(c=>c.name==='ma_enviar_inscritos')).toEqual([]);
+ }finally{await a.context.close();}
+});
+
+test('alerta do bairro: sem a capacidade de aprovar, não há botão; relato em triagem não tem alerta',async({browser},testInfo)=>{
+ const a=await abrir({browser},testInfo);const {page}=a;
+ try{
+  await page.getByRole('button',{name:'Abrir painel',exact:true}).click();
+  await page.locator('#filtro').selectOption('animal-ferido');
+  await page.locator('.ma-animal-result').click();
+  await expect(page.locator('#ma-animal-ficha-envio')).toContainText('Sua conta pode consultar, mas não aprovar nem enviar alertas.');
+  await expect(page.locator('#ma-animal-ficha-envio button')).toHaveCount(0);
+  await page.locator('#filtro').selectOption('animal-perdido');
+  await page.locator('.ma-animal-result').click();
+  await expect(page.locator('#ma-animal-ficha-envio')).toBeEmpty();
+ }finally{await a.context.close();}
+});
+
+test('ações nos bairros: aviso aos inscritos pela mesma função do servidor',async({browser},testInfo)=>{
+ const a=await abrir({browser},testInfo,{capacidades:['aprovar_alerta'],envioAtivo:true});const {page}=a;
+ try{
+  await page.getByRole('button',{name:'Abrir painel',exact:true}).click();
+  await page.locator('#camada').selectOption('acoes');
+  await page.locator('.ma-animal-result').click();
+  const envio=page.locator('#ma-animal-ficha-envio');
+  await expect(envio.getByRole('heading')).toHaveText('Aviso aos inscritos');
+  await envio.getByRole('button',{name:'Enviar aos inscritos'}).click();
+  await expect(envio.getByRole('status')).toHaveText('4 mensagens na fila.');
+  await expect(envio.getByRole('link',{name:'Ver página do alerta'})).toHaveAttribute('href','../alerta/?m=maringa&c=acoes&id=acao-feira');
+  expect(a.calls.filter(c=>c.name==='ma_enviar_inscritos').map(c=>c.args)).toEqual([{municipio:'maringa',colecao_alvo:'acoes',registro:'acao-feira'}]);
+ }finally{await a.context.close();}
+});

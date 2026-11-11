@@ -51,7 +51,8 @@ const triagem=AlertaAnimalTriagem.criar({$,esc,t,regras,client:globalThis.Alerta
  bairros:()=>db.lista("bairros").filter(b=>b.nome).map(b=>({id:b.id,nome:b.nome})).sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR")),
  // A camada de dados da gestão não expõe recarga parcial: recarrega a página e mostra a confirmação depois.
  aoConcluir:msg=>{try{sessionStorage.setItem(CHAVE_AVISO,msg);}catch{}location.reload();}});
-const ficha=AlertaAnimalFicha.criar({$,esc,t,territorio,triagem,aoFechar:()=>{}});
+const envio=AlertaAnimalEnvio.criar({$,esc,t,client:globalThis.AlertaSupabaseClient,municipioId,pagina:"../alerta/"});
+const ficha=AlertaAnimalFicha.criar({$,esc,t,territorio,triagem,envio,aoFechar:()=>{}});
 const abrirFicha=x=>{if($("painel-ajuda").hidden)$("painel-ajuda-toggle").click();ficha.abrir(x);};
 const camadas=AlertaAnimalCamadas.criar({L,esc,t,grupos,territorio,aoAbrir:abrirFicha});
 const filtros=AlertaAnimalFiltros.criar({$,esc,t,perfil,consultas});

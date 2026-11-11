@@ -14,9 +14,12 @@ const sqlE=fs.readFileSync(require('node:path').join(__dirname,'../../supabase/m
 const enquadramento=JSON.parse(sqlE.match(/\{monitoramento-animal,enquadramento\}','(\[[^']+\])'/)[1]);
 const sqlAc=fs.readFileSync(require('node:path').join(__dirname,'../../supabase/migrations/20261111190000_protecao_animal_lugares_acoes.sql'),'utf8');
 const blocoAc=i=>{const a=sqlAc.indexOf('$j$',sqlAc.indexOf(i))+3;return JSON.parse(sqlAc.slice(a,sqlAc.indexOf('$j$',a)));};
+// Etapas E2 a E4: textos do alerta do bairro na ficha.
+const sqlEnv=fs.readFileSync(require('node:path').join(__dirname,'../../supabase/migrations/20261111220000_alertas_envio.sql'),'utf8');
+const blocoEnv=i=>{const a=sqlEnv.indexOf('$j$',sqlEnv.indexOf(i))+3;return JSON.parse(sqlEnv.slice(a,sqlEnv.indexOf('$j$',a)));};
 const perfilAD={...mapasA['monitoramento-animal'],...blocoD("'{monitoramento-animal}'")};
 const mapas={'monitoramento-animal':{...perfilAD,enquadramento,camadas:[...perfilAD.camadas,...blocoAc("'{monitoramento-animal,camadas}'")],
- textos:{...perfilAD.textos,acao:blocoAc("'{monitoramento-animal,textos,acao}'")}}};
+ textos:{...perfilAD.textos,acao:blocoAc("'{monitoramento-animal,textos,acao}'"),envio:blocoEnv("'{monitoramento-animal,textos,envio}'")}}};
 // Datas locais relativas a hoje, como a página calcula.
 const diaDepois=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 const modelo=bloco("values('modelos'")['protecao-animal'];
@@ -24,7 +27,9 @@ const regras={...bloco("'{protecaoAnimal}'"),triagem:blocoD("'{protecaoAnimal,tr
 const operacao={protecaoAnimal:regras};
 const esquemas={...D.ESQUEMAS,incidentes:{label:'Ocorrências',singular:'Ocorrência',collection:'incidentes',columns:[],fields:[]},
  acoes:{label:'Ações nos bairros',singular:'Ação',collection:'acoes',columns:[],fields:[]}};
-async function ambiente({browser,contextOptions={},latenciaMs=0,segurarSessao=false,capacidades=['triar_animais']}){
+async function ambiente({browser,contextOptions={},latenciaMs=0,segurarSessao=false,capacidades=['triar_animais'],envioAtivo=false}){
+ // Alerta do bairro: o painel do servidor é simulado com o mesmo formato de public.ma_envio_painel.
+ const envio={alertas:{},entregas:{}};
  const esperar=()=>new Promise(resolve=>setTimeout(resolve,latenciaMs));
  let liberarSessao;
  const sessaoPronta=new Promise(resolve=>{liberarSessao=resolve;});
@@ -61,6 +66,13 @@ async function ambiente({browser,contextOptions={},latenciaMs=0,segurarSessao=fa
   if(name==='ma_minhas_capacidades')return {data:caps()};
   if(name==='ma_capacidades_operacionais')return {data:capacidades};
   if(name==='ma_triar_animal'){calls.push({name,args});return {data:{colecao:args.colecao_alvo,id:args.registro,status:'ok'}};}
+  if(name==='ma_envio_painel'){
+   const r=rows.find(x=>x.colecao===args.colecao_alvo&&x.id===args.registro)?.dados||{},al=envio.alertas[args.registro]||null,origem=args.colecao_alvo==='acoes'?args.registro:al?.id;
+   return {data:!capacidades.includes('aprovar_alerta')?{capaz:false}:{capaz:true,ativo:envioAtivo,alerta:al,tem_foto:false,
+    enviavel:args.colecao_alvo==='acoes'?r.status==='Agendada':r.status==='Confirmada',bairros:['Bairro Teste'],inscritos:4,entregas:envio.entregas[origem]||{}}};
+  }
+  if(name==='ma_alerta_aprovar'){calls.push({name,args});envio.alertas[args.incidente]={id:'alerta-teste',mensagem:args.mensagem,status:'Aprovado',aprovado_em:'2026-11-11T15:00:00Z',mostrar_foto:args.mostrar_foto};return {data:{id:'alerta-teste',status:'Aprovado'}};}
+  if(name==='ma_enviar_inscritos'){calls.push({name,args});const novos=envio.entregas[args.registro]?0:4;envio.entregas[args.registro]={pending:4};return {data:{na_fila:novos,total:4}};}
   if(name==='ma_catalogo_territorial')return {data:{categorias:[{id:'animais'}],tipos:[{id:'clinica_veterinaria',categoria_id:'animais'}]}};
   if(name==='ma_territorio_listar')return {data:args.tipo_alvo==='clinica_veterinaria'?[{cadastro:{dados:{id:'vet-teste',nome:'Clínica veterinária fictícia',endereco:'Rua Vet, 1',lat:-23.418,lng:-51.93}},territorio:{tipo_id:'clinica_veterinaria'}}]:[]};
   calls.push({name,args});

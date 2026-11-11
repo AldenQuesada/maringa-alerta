@@ -68,6 +68,14 @@
    "executar": [
     "authenticated"
    ],
+   "nome": "ma_alerta_aprovar(text,text,text,boolean)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
    "nome": "ma_aplicar_alteracoes(jsonb)"
   },
   {
@@ -77,6 +85,22 @@
     "authenticated"
    ],
    "nome": "ma_area_alerta(text,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_aviso_foto(text,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_aviso_publico(text,text,text)"
   },
   {
    "definer": false,
@@ -165,6 +189,22 @@
     "authenticated"
    ],
    "nome": "ma_contatos_listar(text,text,text,text,integer)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_enviar_inscritos(text,text,text)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "ma_envio_painel(text,text,text)"
   },
   {
    "definer": false,
@@ -317,6 +357,22 @@
     "service_role"
    ],
    "nome": "ma_wa_reservar()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_wa_reservar_envio()"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "ma_wa_resultado_envio(uuid,uuid,text,text,text)"
   },
   {
    "definer": false,
@@ -592,6 +648,30 @@
    "dono": "postgres",
    "executar": [],
    "nome": "private.ma_dentro_poligono(jsonb,numeric,numeric)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_envio_area(text,text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_envio_destinatarios(text,text[])"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_envio_modelo(text,text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_envio_valido(text,text,text)"
   },
   {
    "definer": false,
@@ -974,6 +1054,22 @@
    "definer": true,
    "dono": "postgres",
    "executar": [
+    "service_role"
+   ],
+   "nome": "wa.ma_wa_aviso_foto(text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "wa.ma_wa_aviso_publico(text,text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
     "authenticated"
    ],
    "nome": "wa.ma_wa_canais()"
@@ -985,6 +1081,34 @@
     "service_role"
    ],
    "nome": "wa.ma_wa_entradas()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "wa.ma_wa_enviar_inscritos(text,text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "authenticated"
+   ],
+   "nome": "wa.ma_wa_envio_painel(text,text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.ma_wa_envio_retorno(uuid,jsonb)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.ma_wa_envios_limpar()"
   },
   {
    "definer": true,
@@ -1056,7 +1180,29 @@
    "executar": [
     "service_role"
    ],
+   "nome": "wa.ma_wa_reservar_envio()"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
+   "nome": "wa.ma_wa_resultado_envio(uuid,uuid,text,text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [
+    "service_role"
+   ],
    "nome": "wa.ma_wa_resultado(uuid,uuid,text,text,text)"
+  },
+  {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.ma_wa_saida_alertas()"
   },
   {
    "definer": true,
@@ -1426,6 +1572,12 @@
   {
    "dono": "postgres",
    "nome": "wa.delivery_events",
+   "privilegios": {},
+   "rls": true
+  },
+  {
+   "dono": "postgres",
+   "nome": "wa.envios",
    "privilegios": {},
    "rls": true
   },

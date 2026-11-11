@@ -421,3 +421,7 @@ enabled = true
 # Consulta pelo token de alta entropia; envio administrativo valida JWT e autorização dentro do serviço.
 [functions.ma-colaboradores-acesso]
 verify_jwt = false
+
+# Página pública do alerta: sem login; devolve só os campos que o banco libera (wa.ma_wa_aviso_publico).
+[functions.ma-aviso-publico]
+verify_jwt = false

@@ -10,8 +10,11 @@ const sqlA=fs.readFileSync('supabase/migrations/20261111190000_protecao_animal_l
 const blocoA=i=>{const a=sqlA.indexOf('$j$',sqlA.indexOf(i))+3;return JSON.parse(sqlA.slice(a,sqlA.indexOf('$j$',a)));};
 // Perfil como fica no banco depois das etapas A, D e da camada de ações.
 const perfilAD={...bloco("values('mapas'")['monitoramento-animal'],...blocoD("'{monitoramento-animal}'")};
+// Perfil como fica no banco depois das etapas E2 a E4 (alerta do bairro na ficha).
+const sqlEnv=fs.readFileSync('supabase/migrations/20261111220000_alertas_envio.sql','utf8');
+const blocoEnv=i=>{const a=sqlEnv.indexOf('$j$',sqlEnv.indexOf(i))+3;return JSON.parse(sqlEnv.slice(a,sqlEnv.indexOf('$j$',a)));};
 const perfil={...perfilAD,camadas:[...perfilAD.camadas,...blocoA("'{monitoramento-animal,camadas}'")],
- textos:{...perfilAD.textos,acao:blocoA("'{monitoramento-animal,textos,acao}'")}};
+ textos:{...perfilAD.textos,acao:blocoA("'{monitoramento-animal,textos,acao}'"),envio:blocoEnv("'{monitoramento-animal,textos,envio}'")}};
 const regras={...bloco("'{protecaoAnimal}'"),triagem:blocoD("'{protecaoAnimal,triagem}'")},modelo=bloco("values('modelos'")['protecao-animal'];
 test('perfil do banco é válido e perfil ausente ou incompleto é recusado',()=>{
  const c=carregar();

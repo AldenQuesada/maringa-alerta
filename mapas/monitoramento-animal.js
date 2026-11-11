@@ -262,9 +262,75 @@ function criar({$,esc,t,regras,client,municipioId,bairros,territorio,normal,aoCo
 }
 root.AlertaAnimalTriagem={criar};
 })(globalThis);
+/* envio: alerta do bairro na ficha. Quem pode, a área, os inscritos e a situação da entrega vêm de public.ma_envio_painel;
+   aprovar é public.ma_alerta_aprovar e enviar é public.ma_enviar_inscritos. A tela não monta mensagem, área nem público. */
+(function(root){'use strict';
+function criar({$,esc,t,client,municipioId,pagina}){
+ if(!client)throw Error("Envio de alertas sem cliente do banco.");
+ const colecaoDe=x=>x.origemCamada==="acoes"?"acoes":x.origemCamada==="triagem"?null:"incidentes";
+ const linkPagina=(colecao,id)=>pagina+"?m="+encodeURIComponent(municipioId)+"&c="+colecao+"&id="+encodeURIComponent(id);
+ const dataHora=v=>{const d=new Date(v);return isNaN(d)?String(v||""):d.toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});};
+ function entregas(e){
+  const n=Object.values(e||{}).reduce((a,b)=>a+Number(b||0),0);
+  if(!n)return "";
+  const v=k=>Number(e[k]||0);
+  return "<p data-entregas>"+esc(t("envio.entregas",{pending:v("pending")+v("sending"),sent:v("sent")+v("uncertain"),delivered:v("delivered"),read:v("read"),failed:v("failed")+v("expired")}))+"</p>";
+ }
+ async function rpc(nome,args){const r=await client.rpc(nome,args);if(r.error)throw Error(r.error.message);return r.data;}
+ async function montar(alvo,x,aviso){
+  alvo.innerHTML="";
+  const colecao=colecaoDe(x);if(!colecao)return;
+  let p;
+  try{p=await rpc("ma_envio_painel",{municipio:municipioId,colecao_alvo:colecao,registro:x.id});}
+  catch(err){alvo.innerHTML='<section class="ma-animal-triagem ma-animal-envio"><p role="alert">'+esc(t("envio.erro",{erro:err.message}))+"</p></section>";return;}
+  const titulo=t(colecao==="acoes"?"envio.tituloAcao":"envio.titulo");
+  if(!p||!p.capaz){alvo.innerHTML='<section class="ma-animal-triagem ma-animal-envio"><h3>'+esc(titulo)+"</h3><p>"+esc(t("envio.semCapacidade"))+"</p></section>";return;}
+  const bairros=p.bairros||[];
+  const publico="<p data-publico>"+esc(bairros.length?t("envio.publico",{n:p.inscritos,bairros:bairros.join(", ")}):t("envio.semBairro"))+"</p>";
+  const desligado=p.ativo?"":"<p data-desligado>"+esc(t("envio.desligado"))+"</p>";
+  const total=Object.values(p.entregas||{}).reduce((a,b)=>a+Number(b||0),0);
+  let corpo="";
+  if(colecao==="incidentes"&&!p.alerta){
+   corpo=!p.enviavel?"<p>"+esc(t("envio.foraSituacao"))+"</p>":
+    '<form data-aprovar><label>'+esc(t("envio.mensagem"))+'<textarea name="mensagem" required maxlength="700" placeholder="'+esc(t("envio.mensagemDica"))+'"></textarea></label>'+
+    (p.tem_foto?'<label class="ma-animal-envio-opcao"><input type="checkbox" name="mostrar_foto"> '+esc(t("envio.mostrarFoto"))+"</label>":"")+
+    '<div class="ma-animal-triagem-acoes"><button type="submit" data-primaria>'+esc(t(p.ativo?"envio.aprovarEnviar":"envio.aprovar"))+"</button></div></form>"+desligado;
+  }else{
+   const registro=colecao==="acoes"?x.id:p.alerta.id,origem=colecao==="acoes"?"acoes":"alertas";
+   corpo=(p.alerta?"<p>"+esc(t("envio.aprovado",{data:dataHora(p.alerta.aprovado_em)}))+"</p><blockquote>"+esc(p.alerta.mensagem)+"</blockquote>":"")+
+    entregas(p.entregas)+
+    (!p.enviavel?"<p>"+esc(t("envio.foraSituacao"))+"</p>":p.ativo?'<div class="ma-animal-triagem-acoes"><button type="button" data-primaria data-enviar="'+esc(origem)+'" data-registro="'+esc(registro)+'">'+esc(t(total?"envio.enviarNovos":"envio.enviar"))+"</button></div>":desligado)+
+    '<p><a href="'+esc(linkPagina(origem,registro))+'" target="_blank" rel="noopener noreferrer">'+esc(t("envio.verPagina"))+"</a></p>";
+  }
+  alvo.innerHTML='<section class="ma-animal-triagem ma-animal-envio"><h3>'+esc(titulo)+"</h3>"+publico+corpo+'<p role="status">'+esc(aviso||"")+"</p></section>";
+  const estado=alvo.querySelector("[role=status]");
+  const travar=v=>alvo.querySelectorAll("button,textarea,input").forEach(el=>el.disabled=v);
+  const form=alvo.querySelector("form[data-aprovar]");
+  if(form)form.onsubmit=async e=>{
+   e.preventDefault();
+   const mensagem=form.mensagem.value.trim();if(!mensagem)return;
+   travar(true);estado.textContent=t("envio.gravando");
+   try{
+    const novo=await rpc("ma_alerta_aprovar",{municipio:municipioId,incidente:x.id,mensagem,mostrar_foto:!!form.mostrar_foto?.checked});
+    let msg=t("envio.aprovadoFeito");
+    if(p.ativo){const r=await rpc("ma_enviar_inscritos",{municipio:municipioId,colecao_alvo:"alertas",registro:novo.id});msg=t("envio.feito",{n:r.na_fila});}
+    await montar(alvo,x,msg);
+   }catch(err){estado.textContent=t("envio.erro",{erro:err.message});travar(false);}
+  };
+  const botao=alvo.querySelector("[data-enviar]");
+  if(botao)botao.onclick=async()=>{
+   travar(true);estado.textContent=t("envio.gravando");
+   try{const r=await rpc("ma_enviar_inscritos",{municipio:municipioId,colecao_alvo:botao.dataset.enviar,registro:botao.dataset.registro});await montar(alvo,x,t("envio.feito",{n:r.na_fila}));}
+   catch(err){estado.textContent=t("envio.erro",{erro:err.message});travar(false);}
+  };
+ }
+ return {montar};
+}
+root.AlertaAnimalEnvio={criar};
+})(globalThis);
 /* ficha: detalhe do registro no painel lateral. Rótulos vêm de perfil.textos.ficha; as ações vêm do módulo de triagem. */
 (function(root){'use strict';
-function criar({$,esc,t,territorio,triagem,aoFechar}){
+function criar({$,esc,t,territorio,triagem,envio,aoFechar}){
  const linha=(r,v)=>v==null||v===""?"":"<dt>"+esc(t("ficha."+r))+"</dt><dd>"+esc(Array.isArray(v)?v.join(", "):v)+"</dd>";
  function abrir(x){
   const p=territorio.posicao(x);
@@ -279,8 +345,9 @@ function criar({$,esc,t,territorio,triagem,aoFechar}){
    linha("desfecho",x.desfecho)+linha("motivo",x.motivo_arquivamento)+linha("triadoEm",x.triado_em)+linha("ocorrenciaGerada",x.incidente_id);
   $("ma-animal-ficha").hidden=false;$("ma-animal-ficha").scrollIntoView({block:"nearest"});
   triagem.montar($("ma-animal-ficha-triagem"),x);
+  envio?.montar($("ma-animal-ficha-envio"),x);
  }
- // Ação nos bairros: só consulta; o cadastro e a situação são editados na Gestão.
+ // Ação nos bairros: o cadastro e a situação são editados na Gestão; daqui sai o aviso aos inscritos.
  function abrirAcao(x,p){
   const l=(r,v)=>v==null||v===""?"":"<dt>"+esc(t(r))+"</dt><dd>"+esc(v)+"</dd>";
   $("ma-animal-ficha-tipo").textContent=t("acao.ficha")+" · "+(x.status||"");
@@ -288,6 +355,7 @@ function criar({$,esc,t,territorio,triagem,aoFechar}){
   $("ma-animal-ficha-dados").innerHTML=l("acao.tipo",x.tipoAcao)+l("acao.data",x.data)+l("acao.horario",x.horario)+l("ficha.endereco",x.endereco)+
    l("ficha.bairro",x.bairro||p?.bairro)+l("ficha.localizacao",t(p?(p.aproximada?"ficha.aproximada":"ficha.coordenadas"):"ficha.semPosicao"))+l("ficha.descricao",x.descricao);
   $("ma-animal-ficha-triagem").innerHTML="";
+  envio?.montar($("ma-animal-ficha-envio"),x);
   $("ma-animal-ficha").hidden=false;$("ma-animal-ficha").scrollIntoView({block:"nearest"});
  }
  $("ma-animal-ficha-fechar").addEventListener("click",()=>{$("ma-animal-ficha").hidden=true;aoFechar?.();});
@@ -369,7 +437,8 @@ const triagem=AlertaAnimalTriagem.criar({$,esc,t,regras,client:globalThis.Alerta
  bairros:()=>db.lista("bairros").filter(b=>b.nome).map(b=>({id:b.id,nome:b.nome})).sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR")),
  // A camada de dados da gestão não expõe recarga parcial: recarrega a página e mostra a confirmação depois.
  aoConcluir:msg=>{try{sessionStorage.setItem(CHAVE_AVISO,msg);}catch{}location.reload();}});
-const ficha=AlertaAnimalFicha.criar({$,esc,t,territorio,triagem,aoFechar:()=>{}});
+const envio=AlertaAnimalEnvio.criar({$,esc,t,client:globalThis.AlertaSupabaseClient,municipioId,pagina:"../alerta/"});
+const ficha=AlertaAnimalFicha.criar({$,esc,t,territorio,triagem,envio,aoFechar:()=>{}});
 const abrirFicha=x=>{if($("painel-ajuda").hidden)$("painel-ajuda-toggle").click();ficha.abrir(x);};
 const camadas=AlertaAnimalCamadas.criar({L,esc,t,grupos,territorio,aoAbrir:abrirFicha});
 const filtros=AlertaAnimalFiltros.criar({$,esc,t,perfil,consultas});
