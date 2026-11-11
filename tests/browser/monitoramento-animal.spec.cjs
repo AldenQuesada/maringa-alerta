@@ -1,13 +1,12 @@
 // Mapa Monitoramento animal: página e Leaflet reais; banco, tiles e rede externa isolados.
 const {test,expect}=require('@playwright/test');
-const {ambiente}=require('./ambiente-monitoramento-animal.cjs');
-// Câmera do mapa de Ajuda, aprovada em 07/11/2026. Nunca derivar da configuração sob teste.
-const AJUDA={lat:-23.4196153,lng:-51.9357534,zoom:13.5732};
+const {ambiente,enquadramento}=require('./ambiente-monitoramento-animal.cjs');
 const url='http://127.0.0.1:8784/mapas/monitoramento-animal.html';
 
 async function abrir({browser},testInfo,extra={}){
  const o=testInfo.project.use;
- const a=await ambiente({browser,...extra,contextOptions:{viewport:o.viewport,isMobile:true,hasTouch:true,deviceScaleFactor:1}});
+ const {viewport=o.viewport,...resto}=extra;
+ const a=await ambiente({browser,...resto,contextOptions:{viewport,isMobile:true,hasTouch:true,deviceScaleFactor:1}});
  await a.page.addInitScript(()=>{
   let leaflet;
   Object.defineProperty(window,'L',{configurable:true,get:()=>leaflet,set:value=>{
@@ -21,15 +20,29 @@ async function abrir({browser},testInfo,extra={}){
  return a;
 }
 
-test('abre na câmera do mapa de Ajuda, sem rolagem lateral e sem erros',async({browser},testInfo)=>{
- const a=await abrir({browser},testInfo);const {page}=a;
+// Abertura: os limites dos bairros do perfil cabem inteiros no mapa, no celular e em monitor.
+for(const viewport of [null,{width:1440,height:810},{width:1920,height:960}])
+test('abre com a cidade inteira na tela'+(viewport?' em '+viewport.width+'x'+viewport.height:'')+', sem rolagem lateral e sem erros',async({browser},testInfo)=>{
+ const a=await abrir({browser},testInfo,viewport?{viewport}:{});const {page}=a;
  try{
-  const m=await page.evaluate(c=>{const m=window.__cameraTeste.map;return {zoom:m.getZoom(),desvio:m.project(m.getCenter()).distanceTo(m.project([c.lat,c.lng]))};},AJUDA);
-  expect(m.desvio).toBeLessThanOrEqual(1);expect(m.zoom).toBeCloseTo(AJUDA.zoom,7);
+  const m=await page.evaluate(([[s,w],[n,e]])=>{const m=window.__cameraTeste.map,b=m.getBounds();
+   return {cabe:[[s,w],[s,e],[n,e],[n,w]].every(p=>b.contains(p)),minimo:m.getMinZoom(),zoom:m.getZoom()};},enquadramento);
+  expect(m.cabe).toBe(true);expect(m.zoom).toBeCloseTo(m.minimo,3);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await expect(page.locator('#map')).toHaveCSS('background-color','rgb(23, 42, 55)');
   expect(a.errors).toEqual([]);expect(a.calls.map(x=>x.name).filter(n=>!['ma_catalogo_territorial','ma_territorio_listar'].includes(n))).toEqual([]);
   expect(a.blocked.filter(u=>!u.includes('fonts.g'))).toEqual([]);
+ }finally{await a.context.close();}
+});
+
+test('nada do mapa de Ajuda: sem cadastros da Prefeitura, sem painel de filtros de unidades',async({browser},testInfo)=>{
+ const a=await abrir({browser},testInfo);const {page}=a;
+ try{
+  await expect(page.locator('.ma-animal-pin')).toHaveCount(2);
+  await expect(page.getByTitle('Centro de doações fictício')).toHaveCount(0);
+  await expect(page.locator('#eventos-open,#eventos-painel,#filtros-cadastros-municipais')).toHaveCount(0);
+  expect(await page.evaluate(()=>['FiltrosCadastros','FichaPonto','PainelEventos'].filter(x=>x in window))).toEqual([]);
+  expect(a.errors).toEqual([]);
  }finally{await a.context.close();}
 });
 

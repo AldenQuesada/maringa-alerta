@@ -37,7 +37,6 @@ const centro=AlertaGestaoDados.config.centro(prefeitura);
 const map=L.map("map",{zoomControl:true,zoomSnap:0,zoomDelta:.5}).setView(centro||[0,0],centro?12:2);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,subdomains:"abc",attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
 const poligonos=L.layerGroup().addTo(map);
-const unidadesMunicipais=L.layerGroup().addTo(map);
 const grupos={triagem:L.layerGroup().addTo(map),ocorrencias:L.layerGroup().addTo(map),unidades:L.layerGroup().addTo(map)};
 
 const catalogoNome=AlertaGestaoDados.config.referencias(prefeitura).catalogoBairros;
@@ -56,25 +55,12 @@ const camadas=AlertaAnimalCamadas.criar({L,esc,t,grupos,territorio,aoAbrir:abrir
 const filtros=AlertaAnimalFiltros.criar({$,esc,t,perfil,consultas});
 const resultados=AlertaAnimalResultados.criar({$,esc,t,perfil,aoAbrir:abrirFicha,aoLocalizar:x=>{const p=territorio.posicao(x);if(p)map.flyTo([p.lat,p.lng],Math.max(map.getZoom(),15));}});
 
-// Mesmo painel de unidades municipais do mapa de Ajuda (módulos compartilhados, sem alteração).
-const fichaPonto=FichaPonto.criar({painel:$("painel-ajuda"),abrirPainel:()=>{if($("painel-ajuda").hidden)$("painel-ajuda-toggle").click();},obterRegistro:(modulo,id)=>db.registro(modulo,id),waLink:globalThis.MaringaCrise?.waLink});
-const filtrosCadastros=FiltrosCadastros.montar({alvo:$("filtros-cadastros-municipais"),inventario:INVENTARIO,db,baseGestao:"../gestao/",recorte:()=>true,aoMudar:()=>render(),localizar:x=>map.flyTo([x.lat,x.lng],Math.max(map.getZoom(),15))});
-function renderUnidadesMunicipais(){
- unidadesMunicipais.clearLayers();
- if(!filtrosCadastros.mostrar())return;
- for(const x of filtrosCadastros.rows().filter(x=>x.georreferenciado&&!x.privado)){
-  L.marker([x.lat,x.lng],{icon:L.divIcon({className:"pin canonical-map-pin",html:'<span class="canonical-pin">'+INVENTARIO.simbolo(x)+"</span>",iconSize:[32,32],iconAnchor:[16,32]}),title:x.nome})
-   .bindTooltip("<strong>"+esc(x.nome)+"</strong><br>"+esc(x.endereco||t("mapa.enderecoNaoInformado")),{direction:"top"}).on("click",()=>fichaPonto.abrir(x)).addTo(unidadesMunicipais);
- }
-}
-
 function render(){
  const todos=[...consultas.relatos(),...consultas.incidentes()];
  const porCamada=state.camada?todos.filter(x=>x.origemCamada===state.camada):todos;
  const xs=consultas.filtrar(porCamada,{...state,zonaDe:territorio.zonaDe});
  const semPosicao=camadas.desenhar(xs);
  camadas.desenharUnidades(state.unidades,state.mostrarUnidades);
- renderUnidadesMunicipais();
  resultados.indicadores(todos);resultados.lista(xs,semPosicao);
 }
 
@@ -98,11 +84,13 @@ toggle.addEventListener("click",()=>{
 });
 toggle.click();
 
-PainelEventos.iniciar({painel:$("eventos-painel"),barra:$("eventos-painel-head"),abrir:$("eventos-open"),fechar:$("eventos-close"),area:document.querySelector(".map-area"),aoAbrir:()=>filtrosCadastros.abrir()});
 filtros.montar(state,territorio.zonas());render();
 
-// Câmera de referência indicada no perfil (Ajuda), lida de config/cameras-mapas.js sem alterá-la.
-window.AlertaMapaNavegacao.instalarVistaSalva({limites:AlertaGestaoDados.config.limites(prefeitura),map,L,
+// Abertura: com perfil.enquadramento, a cidade inteira cabe na tela, em qualquer tamanho; sem ele, a câmera de referência do perfil.
+const limitesNavegacao=AlertaGestaoDados.config.limites(prefeitura);
+if(perfil.enquadramento){const [[s,w],[n,e]]=perfil.enquadramento;
+ window.AlertaMapaNavegacao.instalar({map,L,zonas:[[[s,w],[s,e],[n,e],[n,w]]],limites:limitesNavegacao,identificador:AlertaAnimalPerfil.ID,arrasteNoMinimo:true});
+}else window.AlertaMapaNavegacao.instalarVistaSalva({limites:limitesNavegacao,map,L,
  identificador:AlertaAnimalPerfil.ID,vistaInicial:AlertaGestaoDados.config.vistaMapa(prefeitura,perfil.camera),arrasteNoMinimo:true});
 if(catalogoBairros)catalogoBairros.iniciar({map,L,recolherInicial:true});
 territorio.carregar().catch(err=>console.warn("Bairros e zonas indisponíveis",err));
