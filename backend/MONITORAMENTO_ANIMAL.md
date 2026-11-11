@@ -90,7 +90,7 @@ Migração `20261111190000_protecao_animal_lugares_acoes.sql`. Somente acréscim
 - **Ações:** ficam no cadastro novo `acoes` (feira de adoção, castramóvel, unidade móvel), com nome, tipo, data, horário, endereço, bairro e situação (Agendada, Realizada ou Cancelada). O mapa mostra as agendadas de hoje em diante, na camada "Ações nos bairros". Permissões iguais às dos alertas.
 - **Guarda no servidor (`private.ma_protecao_animal_catalogo`):** liga o nome do tipo ao catálogo da categoria de `operacao.protecaoAnimal.categoriaTipos` e recusa tipo desconhecido ou de outro domínio. Nas ações, exige data `AAAA-MM-DD` válida, liga o bairro e assume "Agendada" quando a situação vem vazia. Unidades de outras áreas não passam por essa regra.
 - **Menu da Gestão:** grupo "Proteção animal" com Ações nos bairros, Lugares da proteção animal e Inscritos em alertas.
-- **Lugares cadastrados (fontes públicas de 11/11/2026):**
+- **Lugares cadastrados (fontes públicas de 11/11/2026), no seed `supabase/seeds/protecao-animal-lugares.sql`:**
   - Sebea: Av. Centenário, 449, Zona 08. Sem coordenada; a busca de endereço não acha o número.
   - Cbea: Rua Duzentos, s/n, Ebenezer. Sem coordenada; não está confirmado se fica no mesmo terreno do Centro de Zoonoses.
   - Centro de Controle de Zoonoses: Estrada 200, 1391, com o ponto do CNES 9944184.
