@@ -35,7 +35,7 @@ Exige administrador municipal. Cria, pelo caminho canônico e sem duplicar, os t
 - **Alertas.**
   - Exigem ocorrência existente, confirmada e não restrita.
   - O servidor define autoria, data e área. O cliente não altera esses dados.
-  - A aprovação exige `aprovar_alerta` e outra pessoa, diferente de quem criou.
+  - A aprovação exige `aprovar_alerta`. Quem criou o alerta pode aprová-lo.
   - Alerta aprovado não pode ter a mensagem editada.
   - Não existe estado "enviado": o envio real pertence à fase de alertas.
 - **Área do alerta.** `ma_area_alerta(municipio, bairro)` devolve o bairro e os vizinhos cujas geometrias se tocam (PostGIS), com permissão de leitura de `alertas`.

@@ -64,7 +64,6 @@ begin
  new.dados:=new.dados||jsonb_build_object('criado_por',antes->'criado_por','criado_em',antes->'criado_em','zonas',antes->'zonas','aprovado_por',antes->'aprovado_por','aprovado_em',antes->'aprovado_em');
  if status_novo='Aprovado' and status_antes is distinct from 'Aprovado' then
   if not private.ma_capaz(new.municipio_id,cfg#>>'{capacidades,aprovarAlerta}') then raise exception 'Aprovação exige capacidade específica' using errcode='42501';end if;
-  if auth.uid()::text=antes->>'criado_por' then raise exception 'Quem cria o alerta não pode aprová-lo' using errcode='42501';end if;
   new.dados:=new.dados||jsonb_build_object('aprovado_por',auth.uid(),'aprovado_em',clock_timestamp());
  end if;
  return new;

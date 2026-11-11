@@ -89,17 +89,19 @@ select pg_temp.atualizar('animais','a-toddy','{"status":"Encontrado"}');
 select pg_temp.atualizar('incidentes','i-perdido','{"animal_id":"a-toddy"}');
 select pg_temp.rejeita($q$select pg_temp.atualizar('incidentes','i-perdido','{"animal_id":"a-inexistente"}')$q$,'23503');
 
--- Alertas: só para ocorrência pública confirmada; área no servidor; aprovação por outra pessoa capaz.
+-- Alertas: só para ocorrência pública confirmada; área no servidor; aprovação exige a capacidade, e quem cria pode aprovar.
 select pg_temp.gravar('alertas','al-1','{"incidente_id":"i-perdido","mensagem":"Cão perdido no Centro de teste","nivel":"Bairro","criado_por":"forjado","zonas":[]}');
 select pg_temp.exige(pg_temp.dados('alertas','al-1')->>'criado_por'='00000000-0000-4000-8000-000000000081','autor definido pelo servidor');
 select pg_temp.exige(jsonb_array_length(pg_temp.dados('alertas','al-1')->'zonas')=2,'zonas calculadas pelo servidor');
 select pg_temp.exige(pg_temp.dados('alertas','al-1')->>'status'='Rascunho','alerta nasce rascunho');
-select pg_temp.rejeita($q$select pg_temp.atualizar('alertas','al-1','{"status":"Aprovado"}')$q$,'42501');
 select pg_temp.rejeita($q$select pg_temp.gravar('alertas','al-x','{"incidente_id":"i-inexistente","mensagem":"x"}')$q$,'23503');
 select pg_temp.rejeita($q$select pg_temp.gravar('alertas','al-restrito','{"incidente_id":"i-denuncia","mensagem":"x"}')$q$);
-select pg_temp.como('84');
+select pg_temp.capacidade('admin','aprovar_alerta',false);
+select pg_temp.rejeita($q$select pg_temp.atualizar('alertas','al-1','{"status":"Aprovado"}')$q$,'42501');
+select pg_temp.capacidade('admin','aprovar_alerta',true);
 select pg_temp.atualizar('alertas','al-1','{"status":"Aprovado","aprovado_por":"forjado"}');
-select pg_temp.exige(pg_temp.dados('alertas','al-1')->>'aprovado_por'='00000000-0000-4000-8000-000000000084','aprovação registrada pelo servidor');
+select pg_temp.exige(pg_temp.dados('alertas','al-1')->>'aprovado_por'='00000000-0000-4000-8000-000000000081','quem cria aprova; aprovação registrada pelo servidor');
+select pg_temp.como('84');
 select pg_temp.rejeita($q$select pg_temp.atualizar('alertas','al-1','{"mensagem":"Alterada depois"}')$q$);
 select pg_temp.rejeita($q$select pg_temp.atualizar('alertas','al-1','{"status":"Rascunho"}')$q$);
 select pg_temp.atualizar('alertas','al-1','{"zonas":[],"criado_por":"forjado"}');
