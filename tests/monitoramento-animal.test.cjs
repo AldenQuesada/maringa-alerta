@@ -11,6 +11,11 @@ const regras={...bloco("'{protecaoAnimal}'"),triagem:blocoD("'{protecaoAnimal,tr
 test('perfil do banco é válido e perfil ausente ou incompleto é recusado',()=>{
  const c=carregar();
  assert.equal(c.AlertaAnimalPerfil.validar(perfil,regras).perfil.camera,'ajuda');
+ const sqlE=fs.readFileSync('supabase/migrations/20261111170000_monitoramento_animal_enquadramento.sql','utf8');
+ const enquadramento=JSON.parse(sqlE.match(/\{monitoramento-animal,enquadramento\}','(\[[^']+\])'/)[1]);
+ assert.deepEqual(JSON.parse(JSON.stringify(c.AlertaAnimalPerfil.validar({...perfil,enquadramento},regras).perfil.enquadramento)),enquadramento);
+ for(const ruim of [[],[[1,2]],[[-23.3,-52],[-23.4,-51.8]],[[-23.4,-51.8],[-23.3,-52]],[['a',1],[2,3]]])
+  assert.throws(()=>c.AlertaAnimalPerfil.validar({...perfil,enquadramento:ruim},regras),/enquadramento inválido/);
  assert.throws(()=>c.AlertaAnimalPerfil.validar(undefined,regras),/não está configurado/);
  assert.throws(()=>c.AlertaAnimalPerfil.validar({...perfil,camadas:[]},regras),/sem camadas/);
  assert.throws(()=>c.AlertaAnimalPerfil.validar(perfil,undefined),/protecaoAnimal/);

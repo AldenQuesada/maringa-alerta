@@ -9,7 +9,10 @@ const sqlD=fs.readFileSync(require('node:path').join(__dirname,'../../supabase/m
 const blocoD=(inicio)=>{const i=sqlD.indexOf(inicio);const a=sqlD.indexOf('$j$',i)+3;return JSON.parse(sqlD.slice(a,sqlD.indexOf('$j$',a)));};
 // Perfil e regras como ficam no banco depois das etapas A e D.
 const mapasA=bloco("values('mapas'");
-const mapas={'monitoramento-animal':{...mapasA['monitoramento-animal'],...blocoD("'{monitoramento-animal}'")}};
+// Etapa do enquadramento: o valor vem da migração, como os demais.
+const sqlE=fs.readFileSync(require('node:path').join(__dirname,'../../supabase/migrations/20261111170000_monitoramento_animal_enquadramento.sql'),'utf8');
+const enquadramento=JSON.parse(sqlE.match(/\{monitoramento-animal,enquadramento\}','(\[[^']+\])'/)[1]);
+const mapas={'monitoramento-animal':{...mapasA['monitoramento-animal'],...blocoD("'{monitoramento-animal}'"),enquadramento}};
 const modelo=bloco("values('modelos'")['protecao-animal'];
 const regras={...bloco("'{protecaoAnimal}'"),triagem:blocoD("'{protecaoAnimal,triagem}'")};
 const operacao={protecaoAnimal:regras};
@@ -28,6 +31,8 @@ async function ambiente({browser,contextOptions={},latenciaMs=0,segurarSessao=fa
  fixture('bairros','bairro-teste',{nome:'Bairro Teste',zona:'Zona Teste',verificacao:'Validado',geojson:JSON.stringify({type:'Polygon',coordinates:[[[-51.95,-23.43],[-51.92,-23.43],[-51.92,-23.40],[-51.95,-23.40],[-51.95,-23.43]]]})});
  for(const t of modelo.tipos)fixture('ocorrenciaTipos',t.id,t);
  fixture('ocorrenciaTipos','tipo-outro',{nome:'Queda de árvore',prioridade:'Alta'});
+ // Cadastro do mapa de Ajuda, com coordenadas: não pode aparecer no Monitoramento animal.
+ fixture('bases','base-ajuda',{nome:'Centro de doações fictício',tipo:'Centro de doações',lat:'-23.418',lng:'-51.93',endereco:'Rua Ajuda, 1'});
  fixture('relatos','relato-perdido',{nome:'Tutora fictícia',telefone:'44999990000',endereco:'Rua Teste, 10, Bairro Teste',categoria:'animal',situacao:'Perdi meu animal',especie:'Cão',descricao:'Caramelo de coleira azul',status:'Em triagem',origem:'WhatsApp',visibilidade:'publica'});
  fixture('relatos','relato-sem-local',{nome:'Anônimo',anonimo:true,telefone:'44999990001',endereco:'Perto da padaria',categoria:'animal',situacao:'Maus-tratos ou abandono',especie:'Gato',descricao:'Gato preso',status:'Em triagem',origem:'WhatsApp',visibilidade:'restrita'});
  fixture('relatos','relato-outro',{nome:'Fora do módulo',telefone:'44999990002',endereco:'Rua X, Bairro Teste',status:'Em triagem',origem:'WhatsApp'});
@@ -73,4 +78,4 @@ async function ambiente({browser,contextOptions={},latenciaMs=0,segurarSessao=fa
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
  return {browser,context,page,rows,calls,blocked,errors,liberarSessao};
 }
-module.exports={ambiente};
+module.exports={ambiente,enquadramento};

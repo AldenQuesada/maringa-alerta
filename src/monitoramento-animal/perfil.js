@@ -7,6 +7,10 @@ function validar(perfil,regras){
   if(perfil[campo]==null)throw Error("Perfil do mapa incompleto: falta "+campo+".");
  if(!Array.isArray(perfil.camadas)||!perfil.camadas.length)throw Error("Perfil do mapa sem camadas.");
  for(const cor of ["contornoZona","destaqueRestrito"])if(!/^#[0-9a-f]{3,8}$/i.test(perfil.cores[cor]||""))throw Error("Perfil do mapa incompleto: cor "+cor+" ausente ou inválida.");
+ // Enquadramento opcional: [[sul,oeste],[norte,leste]] da área que precisa caber inteira na abertura.
+ const q=perfil.enquadramento;
+ if(q!=null&&!(Array.isArray(q)&&q.length===2&&q.every(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite))&&q[0][0]<q[1][0]&&q[0][1]<q[1][1]))
+  throw Error("Perfil do mapa incompleto: enquadramento inválido.");
  if(!regras||!regras.categoriaTipos)throw Error("Regras da proteção animal ausentes em operacao.protecaoAnimal.");
  return {perfil,regras};
 }
