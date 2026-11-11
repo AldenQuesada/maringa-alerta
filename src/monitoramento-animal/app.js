@@ -37,7 +37,9 @@ const centro=AlertaGestaoDados.config.centro(prefeitura);
 const map=L.map("map",{zoomControl:true,zoomSnap:0,zoomDelta:.5}).setView(centro||[0,0],centro?12:2);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,subdomains:"abc",attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
 const poligonos=L.layerGroup().addTo(map);
-const grupos={triagem:L.layerGroup().addTo(map),ocorrencias:L.layerGroup().addTo(map),unidades:L.layerGroup().addTo(map)};
+const grupos={triagem:L.layerGroup().addTo(map),ocorrencias:L.layerGroup().addTo(map),acoes:L.layerGroup().addTo(map),unidades:L.layerGroup().addTo(map)};
+// Data local de hoje (AAAA-MM-DD), para mostrar só ações que ainda vão acontecer.
+const hoje=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
 
 const catalogoNome=AlertaGestaoDados.config.referencias(prefeitura).catalogoBairros;
 const catalogoBairros=catalogoNome?globalThis[catalogoNome]:null;
@@ -56,7 +58,7 @@ const filtros=AlertaAnimalFiltros.criar({$,esc,t,perfil,consultas});
 const resultados=AlertaAnimalResultados.criar({$,esc,t,perfil,aoAbrir:abrirFicha,aoLocalizar:x=>{const p=territorio.posicao(x);if(p)map.flyTo([p.lat,p.lng],Math.max(map.getZoom(),15));}});
 
 function render(){
- const todos=[...consultas.relatos(),...consultas.incidentes()];
+ const todos=[...consultas.relatos(),...consultas.incidentes(),...consultas.acoes(hoje())];
  const porCamada=state.camada?todos.filter(x=>x.origemCamada===state.camada):todos;
  const xs=consultas.filtrar(porCamada,{...state,zonaDe:territorio.zonaDe});
  const semPosicao=camadas.desenhar(xs);

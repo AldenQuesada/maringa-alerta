@@ -38,7 +38,7 @@ test('abre com a cidade inteira na tela'+(viewport?' em '+viewport.width+'x'+vie
 test('nada do mapa de Ajuda: sem cadastros da Prefeitura, sem painel de filtros de unidades',async({browser},testInfo)=>{
  const a=await abrir({browser},testInfo);const {page}=a;
  try{
-  await expect(page.locator('.ma-animal-pin')).toHaveCount(2);
+  await expect(page.locator('.ma-animal-pin')).toHaveCount(3);
   await expect(page.getByTitle('Centro de doações fictício')).toHaveCount(0);
   await expect(page.locator('#eventos-open,#eventos-painel,#filtros-cadastros-municipais')).toHaveCount(0);
   expect(await page.evaluate(()=>['FiltrosCadastros','FichaPonto','PainelEventos'].filter(x=>x in window))).toEqual([]);
@@ -53,21 +53,39 @@ test('perfil, filtros e marcadores vêm do banco',async({browser},testInfo)=>{
   await expect(page.locator('#title')).toHaveText('Monitoramento animal');
   await expect(page.locator('#eyebrow')).toHaveText('PROTEÇÃO ANIMAL');
   await expect(page.locator('#filtro option')).toHaveText(['Todas as situações','Animal encontrado','Animal ferido ou em risco','Animal perdido','Maus-tratos ou abandono']);
-  await expect(page.locator('#camada option')).toHaveText(['Todas as camadas','Triagem','Ocorrências']);
-  // Dois relatos de animal e uma ocorrência aberta; o relato fora do módulo e a resolvida não aparecem.
-  await expect(page.locator('#list-count')).toHaveText('3 registros · 1 sem posição');
+  await expect(page.locator('#camada option')).toHaveText(['Todas as camadas','Triagem','Ocorrências','Ações nos bairros']);
+  // Dois relatos de animal, uma ocorrência aberta e uma feira agendada; o relato fora do módulo, a resolvida,
+  // a feira passada e a cancelada não aparecem.
+  await expect(page.locator('#list-count')).toHaveText('4 registros · 1 sem posição');
   await expect(page.locator('#metric-one')).toHaveText('2');await expect(page.locator('#metric-two')).toHaveText('1');await expect(page.locator('#metric-three')).toHaveText('1');
-  await expect(page.locator('.ma-animal-pin')).toHaveCount(2);
+  await expect(page.locator('.ma-animal-pin')).toHaveCount(3);
   await expect(page.locator('.ma-animal-pin.triagem')).toHaveCount(1);
   await expect(page.getByTitle('Clínica veterinária fictícia')).toHaveCount(1);
   await page.getByLabel('Mostrar resolvidas e arquivadas').check();
-  await expect(page.locator('#list-count')).toHaveText('4 registros · 1 sem posição');
+  await expect(page.locator('#list-count')).toHaveText('5 registros · 1 sem posição');
   await page.locator('#filtro').selectOption('animal-perdido');
   await expect(page.locator('.ma-animal-result')).toHaveCount(1);
   await page.locator('.ma-animal-result').click();
   await expect(page.locator('#ma-animal-ficha')).toBeVisible();
   await expect(page.locator('#ma-animal-ficha-dados')).toContainText('Aproximada pelo bairro');
   await expect(page.locator('#ma-animal-ficha-dados')).toContainText('Bairro Teste');
+  expect(a.errors).toEqual([]);
+ }finally{await a.context.close();}
+});
+
+test('ações nos bairros: feira agendada no mapa, com data e horário na ficha, sem triagem',async({browser},testInfo)=>{
+ const a=await abrir({browser},testInfo);const {page}=a;
+ try{
+  await page.getByRole('button',{name:'Abrir painel',exact:true}).click();
+  await page.locator('#camada').selectOption('acoes');
+  await expect(page.locator('.ma-animal-result')).toHaveCount(1);
+  await expect(page.locator('.ma-animal-result')).toContainText('Feira de adoção fictícia');
+  await page.locator('.ma-animal-result').click();
+  await expect(page.locator('#ma-animal-ficha-tipo')).toHaveText('AÇÃO · Agendada');
+  await expect(page.locator('#ma-animal-ficha-dados')).toContainText('Feira de adoção');
+  await expect(page.locator('#ma-animal-ficha-dados')).toContainText('9h às 13h');
+  await expect(page.locator('#ma-animal-ficha-triagem')).toBeEmpty();
+  await expect(page.getByTitle(/Feira passada|Feira cancelada/)).toHaveCount(0);
   expect(a.errors).toEqual([]);
  }finally{await a.context.close();}
 });

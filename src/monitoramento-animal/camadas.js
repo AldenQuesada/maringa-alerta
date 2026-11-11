@@ -7,13 +7,13 @@ function criar({L,esc,t,grupos,territorio,aoAbrir}){
   return L.divIcon({className:"pin "+classe,html:'<span class="ma-animal-pin-corpo"'+(cor?' style="--ma-animal-cor:'+cor+'"':"")+'>'+esc(x.tipo?.icone||"•")+'</span>',iconSize:[32,32],iconAnchor:[16,32]});
  }
  function desenhar(xs){
-  grupos.triagem.clearLayers();grupos.ocorrencias.clearLayers();
+  grupos.triagem.clearLayers();grupos.ocorrencias.clearLayers();grupos.acoes.clearLayers();
   const ocupacao=new Map();let semPosicao=0;
   for(const x of xs){
    const p=territorio.posicao(x);if(!p){semPosicao++;continue;}
    const chave=p.lat.toFixed(5)+":"+p.lng.toFixed(5),n=ocupacao.get(chave)||0;ocupacao.set(chave,n+1);
    const desloc=p.aproximada?n*0.0009:0;
-   const titulo=(x.tipo?.nome||x.situacao||t("lista.relato"))+(x.protocolo?" · "+x.protocolo:"");
+   const titulo=(x.tipo?.nome||x.situacao||t("lista.relato"))+(x.protocolo?" · "+x.protocolo:"")+(x.data?" · "+x.data:"");
    L.marker([p.lat+desloc,p.lng+desloc],{icon:icone(x),title:titulo})
     .bindTooltip("<strong>"+esc(titulo)+"</strong><br>"+esc(x.status||"")+(p.aproximada?" · "+esc(t("mapa.aproximada",{bairro:p.bairro})):""),{direction:"top"})
     .on("click",()=>aoAbrir(x)).addTo(grupos[x.origemCamada]);

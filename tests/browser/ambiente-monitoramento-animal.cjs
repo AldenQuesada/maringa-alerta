@@ -12,11 +12,18 @@ const mapasA=bloco("values('mapas'");
 // Etapa do enquadramento: o valor vem da migração, como os demais.
 const sqlE=fs.readFileSync(require('node:path').join(__dirname,'../../supabase/migrations/20261111170000_monitoramento_animal_enquadramento.sql'),'utf8');
 const enquadramento=JSON.parse(sqlE.match(/\{monitoramento-animal,enquadramento\}','(\[[^']+\])'/)[1]);
-const mapas={'monitoramento-animal':{...mapasA['monitoramento-animal'],...blocoD("'{monitoramento-animal}'"),enquadramento}};
+const sqlAc=fs.readFileSync(require('node:path').join(__dirname,'../../supabase/migrations/20261111190000_protecao_animal_lugares_acoes.sql'),'utf8');
+const blocoAc=i=>{const a=sqlAc.indexOf('$j$',sqlAc.indexOf(i))+3;return JSON.parse(sqlAc.slice(a,sqlAc.indexOf('$j$',a)));};
+const perfilAD={...mapasA['monitoramento-animal'],...blocoD("'{monitoramento-animal}'")};
+const mapas={'monitoramento-animal':{...perfilAD,enquadramento,camadas:[...perfilAD.camadas,...blocoAc("'{monitoramento-animal,camadas}'")],
+ textos:{...perfilAD.textos,acao:blocoAc("'{monitoramento-animal,textos,acao}'")}}};
+// Datas locais relativas a hoje, como a página calcula.
+const diaDepois=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 const modelo=bloco("values('modelos'")['protecao-animal'];
 const regras={...bloco("'{protecaoAnimal}'"),triagem:blocoD("'{protecaoAnimal,triagem}'")};
 const operacao={protecaoAnimal:regras};
-const esquemas={...D.ESQUEMAS,incidentes:{label:'Ocorrências',singular:'Ocorrência',collection:'incidentes',columns:[],fields:[]}};
+const esquemas={...D.ESQUEMAS,incidentes:{label:'Ocorrências',singular:'Ocorrência',collection:'incidentes',columns:[],fields:[]},
+ acoes:{label:'Ações nos bairros',singular:'Ação',collection:'acoes',columns:[],fields:[]}};
 async function ambiente({browser,contextOptions={},latenciaMs=0,segurarSessao=false,capacidades=['triar_animais']}){
  const esperar=()=>new Promise(resolve=>setTimeout(resolve,latenciaMs));
  let liberarSessao;
@@ -31,6 +38,10 @@ async function ambiente({browser,contextOptions={},latenciaMs=0,segurarSessao=fa
  fixture('bairros','bairro-teste',{nome:'Bairro Teste',zona:'Zona Teste',verificacao:'Validado',geojson:JSON.stringify({type:'Polygon',coordinates:[[[-51.95,-23.43],[-51.92,-23.43],[-51.92,-23.40],[-51.95,-23.40],[-51.95,-23.43]]]})});
  for(const t of modelo.tipos)fixture('ocorrenciaTipos',t.id,t);
  fixture('ocorrenciaTipos','tipo-outro',{nome:'Queda de árvore',prioridade:'Alta'});
+ // Ações: uma feira agendada daqui a 3 dias aparece; a de ontem e a cancelada não.
+ fixture('acoes','acao-feira',{nome:'Feira de adoção fictícia',tipo:'Feira de adoção',tipo_id:'feira_adocao',data:diaDepois(3),horario:'9h às 13h',endereco:'Praça Teste',lat:'-23.41',lng:'-51.925',status:'Agendada'});
+ fixture('acoes','acao-passada',{nome:'Feira passada',tipo:'Feira de adoção',data:diaDepois(-1),lat:'-23.41',lng:'-51.93',status:'Agendada'});
+ fixture('acoes','acao-cancelada',{nome:'Feira cancelada',tipo:'Feira de adoção',data:diaDepois(5),lat:'-23.41',lng:'-51.935',status:'Cancelada'});
  // Cadastro do mapa de Ajuda, com coordenadas: não pode aparecer no Monitoramento animal.
  fixture('bases','base-ajuda',{nome:'Centro de doações fictício',tipo:'Centro de doações',lat:'-23.418',lng:'-51.93',endereco:'Rua Ajuda, 1'});
  fixture('relatos','relato-perdido',{nome:'Tutora fictícia',telefone:'44999990000',endereco:'Rua Teste, 10, Bairro Teste',categoria:'animal',situacao:'Perdi meu animal',especie:'Cão',descricao:'Caramelo de coleira azul',status:'Em triagem',origem:'WhatsApp',visibilidade:'publica'});
