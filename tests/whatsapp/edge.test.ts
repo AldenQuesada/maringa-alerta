@@ -151,3 +151,18 @@ Deno.test('AI review queue records each result, turns failures into codes and ne
   assert(results[1].resultado === null && results[1].codigo === 'erro' && !JSON.stringify(results[1]).includes('provider detail'));
   assert(results[2].codigo === 'refusal');
 });
+Deno.test('Shared location reaches the database as coordinates, bounded text and nothing else', () => {
+  const body = { object: 'whatsapp_business_account', entry: [{ changes: [{ field: 'messages', value: { metadata: { phone_number_id: '123' },
+    messages: [{ id: 'wamid.loc', from: '550000000000', timestamp: '1794010000', type: 'location',
+      location: { latitude: -23.42, longitude: -51.93, name: 'Praça', address: 'x'.repeat(500), url: 'https://ignored.invalid' } }] } }] }] };
+  const event = parseEvents(body)[0].events[0];
+  assert(event.location.latitude === -23.42 && event.location.longitude === -51.93 && event.location.name === 'Praça');
+  assert(event.location.address.length === 300 && !('url' in event.location) && event.text === undefined && event.button === undefined);
+});
+Deno.test('Location question asks WhatsApp for the contact location with the database copy', () => {
+  const item: Delivery = { id: 'o', lease: 'l', to: '550000000000', phone_number_id: '123', graph_version: 'v23.0',
+    payload: { text: 'Onde é? Toque em Enviar localização.', buttons: [], location_request: true } };
+  const result = providerPayload(item) as any;
+  assert(result.type === 'interactive' && result.interactive.type === 'location_request_message');
+  assert(result.interactive.body.text === item.payload.text && result.interactive.action.name === 'send_location');
+});

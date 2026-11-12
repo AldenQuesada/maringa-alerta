@@ -829,6 +829,12 @@
    "nome": "private.ma_registrar_historico()"
   },
   {
+   "definer": true,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "private.ma_relato_tipo()"
+  },
+  {
    "definer": false,
    "dono": "ma_consultor",
    "executar": [
@@ -1263,6 +1269,18 @@
     "authenticated"
    ],
    "nome": "wa.ma_wa_usar_versao(uuid,uuid)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.no_resolvido(wa.sessions,jsonb)"
+  },
+  {
+   "definer": false,
+   "dono": "postgres",
+   "executar": [],
+   "nome": "wa.opcoes(wa.sessions,jsonb)"
   },
   {
    "definer": true,

@@ -1,12 +1,15 @@
 export type Delivery = { id: string; lease: string; to: string; phone_number_id: string; graph_version: string;
   payload: { text: string; buttons: { id: string; label: string; full_label?: string }[]; list_button?: string; list_title?: string;
-    image?: { url: string; mime_type: string; sha256: string; alt: string };
+    image?: { url: string; mime_type: string; sha256: string; alt: string }; location_request?: boolean;
     template?: { name: string; language: { code: string }; components: unknown[] } } };
 export function providerPayload(item: Delivery) {
   const base = { messaging_product: 'whatsapp', recipient_type: 'individual', to: item.to, biz_opaque_callback_data: item.id };
   // Approved Meta template: name, language and parameters come assembled from PostgreSQL.
   if (item.payload.template) return { ...base, type: 'template', template: item.payload.template };
   if (item.payload.image) return { ...base, type: 'image', image: { link: item.payload.image.url, caption: item.payload.text } };
+  // Question that accepts the contact's location: WhatsApp shows its own "send location" button.
+  if (item.payload.location_request && item.payload.text.length <= 1024) return { ...base, type: 'interactive',
+    interactive: { type: 'location_request_message', body: { text: item.payload.text }, action: { name: 'send_location' } } };
   const buttons = item.payload.buttons ?? [];
   if ((buttons.length > 3 || buttons.some(b => (b.full_label?.length ?? 0) > 20)) && buttons.length <= 10 && item.payload.text.length <= 1024) return { ...base, type: 'interactive',
     interactive: { type: 'list', body: { text: item.payload.text }, action: {

@@ -155,8 +155,8 @@ const ESQUEMAS={
     F("necessidade","O que precisa?","select",{required:true,options:CATALOGOS.necessidades}),F("descricao","Descreva a necessidade","textarea"),
     F("urgencia","Urgência (classificação interna)","select",{options:["Não avaliada","Normal","Alta","Crítica"]}),F("modo_recebimento","Retirada ou entrega da ajuda","select",{options:["Posso retirar em um ponto de apoio","Preciso receber no endereço informado","A combinar"]}),F("evento_referencia","Evento relacionado (opcional)"),F("status","Situação","select",{options:["Aguardando","Encaminhada","Cheguei","Atendida","Cancelada"]}),
     F("atribuido_a","Colaborador acionado (ID)","hidden"),F("criado_em","Criado em","hidden"),F("relatos","Relatos vinculados","hidden")]},
-  relatos:{label:"Relatos de ocorrências",singular:"Relato",collection:"relatos",summary:"Comunicações de cidadãos aguardando triagem operacional. Não são ocorrências confirmadas.",columns:["nome","endereco","status"],fields:[
-    F("nome","Nome do comunicante","text",{required:true}),F("telefone","Telefone","tel",{required:true}),F("endereco","Endereço exato (privado)","text",{required:true}),
+  relatos:{label:"Relatos de ocorrências",singular:"Relato",collection:"relatos",summary:"Comunicações de cidadãos aguardando triagem operacional. Não são ocorrências confirmadas.",columns:["nome","tipo_nome","endereco","status"],fields:[
+    F("nome","Nome do comunicante","text",{required:true}),F("tipo_nome","Tipo informado pelo cidadão","text"),F("telefone","Telefone","tel",{required:true}),F("endereco","Endereço exato (privado)","text",{required:true}),
     F("pessoas_no_local","Pessoas no local","multi",{options:["CRIANÇA / ADOLESCENTE","PESSOA IDOSA","PCD","NÃO HÁ"]}),F("descricao","Necessidade ou situação","textarea"),
     F("foto","Imagem armazenada localmente","hidden"),F("foto_nome","Nome do arquivo","hidden"),F("status","Situação","select",{options:["Em triagem","Vinculado","Confirmado","Arquivado"]}),
     F("origem","Origem do registro","hidden"),F("criado_em","Data e hora","hidden")
