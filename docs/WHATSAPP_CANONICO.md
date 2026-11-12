@@ -48,3 +48,29 @@ As dez migrações iniciais do WhatsApp documentam a fundação já implantada. 
 - `edge.test.ts`: assinatura, parser, imagem, botões longos, erros do transporte e fotos recebidas.
 
 As fixtures rodam somente em PostgreSQL descartável, com transações revertidas. Não enviam mensagens nem criam cidadãos em produção.
+
+## Relato guiado pelo catálogo (versão `municipal-v5-relato-catalogo`)
+
+Migração `20261112120000_relato_por_catalogo.sql`; tipos de Maringá em `supabase/seeds/ocorrencias-tipos.sql`.
+
+O cidadão relata só por botões, do começo ao fim. Ninguém precisa interpretar texto livre.
+
+```
+Relatar uma ocorrência
+  ├─ Categoria    botões lidos de operacao.ocorrenciaCategorias (só as que têm tipo no município)
+  ├─ Tipo         botões lidos de ocorrenciaTipos da categoria escolhida
+  ├─ Local        botão "Enviar localização" do WhatsApp, ou endereço digitado
+  ├─ Foto         opcional
+  └─ Confirmar    relato "Em triagem" com tipo, categoria, situação, ponto e foto
+```
+
+- **Uma lista só.** O WhatsApp e o mapa leem o mesmo catálogo `ocorrenciaTipos`. Um tipo cadastrado ou arquivado na Gestão aparece ou some no WhatsApp na hora, sem versão nova. Campos opcionais do tipo: `botao_whatsapp` (texto do botão, até 20 caracteres; sem ele, o nome) e `ordem_whatsapp`.
+- **Categorias** (`operacao.ocorrenciaCategorias`, em ordem): Chuva e alagamento, Vento e tempestade, Deslizamento/erosão/desabamento, Incêndio, Proteção animal. Os tipos de Maringá seguem os grupos da Cobrade (hidrológicos, meteorológicos, geológicos e incêndios).
+- **Proteção animal** deixou de ser item próprio do menu e virou uma categoria do relato. O menu tem quatro itens: Ser colaborador, Relatar ocorrência, Preciso de ajuda, Alertas do meu bairro. Esses três outros fluxos são copiados da v4 sem mudança.
+- **Motor.**
+  - Pergunta com `"catalog":{"source":"categorias"}` ou `{"source":"tipos","answer":"categoria"}`: as opções são resolvidas pelo servidor a cada pergunta (`wa.opcoes`), validadas contra a mesma lista e mostradas pelo nome no resumo.
+  - Pergunta `"kind":"location"`: aceita a localização do WhatsApp (coordenadas conferidas) ou o endereço digitado, e manda o pedido de localização do WhatsApp (`location_request_message`). Só pode ser obrigatória.
+  - Na gravação, `path` pega uma parte da resposta (`lat`, `lng`, `endereco`), e o contexto `profile_name` usa o nome do perfil do WhatsApp.
+- **Servidor confere o relato** (`private.ma_relato_tipo`): o `tipo_id` precisa existir no município. O servidor preenche `tipo_nome`, `categoria` (`animal` para a categoria da proteção animal) e `situacao` (o `situacao_whatsapp` do tipo, ou o nome). A triagem de animais, a revisão por IA e a visibilidade restrita seguem iguais. O ponto é conferido; sem endereço digitado, o endereço registra as coordenadas. Sem nome no perfil, fica "Não informado". Relato sem `tipo_id` não muda.
+- **Troca do canal:** por `ma_wa_usar_versao`, só com autorização. A migração não troca.
+- **Teste:** `tests/whatsapp/relato-catalogo.sql`; transporte e leitura da localização em `tests/whatsapp/edge.test.ts`.

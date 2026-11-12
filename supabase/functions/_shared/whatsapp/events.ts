@@ -17,7 +17,11 @@ export function parseEvents(body: ObjectMap): Envelope[] {
         text: m.type === 'text' ? m.text?.body : m.type === 'button' ? m.button?.text : undefined,
         // Template quick replies arrive as type "button" and carry the payload set when the template was sent.
         button: m.type === 'interactive' ? m.interactive?.button_reply?.id ?? m.interactive?.list_reply?.id : m.type === 'button' ? m.button?.payload : undefined,
-        image: m.type === 'image' ? { id: m.image?.id, mime_type: m.image?.mime_type, sha256: m.image?.sha256 } : undefined });
+        image: m.type === 'image' ? { id: m.image?.id, mime_type: m.image?.mime_type, sha256: m.image?.sha256 } : undefined,
+        // Location shared by the contact; PostgreSQL validates the coordinates.
+        location: m.type === 'location' ? { latitude: m.location?.latitude, longitude: m.location?.longitude,
+          name: typeof m.location?.name === 'string' ? m.location.name.slice(0, 200) : undefined,
+          address: typeof m.location?.address === 'string' ? m.location.address.slice(0, 300) : undefined } : undefined });
     }
     for (const s of value.statuses ?? []) {
       if (!s.id || !['sent', 'delivered', 'read', 'failed'].includes(s.status) || !/^\d{1,12}$/.test(s.timestamp ?? '')) continue;

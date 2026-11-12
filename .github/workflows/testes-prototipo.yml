@@ -130,6 +130,7 @@ jobs:
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/alertas.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/envio.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/revisao.sql
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/relato-catalogo.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/contatos.sql
           psql -h localhost -U postgres -v ON_ERROR_STOP=1 -f tests/whatsapp/exclusao-definitiva.sql
           MARINGA_TESTE_DESCARTAVEL=1 PGHOST=localhost PGPORT=5432 PGUSER=postgres PGDATABASE=teste_pra_somar python3 tests/whatsapp/exclusao-concorrente.py
