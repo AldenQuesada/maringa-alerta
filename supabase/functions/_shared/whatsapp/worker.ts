@@ -18,6 +18,14 @@ export async function drain(db: Database, token: string) {
     await db.rpc('ma_wa_resultado', { saida: item.id, reserva: item.lease, ...result });
     if (result.resultado === 'sent') sent++;
   }
+  // Subscriber alerts: template messages queued by the panel; replies above always go first.
+  let alerts = 0;
+  for (let count = 0; count < 30 && Date.now() - start < 40000; count++) {
+    const item = await db.rpc<Delivery | null>('ma_wa_reservar_envio'); if (!item) break;
+    const result = await deliver(item, token);
+    await db.rpc('ma_wa_resultado_envio', { saida: item.id, reserva: item.lease, ...result });
+    if (result.resultado === 'sent') alerts++;
+  }
   const removed = await cleanDeletedMedia(db, Math.max(0, 45000 - (Date.now() - start)));
-  return { processed, sent, removed };
+  return { processed, sent, alerts, removed };
 }

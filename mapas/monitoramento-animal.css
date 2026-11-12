@@ -96,3 +96,14 @@ select,input,textarea{background:#0d1724;border:1px solid #3c5065;color:var(--fg
 .ma-animal-triagem form{display:grid;gap:8px;margin-top:10px}
 .ma-animal-triagem select{width:100%;min-height:36px}
 .ma-animal-triagem p{margin:0;color:var(--muted);font-size:13px}
+/* Alerta do bairro na ficha: mesmo bloco visual da triagem. */
+.ma-animal-envio textarea{width:100%;min-height:96px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#0d1724;color:var(--fg);font:inherit;resize:vertical;box-sizing:border-box}
+.ma-animal-envio label{display:grid;gap:6px;font-size:13px;color:var(--muted)}
+.ma-animal-envio .ma-animal-envio-opcao{display:flex;align-items:center;gap:8px;color:var(--fg)}
+.ma-animal-envio blockquote{margin:8px 0;padding:8px 10px;border-left:3px solid var(--blue);background:#0d1724;color:var(--fg);font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.ma-animal-envio p+p{margin-top:6px}
+.ma-animal-envio a{color:#8cc4ff}
+.ma-animal-envio .ma-animal-triagem-acoes{margin:10px 0}
+.ma-animal-revisao ul{margin:4px 0 0;padding-left:18px;color:var(--fg);font-size:13px}
+.ma-animal-revisao p{color:var(--fg)}.ma-animal-revisao small{color:var(--muted)}
+.ma-animal-revisao [data-nao-confere]{color:var(--accent)}

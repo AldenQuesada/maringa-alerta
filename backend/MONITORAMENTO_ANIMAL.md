@@ -94,7 +94,181 @@ Migração `20261111190000_protecao_animal_lugares_acoes.sql`. Somente acréscim
   - Sebea: Av. Centenário, 449, Zona 08. Sem coordenada; a busca de endereço não acha o número.
   - Cbea: Rua Duzentos, s/n, Ebenezer. Sem coordenada; não está confirmado se fica no mesmo terreno do Centro de Zoonoses.
   - Centro de Controle de Zoonoses: Estrada 200, 1391, com o ponto do CNES 9944184.
-- **Ainda não:** o envio de alertas das ações (etapas E3 e E4) e as clínicas credenciadas para castração, cuja lista não é pública.
+- **Ainda não:** as clínicas credenciadas para castração, cuja lista não é pública. O envio das ações aos inscritos está em "Alertas aos inscritos".
+
+## Alertas aos inscritos (etapas E2 a E4)
+
+Migração `20261111220000_alertas_envio.sql`. Somente acréscimos, com duas exceções pequenas e conferidas: `private.ma_inscritos` (criada por este módulo na E1) passa a reconhecer zonas, e o recebimento do WhatsApp ganha uma linha no ponto em que descartava retornos da Meta.
+
+### Fluxo
+
+1. O relato chega pelo WhatsApp e a gestão faz a triagem no mapa ("Confirmar e abrir ocorrência").
+2. Na ficha da ocorrência confirmada, o bloco **Alerta do bairro** mostra quantos inscritos estão na área e quais bairros ela cobre.
+3. Quem tem a capacidade `aprovar_alerta` escreve a mensagem e toca em **Aprovar e enviar**. Quem cria pode aprovar.
+4. O servidor grava o alerta pelo caminho canônico (`ma_alerta_aprovar`) e põe as mensagens na fila (`ma_enviar_inscritos`).
+5. O trabalhador do WhatsApp envia o modelo aprovado na Meta, uma mensagem por inscrito, depois das respostas das conversas.
+6. A ficha mostra a situação: na fila, enviados, entregues, lidos e falhas.
+
+As **Ações nos bairros** (feira de adoção, castração, castramóvel) usam o mesmo caminho: a ficha da ação tem **Enviar aos inscritos**.
+
+### Quem recebe
+
+- Inscritos ativos com o bairro dentro da área. No alerta, a área é a calculada na criação (bairro e vizinhos). Na ação, é o bairro da ação e os vizinhos.
+- Inscritos que digitaram uma zona ("Zona 7", "zona 07") recebem quando a zona se sobrepõe a um bairro da área. Encostar só na divisa não conta.
+- Repetir o envio não duplica: cada contato recebe uma vez por alerta ou ação. O botão passa a "Enviar aos novos inscritos".
+
+### Travas no servidor
+
+- O envio nasce **desligado** (`operacao.protecaoAnimal.envio.ativo=false`). Desligado, a ficha aprova o alerta e avisa; nada entra na fila e nada é reservado.
+- Antes de cada mensagem, o servidor confere de novo o registro e a inscrição:
+  - alerta ainda aprovado e ocorrência ainda confirmada;
+  - ação ainda agendada e com data de hoje em diante;
+  - inscrito ainda ativo.
+  Se algo mudou, a mensagem é cancelada, não enviada.
+- Mensagem que não sai em `validadeHoras` (24 h) expira.
+- Ocorrência restrita (maus-tratos) não tem alerta, como antes.
+- Leitor e operador não aprovam, não enviam e não veem o painel do envio.
+
+### Saída
+
+- Responder **SAIR**, ou tocar em **Parar alertas** no modelo, desativa a inscrição na hora, cancela o que estava na fila para o contato e responde com o texto de `envio.saida.resposta`.
+- Só vale para quem está inscrito e para a mensagem exatamente "sair". Para quem não está inscrito, ou para frases como "quero sair de casa", a mensagem segue o fluxo normal.
+- A exclusão definitiva do contato leva junto os envios dele.
+
+### Página pública
+
+- Endereço: `alerta/?m=<prefeitura>&c=alertas|acoes&id=<registro>`. É o link do botão do modelo.
+- A página não acessa o banco. Ela chama a função `ma-aviso-publico`, que devolve só o que `wa.ma_wa_aviso_publico` libera:
+  - tipo, mensagem, espécie, bairro, área e data de publicação;
+  - desfecho, quando o caso foi encerrado.
+- Não saem denunciante, telefone, coordenada nem caso restrito.
+- A foto do relato aparece somente quando a aprovação marcou **Mostrar a foto do relato na página do alerta** e enquanto o caso está aberto.
+- Textos da página: `envio.paginaPublica.textos`.
+
+### Configuração (`operacao.protecaoAnimal.envio`)
+
+| Chave | Uso |
+|---|---|
+| `ativo` | Liga o envio real |
+| `validadeHoras` | Prazo para uma mensagem sair da fila |
+| `situacoes` | Situação que permite envio: alerta "Aprovado", ação "Agendada" |
+| `modelos` | Nome e idioma do modelo na Meta, campos do corpo e ordem dos botões, por coleção |
+| `saida` | Palavras de saída, identificador do botão "Parar alertas" e resposta |
+| `paginaPublica.textos` | Textos da página pública |
+
+### Funções
+
+| Função | Quem chama | Resultado |
+|---|---|---|
+| `ma_envio_painel(municipio, colecao, registro)` | ficha do mapa | Capacidade, envio ligado, alerta, área, inscritos e entregas |
+| `ma_alerta_aprovar(municipio, incidente, mensagem, mostrar_foto)` | ficha do mapa | Cria e aprova o alerta pelo caminho canônico |
+| `ma_enviar_inscritos(municipio, colecao, registro)` | ficha do mapa | `{na_fila, total}` |
+| `ma_wa_reservar_envio()` e `ma_wa_resultado_envio(...)` | trabalhador do WhatsApp | Fila de envios |
+| `ma_aviso_publico(...)` e `ma_aviso_foto(...)` | função `ma-aviso-publico` | Dados da página pública |
+
+Nenhuma delas é executável sem login. A página pública passa pela função de servidor, conforme a regra do projeto.
+
+### Modelos para aprovar na Meta
+
+Cadastrar no WhatsApp Manager com os nomes exatos abaixo, idioma **Português (BR)**, categoria **Utilidade**. A Meta pode reclassificar. Mensagem de modelo é cobrada por mensagem entregue.
+
+**`alerta_animal_bairro`**
+
+- Corpo:
+
+  ```
+  Alerta da Proteção Animal no seu bairro.
+
+  {{1}}
+
+  Se você viu este animal, responda a esta mensagem.
+  ```
+
+- Exemplo de `{{1}}`: `Cão caramelo de porte médio, coleira azul, fugiu na Rua Néo Alves Martins. Atende por Thor.`
+- Rodapé: `Para não receber mais, responda SAIR.`
+- Botão 1, visitar site: **Ver o animal**.
+  - URL dinâmica: `https://aldenquesada.github.io/maringa-alerta/alerta/?{{1}}`.
+  - Exemplo: `https://aldenquesada.github.io/maringa-alerta/alerta/?m=maringa&c=alertas&id=alerta-exemplo`.
+- Botão 2, resposta rápida: **Parar alertas**.
+
+**`acao_animal_bairro`**
+
+- Corpo:
+
+  ```
+  Proteção Animal no seu bairro: {{1}}.
+
+  Quando: {{2}}
+  Onde: {{3}}
+
+  Toque em Ver detalhes para saber mais.
+  ```
+
+- Exemplos:
+  - `{{1}}`: `Feira de adoção da Praça da Catedral`
+  - `{{2}}`: `22/11/2026, 9h às 13h`
+  - `{{3}}`: `Praça da Catedral, Zona 1`
+- Rodapé: `Para não receber mais, responda SAIR.`
+- Botão 1, visitar site: **Ver detalhes**. A URL dinâmica é a mesma do modelo anterior.
+- Botão 2, resposta rápida: **Parar alertas**.
+
+A ordem dos botões precisa ser essa: o servidor envia o link no botão 0 e a saída no botão 1 (`modelos.*.botoes`).
+
+### Para ligar
+
+1. Os dois modelos aprovados na Meta.
+2. O canal na versão que tem "Alertas do meu bairro" no menu (`ma_wa_usar_versao`). Sem isso, a inscrição só existe pela Gestão.
+3. Ligar o envio:
+
+   ```sql
+   update public.ma_configuracao set documento=jsonb_set(documento,'{protecaoAnimal,envio,ativo}','true'),versao=versao+1 where id='operacao';
+   ```
+
+   Para desligar, o mesmo comando com `'false'`: a fila para na hora.
+
+### Testes
+
+- `tests/whatsapp/envio.sql` cobre:
+  - público por bairro, vizinho e zona;
+  - modelo montado pelo banco;
+  - fila sem duplicar;
+  - envio desligado;
+  - reserva e retorno da Meta;
+  - cancelamento por saída do inscrito ou por caso encerrado;
+  - página pública sem dados pessoais e foto só com a escolha da aprovação;
+  - ações, SAIR, botão de saída e exclusão do contato.
+- `tests/whatsapp/edge.test.ts` cobre o envio de modelo, o botão de resposta rápida, a fila de alertas do trabalhador e a função da página pública.
+- `tests/browser/monitoramento-animal.spec.cjs` cobre o bloco da ficha. `tests/browser/alerta-publico.spec.cjs` cobre a página pública.
+
+## Revisão por IA dos relatos
+
+Migração `20261111230000_revisao_ia.sql`. É o passo do fluxo em que, quando o relato entra pelo WhatsApp, a IA revisa e entrega um relatório antes de a gestão decidir.
+
+- **Fila.** Todo relato de animal novo entra em `wa.revisoes`. O agendador do banco chama a função `ma-animal-revisao` a cada minuto, mas só quando a revisão está ligada e há algo na fila.
+- **O que vai para a IA:** situação, espécie, endereço, bairro, descrição e se há foto (sim ou não). Não vão nome, telefone, anonimato nem a foto.
+- **O que volta,** conferido e limitado pelo servidor antes de gravar no relato (`revisao_ia`):
+  - resumo;
+  - urgência (Alta, Média ou Baixa);
+  - se a situação escolhida combina com a descrição;
+  - o que falta para agir;
+  - uma sugestão de texto de alerta, só para animal perdido ou encontrado.
+- **Na ficha do relato:** bloco "Relatório da IA", com o aviso de que foi gerado por IA. A triagem continua igual e a decisão é da gestão.
+- **No alerta:** a sugestão vem escrita no formulário do alerta da ocorrência gerada pelo relato. A gestão confere, edita e aprova.
+- **Falhas:** resposta fora do formato, recusa do modelo ou erro da API voltam para a fila, até 3 tentativas. Só o código do erro é guardado, nunca o texto. Um relato que saiu da triagem antes da vez dele não é revisado. A fila expira em 48 h.
+- **Configuração** (`operacao.protecaoAnimal.revisaoIA`): `ativo`, `modelo` (`claude-opus-5-5`), `esforco` (`medium`), `instrucoes` (o texto que orienta a IA), `tentativas` e `validadeHoras`. Ajustar o texto da IA é editar `instrucoes` no banco.
+- **Para ligar:**
+  1. Cadastrar a chave da API da Anthropic como segredo `ANTHROPIC_API_KEY` nas funções do Supabase (Project Settings, Edge Functions, Secrets).
+  2. Ligar a revisão:
+
+     ```sql
+     update public.ma_configuracao set documento=jsonb_set(documento,'{protecaoAnimal,revisaoIA,ativo}','true'),versao=versao+1 where id='operacao';
+     ```
+
+  Cada relato revisado é uma chamada paga à API da Anthropic. As denúncias de maus-tratos também passam pela revisão, sem dados de quem denunciou.
+- **Testes:**
+  - `tests/whatsapp/revisao.sql`: fila só de animais, desligada, sem dados pessoais, formato recusado, gravação limpa, reserva vencida, tentativas, fora da triagem e sugestão no painel.
+  - `tests/whatsapp/edge.test.ts`: a fila da função.
+  - `tests/browser/monitoramento-animal.spec.cjs`: o relatório na ficha e a sugestão editável.
 
 ## Limites conhecidos
 

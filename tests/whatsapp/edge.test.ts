@@ -79,3 +79,75 @@ Deno.test('Private cleanup uses Storage API, exact keys, retries and fenced rece
  remaining=1;calls.length=0;fake.remove=async()=>{};
  assert(await cleanDeletedMedia(fake as any)===1);assert(calls[1][1].sucesso===true);
 });
+Deno.test('Approved Meta template goes out exactly as assembled by the database', () => {
+  const template = { name: 'alerta_animal_bairro', language: { code: 'pt_BR' }, components: [{ type: 'body', parameters: [{ type: 'text', text: 'Mensagem do banco' }] }] };
+  const result = providerPayload({ ...item, payload: { text: '', buttons: [], template } }) as any;
+  assert(result.type === 'template' && result.template === template && result.to === item.to && result.biz_opaque_callback_data === item.id);
+});
+Deno.test('Template quick reply keeps its payload as the button and its label as the text', () => {
+  const body = { object: 'whatsapp_business_account', entry: [{ changes: [{ field: 'messages', value: { metadata: { phone_number_id: '123' },
+    messages: [{ id: 'wamid.stop', from: '550000000000', timestamp: '1794010000', type: 'button', button: { payload: 'alertas_sair', text: 'Parar alertas' } }] } }] }] };
+  const event = parseEvents(body)[0].events[0];
+  assert(event.button === 'alertas_sair' && event.text === 'Parar alertas');
+});
+Deno.test('Public notice validates input, hides internals and streams the photo only when released', async () => {
+  const { aviso } = await import('../../supabase/functions/_shared/aviso/handler.ts');
+  const calls: string[] = [];
+  const db = { rpc: async (name: string, params: any) => { calls.push(name);
+      if (name === 'ma_aviso_publico') return params.registro === 'alerta-1' ? { colecao: 'alertas', titulo: 'Animal perdido' } : null;
+      if (name === 'ma_aviso_foto') return params.registro === 'alerta-1' ? { path: '00000000-0000-4000-8000-000000000000/1.jpg', mime: 'image/jpeg' } : null;
+      throw Error('unexpected'); },
+    read: async () => new Response(new Uint8Array([255, 216, 255])) };
+  const handler = aviso({ db: db as any });
+  const get = (q: string) => handler(new Request('https://example.invalid/?' + q));
+  assert((await get('m=maringa&c=alertas&id=x%27%3B')).status === 400); assert(calls.length === 0);
+  assert((await get('m=maringa&c=relatos&id=r-1')).status === 400);
+  const ok = await get('m=maringa&c=alertas&id=alerta-1');
+  assert(ok.status === 200 && ok.headers.get('access-control-allow-origin') === '*' && (await ok.json()).titulo === 'Animal perdido');
+  assert((await get('m=maringa&c=alertas&id=alerta-2')).status === 404);
+  const foto = await get('m=maringa&c=alertas&id=alerta-1&foto=1');
+  assert(foto.status === 200 && foto.headers.get('content-type') === 'image/jpeg');
+  assert((await get('m=maringa&c=alertas&id=alerta-2&foto=1')).status === 404);
+  assert((await get('m=maringa&c=acoes&id=alerta-1&foto=1')).status === 404);
+  const failing = aviso({ db: { rpc: async () => { throw Error('secret detail'); }, read: async () => new Response() } as any });
+  const failed = await failing(new Request('https://example.invalid/?m=maringa&c=alertas&id=alerta-1'));
+  assert(failed.status === 503 && !(await failed.text()).includes('secret'));
+  assert((await handler(new Request('https://example.invalid/', { method: 'POST' }))).status === 405);
+});
+Deno.test('Worker drains conversation replies first, then subscriber alerts, and records each result', async () => {
+  const { drain } = await import('../../supabase/functions/_shared/whatsapp/worker.ts');
+  const template = { name: 'alerta_animal_bairro', language: { code: 'pt_BR' }, components: [] };
+  const log: string[] = []; let alertQueue = 1;
+  const db = { rpc: async (name: string, params: any) => { log.push(name);
+      if (name === 'ma_wa_entradas') return [];
+      if (name === 'ma_wa_reservar') return null;
+      if (name === 'ma_wa_reservar_envio') return alertQueue-- > 0 ? { ...item, payload: { text: '', buttons: [], template } } : null;
+      if (name === 'ma_wa_resultado_envio') { assert(params.resultado === 'sent' && params.provedor_id === 'wamid.alerta'); return null; }
+      if (name === 'ma_wa_midia_excluir_reservar') return null;
+      throw Error('unexpected ' + name); }, remove: async () => {} };
+  const original = globalThis.fetch;
+  globalThis.fetch = (async (_url: string, init: any) => { assert(JSON.parse(init.body).type === 'template'); return Response.json({ messages: [{ id: 'wamid.alerta' }] }); }) as any;
+  try { const result = await drain(db as any, 'fake'); assert(result.alerts === 1 && result.sent === 0); }
+  finally { globalThis.fetch = original; }
+  assert(log.indexOf('ma_wa_reservar') < log.indexOf('ma_wa_reservar_envio') && log.includes('ma_wa_resultado_envio'));
+});
+Deno.test('AI review queue records each result, turns failures into codes and never stops on one bad report', async () => {
+  const { processarFila } = await import('../../supabase/functions/_shared/revisao/fila.ts');
+  const reserva = { municipio: 'maringa', relato: 'r-1', lease: crypto.randomUUID(), modelo: 'claude-opus-5-5', esforco: 'medium', instrucoes: 'Instruções do banco', entrada: { descricao: 'Cão caramelo' } };
+  const queue = [{ ...reserva }, { ...reserva, relato: 'r-2' }, { ...reserva, relato: 'r-3' }]; const results: any[] = [];
+  const db = { rpc: async (name: string, params: any) => {
+    if (name === 'ma_wa_revisao_reservar') return queue.shift() ?? null;
+    if (name === 'ma_wa_revisao_resultado') { results.push(params); return null; }
+    throw Error('unexpected ' + name); } };
+  const revisao = { resumo: 'Cão perdido', urgencia: 'Média' as const, situacao_confere: true, observacoes: [], sugestao_alerta: 'Cão caramelo' };
+  const result = await processarFila(db as any, async (r) => {
+    assert(r.instrucoes === 'Instruções do banco' && !('telefone' in r.entrada));
+    if (r.relato === 'r-2') throw Error('provider detail');
+    if (r.relato === 'r-3') return { revisao: null, codigo: 'refusal' };
+    return { revisao, codigo: null };
+  });
+  assert(result.feitas === 1 && results.length === 3);
+  assert(results[0].resultado === revisao && results[0].codigo === null && results[0].reserva === reserva.lease);
+  assert(results[1].resultado === null && results[1].codigo === 'erro' && !JSON.stringify(results[1]).includes('provider detail'));
+  assert(results[2].codigo === 'refusal');
+});

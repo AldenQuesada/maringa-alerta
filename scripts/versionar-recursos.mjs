@@ -1,7 +1,7 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import {resolve,dirname,relative} from 'node:path';
 import {createHash} from 'node:crypto';
-const PAGINAS=['index.html','gestao/index.html','plataforma/index.html','mapas/index.html','mapas/monitoramento-animal.html','atendimento/index.html','acesso/index.html','colaboradores/index.html'];
+const PAGINAS=['index.html','gestao/index.html','plataforma/index.html','mapas/index.html','mapas/monitoramento-animal.html','atendimento/index.html','acesso/index.html','colaboradores/index.html','alerta/index.html'];
 const hash=bytes=>createHash('sha1').update('blob '+Buffer.byteLength(bytes)+'\0').update(bytes).digest('hex').slice(0,12);
 export function versionarRecursos(root,checking=false){
  let erros=0;

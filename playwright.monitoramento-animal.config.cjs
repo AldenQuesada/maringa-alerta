@@ -1,6 +1,6 @@
 const {defineConfig}=require('@playwright/test');
 module.exports=defineConfig({
- testDir:'./tests/browser',testMatch:"monitoramento-animal.spec.cjs",
+ testDir:'./tests/browser',testMatch:["monitoramento-animal.spec.cjs","alerta-publico.spec.cjs"],
  fullyParallel:true,forbidOnly:!!process.env.CI,retries:0,workers:2,timeout:45000,
  expect:{timeout:5000},outputDir:".test-results/monitoramento-animal",
  reporter:[['list'],['html',{outputFolder:'.playwright-report/monitoramento-animal',open:'never'}],['json',{outputFile:'.test-results/monitoramento-animal/resultado.json'}]],
